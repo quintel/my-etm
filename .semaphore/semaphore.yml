@@ -20,7 +20,7 @@ blocks:
             - sem-version ruby 3.1.1
             - cache restore
             - gem install bundler
-            - 'bundle config set --local deployment ''true'' Passed in 00:00'
+            - bundle config set --local deployment 'true'
             - bundle install || (rm -rf vendor/bundle && cache clear && bundle install)
             - cache store
             - 'bundle exec rake db:setup'
