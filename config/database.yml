@@ -15,11 +15,14 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:
-  socket: /tmp/mysql.sock
+  socket: <%= ENV['DATABASE_HOST'].present? ? nil : '/tmp/mysql.sock' %>
 
 development:
   <<: *default
-  database: my_etm_development
+  database: <%= ENV.fetch('MYSQL_DATABASE', 'my_etm_development') %>
+  host: <%= ENV.fetch('DATABASE_HOST', nil) %>
+  username: <%= ENV.fetch('MYSQL_USER', 'root') %>
+  password: <%= ENV.fetch('MYSQL_PASSWORD', nil) %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -50,6 +53,8 @@ test:
 #
 production:
   <<: *default
-  database: my_etm_production
-  username: my_etm
-  password: <%= ENV["MY_ETM_DATABASE_PASSWORD"] %>
+  url: <%= ENV['DATABASE_URL'] %>
+
+staging:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
