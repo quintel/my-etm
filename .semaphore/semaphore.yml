@@ -8,8 +8,8 @@ blocks:
   - name: Test
     task:
       env_vars:
-        - name: RAILS_ENV
-          value: test
+        - name: DATABASE_HOST
+          value: localhost
       jobs:
         - name: Test
           commands:
