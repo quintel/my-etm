@@ -19,6 +19,7 @@ blocks:
             - sem-service start mysql 8
             - sem-version ruby 3.1.1
             - cache restore
+            - gem install bundler
             - bundle install --deployment --path vendor/bundle
             - cache store
             - 'bundle exec rake db:setup'
