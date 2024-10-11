@@ -1,7 +1,7 @@
-require:
-  - rubocop-performance
-  - rubocop-rails
-  - rubocop-rspec
+# Omakase Ruby styling for Rails
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+require: rubocop-rspec
 
 AllCops:
   NewCops: enable
@@ -13,6 +13,9 @@ AllCops:
   - 'db/schema.rb'
   - 'db/seeds.rb'
   - 'vendor/**/*'
+  - 'config/environments/**/*'
+  - 'Gemfile'
+  - 'config/initializers/**/*'
 
 # Align "end" with variable.
 #
@@ -89,7 +92,7 @@ Layout/LineLength:
   Exclude:
   - config/deploy.rb
   - config/deploy/*.rb
-  IgnoredPatterns:
+  AllowedPatterns:
   - '(context|context|it|shared_examples_for)'
 
 # Multi-line method calls are indented by two spaces only.
@@ -143,7 +146,7 @@ Style/GuardClause:
 Style/MethodCallWithArgsParentheses:
   Enabled: true
   IgnoreMacros: true
-  IgnoredMethods:
+  AllowedMethods:
   - can
   - describe
   - head
@@ -189,7 +192,7 @@ Rails/UnknownEnv:
     - test
 
 # Don't require methods to be in separate spec files.
-RSpec/FilePath:
+Rails/FilePath:
   Enabled: false
 
 RSpec/ExampleLength:
