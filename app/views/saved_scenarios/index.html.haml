@@ -1,0 +1,13 @@
+%p{style:"color: green"}= notice
+
+- content_for :title, "Saved scenarios"
+
+%h1 Saved scenarios
+
+%div{id:"saved_scenarios"}
+  - @saved_scenarios.each do |saved_scenario|
+    = render saved_scenario
+    %p
+      = link_to "Show this saved scenario", saved_scenario
+
+= link_to "New saved scenario", new_saved_scenario_path

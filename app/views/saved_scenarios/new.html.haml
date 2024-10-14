@@ -1,0 +1,11 @@
+- content_for :title, "New saved scenario"
+
+%h1 New saved scenario
+
+= render "form", saved_scenario: @saved_scenario
+
+%b
+
+%div
+  = link_to "Back to saved scenarios", saved_scenarios_path
+
