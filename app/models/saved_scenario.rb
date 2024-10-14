@@ -1,0 +1,2 @@
+class SavedScenario < ApplicationRecord
+end

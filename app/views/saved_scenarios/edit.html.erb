@@ -1,0 +1,12 @@
+<% content_for :title, "Editing saved scenario" %>
+
+<h1>Editing saved scenario</h1>
+
+<%= render "form", saved_scenario: @saved_scenario %>
+
+<br>
+
+<div>
+  <%= link_to "Show this saved scenario", @saved_scenario %> |
+  <%= link_to "Back to saved scenarios", saved_scenarios_path %>
+</div>

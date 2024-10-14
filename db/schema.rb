@@ -10,5 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 0) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_14_102534) do
+  create_table "saved_scenarios", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "scenario_id", null: false
+    t.text "scenario_id_history"
+    t.string "title", null: false
+    t.text "description"
+    t.string "area_code", null: false
+    t.integer "end_year", null: false
+    t.boolean "private", default: false
+    t.datetime "discarded_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["discarded_at"], name: "index_saved_scenarios_on_discarded_at"
+    t.index ["scenario_id"], name: "index_saved_scenarios_on_scenario_id"
+  end
 end
