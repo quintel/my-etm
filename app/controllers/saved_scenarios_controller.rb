@@ -65,6 +65,10 @@ class SavedScenariosController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def saved_scenario_params
-      params.require(:saved_scenario).permit(:scenario_id, :scenario_id_history, :title, :description, :area_code, :end_year, :private, :created_at, :updated_at, :discarded_at)
+      params.require(:saved_scenario).permit(
+        :scenario_id, :scenario_id_history, :title,
+        :description, :area_code, :end_year, :private,
+        :created_at, :updated_at, :discarded_at
+      )
     end
 end

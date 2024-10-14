@@ -88,6 +88,8 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.5.1)
+    discard (1.2.1)
+      activerecord (>= 4.2, < 8)
     drb (2.2.1)
     erubi (1.13.0)
     globalid (1.2.1)
@@ -305,6 +307,7 @@ DEPENDENCIES
   bootsnap
   brakeman
   debug
+  discard
   haml
   importmap-rails
   jbuilder
