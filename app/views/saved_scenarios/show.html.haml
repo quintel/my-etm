@@ -1,0 +1,9 @@
+%p{style:"color: green"}= notice
+
+= render @saved_scenario
+
+%div
+  = link_to "Edit this saved scenario", edit_saved_scenario_path(@saved_scenario)
+  = link_to "Back to saved scenarios", saved_scenarios_path
+
+  = button_to "Destroy this saved scenario", @saved_scenario, method: :delete
