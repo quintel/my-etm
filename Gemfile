@@ -25,8 +25,10 @@ gem "jbuilder"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
-# Views
+# Views and CSS
 gem 'haml'
+gem "tailwindcss-rails", "~> 2.7"
+gem "sassc-rails"
 
 # Model gems
 gem 'discard'
@@ -63,4 +65,4 @@ group :development do
   # gem "error_highlight", ">= 0.6.0", platforms: [:ruby]
 end
 
-gem "tailwindcss-rails", "~> 2.7"
+

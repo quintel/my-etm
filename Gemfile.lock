@@ -92,6 +92,8 @@ GEM
       activerecord (>= 4.2, < 8)
     drb (2.2.1)
     erubi (1.13.0)
+    ffi (1.17.0)
+    ffi (1.17.0-x86_64-darwin)
     globalid (1.2.1)
       activesupport (>= 6.1)
     haml (6.3.0)
@@ -250,6 +252,14 @@ GEM
     rubocop-rspec (3.1.0)
       rubocop (~> 1.61)
     ruby-progressbar (1.13.0)
+    sassc (2.4.0)
+      ffi (~> 1.9)
+    sassc-rails (2.1.2)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     securerandom (0.3.1)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
@@ -317,6 +327,7 @@ DEPENDENCIES
   rspec-rails
   rubocop-rails-omakase
   rubocop-rspec
+  sassc-rails
   sprockets-rails
   stimulus-rails
   tailwindcss-rails (~> 2.7)
