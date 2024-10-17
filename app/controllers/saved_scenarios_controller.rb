@@ -25,7 +25,8 @@ class SavedScenariosController < ApplicationController
 
     respond_to do |format|
       if @saved_scenario.save
-        format.html { redirect_to @saved_scenario, notice: "Saved scenario was successfully created." }
+        format.html {
+ redirect_to @saved_scenario, notice: "Saved scenario was successfully created." }
         format.json { render :show, status: :created, location: @saved_scenario }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -38,7 +39,8 @@ class SavedScenariosController < ApplicationController
   def update
     respond_to do |format|
       if @saved_scenario.update(saved_scenario_params)
-        format.html { redirect_to @saved_scenario, notice: "Saved scenario was successfully updated." }
+        format.html {
+ redirect_to @saved_scenario, notice: "Saved scenario was successfully updated." }
         format.json { render :show, status: :ok, location: @saved_scenario }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -52,7 +54,9 @@ class SavedScenariosController < ApplicationController
     @saved_scenario.destroy!
 
     respond_to do |format|
-      format.html { redirect_to saved_scenarios_path, status: :see_other, notice: "Saved scenario was successfully destroyed." }
+      format.html {
+ redirect_to saved_scenarios_path, status: :see_other,
+   notice: "Saved scenario was successfully destroyed." }
       format.json { head :no_content }
     end
   end

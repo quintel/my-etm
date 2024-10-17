@@ -4,7 +4,7 @@ RSpec.describe "saved_scenarios/edit", type: :view do
   let(:saved_scenario) {
     SavedScenario.create!(
       scenario_id: 1,
-      scenario_id_history: [1,5],
+      scenario_id_history: [ 1, 5 ],
       title: "MyString",
       description: "MyText",
       area_code: "MyString",
