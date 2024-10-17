@@ -16,6 +16,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_14_102534) do
     t.text "scenario_id_history"
     t.string "title", null: false
     t.text "description"
+    t.string "version", default: "latest"
     t.string "area_code", null: false
     t.integer "end_year", null: false
     t.boolean "private", default: false
