@@ -4,7 +4,7 @@ RSpec.describe "saved_scenarios/show", type: :view do
   before(:each) do
     assign(:saved_scenario, SavedScenario.create!(
       scenario_id: 2,
-      scenario_id_history: [1,3],
+      scenario_id_history: [ 1, 3 ],
       title: "Title",
       description: "MyText",
       area_code: "Area Code",

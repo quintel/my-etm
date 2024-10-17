@@ -13,7 +13,6 @@ require 'rails_helper'
 # sticking to rails and rspec-rails APIs to keep things simple and stable.
 
 RSpec.describe "/saved_scenarios", type: :request do
-
   # This should return the minimal set of attributes required to create a valid
   # SavedScenario. As you add validations to SavedScenario, be sure to
   # adjust the attributes here as well.
@@ -27,7 +26,7 @@ RSpec.describe "/saved_scenarios", type: :request do
 
   describe "GET /index" do
     it "renders a successful response" do
-      SavedScenario.create! valid_attributes
+      SavedScenario.create!(valid_attributes)
       get saved_scenarios_url
       expect(response).to be_successful
     end
@@ -35,7 +34,7 @@ RSpec.describe "/saved_scenarios", type: :request do
 
   describe "GET /show" do
     it "renders a successful response" do
-      saved_scenario = SavedScenario.create! valid_attributes
+      saved_scenario = SavedScenario.create!(valid_attributes)
       get saved_scenario_url(saved_scenario)
       expect(response).to be_successful
     end
@@ -50,7 +49,7 @@ RSpec.describe "/saved_scenarios", type: :request do
 
   describe "GET /edit" do
     it "renders a successful response" do
-      saved_scenario = SavedScenario.create! valid_attributes
+      saved_scenario = SavedScenario.create!(valid_attributes)
       get edit_saved_scenario_url(saved_scenario)
       expect(response).to be_successful
     end
@@ -60,7 +59,7 @@ RSpec.describe "/saved_scenarios", type: :request do
     context "with valid parameters" do
       it "creates a new SavedScenario" do
         expect {
-          post saved_scenarios_url, params: { saved_scenario: valid_attributes }
+          post(saved_scenarios_url, params: { saved_scenario: valid_attributes })
         }.to change(SavedScenario, :count).by(1)
       end
 
@@ -73,7 +72,7 @@ RSpec.describe "/saved_scenarios", type: :request do
     context "with invalid parameters" do
       it "does not create a new SavedScenario" do
         expect {
-          post saved_scenarios_url, params: { saved_scenario: invalid_attributes }
+          post(saved_scenarios_url, params: { saved_scenario: invalid_attributes })
         }.to change(SavedScenario, :count).by(0)
       end
 
@@ -91,14 +90,14 @@ RSpec.describe "/saved_scenarios", type: :request do
       }
 
       it "updates the requested saved_scenario" do
-        saved_scenario = SavedScenario.create! valid_attributes
+        saved_scenario = SavedScenario.create!(valid_attributes)
         patch saved_scenario_url(saved_scenario), params: { saved_scenario: new_attributes }
         saved_scenario.reload
         skip("Add assertions for updated state")
       end
 
       it "redirects to the saved_scenario" do
-        saved_scenario = SavedScenario.create! valid_attributes
+        saved_scenario = SavedScenario.create!(valid_attributes)
         patch saved_scenario_url(saved_scenario), params: { saved_scenario: new_attributes }
         saved_scenario.reload
         expect(response).to redirect_to(saved_scenario_url(saved_scenario))
@@ -107,7 +106,7 @@ RSpec.describe "/saved_scenarios", type: :request do
 
     context "with invalid parameters" do
       it "renders a response with 422 status (i.e. to display the 'edit' template)" do
-        saved_scenario = SavedScenario.create! valid_attributes
+        saved_scenario = SavedScenario.create!(valid_attributes)
         patch saved_scenario_url(saved_scenario), params: { saved_scenario: invalid_attributes }
         expect(response).to have_http_status(:unprocessable_entity)
       end
@@ -116,14 +115,14 @@ RSpec.describe "/saved_scenarios", type: :request do
 
   describe "DELETE /destroy" do
     it "destroys the requested saved_scenario" do
-      saved_scenario = SavedScenario.create! valid_attributes
+      saved_scenario = SavedScenario.create!(valid_attributes)
       expect {
-        delete saved_scenario_url(saved_scenario)
+        delete(saved_scenario_url(saved_scenario))
       }.to change(SavedScenario, :count).by(-1)
     end
 
     it "redirects to the saved_scenarios list" do
-      saved_scenario = SavedScenario.create! valid_attributes
+      saved_scenario = SavedScenario.create!(valid_attributes)
       delete saved_scenario_url(saved_scenario)
       expect(response).to redirect_to(saved_scenarios_url)
     end
