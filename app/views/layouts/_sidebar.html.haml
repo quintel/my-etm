@@ -1,0 +1,17 @@
+.sidebar.fixed.top-0.bottom-0.overflow-y-auto.bg-gray-800{class: 'lg:left-0 w-[300px]'}
+  -# Where does the logo refer to? REMEMBER LAST VERSION IN COOKIE
+  %a.logo.p-5.inline-block.w-full
+    = image_tag 'header/logo300@2x.png', class: 'h-8'
+
+  .p-2.px-5.text-gray-100.inline-block.w-full
+    = link_to saved_scenarios_path do
+      Scenarios
+
+  %a.p-2.px-5.text-gray-100.inline-block.w-full
+    Collections
+  %a.p-2.px-5.text-gray-100.inline-block.w-full
+    Trash
+
+  .absolute.bottom-0.left-0.inline-block.w-full.border-solid.border-t-2.border-gray-600
+    .p-5.text-gray-100
+      My profile

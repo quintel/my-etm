@@ -17,5 +17,6 @@
     = javascript_importmap_tags
 
   %body
-    = render partial: "layouts/header"
-    = yield
+    = render partial: "layouts/sidebar"
+    .container{class: 'ml-[300px]'}
+      = yield

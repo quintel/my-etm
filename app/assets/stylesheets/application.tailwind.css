@@ -2,11 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-dsads
 @layer base {
   body {
     @apply m-0;
-    @apply text-gray-800;
   }
 }
 /*
