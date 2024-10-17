@@ -27,7 +27,7 @@ gem "jbuilder"
 
 # Views and CSS
 gem 'haml'
-gem "tailwindcss-rails", "~> 2.7"
+gem "tailwindcss-rails", "~> 3.0"
 gem "sassc-rails"
 
 # Model gems
