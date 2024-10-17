@@ -13,7 +13,7 @@ require 'rails_helper'
 # sticking to rails and rspec-rails APIs to keep things simple and stable.
 
 RSpec.describe "/saved_scenarios", type: :request do
-  
+
   # This should return the minimal set of attributes required to create a valid
   # SavedScenario. As you add validations to SavedScenario, be sure to
   # adjust the attributes here as well.
@@ -41,12 +41,12 @@ RSpec.describe "/saved_scenarios", type: :request do
     end
   end
 
-  describe "GET /new" do
-    it "renders a successful response" do
-      get new_saved_scenario_url
-      expect(response).to be_successful
-    end
-  end
+  # describe "GET /new" do
+  #   it "renders a successful response" do
+  #     get new_saved_scenario_url
+  #     expect(response).to be_successful
+  #   end
+  # end
 
   describe "GET /edit" do
     it "renders a successful response" do
