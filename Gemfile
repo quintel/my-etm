@@ -33,6 +33,16 @@ gem "sassc-rails"
 # Model gems
 gem 'discard'
 
+# Auth gems
+gem 'devise'
+gem 'doorkeeper'
+gem 'doorkeeper-jwt'
+gem 'identity', ref: 'df08519', github: 'quintel/identity_rails'
+gem 'faraday'
+
+# Development only:
+gem 'dotenv-rails', groups: [:development]
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
@@ -64,5 +74,3 @@ group :development do
   # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
   # gem "error_highlight", ">= 0.6.0", platforms: [:ruby]
 end
-
-
