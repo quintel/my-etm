@@ -13,6 +13,8 @@ class SavedScenario < ApplicationRecord
   AUTO_DELETES_AFTER = 60.days
 
   has_one :featured_scenario, dependent: :destroy
+  has_many :saved_scenario_users, dependent: :destroy
+  # has_many :users, through: :saved_scenario_users
 
   validates :scenario_id, presence: true
   validates :title,       presence: true

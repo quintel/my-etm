@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_18_111750) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_18_125758) do
   create_table "featured_scenarios", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "saved_scenario_id"
     t.bigint "featured_user_id"
@@ -21,6 +21,17 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_18_111750) do
     t.text "description_nl"
     t.index ["featured_user_id"], name: "index_featured_scenarios_on_featured_user_id"
     t.index ["saved_scenario_id"], name: "index_featured_scenarios_on_saved_scenario_id"
+  end
+
+  create_table "saved_scenario_users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "saved_scenario_id", null: false
+    t.integer "role_id", null: false
+    t.integer "user_id"
+    t.string "user_email"
+    t.index ["saved_scenario_id", "user_email"], name: "index_saved_scenario_users_on_saved_scenario_id_and_user_email", unique: true
+    t.index ["saved_scenario_id", "user_id", "role_id"], name: "idx_on_saved_scenario_id_user_id_role_id_4259c2652e"
+    t.index ["saved_scenario_id", "user_id"], name: "index_saved_scenario_users_on_saved_scenario_id_and_user_id", unique: true
+    t.index ["user_email"], name: "index_saved_scenario_users_on_user_email"
   end
 
   create_table "saved_scenarios", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

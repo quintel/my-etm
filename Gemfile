@@ -25,6 +25,9 @@ gem "jbuilder"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
+# Auth
+gem "devise", "~> 4.9"
+
 # Views and CSS
 gem 'haml'
 gem "tailwindcss-rails", "~> 3.0"
@@ -66,5 +69,3 @@ group :development do
   # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
   # gem "error_highlight", ">= 0.6.0", platforms: [:ruby]
 end
-
-
