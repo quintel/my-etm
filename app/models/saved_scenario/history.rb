@@ -2,6 +2,20 @@
 
 # Contains methods concerning scenario ID history
 module SavedScenario::History
+  # Safe updating of scenario_id for the API, checks if the id is new, or was
+  # already part of the history
+  def update_scenario_id(incoming_id)
+    return unless incoming_id
+    return if incoming_id == scenario_id
+
+    if scenario_id_history.include?(incoming_id)
+      restore_version(incoming_id)
+    else
+      add_id_to_history(scenario_id)
+      self.scenario_id = incoming_id
+    end
+  end
+
   # Public: Adds the ID to the history. Max history is 100 scenarios.
   def add_id_to_history(scenario_id)
     return if !scenario_id || scenario_id_history.include?(scenario_id)
