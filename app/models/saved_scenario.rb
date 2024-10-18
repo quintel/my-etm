@@ -8,6 +8,7 @@ class SavedScenario < ApplicationRecord
   include Discard::Model
   include SavedScenario::History
   include SavedScenario::Featured
+  include SavedScenario::Users
 
   # Discarded scenarios are deleted automatically after this period.
   AUTO_DELETES_AFTER = 60.days
