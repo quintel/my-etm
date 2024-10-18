@@ -39,10 +39,10 @@ describe FeaturedScenario do
       ]
     end
 
-    let(:group_three) { [FactoryBot.build(:featured_scenario, group: 'three')] }
-    let(:group_four) { [FactoryBot.build(:featured_scenario, group: 'four')] }
-    let(:group_five) { [FactoryBot.build(:featured_scenario, group: 'five')] }
-    let(:group_nil) { [FactoryBot.build(:featured_scenario, group: nil)] }
+    let(:group_three) { [ FactoryBot.build(:featured_scenario, group: 'three') ] }
+    let(:group_four) { [ FactoryBot.build(:featured_scenario, group: 'four') ] }
+    let(:group_five) { [ FactoryBot.build(:featured_scenario, group: 'five') ] }
+    let(:group_nil) { [ FactoryBot.build(:featured_scenario, group: nil) ] }
 
     let(:unsorted) do
       [
@@ -58,13 +58,13 @@ describe FeaturedScenario do
       ]
     end
 
-    let(:order) { ['one', 'two', 'three', :rest, nil] }
+    let(:order) { [ 'one', 'two', 'three', :rest, nil ] }
 
     let(:ordered) { described_class.in_groups(unsorted, order) }
 
     it 'creates an entry per group, ordered as in the parameters' do
       expect(ordered.map { |group| group[:name] })
-        .to eq(['one', 'two', 'three', 'five', 'four', nil])
+        .to eq([ 'one', 'two', 'three', 'five', 'four', nil ])
     end
 
     describe 'the "one" group' do
@@ -133,7 +133,7 @@ describe FeaturedScenario do
       ]
     end
 
-    let(:order) { ['one', 'two', :rest, nil] }
+    let(:order) { [ 'one', 'two', :rest, nil ] }
 
     let(:ordered) { described_class.in_groups_per_end_year(unsorted, order) }
 

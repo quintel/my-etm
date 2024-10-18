@@ -31,7 +31,7 @@ class SavedScenario < ApplicationRecord
 
   def scenario(engine_client)
     unless engine_client.is_a?(Faraday::Connection)
-      raise 'SavedScenario#scenario expects an HTTP client as its first argument'
+      raise "SavedScenario#scenario expects an HTTP client as its first argument"
     end
 
     @scenario ||= FetchAPIScenario.call(engine_client, scenario_id).or(nil)
