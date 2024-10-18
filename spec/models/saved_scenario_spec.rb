@@ -49,7 +49,7 @@ RSpec.describe SavedScenario, type: :model do
 
   describe 'restore_historical' do
     before do
-      subject.scenario_id_history = [123, 1234, 12345]
+      subject.scenario_id_history = [ 123, 1234, 12345 ]
     end
 
     it 'sets the version as the main scenario id' do
@@ -64,11 +64,11 @@ RSpec.describe SavedScenario, type: :model do
 
     it 'keeps correct ids in history' do
       subject.restore_historical(1234)
-      expect(subject.scenario_id_history).to eq([123])
+      expect(subject.scenario_id_history).to eq([ 123 ])
     end
 
     it 'returns the discarded ids' do
-      expect(subject.restore_historical(1234)).to eq([123_45])
+      expect(subject.restore_historical(1234)).to eq([ 123_45 ])
     end
 
     it 'does nothing when the scenario was not in the history' do

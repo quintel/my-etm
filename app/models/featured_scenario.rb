@@ -7,7 +7,7 @@ class FeaturedScenario < ApplicationRecord
 
   # Groups as they are sorted on the front page. Scenarios in a group which isn't explicitly named
   # are sorted in `:rest`, while those with no group come last.
-  SORTABLE_GROUPS = [*GROUPS, :rest, nil].freeze
+  SORTABLE_GROUPS = [ *GROUPS, :rest, nil ].freeze
 
   belongs_to :saved_scenario
   validates :saved_scenario_id, presence: true, uniqueness: true
@@ -60,7 +60,7 @@ class FeaturedScenario < ApplicationRecord
     end.flatten.compact
   end
 
-  def self.in_groups_per_end_year(featured_scenarios, groups=SORTABLE_GROUPS)
+  def self.in_groups_per_end_year(featured_scenarios, groups = SORTABLE_GROUPS)
     scenarios = featured_scenarios.group_by(&:end_year)
     scenarios.each do |end_year, year_scenarios|
       scenarios[end_year] = FeaturedScenario.in_groups(year_scenarios, groups)
