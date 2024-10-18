@@ -92,6 +92,11 @@ GEM
       activerecord (>= 4.2, < 8)
     drb (2.2.1)
     erubi (1.13.0)
+    factory_bot (6.4.6)
+      activesupport (>= 5.0.0)
+    factory_bot_rails (6.4.3)
+      factory_bot (~> 6.4)
+      railties (>= 5.0.0)
     ffi (1.17.0)
     ffi (1.17.0-x86_64-darwin)
     globalid (1.2.1)
@@ -261,6 +266,8 @@ GEM
       sprockets-rails
       tilt
     securerandom (0.3.1)
+    shoulda-matchers (5.1.0)
+      activesupport (>= 5.2.0)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -315,6 +322,7 @@ DEPENDENCIES
   brakeman
   debug
   discard
+  factory_bot_rails
   haml
   importmap-rails
   jbuilder
@@ -325,6 +333,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   rubocop-rspec
   sassc-rails
+  shoulda-matchers
   sprockets-rails
   stimulus-rails
   tailwindcss-rails (~> 3.0)
