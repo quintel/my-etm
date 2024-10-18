@@ -5,6 +5,7 @@
 @layer base {
   body {
     @apply m-0;
+    @apply h-screen;
   }
 }
 /*

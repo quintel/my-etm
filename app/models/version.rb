@@ -2,7 +2,7 @@
 
 # A valid version of the ETM
 class Version
-  LIST = %i[
+  LIST = %w[
     latest
   ].freeze
 

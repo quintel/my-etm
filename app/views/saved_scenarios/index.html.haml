@@ -1,13 +1,12 @@
 %p{style:"color: green"}= notice
 
 - content_for :title, "Saved scenarios"
+- content_for :menu_title, "Saved scenarios"
 
-%h1 Saved scenarios
+.flex.h-full
+  %div{class: 'basis-3/4', id:"saved_scenarios"}
+    - @saved_scenarios.each do |saved_scenario|
+      = render saved_scenario
 
-%div{id:"saved_scenarios"}
-  - @saved_scenarios.each do |saved_scenario|
-    = render saved_scenario
-    %p
-      = link_to "Show this saved scenario", saved_scenario
-
-= link_to "New saved scenario", new_saved_scenario_path
+  .bg-gray-100.mr-0.ml-auto.h-full{class: 'basis-1/4 max-w-[300px]'}
+    FILTERS
