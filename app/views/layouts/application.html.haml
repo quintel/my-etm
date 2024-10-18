@@ -18,5 +18,9 @@
 
   %body
     = render partial: "layouts/sidebar"
-    .container{class: 'ml-[300px]'}
-      = yield
+    .p-5.flex.flex-col.h-full{class: 'ml-[300px]'}
+      = render partial: "layouts/buttons"
+      %h2.mb-5= yield(:menu_title)
+      .bg-gray-200.p-5.grow
+        = yield
+      = render partial: "layouts/footer"

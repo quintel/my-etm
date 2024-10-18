@@ -1,40 +1,18 @@
-%div{id: dom_id(saved_scenario)}
-  %p
-    %strong Scenario:
-    = saved_scenario.scenario_id
-
-  %p
-    %strong Scenario id history:
-    = saved_scenario.scenario_id_history
-
-  %p
-    %strong Title:
+= link_to saved_scenario do
+  .mb-5{id: dom_id(saved_scenario)}
     = saved_scenario.title
 
-  %p
-    %strong Description:
-    = saved_scenario.description
-
-  %p
-    %strong Area code:
     = saved_scenario.area_code
 
-  %p
-    %strong End year:
     = saved_scenario.end_year
 
-  %p
-    %strong Private:
-    = saved_scenario.private
+    - if saved_scenario.private
+      PRIVATE
 
-  %p
-    %strong Created at:
+    = saved_scenario.description
+
+    %strong Ctreated at:
     = saved_scenario.created_at
 
-  %p
     %strong Updated at:
     = saved_scenario.updated_at
-
-  %p
-    %strong Discarded at:
-    = saved_scenario.discarded_at
