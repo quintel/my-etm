@@ -1,11 +1,31 @@
 %p{style:"color: green"}= notice
 
 - content_for :menu_title, @saved_scenario.title
+- content_for :block_right, render("block_right_menu", saved_scenario: @saved_scenario)
 
-= render @saved_scenario
+= @saved_scenario.area_code
+= @saved_scenario.end_year
 
 %div
-  = link_to "Edit this saved scenario", edit_saved_scenario_path(@saved_scenario)
-  = link_to "Back to saved scenarios", saved_scenarios_path
+  = "Created #{@saved_scenario.created_at}, last updated #{time_ago_in_words(@saved_scenario.updated_at)} ago"
 
-  = button_to "Destroy this saved scenario", @saved_scenario, method: :delete
+%div
+  - if @saved_scenario.featured?
+    = @saved_scenario.featured_owner_name
+  - else
+    - @saved_scenario.owners.each do |owner|
+      = owner.name
+    - if @saved_scenario.collaborators.presence
+      - @saved_scenario.collaborators.each do |collaborator|
+        = collaborator.name
+    - if @saved_scenario.viewers.presence
+      - @saved_scenario.viewers.each do |viewer|
+        = viewer.name
+
+.bg-gray-100.p-2
+  - if @saved_scenario.localized_description(I18n.locale).presence
+    = formatted_scenario_description(@saved_scenario.localized_description(I18n.locale), allow_external_links: @saved_scenario.featured?)
+  - elsif @saved_scenario.description.empty?
+    No description, click here to create one.
+  - else
+    = @saved_scenario.description

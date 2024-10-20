@@ -8,5 +8,7 @@ FactoryBot.define do
     title_nl { 'Dutch title' }
     description_en { 'English description' }
     description_nl { 'Dutch description' }
+
+    featured_scenario_user
   end
 end
