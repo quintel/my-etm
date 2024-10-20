@@ -216,6 +216,7 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.2.1)
+    rdiscount (2.2.7.3)
     rdoc (6.7.0)
       psych (>= 4.0.0)
     regexp_parser (2.9.2)
@@ -347,6 +348,7 @@ DEPENDENCIES
   mysql2 (~> 0.5)
   puma (>= 5.0)
   rails (~> 7.2.1)
+  rdiscount (~> 2.2)
   rspec-rails
   rubocop-rails-omakase
   rubocop-rspec

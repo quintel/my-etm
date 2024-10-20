@@ -6,6 +6,10 @@ module SavedScenario::Featured
     featured_scenario.present?
   end
 
+  def featured_owner_name
+    featured? ? featured_scenario.owner.name : owners.first.name
+  end
+
   def localized_title(locale)
     featured? ? featured_scenario.localized_title(locale) : title
   end

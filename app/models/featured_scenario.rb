@@ -10,6 +10,8 @@ class FeaturedScenario < ApplicationRecord
   SORTABLE_GROUPS = [ *GROUPS, :rest, nil ].freeze
 
   belongs_to :saved_scenario
+  belongs_to :owner, class_name: 'FeaturedScenarioUser'
+
   validates :saved_scenario_id, presence: true, uniqueness: true
   validates :description_en, :description_nl, :title_en, :title_nl, presence: true
   validates :group, inclusion: GROUPS

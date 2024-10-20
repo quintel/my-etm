@@ -1,0 +1,2 @@
+class FeaturedScenarioUser < ApplicationRecord
+end
