@@ -9,6 +9,6 @@ FactoryBot.define do
     description_en { 'English description' }
     description_nl { 'Dutch description' }
 
-    featured_scenario_user
+    owner { association :featured_scenario_user }
   end
 end
