@@ -1,0 +1,256 @@
+---
+nl:
+  select_language: Taal
+  time_from_now: '%{time} from now'
+  time_ago: '%{time} ago'
+
+  identity:
+    cancel: Annuleren
+    return_to_etm: Ga terug naar het ETM
+    profile_email_component:
+      change_address: Wijzig e-mailadres
+      confirmed: Bevestigd
+      explanation: Dit adres wordt gebuikt om in te loggen en om je belangrijke notificaties te sturen.
+      not_confirmed: Niet bevestigd
+      not_confirmed_message: |
+        Dit e-mailadres is nog niet bevestigd. Controleer je e-mailadres op instructies.
+      resend_confirmation: Stuur nieuwe instructies ter bevestiging
+    sign_out: Uitloggen
+    site_title: Energietransitiemodel
+
+    # Pages
+
+    authorized_application_component:
+      permissions: Bevoegdheden
+      revoke_application: Applicatie intrekken
+      visit_website: Bezoek website
+
+    authorized_applications:
+      index:
+        empty_state:
+          title: Je hebt geen applicaties van derden toestemming gegeven
+          message: |
+            Je kunt derden toestemming geven om gegevens van je account op te vragen, zonder je
+            wachtwoord te delen. Deze partijen zullen toestemming vragen om toegang te krijgen tot
+            je account, waarna ze hier worden weergegeven.
+
+            Je kunt deze toestemming op elk moment intrekken.
+        explanation: Beheer wie toegang heeft tot je account en gegevens.
+        title: Geautoriseerde applicaties
+
+    settings:
+      edit_email:
+        new_email: Nieuw e-mailadres
+        new_email_hint: Er wordt een bevestiging naar dit adres verzonden voor de wijziging actief wordt
+        submit: Wijzig e-mailadres
+        title: Wijzig je e-mailadres
+      edit_name:
+        new_name: Nieuwe naam
+        new_name_hint: |
+          Deze naam gebruiken we in onze communicatie naar jou en wordt weergegeven bij jouw openbare scenario's.
+        submit: Wijzig naam
+        title: Wijzig je accountnaam
+      edit_password:
+        current_password: Huidig wachtwoord
+        current_password_hint: Bevestig het wachtwoord dat je momenteel gebruikt om in te loggen
+        new_password: Nieuw wachtwoord
+        new_password_hint: |
+          Je wachtwoord moet ten minste %{min_length} tekens lang zijn. Gebruik meerdere woorden,
+          cijfers of symbolen om het beter te beveiligen.
+        submit: Wijzig wachtwoord
+        title: Wijzig je wachtwoord
+      index:
+        account: Account
+        change_name: Wijzig naam
+        change_password: Wijzig wachtwoord
+        explanation: Wijzig je e-mailadres, wachtwoord of accountinstellingen.
+        name_explanation: Deze naam wordt weergegeven bij jouw openbare scenario's.
+        password_explanation: |
+          Dit wachtwoord wordt gebruikt om in te loggen. Deel dit wachtwoord nooit met iemand anders:
+          als een andere applicatie toegang nodig heeft tot data van jouw account, maak dan een
+          persoonlijk toegangstoken aan.
+        profile: Profiel
+        settings: Settings
+        title: Jouw profiel
+        privacy:
+          title: Privacy
+          choose: |
+            Stel in of nieuwe scenario's en opgeslagen scenario's standaard privé of publiek zijn.
+            Je kunt deze instelling per scenario overschrijven.
+          public_vs_private: |
+            Publieke scenarios kunnen door iedereen met een link naar het scenario worden bekeken
+            (maar niet worden gewijzigd), terwijl privéscenario's alleen door jou kunnen worden bekeken.
+      update_email:
+        success:
+          title: E-mail gewijzigd
+          message: Controleer je inbox om de wijziging van het e-mailadres te bevestigen.
+      update_name:
+        success:
+          title: Naam gewijzigd
+          message: De naam van je account is succesvol bijgewerkt.
+      update_password:
+        success:
+          title: Wachtwoord gewijzigd
+          message: Je wachtwoord is succesvol bijgewerkt.
+      update_preference:
+        saved: Opgeslagen
+      newsletter_subscribed:
+        title: Geabonneerd op de nieuwsbrief
+        message: Kijk in je mailbox om je inschrijving te bevestigen.
+      newsletter_unsubscribed:
+        title: Afgemeld voor de nieuwsbrief
+        message: Je hebt je uitgeschreven voor onze nieuwsbrief.
+
+    newsletter_status_row_component:
+      title: E-mail nieuwsbrief
+      subscribed: Geabonneerd
+      not_subscribed: Niet geabonneerd
+      unsubscribe: Uitschrijven
+      not_subscribed_message: |
+        We versturen ongeveer vier keer per jaar een nieuwsbrief met informatie over verbeteringen
+        en wijzigingen aan het ETM. Je kan je op elk moment uitschrijven.
+      subscribe: Inschrijven
+      subscribed_message: |
+        Je bent ingeschreven voor onze nieuwsbrief. We versturen ongeveer vier e-mails per jaar
+        met verbeteringen en wijzigingen aan het model.
+
+    token_component:
+      copied: Gekopieerd!
+      copy: Kopieer token naar klembord
+      expires: Verloopt
+      last_used: Laatst gebruikt
+      permissions: Bevoegdheden
+      full_token_not_shown: |
+        Het volledige token wordt hier niet getoond. Als dit verloren is gegaan, moet je dit token
+        intrekken en een nieuwe aanmaken.
+      make_sure_to_copy: Zorg dat je het kopieert naar het klembord.
+      revoke_token: Token intrekken
+      revoke_warning: |
+        Als je het token intrekt, verliest dit onmiddelijk de mogelijkheid om toegang te krijgen
+        tot jouw account of wijzigingen te maken.
+      token: Token
+      token_shown_briefly: Het volledige token wordt slechts kortstondig getoond!
+
+    tokens:
+      empty_state:
+        title: Je hebt geen toegangstokens
+        message: |
+          Toegangstokens stellen derden in staat om toegang te krijgen tot jouw account zonder je
+          wachtwoord te hoeven gebruiken. Je kunt toegangstokens op elk moment intrekken.
+      index:
+        create_token: Maak een toegangstoken aan
+        explanation: Maak persoonlijke tokens aan om de API te gebruiken.
+        learn_more: Meer informatie
+        title: Persoonlijke toegangstokens
+      created:
+        title: Token aangemaakt
+        message: Jouw nieuwe token is aangemaakt. Kopieer dit nu aangezien het niet nogmaals wordt getoond.
+      revoked:
+        title: Token ingetrokken
+        message: Het token kan niet langer worden gebruikt om toegang te krijgen tot de API.
+      new:
+        name: Token naam
+        name_hint: Deze naam helpt je om in de toekomst het token te herkennen.
+        permissions: Bevoegdheden
+        title: Maak een nieuw toegangstoken aan
+        permissions:
+          public:
+            title: Alleen-lezen van publieke scenario's
+            hint: |
+              Dit token kan enkel publieke scenario's lezen die door jou en anderen zijn gemaakt.
+          read:
+            title: Alleen-lezen van publieke en privéscenario's
+            hint: |
+              Dit token kan jouw publieke en privéscenario's lezen, maar kan geen wijzigingen aanbrengen.
+          write:
+            title: Lees en bewerk publieke en privéscenario's
+            hint: |
+              Dit token kan jouw publieke en privéscenario's lezen en kan wijzigingen aanbrengen, maar kan geen
+              scenario's verwijderen.
+          delete:
+            title: Lees, bewerk en verwijder publieke en privéscenario's
+            hint: |
+              Dit token kan jouw publieke en privéscenario's lezen, kan wijzigingen aanbrengen en kan jouw
+              scenario's verwijderen.
+          email:
+            title: E-mailadres
+            hint: |
+              Dit token kan jouw e-mailadres lezen.
+          profile:
+            title: Profiel
+            hint: |
+              Dit token kan jouw profielinformatie lezen, waaronder jouw naam.
+      expiration_options:
+        never: Nooit
+        n_days: "%{n} days"
+        one_year: Één jaar
+        never_message: Dit token vervalt nooit!
+        expires_at_message: Dit token zal vervallen op %{date}.
+
+  doorkeeper:
+    authorizations:
+      buttons:
+        authorize: Authorise
+        deny: Deny
+      error:
+        title: An error has occurred
+      new:
+        title: Authorisation required
+        prompt: Authorise %{client_name} to use your account?
+        able_to: This application will be able to
+      show:
+        title: Authorisation code
+      form_post:
+        title: Submit this form
+    flash:
+      authorized_applications:
+        destroy:
+          notice:
+            title: Application revoked
+            message: The application no longer has access to your account.
+    scopes:
+      public: Lees publieke scenario's
+      email: Bekijk jouw e-mailadres
+      profile: Bekijk jouw profielinformatie
+      "scenarios:read": Lees jouw privéscenario's
+      "scenarios:write": Maak nieuwe scenario's aan en wijzig jouw publieke en privéscenario's
+      "scenarios:delete": Verwijder jouw publieke en privéscenario's
+  devise:
+    registrations:
+      confirm_destroy:
+        title: Account verwijderen
+        submit: Account permanent verwijderen
+        information: |
+          Als u niet langer lid wilt zijn van het Energietransitiemodel, kunt u uw account
+          verwijderen. U wordt om bevestiging gevraagd op de volgende pagina.
+        warning_header: Je staat op het punt om jouw account te verwijderen!
+        warning: |
+          Al jouw data - waaronder jouw naam en e-mailadres, scenario's en transitiepaden - zullen 
+          worden verwijderd. Als je gedeelde scenario's hebt met andere gebruikers zullen zij niet 
+          langer toegang hebben tot deze scenario's.
+        irreversible: Dit is onomkeerbaar.
+        confirm: |
+          Vul je wachtwoord in om te bevestigen dat je jouw account wilt verwijderen.
+        will_remove: 'Het verwijderen van jouw account wist:'
+        entities:
+          data: Jouw account, persoonlijke data en voorkeuren
+          scenario:
+            zero: Geen scenario's
+            one: Één scenario
+            other: "%{count} scenario's"
+          saved_scenario:
+            zero: Geen opgeslagen scenario's
+            one: Één opgeslagen scenario
+            other: "%{count} opgeslagen scenario's"
+          oauth_application:
+            zero: Geen OAuth applicaties
+            one: Één OAuth applicatie
+            other: '%{count} OAuth applicaties'
+          transition_path:
+            zero: Geen transitiepaden
+            one: Één transitiepaden
+            other: '%{count} transitiepaden'
+          personal_access_token:
+            zero: Geen persoonlijke toegangstokens
+            one: Één persoonlijk toegangstoken
+            other: '%{count} persoonlijke toegangstokens'

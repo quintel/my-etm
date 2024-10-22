@@ -25,8 +25,18 @@ gem "jbuilder"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
+gem 'rake'
+
+
 # Auth
-gem "devise", "~> 4.9"
+gem 'cancancan', '~> 3.0'
+gem 'devise', '~> 4.7'
+gem 'doorkeeper-openid_connect', '~> 1.8.7'
+gem 'faraday'
+gem 'jwt'
+gem 'json-jwt'
+gem 'sidekiq'
+gem "sentry-sidekiq"
 
 # Views and CSS
 gem 'haml'
@@ -35,6 +45,17 @@ gem "sassc-rails"
 gem 'view_component'
 gem "rdiscount", "~> 2.2"
 gem "heroicon"
+gem 'dry-initializer'
+gem 'dry-monads'
+gem 'dry-struct'
+gem 'dry-validation'
+gem 'inline_svg'
+gem 'local_time'
+gem 'erb-formatter'
+
+# Testing
+gem 'capybara'
+
 
 # Model gems
 gem 'discard'

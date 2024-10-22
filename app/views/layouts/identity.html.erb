@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      <%= content_for?(:page_title) ? "#{content_for(:page_title)} | " : "" %>
+      <%= t('identity.site_title') %>
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+
+    <%= stylesheet_link_tag "auth", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags 'identity' %>
+  </head>
+
+  <body class="pb-12">
+    <header class="border-b mb-12 bg-gray-50">
+      <div class="w-[1024px] mx-auto py-3 flex text-sm items-center">
+        <a
+          href="<%= identity_back_to_etm_url %>"
+          class="
+            mr-auto
+            text-base
+            font-medium
+            flex
+            items-center
+            gap-2
+            transition
+            text-gray-600
+            hover:text-gray-900
+            active:text-gray-900
+          "
+        >
+          <%= image_tag 'logo-dark.png', height: 30, width: 30, alt: '' %>
+          <%= t('identity.site_title') %>
+        </a>
+        <div class="flex items-center -my-1.5">
+          <%= render(SelectLocale::Component.new) %>
+          <%= button_to(destroy_user_session_path, method: :delete, data: { turbo: false }, class: "inline-flex gap-1 font-medium items-center transition text-gray-600 hover:text-gray-800 hover:bg-gray-200 active:text-gray-900 active:bg-gray-300 rounded-md px-2.5 py-1.5 -mr-2.5") do %>
+            <%= inline_svg 'phosphor/20/sign-out.svg' %>
+            <%= t('identity.sign_out') %>
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <div class="w-[1024px] mx-auto">
+      <%= turbo_frame_tag :toast do %>
+        <% if notice %>
+          <%= render(ToastComponent.new(type: :notice, message: notice)) %>
+        <% end %>
+
+        <% if alert %>
+          <%= render(ToastComponent.new(type: :alert, message: alert)) %>
+        <% end %>
+      <% end %>
+
+      <div class="flex items-start relative">
+        <div class="sidebar flex-shrink-0 w-64 mr-8 pt-1 sticky top-8">
+          <%= link_to identity_back_to_etm_url, class: button_classes('rounded-full mb-8 !px-4', color: :primary) do %>
+            <%= inline_svg 'hero/20/arrow-sm-left.svg', class: 'mr-1 -ml-1' %>
+            <%= t('identity.return_to_etm') %>
+          <% end %>
+
+          <%= content_for(:sidebar) %>
+        </div>
+        <div class="content flex-grow">
+          <%= yield %>
+        </div>
+      </div>
+    </div>
+
+    <%= turbo_frame_tag :modal do %>
+    <% end %>
+  </body>
+</html>
