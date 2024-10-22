@@ -5,16 +5,19 @@
 
   .p-2.px-5.text-gray-100.inline-block.w-full
     = link_to saved_scenarios_path do
+      %span= heroicon 'adjustments-horizontal', options: { class: 'inline-block w-6 h-6' }
       Scenarios
-
   %a.p-2.px-5.text-gray-100.inline-block.w-full
+    %span= heroicon 'chart-bar-square', options: { class: 'inline-block w-6 h-6' }
     Collections
   %a.p-2.px-5.text-gray-100.inline-block.w-full
-    Trash
-
+    %span= heroicon 'trash', options: { class: 'inline-block w-6 h-6' }
+    Discarded
   .absolute.bottom-0.left-0.inline-block.w-full
     .p-5.text-gray-100
+      %span= heroicon 'language', options: { class: 'inline-block w-6 h-6' }
       Switch language
     .border-solid.border-t-2.border-gray-600
       .p-5.text-gray-100
+        %span= heroicon 'user-circle', options: { class: 'inline-block w-6 h-6' }
         My profile
