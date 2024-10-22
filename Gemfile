@@ -36,6 +36,12 @@ gem 'view_component'
 gem "rdiscount", "~> 2.2"
 gem "heroicon"
 
+# Keeping the front end dry
+gem 'dry-initializer'
+gem 'dry-monads'
+gem 'dry-struct'
+gem 'dry-validation'
+
 # Model gems
 gem 'discard'
 

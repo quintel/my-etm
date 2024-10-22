@@ -16,13 +16,13 @@
     = @saved_scenario.featured_owner_name
   - else
     - @saved_scenario.owners.each do |owner|
-      = owner.name
+      = owner.user_email
     - if @saved_scenario.collaborators.presence
       - @saved_scenario.collaborators.each do |collaborator|
-        = collaborator.name
+        = collaborator.user_email
     - if @saved_scenario.viewers.presence
       - @saved_scenario.viewers.each do |viewer|
-        = viewer.name
+        = viewer.user_email
 
 .bg-gray-100.p-2
   - if @saved_scenario.localized_description(I18n.locale).presence

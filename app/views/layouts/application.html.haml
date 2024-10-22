@@ -18,10 +18,10 @@
 
   %body
     = render partial: "layouts/sidebar"
-    .p-5.flex.flex-col.h-full{class: 'ml-[300px]'}
+    .p-10.py-5.flex.flex-col.h-full{class: 'ml-[300px]'}
       = render partial: "layouts/buttons"
-      .text-3xl.mb-5= yield(:menu_title)
-      .bg-gray-200.p-5.grow
+      .text-xl.mb-5.mt-5= yield(:menu_title)
+      .grow
         .flex.h-full
           %div{class: 'basis-3/4'}
             = yield

@@ -28,4 +28,8 @@
 #       enabled: "ON"
 
 en:
-  hello: "Hello world"
+  sidebar:
+    saved_scenarios: Scenarios
+    collections: Collections
+    discarded: Trash
+    profile: My profile
