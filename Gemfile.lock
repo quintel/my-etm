@@ -116,6 +116,8 @@ GEM
       temple (>= 0.8.2)
       thor
       tilt
+    heroicon (1.0.0)
+      rails (>= 5.2)
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     importmap-rails (2.0.3)
@@ -141,6 +143,7 @@ GEM
       net-pop
       net-smtp
     marcel (1.0.4)
+    method_source (1.1.0)
     mini_mime (1.1.5)
     minitest (5.25.1)
     msgpack (1.7.3)
@@ -314,6 +317,10 @@ GEM
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.6.0)
     useragent (0.16.10)
+    view_component (2.83.0)
+      activesupport (>= 5.2.0, < 8.0)
+      concurrent-ruby (~> 1.0)
+      method_source (~> 1.0)
     warden (1.2.9)
       rack (>= 2.0.9)
     web-console (4.2.1)
@@ -343,6 +350,7 @@ DEPENDENCIES
   discard
   factory_bot_rails
   haml
+  heroicon
   importmap-rails
   jbuilder
   mysql2 (~> 0.5)
@@ -359,6 +367,7 @@ DEPENDENCIES
   tailwindcss-rails (~> 3.0)
   turbo-rails
   tzinfo-data
+  view_component
   web-console
 
 BUNDLED WITH

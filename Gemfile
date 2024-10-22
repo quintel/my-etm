@@ -32,6 +32,9 @@ gem "devise", "~> 4.9"
 gem 'haml'
 gem "tailwindcss-rails", "~> 3.0"
 gem "sassc-rails"
+gem 'view_component'
+gem "rdiscount", "~> 2.2"
+gem "heroicon"
 
 # Model gems
 gem 'discard'
@@ -69,5 +72,3 @@ group :development do
   # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
   # gem "error_highlight", ">= 0.6.0", platforms: [:ruby]
 end
-
-gem "rdiscount", "~> 2.2"
