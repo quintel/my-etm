@@ -3,20 +3,14 @@
 - content_for :menu_title, @saved_scenario.title
 - content_for :block_right, render("block_right_menu", saved_scenario: @saved_scenario)
 
-.bg-gray-100.p-2.my-5.w-fit Open this scenario
+= render(SavedScenarioInfo::Component.new(path: saved_scenario_path(@saved_scenario), button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
 
-= @saved_scenario.area_code
-= @saved_scenario.end_year
-
-%div
-  = "Created #{@saved_scenario.created_at}, last updated #{time_ago_in_words(@saved_scenario.updated_at)} ago"
-
-%div
+%div.mt-5.mb-5.pb-5.border-b.border-solid.border-gray-200
   - if @saved_scenario.featured?
     = @saved_scenario.featured_owner_name
   - else
-    - @saved_scenario.owners.each do |owner|
-      = owner.user_email
+    = render(SavedScenarioInfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners))
+
     - if @saved_scenario.collaborators.presence
       - @saved_scenario.collaborators.each do |collaborator|
         = collaborator.user_email
@@ -24,7 +18,7 @@
       - @saved_scenario.viewers.each do |viewer|
         = viewer.user_email
 
-.bg-gray-100.p-2
+.p-2.mt-5
   - if @saved_scenario.localized_description(I18n.locale).presence
     = formatted_scenario_description(@saved_scenario.localized_description(I18n.locale), allow_external_links: @saved_scenario.featured?)
   - elsif @saved_scenario.description.empty?

@@ -1,0 +1,19 @@
+module SavedScenarioNavItem
+  class Component < ApplicationComponent
+    option :path
+    option :title
+    option :icon
+    option :active, default: proc { false }
+    option :static, default: proc { false }
+
+    def css_classes
+      if @active
+        "text-midnight-800 rounded-md bg-midnight-600 hover:text-midnight-800"
+      elsif @static
+        "text-midnight-800 hover:text-midnight-400"
+      else
+        "text-midnight-400 hover:text-midnight-800"
+      end
+    end
+  end
+end

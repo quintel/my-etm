@@ -15,6 +15,13 @@
     font-style: normal;
     src: url('Montserrat-VariableFont_wght.ttf') format('truetype');
   }
+
+  .button {
+    @apply bg-gray-100;
+    @apply p-2;
+    @apply px-5;
+    @apply rounded-md;
+  }
 }
 /*
 

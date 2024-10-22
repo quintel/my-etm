@@ -33,3 +33,11 @@ en:
     collections: Collections
     discarded: Trash
     profile: My profile
+  scenario_bar:
+    info: Info
+    private:
+      true: Private
+      false: Public
+    featured:
+      true: Featured
+      false: Make this featured
