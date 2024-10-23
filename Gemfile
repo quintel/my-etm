@@ -31,7 +31,6 @@ gem "devise", "~> 4.9"
 # Views and CSS
 gem 'haml'
 gem "tailwindcss-rails", "~> 3.0"
-gem "sassc-rails"
 gem 'view_component'
 gem "rdiscount", "~> 2.2"
 gem "heroicon"

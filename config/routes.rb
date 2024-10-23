@@ -1,5 +1,11 @@
 Rails.application.routes.draw do
-  resources :saved_scenarios
+  resources :saved_scenarios do
+    member do
+      put :publish
+      put :unpublish
+    end
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
