@@ -7,7 +7,7 @@ RSpec.describe SavedScenario, type: :model do
   end
 
   describe "#scenario" do
-    pending "returns nil if scenario is not found in ETEngine" do
+    pending "returns nil if scenario is not found in MyEtm" do
       allow(FetchAPIScenario).to receive(:call)
         .with(anything, 0).and_return(ServiceResult.failure('Scenario not found'))
 

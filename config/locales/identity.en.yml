@@ -1,0 +1,265 @@
+---
+en:
+  select_language: Language
+  time_from_now: '%{time} from now'
+  time_ago: '%{time} ago'
+
+  identity:
+    cancel: Cancel
+    return_to_etm: Return to the ETM
+    profile_email_component:
+      change_address: Change e-mail address
+      confirmed: Verified
+      explanation: This address is used to sign in to your account, and to send you important notifications.
+      not_confirmed: Not verified
+      not_confirmed_message: |
+        This e-mail address has not yet been verified. Please check your e-mail address for
+        instructions.
+      resend_confirmation: Resend confirmation instructions
+    sign_out: Sign out
+    site_title: Energy Transition Model
+
+    # Pages
+
+    authorized_application_component:
+      permissions: Permissions
+      revoke_application: Revoke application
+      visit_website: Visit website
+
+    authorized_applications:
+      index:
+        empty_state:
+          title: You have no authorised third-party applications
+          message: |
+            You can authorise third-parties to access data from your account without providing them
+            your password. These will ask for permission to access your account, after which they
+            will be listed here.
+
+            You may revoke these permissions at any time.
+        explanation: Control who can access your account and data.
+        title: Authorised applications
+
+    settings:
+      edit_email:
+        new_email: New e-mail address
+        new_email_hint: A confirmation will be sent to this address before the change takes effect
+        submit: Change e-mail address
+        title: Change your e-mail address
+      edit_name:
+        new_name: New name
+        new_name_hint: |
+          This name will be used when we communicate with you, and alongside your public scenarios.
+        submit: Change name
+        title: Change your account name
+      edit_password:
+        current_password: Current password
+        current_password_hint: Confirm the password you currently use to sign in
+        new_password: New password
+        new_password_hint: |
+          Your password needs to be at least %{min_length} characters long. Use multiple words or
+          phrases, numbers, or symbols to make it more secure.
+        submit: Change password
+        title: Change your password
+      index:
+        account: Account
+        change_name: Change name
+        change_password: Change password
+        explanation: Change your e-mail address, password, or account settings.
+        name_explanation: This name will be shown on your public scenarios.
+        password_explanation_html: |
+          Your password is used to sign in. Never give this to anyone else: if another application
+          needs to access data on your account,
+          <a href="%{tokens_path}">create a personal access token</a>.
+        profile: Profile
+        settings: Settings
+        title: Your profile
+        privacy:
+          title: Privacy
+          choose: |
+            Choose whether new scenarios and saved scenarios should be private or public by default.
+            You can override this on a per-scenario basis.
+          public_vs_private: |
+            Public scenarios can be viewed (but not changed) by anyone with a link to the scenario,
+            while private scenarios can be viewed only by you.
+      update_email:
+        success:
+          title: E-mail changed
+          message: Please check your inbox to confirm the change of e-mail address.
+      update_name:
+        success:
+          title: Name changed
+          message: The name of your account was successfully updated.
+      update_password:
+        success:
+          title: Password changed
+          message: Your password was successfully updated.
+      update_preference:
+        saved: Saved
+      newsletter_subscribed:
+        title: Subscribed to newsletter
+        message: Please check your e-mail inbox to confirm your subscription.
+      newsletter_unsubscribed:
+        title: Unsubscribed from newsletter
+        message: You have been unsubscribed from our newsletter.
+
+    newsletter_status_row_component:
+      subscribed: Subscribed
+      not_subscribed: Not subscribed
+      title: E-mail newsletter
+      unsubscribe: Unsubscribe
+      not_subscribed_message: |
+        We occasionally publish a newsletter with information about improvements and changes to
+        the ETM. We send roughly four messages a year and you can unsubscribe at any time.
+      subscribe: Subscribe
+      subscribed_message: |
+        You are subscribed to our newsletter. We send roughly four e-mails a year with information
+        about improvements and changes to the model.
+
+    token_component:
+      copied: Copied!
+      copy: Copy token to clipboard
+      expires: Expires
+      last_used: Last used
+      permissions: Permissions
+      full_token_not_shown: |
+        The full token is not shown here. If you have lost it you should revoke this token and
+        create a new one.
+      make_sure_to_copy: Make sure to copy it to your clipboard.
+      revoke_token: Revoke token
+      revoke_warning: |
+        Revoking the token will immediately prevent it from being used to access or modify your
+        account.
+      token: Token
+      token_shown_briefly: The full token will only be shown briefly!
+
+    token_mailer:
+      created_token:
+        subject: You created a new token
+      expiring_token:
+        subject: Your personal access token will expire soon
+
+    tokens:
+      empty_state:
+        title: You have no access tokens
+        message: |
+          Access tokens allow third-party applications to access your account without having to
+          use your password. You can revoke access tokens at any time.
+      index:
+        create_token: Create token
+        explanation: Generate personal tokens to use the API.
+        learn_more: Learn more
+        title: Personal access tokens
+      created:
+        title: Token created
+        message: Your new token has been created. Please copy it now as it will not be shown again.
+      revoked:
+        title: Token revoked
+        message: The token can no longer be used to access the API.
+      new:
+        name: Token name
+        name_hint: This name will help you recognise the token in the future.
+        permissions: Scenario permissions
+        title: Create a new access token
+        permissions:
+          public:
+            title: Read public scenarios only
+            hint: |
+              This token will be able to read public scenarios created by you and other people.
+          read:
+            title: Read public and private scenarios
+            hint: |
+              This token will be able to read your public and private scenarios, but will not permit
+              changes.
+          write:
+            title: Read and write public and private scenarios
+            hint: |
+              This token will be able to read and make changes to your public and private scenarios,
+              but will not be able to delete scenarios.
+          delete:
+            title: Read, write, and delete public and private scenarios
+            hint: |
+              This token will be able to read and make changes to your public and private scenarios,
+              and also delete your scenarios.
+          email:
+            title: E-mail address
+            hint: |
+              The token will be able to read your e-mail address.
+          profile:
+            title: Profile
+            hint: |
+              The token will be able to read your profile information including
+              your name.
+      expiration_options:
+        never: Never
+        n_days: "%{n} days"
+        one_year: One year
+        never_message: This token will never expire!
+        expires_at_message: This token will expire on %{date}.
+
+  doorkeeper:
+    authorizations:
+      buttons:
+        authorize: Authorise
+        deny: Deny
+      error:
+        title: An error has occurred
+      new:
+        title: Authorisation required
+        prompt: Authorise %{client_name} to use your account?
+        able_to: This application will be able to
+      show:
+        title: Authorisation code
+      form_post:
+        title: Submit this form
+    flash:
+      authorized_applications:
+        destroy:
+          notice:
+            title: Application revoked
+            message: The application no longer has access to your account.
+    scopes:
+      public: Read public scenarios
+      email: See your e-mail address
+      profile: See your profile information
+      "scenarios:read": Read your private scenarios
+      "scenarios:write": Create new scenarios and change your public and private scenarios
+      "scenarios:delete": Delete your public and private scenarios
+  devise:
+    registrations:
+      confirm_destroy:
+        title: Delete account
+        submit: Permanently delete account
+        information: |
+          If you no longer wish to be a member of the Energy Transition Model, you may delete your
+          account. You'll be prompted for confirmation on the next page.
+        warning_header: You are about to delete your account!
+        warning: |
+          All of your data – including your name and e-mail address, scenarios, and transition paths
+          – will be deleted. If you have shared scenarios with other users, they will no longer be
+          able to access them.
+        irreversible: This is irreversible!
+        confirm: |
+          Please enter your password to confirm you want to remove your account.
+        will_remove: 'Deleting your account will remove:'
+        entities:
+          data: Your account, personal data, and preferences
+          scenario:
+            zero: No scenarios
+            one: One scenario
+            other: '%{count} scenarios'
+          saved_scenario:
+            zero: No saved scenarios
+            one: One saved scenario
+            other: '%{count} saved scenarios'
+          oauth_application:
+            zero: No OAuth applications
+            one: One OAuth application
+            other: '%{count} OAuth applications'
+          transition_path:
+            zero: No transition paths
+            one: One transition path
+            other: '%{count} transition paths'
+          personal_access_token:
+            zero: No personal access tokens
+            one: One personal access token
+            other: '%{count} personal access tokens'

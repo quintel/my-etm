@@ -1,2 +1,35 @@
 nl:
-  hello: hello
+  time:
+    formats:
+      short: "%-d %b %H:%M"
+      long: "%A %-d %B, %Y at %H:%M"
+      time: "%H:%M"
+      only_second: "%S"
+      date: "%A %-d %B, %Y"
+  date:
+    formats:
+      short: "%-d %b"
+      long: "%A %-d %B, %Y"
+      date: "%A %-d %B, %Y"
+  activemodel:
+    attributes:
+      'create_personal_access_token/params':
+        name: Token name
+        expires_in: Expiration
+        permissions: Permissions
+  activerecord:
+    attributes:
+      user:
+        email: Emailadres
+        password: Wachtwoord
+        password_confirmation: Voer wachtwoord nogmaals in
+        current_password: Huidig wachtwoord
+        unconfirmed_email: Nieuw e-mailadres
+        name: Jouw naam
+  scenario_invitation_mailer:
+    invite_user:
+      subject: 'Uitnodiging: ETM scenario'
+    roles:
+      scenario_viewer: gast
+      scenario_collaborator: bewerker
+      scenario_owner: eigenaar

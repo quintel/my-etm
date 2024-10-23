@@ -71,7 +71,7 @@ Rails.application.configure do
   # config.cache_store = :mem_cache_store
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  # config.active_job.queue_adapter = :resque
+  config.active_job.queue_adapter = :sidekiq
   # config.active_job.queue_name_prefix = "my_etm_production"
 
   # Disable caching for Action Mailer templates even if Action Controller

@@ -28,6 +28,40 @@
 #       enabled: "ON"
 
 en:
+  time:
+    formats:
+      short: "%-d %b %H:%M"
+      long: "%A %-d %B, %Y at %H:%M"
+      time: "%H:%M"
+      only_second: "%S"
+      date: "%A %-d %B, %Y"
+  date:
+    formats:
+      short: "%-d %b"
+      long: "%A %-d %B, %Y"
+      date: "%A %-d %B, %Y"
+  helpers:
+    label:
+      create_personal_access_token_params:
+        name: Token name
+        expires_in: Expiration
+        permissions: Permissions
+  activerecord:
+    attributes:
+      user:
+        email: E-mail address
+        password: Password
+        password_confirmation: Re-enter password
+        current_password: Current password
+        unconfirmed_email: New e-mail address
+        name: Your name
+  scenario_invitation_mailer:
+    invite_user:
+      subject: 'Invitation: ETM scenario'
+    roles:
+      scenario_viewer: viewer
+      scenario_collaborator: collaborator
+      scenario_owner: owner
   sidebar:
     saved_scenarios: Scenarios
     collections: Collections
