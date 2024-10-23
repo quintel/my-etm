@@ -26,7 +26,7 @@ class SavedScenariosController < ApplicationController
     respond_to do |format|
       if @saved_scenario.save
         format.html {
- redirect_to @saved_scenario, notice: "Saved scenario was successfully created." }
+ redirect_to @saved_scenario, notice: t("scenario.succesful_update") }
         format.json { render :show, status: :created, location: @saved_scenario }
       else
         format.html { render :new, status: :unprocessable_entity }
@@ -38,9 +38,9 @@ class SavedScenariosController < ApplicationController
   # PATCH/PUT /saved_scenarios/1 or /saved_scenarios/1.json
   def update
     respond_to do |format|
-      if @saved_scenario.update(saved_scenario_params)
+      if @saved_scenario.update(saved_scenario_update_params)
         format.html {
- redirect_to @saved_scenario, notice: "Saved scenario was successfully updated." }
+ redirect_to @saved_scenario, notice: t("scenario.succesful_update") }
         format.json { render :show, status: :ok, location: @saved_scenario }
       else
         format.html { render :edit, status: :unprocessable_entity }
@@ -103,6 +103,13 @@ class SavedScenariosController < ApplicationController
         :scenario_id, :scenario_id_history, :title,
         :description, :area_code, :end_year, :private,
         :created_at, :updated_at, :discarded_at
+      )
+    end
+
+    # Only allow a list of trusted parameters through.
+    def saved_scenario_update_params
+      params.require(:saved_scenario).permit(
+        :title, :description
       )
     end
 end

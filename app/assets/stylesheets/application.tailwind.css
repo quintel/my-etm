@@ -29,13 +29,25 @@
   .logo {
     filter: brightness(0.25);
   }
-}
-/*
 
-@layer components {
-  .btn-primary {
-    @apply py-2 px-4 bg-blue-200;
+  .trix-content ol, trix-editor ol{
+    @apply list-decimal;
+    @apply pl-5;
+  }
+
+  .trix-content ul, trix-editor ul{
+    @apply list-disc;
+    @apply pl-5;
   }
 }
 
-*/
+@import 'actiontext.css';
+
+/* @layer components {
+  trix-toolbar .trix-button {
+    @apply bg-midnight-200;
+    @apply text-midnight-800;
+  }
+} */
+
+

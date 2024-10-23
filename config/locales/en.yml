@@ -71,7 +71,9 @@ en:
     info: Info
     history: History
     manage_access: Manage access
-    edit: Edit
+    edit:
+      title: Edit
+      description: Edit the title and description of this scenario
     discard: Discard
     private:
       true: Private
@@ -83,3 +85,9 @@ en:
     featured:
       true: Featured
       false: Make this featured
+  scenario:
+    succesful_update: updated!
+    title: Title
+    save: Save
+    discard_changes: Discard changes
+    no_description: This scenario has no description. Click here to create one.

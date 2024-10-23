@@ -20,7 +20,9 @@
     = render partial: "layouts/sidebar"
     .p-10.py-5.flex.flex-col.h-full{class: 'ml-[300px]'}
       = render partial: "layouts/buttons"
-      .text-xl.mb-5.mt-5= yield(:menu_title)
+      .text-xl.mb-5.mt-5
+        = yield(:menu_title)
+        %span.text-sm.ml-3.text-midnight-980= notice
       .grow
         .flex.h-full
           %div{class: 'basis-3/4'}

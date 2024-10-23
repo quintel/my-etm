@@ -2,7 +2,7 @@
   path: saved_scenario_path(saved_scenario),
   title: t('scenario_bar.info'),
   icon: 'information-circle',
-  active: controller_name == 'saved_scenarios')
+  active: controller_name == 'saved_scenarios' && action_name == 'show')
 )%>
 <%= render(SavedScenarioNavItem::Component.new(
   path: saved_scenario_path(saved_scenario),
@@ -38,12 +38,18 @@
   icon: saved_scenario.featured? ? 'star' : 'sparkles',
   static: true)
 )%>
-<%= render(SavedScenarioNavItem::Component.new(
-  path: edit_saved_scenario_path(saved_scenario),
-  title: t("scenario_bar.edit"),
-  icon: 'pencil',
-  static: true)
-)%>
+<%= render(Hovercard::Component.new(
+    path: '',
+    text: t("scenario_bar.edit.description")
+  )) do %>
+  <%= render(SavedScenarioNavItem::Component.new(
+    path: edit_saved_scenario_path(saved_scenario),
+    title: t("scenario_bar.edit.title"),
+    icon: 'pencil',
+    static: true,
+    active: action_name == 'edit'
+  ))%>
+<% end %>
 <%= render(SavedScenarioNavItem::Component.new(
   path: saved_scenario_path(saved_scenario),
   title: t("scenario_bar.discard"),

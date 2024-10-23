@@ -1,11 +1,12 @@
-- content_for :title, "Editing saved scenario"
+- content_for :title, "Editing #{@saved_scenario.title}"
+- content_for :menu_title, "Editing #{@saved_scenario.title}"
+- content_for :block_right, render("block_right_menu", saved_scenario: @saved_scenario)
 
-%h1 Editing saved scenario
+= form_for(@saved_scenario, url: saved_scenario_path(@saved_scenario), html: { method: :put, class: 'flex flex-col h-full' }) do |f|
+  = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
+  = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
+  = f.rich_text_area :description, class: 'appearance-none resize-none rounded-md border-gray-200 h-full mb-5'
 
-= render "form", saved_scenario: @saved_scenario
-
-%br
-
-%div
-  = link_to "Show this saved scenario", @saved_scenario
-  = link_to "Back to saved scenarios", saved_scenarios_path
+  .flex.mt-auto.mb-0
+    = submit_tag t('scenario.save'), class: 'button w-1/4 bg-midnight-900 text-midnight-200'
+    = link_to t('scenario.discard_changes'), saved_scenario_path(@saved_scenario), class: 'button w-1/4 ml-auto mr-0'

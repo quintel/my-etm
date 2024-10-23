@@ -10,7 +10,7 @@ module SavedScenarioNavItem
       if @active
         "text-midnight-800 rounded-md bg-midnight-600 hover:text-midnight-800"
       elsif @static
-        "text-midnight-800 hover:text-midnight-400"
+        "text-midnight-800 hover:underline"
       else
         "text-midnight-400 hover:text-midnight-800"
       end
