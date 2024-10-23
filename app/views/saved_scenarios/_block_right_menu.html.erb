@@ -19,14 +19,16 @@
 
 <div class="border-t border-solid border-gray-200 my-10"></div>
 
-<%= render(PublishSavedScenario::Component.new(
-  path_on: publish_saved_scenario_path(saved_scenario),
-  path_off: unpublish_saved_scenario_path(saved_scenario),
-  status: saved_scenario.private,
-  title: t("scenario_bar.private.#{saved_scenario.private}"),
-  icon_on:'eye-slash',
-  icon_off: 'eye',
-))%>
+<%= render(Hovercard::Component.new(path: '', text: t("scenario_bar.private.description.#{saved_scenario.private}"))) do %>
+  <%= render(PublishSavedScenario::Component.new(
+    path_on: publish_saved_scenario_path(saved_scenario),
+    path_off: unpublish_saved_scenario_path(saved_scenario),
+    status: saved_scenario.private,
+    title: t("scenario_bar.private.#{saved_scenario.private}"),
+    icon_on:'eye-slash',
+    icon_off: 'eye',
+  ))%>
+<% end %>
 <%= render(SavedScenarioNavItem::Component.new(
   path: saved_scenario_path(saved_scenario),
   title: t("scenario_bar.featured.#{saved_scenario.featured?}"),

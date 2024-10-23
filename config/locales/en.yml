@@ -38,6 +38,10 @@ en:
     private:
       true: Private
       false: Public
+      description:
+        true: Only you can view or copy this scenario
+        false: |
+          Anyone can view or copy this scenario, but only you can make changes
     featured:
       true: Featured
       false: Make this featured
