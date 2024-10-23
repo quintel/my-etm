@@ -21,6 +21,13 @@
     @apply p-2;
     @apply px-5;
     @apply rounded-md;
+    @apply transition;
+    @apply hover:bg-midnight-950;
+    @apply hover:text-midnight-200;
+  }
+
+  .logo {
+    filter: brightness(0.25);
   }
 }
 /*

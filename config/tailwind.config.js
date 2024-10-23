@@ -20,7 +20,10 @@ module.exports = {
           300: "#fbf7f6",
           400: "#aba8a7",
           600: "#fdece0",
-          800: "#462c34"
+          800: "#462c34",
+          // brand colors (blue, orange)
+          900: "#4e7be4",
+          950: "#f27316"
         }
       }
     },

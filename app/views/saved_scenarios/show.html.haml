@@ -21,7 +21,7 @@
 .p-2.mt-5
   - if @saved_scenario.localized_description(I18n.locale).presence
     = formatted_scenario_description(@saved_scenario.localized_description(I18n.locale), allow_external_links: @saved_scenario.featured?)
-  - elsif @saved_scenario.description.empty?
+  - elsif @saved_scenario.description.blank?
     No description, click here to create one.
   - else
     = @saved_scenario.description
