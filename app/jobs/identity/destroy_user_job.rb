@@ -7,7 +7,7 @@ class Identity::DestroyUserJob < ApplicationJob
   def perform(user_id)
     user = User.find(user_id)
 
-    MyEtm::Auth.api_client(user).delete('/api/v1/user') if Settings.etmodel_uri
+    MyEtm::Auth.client_app_client(user).delete('/api/v1/user') if Settings.etmodel_uri
 
     # Personal access tokens must be deleted before the access tokens, otherwise the destory will
     # fail due to a foreign key constraint.

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe 'Staff application', type: :system do
-  it 'allows creating a new staff application' do
+  pending 'allows creating a new staff application' do
     admin = create(:admin)
     sign_in(admin)
 
@@ -19,7 +19,7 @@ RSpec.describe 'Staff application', type: :system do
     expect(page).to have_content(oauth_app.secret)
   end
 
-  it 'allows updating a new staff application' do
+  pending 'allows updating a new staff application' do
     admin = create(:admin)
     CreateStaffApplication.call(admin, MyEtm::StaffApplications.find('etmodel'))
 

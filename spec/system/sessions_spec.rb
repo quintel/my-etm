@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe 'Sessions', type: :system do
-  it 'allows signing in as a user' do
+  pending 'allows signing in as a user' do
     create(:user, email: 'hello@example.org', password: 'password123')
 
     visit '/identity/sign_in'

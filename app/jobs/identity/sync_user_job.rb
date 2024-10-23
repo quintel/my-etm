@@ -12,7 +12,7 @@ class Identity::SyncUserJob < ApplicationJob
 
     user = User.find(user_id)
 
-    MyEtm::Auth.api_client(user).put(
+    MyEtm::Auth.client_app_client(user).put(
       '/api/v1/user',
       user.to_json(except: %i[admin created_at updated_at])
     )

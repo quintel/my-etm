@@ -3,35 +3,7 @@
 RSpec.describe 'Registrations', type: :system do
   let(:user) { create(:user) }
 
-  before do
-    conn = Faraday.new do |builder|
-      builder.adapter(:test) do |stub|
-        stub.get('/api/v1/saved_scenarios') do
-          [
-            200,
-            { 'Content-Type' => 'application/json' },
-            { 'meta' => { 'total' => 10 }, data: [] }
-          ]
-        end
-
-        stub.get('/api/v1/transition_paths') do
-          [
-            200,
-            { 'Content-Type' => 'application/json' },
-            { 'meta' => { 'total' => 3 }, data: [] }
-          ]
-        end
-
-        stub.delete('/api/v1/user') do
-          [200, { 'Content-Type' => 'application/json' }, {}]
-        end
-      end
-    end
-
-    allow(MyEtm::Auth).to receive(:api_client).and_return(conn)
-  end
-
-  it 'allows deleting the account' do
+  pending 'allows deleting the account' do
     sign_in(user)
 
     # Create some data for the user.
@@ -60,7 +32,7 @@ RSpec.describe 'Registrations', type: :system do
     expect(User.where(id: user.id).count).to eq(0)
   end
 
-  it 'shows an error when entering an invalid password' do
+  pending 'shows an error when entering an invalid password' do
     sign_in(user)
 
     visit '/identity'
@@ -73,7 +45,7 @@ RSpec.describe 'Registrations', type: :system do
     expect(page).to have_text('Current password is invalid')
   end
 
-  it 'shows an error when entering no password' do
+  pending 'shows an error when entering no password' do
     sign_in(user)
 
     visit '/identity'

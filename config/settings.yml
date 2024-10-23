@@ -43,6 +43,12 @@ clients:
     id:
     secret:
     uri: localhost:3000
+
+myetm:
+  iss: my-etm
+  uri: localhost:3002
+
+
 # set to true if the server won't have online access. this disables Sentry,
 # etc.
 standalone: false

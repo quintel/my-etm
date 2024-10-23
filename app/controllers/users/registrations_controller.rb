@@ -56,7 +56,7 @@ module Users
     # TODO REFACTOR
     def stats_for_destroy
       if Settings.etmodel_uri.present?
-        client = MyEtm::Auth.api_client(current_user, scopes: %w[scenarios:read])
+        client = MyEtm::Auth.client_app_client(current_user, scopes: %w[scenarios:read])
 
         saved_scenarios = client.get('/api/v1/saved_scenarios').body['meta']['total']
         transition_paths = client.get('/api/v1/transition_paths').body['meta']['total']
@@ -66,10 +66,9 @@ module Users
       end
 
       {
-        scenarios: current_user.scenarios.count,
+        scenarios: current_user.saved_scenarios.count,
         personal_access_tokens: current_user.personal_access_tokens.not_expired.count,
         oauth_applications: current_user.oauth_applications.count,
-        saved_scenarios:,
         transition_paths:
       }
     end
