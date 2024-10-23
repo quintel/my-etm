@@ -22,16 +22,15 @@ class User < ApplicationRecord
     as: :owner
 
   has_many :staff_applications, dependent: :destroy
-
+  has_many :scenario_users, dependent: :destroy
+  has_many :scenarios, through: :scenario_users
+  has_many :scenario_version_tags
   has_many :personal_access_tokens, dependent: :destroy
 
   validates :name, presence: true, length: { maximum: 191 }
 
   def valid_password?(password)
     return true if super
-
-    # Fallback to salting the password with the salt for users imported from ETModel.
-    return super("#{password}#{legacy_password_salt}") if legacy_password_salt.present?
 
     false
   end
@@ -45,6 +44,6 @@ class User < ApplicationRecord
   end
 
   def as_json(options = {})
-    super(options.merge(except: Array(options[:except]) + [:legacy_password_salt]))
+    super(options.merge(except: Array(options[:except])))
   end
 end

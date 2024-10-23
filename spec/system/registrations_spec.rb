@@ -8,7 +8,7 @@ RSpec.describe 'Registrations', type: :system do
   # Given a Mail::Message, extracts the confirmation path from the message body.
   def confirmation_url_from_email(email)
     body = email.body
-    match = body.match(%r{http://localhost:3000(/identity/confirmation\?confirmation_token=[^"]+)})
+    match = body.match(%r{http://localhost:3002(/identity/confirmation\?confirmation_token=[^"]+)})
 
     raise 'No reset password link found' unless match
 

@@ -96,12 +96,16 @@ GEM
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
     concurrent-ruby (1.3.4)
+    config (5.5.2)
+      deep_merge (~> 1.2, >= 1.2.1)
+      ostruct
     connection_pool (2.4.1)
     crass (1.0.6)
     date (3.3.4)
     debug (1.9.2)
       irb (~> 1.10)
       reline (>= 0.3.8)
+    deep_merge (1.2.2)
     devise (4.9.4)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
@@ -189,6 +193,7 @@ GEM
       tilt
     heroicon (1.0.0)
       rails (>= 5.2)
+    http_accept_language (2.1.1)
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
@@ -217,6 +222,9 @@ GEM
     jwt (2.9.3)
       base64
     language_server-protocol (3.17.0.3)
+    listen (3.9.0)
+      rb-fsevent (~> 0.10, >= 0.10.3)
+      rb-inotify (~> 0.9, >= 0.9.10)
     local_time (2.1.0)
     logger (1.6.1)
     loofah (2.22.0)
@@ -259,6 +267,7 @@ GEM
     nokogiri (1.16.7-x86_64-linux)
       racc (~> 1.4)
     orm_adapter (0.5.0)
+    ostruct (0.6.0)
     parallel (1.26.3)
     parser (3.3.5.0)
       ast (~> 2.4.1)
@@ -309,6 +318,9 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.2.1)
+    rb-fsevent (0.11.2)
+    rb-inotify (0.11.1)
+      ffi (~> 1.0)
     rdiscount (2.2.7.3)
     rdoc (6.7.0)
       psych (>= 4.0.0)
@@ -456,6 +468,7 @@ DEPENDENCIES
   brakeman
   cancancan (~> 3.0)
   capybara
+  config
   debug
   devise (~> 4.7)
   discard
@@ -469,11 +482,13 @@ DEPENDENCIES
   faraday
   haml
   heroicon
+  http_accept_language
   importmap-rails
   inline_svg
   jbuilder
   json-jwt
   jwt
+  listen
   local_time
   mysql2 (~> 0.5)
   puma (>= 5.0)

@@ -37,6 +37,9 @@ gem 'jwt'
 gem 'json-jwt'
 gem 'sidekiq'
 gem "sentry-sidekiq"
+gem 'http_accept_language'
+gem 'listen'
+gem 'config'
 
 # Views and CSS
 gem 'haml'

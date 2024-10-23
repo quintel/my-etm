@@ -1,0 +1,174 @@
+# Caches and persists an object across requests in the memory of the
+# server process. Use it when caching with memcached is too slow.
+#
+# Caveats: Using NastyCache local store with the Qernel Graph
+#          makes the app NO LONGER THREADSAFE
+#
+# @example Add this to your application_controller.rb
+#
+#   before_action :initialize_memory_cache
+#
+#   def initialize_memory_cache
+#     NastyCache.instance.initialize_request
+#   end
+#
+# @example setting and getting
+#
+#   NastyCache.instance.set("large_blob", "foo")
+#   NastyCache.instance.get("large_blob")
+#
+# @example fetching
+#
+#   NastyCache.instance.fetch("large_blob") do
+#     # ...
+#   end
+#
+# @example fetching with :cache => true will also cache it
+#
+#   NastyCache.instance.fetch_cached("large_blob") { 'foo' }
+#   # equivalent to:
+#   NastyCache.instance.fetch("large_blob", :cache => true) { 'foo' }
+#   # translates to:
+#   NastyCache.instance.fetch("large_blob") do
+#     Rails.cache.fetch("NastyCache/local_timestamp/large_blob") do
+#       # ...
+#     end
+#   end
+#
+# @example expiring cache across server instances
+#
+#   NastyCache.instances.expire!
+#   # => This will expire all instances across server instances
+#   #    the next time they call #initialize_request.
+#   #    This should be equivalent of restarting the server.
+#
+class NastyCache
+  include Singleton
+
+  MEMORY_CACHE_KEY = "NastyCache#timestamp"
+
+  attr_accessor :local_timestamp
+
+  def initialize(verbose = false)
+    @local_timestamp = init_timestamp
+    @cache_store = {}
+    @verbose = verbose
+  end
+
+  def initialize_request
+    if expired?
+      expire_local!
+    else
+      log("NastyCache(#{Process.pid})#cached: #{ @cache_store.length } keys")
+    end
+  end
+
+  # Expires both local (@cache_store) and Rails.cache
+  # this is equivalent of a server restart.
+  def expire!(options = {})
+    log("NastyCache(#{Process.pid})#expire!")
+
+    # Atlas comes first to ensure that the cache isn't repopulated with old
+    # ETSource data. This should not happen, except if threading is enabled.
+    expire_atlas!(options)
+
+    expire_local!
+    expire_cache!
+
+    mark_expired!
+  end
+
+  def fetch(key, opts = {})
+    if @cache_store.has_key?(key)
+      get(key, opts)
+    else
+      value = if opts[:cache] == true
+        Rails.cache.fetch(rails_cache_key(key)) { yield }
+      else
+        yield
+      end
+      set(key, value)
+    end
+  end
+
+  # alias to fetch(key, cache: true)
+  def fetch_cached(key, &block)
+    fetch(key, :cache => true, &block)
+  end
+
+  def get(key, opts = {})
+    if opts[:cache] == true
+      @cache_store[key] || Rails.cache.read(rails_cache_key(key))
+    else
+      @cache_store[key]
+    end
+  end
+
+  def set(key, value)
+    @cache_store[key] = value
+  end
+
+  def delete(key)
+    @cache_store.delete(key)
+    Rails.cache.delete(rails_cache_key(key))
+  end
+
+##############
+# protected
+##############
+
+  # Expires Rails.cache. Easiest way is to Rails.cache.clear
+  # Otherwise you could track the keys cached by MemoryCache in an
+  # instance variable (e.g. @cached_keys), and delete them here:
+  #    @cached_keys.each{|k| Rails.cache.delete(k) }
+  def expire_cache!
+    Rails.cache.clear
+  end
+
+  # 'broadcasts' that the cache has expired.
+  def mark_expired!
+    Rails.cache.write(MEMORY_CACHE_KEY, DateTime.now)
+  end
+
+  def expire_local!
+    log("NastyCache(#{Process.pid})#expire: timestamp: #{local_timestamp} (local) / #{global_timestamp} (global)")
+    @local_timestamp = global_timestamp
+    log("NastyCache#expire: #{ @cache_store.length } keys")
+
+    # In production, load profiles are cached. Wipe that cache by creating a new
+    # reader of the same type.
+
+    @cache_store = {}
+  end
+
+  def expire_atlas!(options)
+    Atlas::ActiveDocument::Manager.clear_all!
+
+    unless options[:keep_atlas_dataset]
+      # We need to recalculate the datasets.
+      Etsource::Dataset::Import.loader.reload!
+    end
+  end
+
+  def expired?
+    local_timestamp != global_timestamp
+  end
+
+  def init_timestamp
+    Rails.cache.fetch(MEMORY_CACHE_KEY) { DateTime.now }
+  end
+
+  def global_timestamp
+    Rails.cache.read(MEMORY_CACHE_KEY)
+  end
+
+  def rails_cache_key(key)
+    ["NastyCache", local_timestamp, key].join('/')
+  end
+
+  # Internal: Sends a message to the Rails logger if NastyCache verbose mode
+  # is enabled, otherwise the message is discarded.
+  def log(message)
+    Rails.logger.info(message) if @verbose
+  end
+end

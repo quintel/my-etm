@@ -69,6 +69,10 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_22_090825) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "first_party"
+    t.string "uri", null: false
+    t.integer "owner_id", null: false
+    t.string "owner_type", null: false
+    t.index ["owner_id", "owner_type"], name: "index_oauth_applications_on_owner_id_and_owner_type"
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
   end
 
@@ -134,7 +138,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_22_090825) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "legacy_password_salt"
     t.datetime "deleted_at"
     t.string "phone_number"
     t.string "avatar_url"

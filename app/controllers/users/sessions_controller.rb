@@ -4,9 +4,6 @@ module Users
   class SessionsController < Devise::SessionsController
     def create
       super do
-        if resource.legacy_password_salt
-          migrate_legacy_password(resource, params.require(:user).require(:password))
-        end
 
         if session['user_return_to'].to_s.start_with?('/oauth/authorize') && is_flashing_format?
           # Don't show the flash message when redirecting to an OAuth action.
@@ -45,19 +42,6 @@ module Users
       @access_token ||= if params[:access_token].present? && current_user
         current_user.access_tokens.find_by(token: params[:access_token])
       end
-    end
-
-    # Migrate a user to the new password hashing scheme.
-    def migrate_legacy_password(resource, password)
-      resource.skip_password_change_notification!
-
-      resource.update_with_password(
-        password:,
-        legacy_password_salt: nil,
-        current_password: password
-      )
-
-      bypass_sign_in(resource)
     end
 
     def after_sign_out_path_for(...)

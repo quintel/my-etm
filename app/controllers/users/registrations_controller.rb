@@ -31,14 +31,7 @@ module Users
     private
 
     def after_sign_out_path_for(...)
-      if Settings.etmodel_uri.present?
-        uri = URI.parse(Settings.etmodel_uri)
-        uri.path = '/user/account_deleted'
-
-        uri.to_s
-      else
-        root_path
-      end
+      redirect_to root_path
     end
 
     def update_resource(resource, params)

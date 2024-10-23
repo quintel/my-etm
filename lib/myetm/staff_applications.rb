@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ETEngine
+module MyEtm
   # Holds config information about OAuth accounts created for staff users.
   module StaffApplications
     class << self
@@ -17,6 +17,8 @@ module ETEngine
       end
 
       private
+
+      # TODO fix these app configs - include Engine!
 
       def etmodel
         AppConfig.new(

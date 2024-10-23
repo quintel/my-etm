@@ -4,10 +4,10 @@ RSpec.describe CreateStaffApplication do
   let(:user) { create(:admin) }
 
   let(:app_config) do
-    ETEngine::StaffApplications::AppConfig.new(
+    MyEtm::StaffApplications::AppConfig.new(
       key: 'my_app',
       name: 'My application',
-      uri: 'http://localhost:3000',
+      uri: 'http://localhost:3002',
       scopes: 'email',
       redirect_path: '/auth',
       config_path: 'conf.yml',
@@ -33,11 +33,11 @@ RSpec.describe CreateStaffApplication do
     end
 
     it 'sets the default URI' do
-      expect(app.application.uri).to eq('http://localhost:3000')
+      expect(app.application.uri).to eq('http://localhost:3002')
     end
 
     it 'sets the default redirect URI' do
-      expect(app.application.redirect_uri).to eq('http://localhost:3000/auth')
+      expect(app.application.redirect_uri).to eq('http://localhost:3002/auth')
     end
 
     context 'when given a custom URI' do
@@ -64,7 +64,7 @@ RSpec.describe CreateStaffApplication do
 
     context 'when the application uri is different' do
       it 'does not update the application URI' do
-        new_config = ETEngine::StaffApplications::AppConfig.new(
+        new_config = MyEtm::StaffApplications::AppConfig.new(
           app_config.to_h.merge(url: 'http://wwww.example.org')
         )
 
@@ -79,7 +79,7 @@ RSpec.describe CreateStaffApplication do
 
     context 'when the application redirect_uri is different' do
       it 'updates the path of the existing URI' do
-        new_config = ETEngine::StaffApplications::AppConfig.new(
+        new_config = MyEtm::StaffApplications::AppConfig.new(
           app_config.to_h.merge(redirect_path: '/auth/callback')
         )
 
@@ -99,7 +99,7 @@ RSpec.describe CreateStaffApplication do
 
     context 'when the application scope is different' do
       it 'updates the scopes of the existing application' do
-        new_config = ETEngine::StaffApplications::AppConfig.new(
+        new_config = MyEtm::StaffApplications::AppConfig.new(
           app_config.to_h.merge(scopes: 'profile')
         )
 
@@ -113,4 +113,3 @@ RSpec.describe CreateStaffApplication do
       end
     end
   end
-end

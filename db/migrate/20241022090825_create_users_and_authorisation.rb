@@ -18,7 +18,6 @@ class CreateUsersAndAuthorisation < ActiveRecord::Migration[7.2]
         t.datetime :confirmation_sent_at unless column_exists?(:users, :confirmation_sent_at)
         t.string :unconfirmed_email unless column_exists?(:users, :unconfirmed_email)
         t.datetime :deleted_at unless column_exists?(:users, :deleted_at)
-        t.string :legacy_password_salt unless column_exists?(:users, :legacy_password_salt)
         t.string :name, null: false, default: "" unless column_exists?(:users, :name)
         t.boolean :private_scenarios, default: false unless column_exists?(:users, :private_scenarios)
         t.boolean :admin, null: false, default: false unless column_exists?(:users, :admin)
@@ -46,7 +45,6 @@ class CreateUsersAndAuthorisation < ActiveRecord::Migration[7.2]
         t.datetime :confirmation_sent_at
         t.string :unconfirmed_email
         t.datetime :deleted_at
-        t.string :legacy_password_salt
         t.string :name, null: false, default: ""
         t.boolean :private_scenarios, default: false
         t.boolean :admin, null: false, default: false
@@ -60,6 +58,15 @@ class CreateUsersAndAuthorisation < ActiveRecord::Migration[7.2]
     # Add foreign keys for Doorkeeper
     add_foreign_key :oauth_access_grants, :users, column: :resource_owner_id unless foreign_key_exists?(:oauth_access_grants, :users, column: :resource_owner_id)
     add_foreign_key :oauth_access_tokens, :users, column: :resource_owner_id unless foreign_key_exists?(:oauth_access_tokens, :users, column: :resource_owner_id)
+
+    change_table :oauth_applications, bulk: true do |t|
+      t.string :uri, null: false unless column_exists?(:oauth_applications, :uri)
+      t.integer :owner_id, null: false unless column_exists?(:oauth_applications, :owner_id)
+      t.string :owner_type, null: false unless column_exists?(:oauth_applications, :owner_type)
+
+      t.boolean :first_party, default: false, null: false unless column_exists?(:oauth_applications, :first_party)
+    end
+    add_index :oauth_applications, [:owner_id, :owner_type], name: "index_oauth_applications_on_owner_id_and_owner_type" unless index_exists?(:oauth_applications, [:owner_id, :owner_type])
 
     # Create staff_applications table
     create_table :staff_applications, charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
