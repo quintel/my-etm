@@ -22,4 +22,5 @@ blocks:
             - bundle install || (rm -rf vendor/bundle && cache clear && bundle install)
             - cache store
             - 'bundle exec rake db:setup'
+            - bundle exec rake assets:precompile
             - bundle exec rspec
