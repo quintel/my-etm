@@ -35,6 +35,10 @@ en:
     profile: My profile
   scenario_bar:
     info: Info
+    history: History
+    manage_access: Manage access
+    edit: Edit
+    discard: Discard
     private:
       true: Private
       false: Public

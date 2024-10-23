@@ -8,9 +8,9 @@
 
   <%# static card %>
   <%# should make text optional and setup the @path with turbo see: https://boringrails.com/articles/hovercards-stimulus/ %>
-  <div class="relative hidden" data-hovercard-target="card">
-    <div data-tooltip-arrow class="absolute top-0 left-0 z-50 shadow-lg rounded-lg p-3 min-w-max-content bg-midnight-300 text-midnight-800">
-      <div class="flex space-x-3 items-center w-64 text-sm">
+  <div class="relative opacity-0 transition delay-500 duration-300" data-hovercard-target="card">
+    <div data-tooltip-arrow class="absolute top-0 right-2 z-50 shadow-lg rounded-lg p-3 min-w-max-content bg-midnight-300 text-midnight-800">
+      <div class="flex space-x-3 items-center w-48 text-sm">
         <%= @text %>
       </div>
     </div>

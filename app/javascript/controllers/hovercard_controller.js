@@ -6,7 +6,10 @@ export default class extends Controller {
 
   show() {
     if (this.hasCardTarget) {
+      this.cardTarget.classList.add("delay-500");
       this.cardTarget.classList.remove("hidden");
+      this.cardTarget.classList.add("opacity-100");
+      this.cardTarget.classList.remove("opacity-0");
     } else {
       fetch(this.urlValue)
         .then((r) => r.text())
@@ -22,6 +25,9 @@ export default class extends Controller {
 
   hide() {
     if (this.hasCardTarget) {
+      this.cardTarget.classList.add("opacity-0");
+      this.cardTarget.classList.remove("delay-500");
+      this.cardTarget.classList.remove("opacity-100");
       this.cardTarget.classList.add("hidden");
     }
   }

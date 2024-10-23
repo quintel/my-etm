@@ -25,7 +25,7 @@ module.exports = {
           900: "#4e7be4",
           950: "#f27316"
         }
-      }
+      },
     },
   },
   plugins: [
