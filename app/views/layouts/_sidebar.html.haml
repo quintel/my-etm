@@ -1,23 +1,19 @@
-.sidebar.fixed.top-0.bottom-0.overflow-y-auto.bg-gray-800{class: 'lg:left-0 w-[300px]'}
+.sidebar.fixed.top-0.bottom-0.overflow-y-auto.bg-midnight-300{class: 'lg:left-0 w-[300px]'}
   -# Where does the logo refer to? REMEMBER LAST VERSION IN COOKIE
-  %a.logo.p-5.inline-block.w-full
-    = image_tag 'header/logo300@2x.png', class: 'h-8'
+  %a.logo.p-5.mb-3.inline-block.w-full.text-midnight-800
+    = image_tag 'header/logo-round.png', class: 'h-8 inline mb-1 mr-2 hover:animate-spin'
+    %span Energy Transition Model
 
-  .p-2.px-5.text-gray-100.inline-block.w-full
-    = link_to saved_scenarios_path do
-      %span= heroicon 'adjustments-horizontal', options: { class: 'inline-block w-6 h-6' }
-      Scenarios
-  %a.p-2.px-5.text-gray-100.inline-block.w-full
-    %span= heroicon 'chart-bar-square', options: { class: 'inline-block w-6 h-6' }
-    Collections
-  %a.p-2.px-5.text-gray-100.inline-block.w-full
-    %span= heroicon 'trash', options: { class: 'inline-block w-6 h-6' }
-    Discarded
+
+  = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.saved_scenarios'), icon: 'adjustments-horizontal', active: controller_name == 'saved_scenarios'))
+
+  = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections'))
+
+  = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded'))
+
   .absolute.bottom-0.left-0.inline-block.w-full
-    .p-5.text-gray-100
+    .p-5.pl-6.text-midnight-800
       %span= heroicon 'language', options: { class: 'inline-block w-6 h-6' }
       Switch language
-    .border-solid.border-t-2.border-gray-600
-      .p-5.text-gray-100
-        %span= heroicon 'user-circle', options: { class: 'inline-block w-6 h-6' }
-        My profile
+    .bg-midnight-600.py-3
+      = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.profile'), icon: 'user-circle', active: controller_name == 'user', text: 'text-midnight-800'))

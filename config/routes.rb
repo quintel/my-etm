@@ -1,7 +1,13 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
-  resources :saved_scenarios
+  resources :saved_scenarios do
+    member do
+      put :publish
+      put :unpublish
+    end
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   use_doorkeeper

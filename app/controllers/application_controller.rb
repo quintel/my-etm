@@ -1,5 +1,10 @@
 class ApplicationController < ActionController::Base
+  
   helper :all
+  
+  # Only allow modern browsers supporting webp images, web push, badges, import maps,
+  # CSS nesting, and CSS :has.
+  allow_browser versions: :modern
 
   # TODO refactor move the hooks and corresponding actions into a "concern"
   before_action :initialize_memory_cache
@@ -109,5 +114,14 @@ class ApplicationController < ActionController::Base
     )
 
     true
-  end
+
+  # Returns the Faraday client which should be used to communicate with ETEngine. This contains the
+  # user authentication token if the user is logged in.
+#   def engine_client
+    # if current_user
+    #   identity_session.access_token.http_client
+    # else
+    #   Identity.http_client
+    # end
+#   end
 end

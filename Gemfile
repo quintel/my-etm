@@ -44,7 +44,6 @@ gem 'config'
 # Views and CSS
 gem 'haml'
 gem "tailwindcss-rails", "~> 3.0"
-gem "sassc-rails"
 gem 'view_component'
 gem "rdiscount", "~> 2.2"
 gem "heroicon"
@@ -59,6 +58,12 @@ gem 'erb-formatter'
 # Testing
 gem 'capybara'
 
+
+# Keeping the front end dry
+gem 'dry-initializer'
+gem 'dry-monads'
+gem 'dry-struct'
+gem 'dry-validation'
 
 # Model gems
 gem 'discard'

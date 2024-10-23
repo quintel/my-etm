@@ -1,5 +1,5 @@
 class SavedScenariosController < ApplicationController
-  before_action :set_saved_scenario, only: %i[ show edit update destroy ]
+  before_action :set_saved_scenario, only: %i[ show edit update destroy publish unpublish]
 
   # GET /saved_scenarios or /saved_scenarios.json
   def index
@@ -54,11 +54,41 @@ class SavedScenariosController < ApplicationController
     @saved_scenario.destroy!
 
     respond_to do |format|
-      format.html {
- redirect_to saved_scenarios_path, status: :see_other,
-   notice: "Saved scenario was successfully destroyed." }
+      format.html do
+        redirect_to(
+            saved_scenarios_path,
+            status: :see_other,
+            notice: "Saved scenario was successfully destroyed."
+        )
+      end
       format.json { head :no_content }
     end
+  end
+
+  # Makes a scenario public.
+  def publish
+    @saved_scenario.update(private: false)
+
+    # ApiScenario::UpdatePrivacy.call_with_ids(
+    #   engine_client,
+    #   @saved_scenario.all_scenario_ids,
+    #   private: false
+    # )
+
+    redirect_to saved_scenario_path(@saved_scenario)
+  end
+
+  # Makes a scenario private.
+  def unpublish
+    @saved_scenario.update(private: true)
+
+    # ApiScenario::UpdatePrivacy.call_with_ids(
+    #   engine_client,
+    #   @saved_scenario.all_scenario_ids,
+    #   private: true
+    # )
+
+    redirect_to saved_scenario_path(@saved_scenario)
   end
 
   private

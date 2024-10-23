@@ -6,6 +6,28 @@
   body {
     @apply m-0;
     @apply h-screen;
+    font-optical-sizing: auto;
+    @apply bg-midnight-200;
+  }
+
+  @font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    src: url('Montserrat-VariableFont_wght.ttf') format('truetype');
+  }
+
+  .button {
+    @apply bg-gray-100;
+    @apply p-2;
+    @apply px-5;
+    @apply rounded-md;
+    @apply transition;
+    @apply hover:bg-midnight-950;
+    @apply hover:text-midnight-200;
+  }
+
+  .logo {
+    filter: brightness(0.25);
   }
 }
 /*
