@@ -15,12 +15,9 @@ class SavedScenario < ApplicationRecord
 
   has_one :featured_scenario, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
-<<<<<<< HEAD
   has_many :users, through: :saved_scenario_users
-=======
   # has_many :users, through: :saved_scenario_users
   has_rich_text :description
->>>>>>> 22f02a3 (Edit saved scenario description with actiontext)
 
   validates :scenario_id, presence: true
   validates :title,       presence: true
