@@ -19,7 +19,10 @@
 
 <div class="border-t border-solid border-gray-200 my-10"></div>
 
-<%= render(Hovercard::Component.new(path: '', text: t("scenario_bar.private.description.#{saved_scenario.private}"))) do %>
+<%= render(Hovercard::Component.new(
+    path: '',
+    text: t("scenario_bar.private.description.#{saved_scenario.private}")
+  )) do %>
   <%= render(PublishSavedScenario::Component.new(
     path_on: publish_saved_scenario_path(saved_scenario),
     path_off: unpublish_saved_scenario_path(saved_scenario),
