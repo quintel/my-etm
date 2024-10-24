@@ -12,13 +12,13 @@
   </div>
 
   <div class="mb-4">
-    <%= render(Login::FloatingFieldComponent.new(form: f, name: :password, title: t('activerecord.attributes.user.password'))) do |c| %>
+    <%= render(Login::FloatingFieldComponent.new(form: f, name: :password, type: :password, title: t('activerecord.attributes.user.password'))) do |c| %>
       <% c.field do %>
         <%= render(PasswordFieldComponent.new(form: f, name: :password, autocomplete: "current-password", class: "peer mb-1", placeholder: t('activerecord.attributes.user.password'), required: true)) %>
       <% end %>
     <% end %>
 
-    <%= link_to t('.forgot_password'), new_password_path(resource_name), class: "font-medium p-1 -m-1 mt-0 inline-block" %>
+    <%= link_to t('.forgot_password'), new_password_path(resource_name), class: "text-sm p-1 -m-1 mt-2 inline-block hover:underline" %>
   </div>
 
   <% if devise_mapping.rememberable? %>
@@ -27,8 +27,8 @@
 
   <%= render(Login::ButtonComponent.new(form: f).with_content(t('.submit'))) %>
 
-  <p class="mt-4 text-gray-600 text-center">
+  <p class="mt-5 text-midnight-800 text-center">
     <%= t('.dont_have_account') %>
-    <%= render(Login::DeviseFooterLinkComponent.new(path: new_registration_path(resource_name), class: 'text-midnight-600 hover:text-midnight-800 active:text-midnight-800').with_content(t('.sign_up'))) %>
+    <%= render(Login::DeviseFooterLinkComponent.new(path: new_registration_path(resource_name), class: 'text-midnight-900 hover:underline active:underline').with_content(t('.sign_up'))) %>
   </p>
 <% end %>

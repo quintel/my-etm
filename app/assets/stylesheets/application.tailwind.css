@@ -43,11 +43,9 @@
 
 @import 'actiontext.css';
 
-/* @layer components {
-  trix-toolbar .trix-button {
-    @apply bg-midnight-200;
-    @apply text-midnight-800;
-  }
-} */
+
+input[type="email"], input[type="password"], input[type="text"] {
+  @apply border-gray-200 rounded-md bg-midnight-200;
+}
 
 

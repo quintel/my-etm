@@ -1,5 +1,19 @@
 class SavedScenariosController < ApplicationController
-  before_action :set_saved_scenario, only: %i[ show edit update destroy publish unpublish]
+  load_resource only: %i[discard undiscard publish unpublish]
+  load_and_authorize_resource only: %i[show new create edit update destroy]
+  # before_action :set_saved_scenario, only: %i[ show edit update destroy publish unpublish]
+
+  before_action only: %i[load] do
+    authorize!(:read, @saved_scenario)
+  end
+
+  before_action only: %i[publish unpublish] do
+    authorize!(:update, @saved_scenario)
+  end
+
+  before_action only: %i[discard undiscard] do
+    authorize!(:destroy, @saved_scenario)
+  end
 
   # GET /saved_scenarios or /saved_scenarios.json
   def index
@@ -89,6 +103,36 @@ class SavedScenariosController < ApplicationController
     # )
 
     redirect_to saved_scenario_path(@saved_scenario)
+  end
+
+  # Soft-deletes the scenario so that it no longer appears in listings.
+  #
+  # PUT /saved_scenarios/:id/discard
+  def discard
+    unless @saved_scenario.discarded?
+      @saved_scenario.discarded_at = Time.zone.now
+      @saved_scenario.save(touch: false)
+
+      flash.notice = t('scenario.trash.discarded_flash')
+      flash[:undo_params] = [undiscard_saved_scenario_path(@saved_scenario), { method: :put }]
+    end
+
+    redirect_back(fallback_location: saved_scenarios_path)
+  end
+
+  # Removes the soft-deletes of the scenario.
+  #
+  # PUT /saved_scenarios/:id/undiscard
+  def undiscard
+    unless @saved_scenario.kept?
+      @saved_scenario.discarded_at = nil
+      @saved_scenario.save(touch: false)
+
+      flash.notice = t('scenario.trash.undiscarded_flash')
+      flash[:undo_params] = [discard_saved_scenario_path(@saved_scenario), { method: :put }]
+    end
+
+    redirect_back(fallback_location: discarded_saved_scenarios_path)
   end
 
   private

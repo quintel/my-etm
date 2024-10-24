@@ -5,15 +5,14 @@ module Login
     include CssClasses
 
     DEFAULT_CLASSES = %w[
-      font-medium
       inline-block
       px-2 py-1
       rounded
-      text-gray-500 text-sm
+      text-midnight-800 text-sm
       transition
 
-      active:bg-gray-300 active:text-gray-700
-      hover:bg-gray-200 hover:text-gray-700
+      active:bg-midnight-600 active:text-midnight-800
+      hover:bg-midnight-600 hover:text-midnight-800
     ].freeze
 
     def initialize(path:, **attributes)

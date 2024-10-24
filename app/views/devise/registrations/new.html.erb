@@ -18,7 +18,7 @@
   </div>
 
   <div class="mb-4">
-    <%= render(Login::FloatingFieldComponent.new(form: f, name: :password, title: t('activerecord.attributes.user.password'))) do |c| %>
+    <%= render(Login::FloatingFieldComponent.new(form: f, name: :password, type: :password, title: t('activerecord.attributes.user.password'))) do |c| %>
       <% c.field do %>
         <%= render(PasswordFieldComponent.new(form: f, name: :password, autocomplete: "new-password", class: "peer mb-1", placeholder: t('activerecord.attributes.user.password'), required: true)) %>
       <% end %>

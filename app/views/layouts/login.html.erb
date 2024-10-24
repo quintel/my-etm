@@ -15,24 +15,24 @@
     <%= javascript_importmap_tags "identity" %>
   </head>
 
-  <body class="with-bg guest text-sm">
+  <body class="guest">
     <div class="min-h-screen flex items-center justify-center">
       <div class="container mx-auto">
-        <main class="w-[30rem] mb-24 mx-auto mt-12 bg-white rounded-lg shadow-xl">
+        <main class="w-[30rem] mb-24 mx-auto mt-12 bg-midnight-300 rounded-lg shadow-xl">
           <div
             class="
-              bg-gray-500
-              bg-gradient-to-b
-              from-[rgba(255,255,255,0.2)]
-              to-transparent
-              flex
-              items-center
-              justify-center
+              px-5
               py-4
+              pt-6
               rounded-t-md
+              text-midnight-800
+              logo
+              inline-block
+              ml-5
             "
           >
-            <%= image_tag 'logo.png', height: 30, width: 284, alt: '' %>
+            <%= image_tag 'header/logo-round.png', class: 'h-8 inline mb-1 mr-2 hover:animate-spin'%>
+            <span> Energy Transition Model </span>
           </div>
           <div class="p-12">
             <%= yield(:header) %>
@@ -40,13 +40,12 @@
             <% if flash[:notice].present? %>
               <p
                 class="
-                  bg-green-100
                   border
-                  border-green-300
+                  border-gray-200
                   p-2
                   rounded
                   font-medium
-                  text-green-800
+                  text-midnight-980
                   mt-4
                   mb-8
                   text-center
