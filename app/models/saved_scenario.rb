@@ -31,7 +31,8 @@ class SavedScenario < ApplicationRecord
 
   # Returns all saved scenarios whose areas are avaliable.
   def self.available
-    kept.where(area_code: Engine::Area.keys)
+    # kept.where(area_code: Engine::Area.keys)
+    kept
   end
 
   def scenario(engine_client)

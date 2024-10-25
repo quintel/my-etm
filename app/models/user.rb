@@ -22,8 +22,8 @@ class User < ApplicationRecord
     as: :owner
 
   has_many :staff_applications, dependent: :destroy
-  has_many :scenario_users, dependent: :destroy
-  has_many :saved_scenarios, through: :scenario_users
+  has_many :saved_scenario_users, dependent: :destroy
+  has_many :saved_scenarios, through: :saved_scenario_users
   has_many :personal_access_tokens, dependent: :destroy
 
   validates :name, presence: true, length: { maximum: 191 }

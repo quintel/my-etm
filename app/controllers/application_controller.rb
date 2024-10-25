@@ -1,13 +1,10 @@
 class ApplicationController < ActionController::Base
-
   helper :all
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps,
   # CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
-  # TODO refactor move the hooks and corresponding actions into a "concern"
-  before_action :initialize_memory_cache
   before_action :set_locale
   before_action :configure_sentry
   before_action :store_user_location!, if: :storable_location?
@@ -35,22 +32,6 @@ class ApplicationController < ActionController::Base
       session[:locale] || http_accept_language.preferred_language_from(I18n.available_locales)
   end
 
-  ##
-  # Shortcut for benchmarking of controller stuff.
-  #
-  # DEPRECATED: Use ActiveSupport notifications if possible.
-  #
-  # (is public, so we can call it within a render block)
-  #
-  # @param log_message [String]
-  # @param log_level
-  #
-  def benchmark(log_message, log_level = Logger::INFO,  &block)
-    self.class.benchmark(log_message) do
-      yield
-    end
-  end
-
   private
 
   def require_no_user
@@ -60,6 +41,14 @@ class ApplicationController < ActionController::Base
       redirect_to root_path
       throw(:abort)
     end
+  end
+
+  def require_user
+    return if current_user
+
+    flash[:notice] = I18n.t("flash.need_login")
+    redirect_to new_user_session_path
+    false
   end
 
   # Its important that the location is NOT stored if:
@@ -110,14 +99,14 @@ class ApplicationController < ActionController::Base
     render(
       html: content.html_safe,
       status: :not_found,
-      layout: false
+      layout: "errors"
     )
 
     true
 
   # Returns the Faraday client which should be used to communicate with ETEngine. This contains the
   # user authentication token if the user is logged in.
-#   def engine_client
+  #   def engine_client
     # if current_user
     #   identity_session.access_token.http_client
     # else

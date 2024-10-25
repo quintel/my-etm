@@ -1,15 +1,3 @@
-ENV['ETSOURCE_DIR'] ||= 'spec/fixtures/etsource'
-
-if ENV["COVERAGE"]
-  require 'simplecov'
-  SimpleCov.start do
-    add_group "ETSource", "app/models/etsource"
-    add_group "Qernel", "app/models/qernel"
-    add_group "GQL", "app/models/gql"
-    #add_group "Controllers", "app/controllers"
-  end
-end
-
 require 'rubygems'
 
 ENV["RAILS_ENV"] ||= 'test'
@@ -57,12 +45,12 @@ RSpec.configure do |config|
 
   config.include(FactoryBot::Syntax::Methods)
 
+  config.include Devise::Test::IntegrationHelpers, type: :request
+
   config.include(Devise::Test::ControllerHelpers, type: :controller)
   config.include(AuthorizationHelper)
 
   config.include(ViewComponentHelpers, type: :component)
-
-  # System tests
   config.include(SystemHelpers, type: :system)
 
   config.before(:each, type: :system) do
@@ -76,19 +64,6 @@ RSpec.configure do |config|
   config.before(:each, type: :system, debug: true) do
     driven_by :selenium_chrome
   end
-
-  # Prevent the static YML file from being deleted.
-  # config.before(:suite) do
-  #   loader = ETSourceFixtureHelper::AtlasTestLoader.new(
-  #     Rails.root.join('spec/fixtures/etsource/static'))
-
-  #   Etsource::Dataset::Import.loader = loader
-
-  #   fixture_path = Rails.root.join('spec/fixtures/etsource')
-
-  #   Etsource::Base.loader(fixture_path.to_s)
-  #   Atlas.data_dir = fixture_path
-  # end
 
   config.after(:suite) do
     FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))

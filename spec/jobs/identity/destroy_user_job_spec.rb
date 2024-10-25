@@ -20,17 +20,17 @@ RSpec.describe Identity::DestroyUserJob, type: :job do
       Settings.reload!
     end
 
-    pending 'sends a PUT request to the ETModel API' do
+    it 'sends a PUT request to the ETModel API' do
       described_class.perform_now(user.id)
       expect(connection).to have_received(:delete).with('/api/v1/user')
     end
 
-    pending 'destroys the user' do
+    it 'destroys the user' do
       expect { described_class.perform_now(user.id) }
         .to change { User.where(id: user.id).count }.by(-1)
     end
 
-    pending 'returns true' do
+    it 'returns true' do
       expect(described_class.perform_now(user.id)).to be(true)
     end
   end

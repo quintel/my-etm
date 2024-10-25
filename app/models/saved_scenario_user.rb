@@ -1,9 +1,9 @@
 class SavedScenarioUser < ApplicationRecord
   belongs_to :saved_scenario
-  # belongs_to :user, optional: true
+  belongs_to :user, optional: true
 
   validate :user_id_or_email
-  validates :user_email, format: { with: Devise.email_regexp }
+  validates :user_email, format: { with: Devise.email_regexp }, if: :no_user_present?
   validates :role_id, inclusion: { in: User::Roles.all }
 
 
@@ -20,6 +20,10 @@ class SavedScenarioUser < ApplicationRecord
   end
 
   private
+
+  def no_user_present?
+    user_id.blank?
+  end
 
   # Validation: Either user_id or user_email should be present, but not both
   def user_id_or_email

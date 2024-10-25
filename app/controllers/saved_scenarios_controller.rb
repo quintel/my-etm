@@ -1,11 +1,8 @@
 class SavedScenariosController < ApplicationController
   load_resource only: %i[discard undiscard publish unpublish]
   load_and_authorize_resource only: %i[show new create edit update destroy]
-  # before_action :set_saved_scenario, only: %i[ show edit update destroy publish unpublish]
 
-  before_action only: %i[load] do
-    authorize!(:read, @saved_scenario)
-  end
+  before_action :require_user, only: %i[index]
 
   before_action only: %i[publish unpublish] do
     authorize!(:update, @saved_scenario)
@@ -17,7 +14,11 @@ class SavedScenariosController < ApplicationController
 
   # GET /saved_scenarios or /saved_scenarios.json
   def index
-    @saved_scenarios = SavedScenario.all
+    current_user
+      .saved_scenarios
+      .available
+      .includes(:featured_scenario, :users)
+      .order('updated_at DESC')
   end
 
   # GET /saved_scenarios/1 or /saved_scenarios/1.json
@@ -72,7 +73,7 @@ class SavedScenariosController < ApplicationController
         redirect_to(
             saved_scenarios_path,
             status: :see_other,
-            notice: "Saved scenario was successfully destroyed."
+            notice: "Scenario was successfully destroyed."
         )
       end
       format.json { head :no_content }
