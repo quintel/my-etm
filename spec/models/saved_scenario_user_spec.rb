@@ -6,9 +6,9 @@ describe SavedScenarioUser do
   it { is_expected.to validate_inclusion_of(:role_id).in_array(User::Roles.all) }
 
   it { is_expected.to belong_to(:saved_scenario) }
-  pending { is_expected.to belong_to(:user).optional }
+  it { is_expected.to belong_to(:user).optional }
 
-  pending 'validates on_save with user_email and no user_id set' do
+  it 'validates on_save with user_email and no user_id set' do
     expect do
       FactoryBot.create(:saved_scenario_user,
         saved_scenario: saved_scenario,
@@ -18,7 +18,7 @@ describe SavedScenarioUser do
     end.to_not(raise_error)
   end
 
-  pending 'validates on_save with user_id and no user_email set' do
+  it 'validates on_save with user_id and no user_email set' do
     expect do
       FactoryBot.create(:saved_scenario_user,
         saved_scenario: saved_scenario,
@@ -27,7 +27,7 @@ describe SavedScenarioUser do
     end.to_not(raise_error)
   end
 
-  pending 'allows updating the role if not the last scenario owner' do
+  it 'allows updating the role if not the last scenario owner' do
     # The first user added will automatically become the scenario owner
     saved_scenario.user = FactoryBot.create(:user)
     saved_scenario_user = FactoryBot.create(
@@ -43,7 +43,7 @@ describe SavedScenarioUser do
     ).to be(User::Roles.index_of(:scenario_viewer))
   end
 
-  pending 'allows destroying a record if not the last scenario owner' do
+  it 'allows destroying a record if not the last scenario owner' do
     # The first user added will automatically become the scenario owner
     saved_scenario.user = FactoryBot.create(:user)
     saved_scenario_user = FactoryBot.create(
@@ -59,7 +59,7 @@ describe SavedScenarioUser do
     ).to be(1)
   end
 
-  pending 'raises an error when validating an incorrect email address' do
+  it 'raises an error when validating an incorrect email address' do
     expect do
       FactoryBot.create(:saved_scenario_user,
         saved_scenario: saved_scenario,
@@ -69,7 +69,7 @@ describe SavedScenarioUser do
     end.to raise_error(ActiveRecord::RecordInvalid)
   end
 
-  pending 'raises an error when both user and email address are present' do
+  it 'raises an error when both user and email address are present' do
     expect do
       FactoryBot.create(:saved_scenario_user,
         saved_scenario: saved_scenario,
@@ -79,7 +79,7 @@ describe SavedScenarioUser do
     end.to raise_error(ActiveRecord::RecordInvalid)
   end
 
-  pending 'cancels an update action for the last owner of a scenario' do
+  it 'cancels an update action for the last owner of a scenario' do
     # The first user added will automatically become the scenario owner
     saved_scenario.user = FactoryBot.create(:user)
 
@@ -95,7 +95,7 @@ describe SavedScenarioUser do
     owner = FactoryBot.create(:saved_scenario_user, saved_scenario: saved_scenario,
       role_id: User::Roles.index_of(:scenario_owner))
     viewer = FactoryBot.create(:saved_scenario_user, saved_scenario: saved_scenario,
-      role_id: User::Roles.index_of(:scenario_viewer), user_email: 'hi@me.you')
+      role_id: User::Roles.index_of(:scenario_viewer))
 
     owner.destroy
 

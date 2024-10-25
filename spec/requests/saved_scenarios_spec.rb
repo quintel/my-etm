@@ -32,21 +32,38 @@ RSpec.describe "/saved_scenarios", type: :request do
     }
   }
 
-  let!(:user_scenario) { FactoryBot.create(:saved_scenario, id: 648695) }
+  let(:user) { FactoryBot.create(:user) }
+  let!(:user_scenario) { FactoryBot.create(:saved_scenario, id: 648695, user: user) }
+  let(:admin) { FactoryBot.create :admin }
+  let!(:admin_scenario) { FactoryBot.create :saved_scenario, user: admin, id: 648696 }
 
-  pending "GET /index" do
+
+  describe "GET /index" do
+    before do
+      sign_in(user)
+      user_scenario
+    end
+
     it "renders a successful response" do
-      FactoryBot.create(:saved_scenario)
       get saved_scenarios_url
       expect(response).to be_successful
     end
   end
 
   describe "GET /show" do
-    it "renders a successful response" do
-      saved_scenario = FactoryBot.create(:saved_scenario, valid_attributes)
-      get saved_scenario_url(saved_scenario)
-      expect(response).to be_successful
+    context 'without a user signed in' do
+      it "renders a successful response" do
+        get saved_scenario_url(user_scenario)
+        expect(response).to be_successful
+      end
+    end
+
+    context 'when a user is signed in' do
+      before { sign_in(user) }
+      it "renders a successful response" do
+        get saved_scenario_url(user_scenario)
+        expect(response).to be_successful
+      end
     end
   end
 
@@ -58,9 +75,10 @@ RSpec.describe "/saved_scenarios", type: :request do
   # end
 
   describe "GET /edit" do
+    before { sign_in(user) }
+
     it "renders a successful response" do
-      saved_scenario = FactoryBot.create(:saved_scenario, valid_attributes)
-      get edit_saved_scenario_url(saved_scenario)
+      get edit_saved_scenario_url(user_scenario)
       expect(response).to be_successful
     end
   end
@@ -94,54 +112,52 @@ RSpec.describe "/saved_scenarios", type: :request do
   end
 
   describe "PATCH /update" do
+    before { sign_in(user) }
+
     context "with valid parameters" do
       let(:new_attributes) {
         skip("Add a hash of attributes valid for your model")
       }
 
       it "updates the requested saved_scenario" do
-        saved_scenario = FactoryBot.create(:saved_scenario, valid_attributes)
-        patch saved_scenario_url(saved_scenario), params: { saved_scenario: new_attributes }
-        saved_scenario.reload
+        patch saved_scenario_url(user_scenario), params: { saved_scenario: new_attributes }
+        user_scenario.reload
         skip("Add assertions for updated state")
       end
 
       it "redirects to the saved_scenario" do
-        saved_scenario = FactoryBot.create(:saved_scenario, valid_attributes)
-        patch saved_scenario_url(saved_scenario), params: { saved_scenario: new_attributes }
-        saved_scenario.reload
+        patch saved_scenario_url(user_scenario), params: { saved_scenario: new_attributes }
+        user_scenario.reload
         expect(response).to redirect_to(saved_scenario_url(saved_scenario))
       end
     end
 
     context "with invalid parameters" do
       it "renders a response with 422 status (i.e. to display the 'edit' template)" do
-        saved_scenario = FactoryBot.create(:saved_scenario, valid_attributes)
-        patch saved_scenario_url(saved_scenario), params: { saved_scenario: invalid_attributes }
+        patch saved_scenario_url(user_scenario), params: { saved_scenario: invalid_attributes }
         expect(response).to have_http_status(:found)
       end
     end
   end
 
   describe "DELETE /destroy" do
+    before { sign_in(user) }
+
     it "destroys the requested saved_scenario" do
-      saved_scenario = FactoryBot.create(:saved_scenario, valid_attributes)
       expect {
-        delete(saved_scenario_url(saved_scenario))
+        delete(saved_scenario_url(user_scenario))
       }.to change(SavedScenario, :count).by(-1)
     end
 
     it "redirects to the saved_scenarios list" do
-      saved_scenario = FactoryBot.create(:saved_scenario, valid_attributes)
-      delete saved_scenario_url(saved_scenario)
+      delete saved_scenario_url(user_scenario)
       expect(response).to redirect_to(saved_scenarios_url)
     end
   end
 
   describe 'PUT /publish' do
     before do
-      # sign_in(user)
-      # session[:setting] = Setting.new
+      sign_in(user)
       allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids)
     end
 
@@ -166,7 +182,7 @@ RSpec.describe "/saved_scenarios", type: :request do
       end
     end
 
-    pending 'with an unowned saved scenario' do
+    context 'with an unowned saved scenario' do
       before do
         admin_scenario.update!(private: true)
         post(:publish, params: { id: admin_scenario.id })
@@ -188,9 +204,8 @@ RSpec.describe "/saved_scenarios", type: :request do
 
   describe 'PUT /unpublish' do
     before do
-      # sign_in(user)
+      sign_in(user)
       allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids)
-      # session[:setting] = Setting.new
     end
 
     context 'with an owned saved scenario' do
@@ -214,7 +229,7 @@ RSpec.describe "/saved_scenarios", type: :request do
       end
     end
 
-    pending 'with an unowned saved scenario' do
+    context 'with an unowned saved scenario' do
       before do
         user_scenario.update!(private: false)
         post(:unpublish, params: { id: admin_scenario.id })
