@@ -1,11 +1,11 @@
-module SavedScenarioRow
+module SavedScenarios::Row
   class Component < ApplicationComponent
     option :path
     option :saved_scenario
 
     # Initials to show
     def initials_for(saved_scenario_user)
-      saved_scenario_user.user_email.first.capitalize
+      saved_scenario_user.initials.capitalize
     end
 
     def first_owner

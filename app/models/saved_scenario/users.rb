@@ -1,28 +1,4 @@
 module SavedScenario::Users
-  def self.owned_by?(user)
-    joins(:saved_scenario_users)
-      .where(
-        'saved_scenario_users.user_id': user.id,
-        'saved_scenario_users.role_id': User::Roles.index_of(:scenario_owner)
-      )
-  end
-
-  def self.collaborated_by?(user)
-    joins(:saved_scenario_users)
-      .where(
-        'saved_scenario_users.user_id': user.id,
-        'saved_scenario_users.role_id': User::Roles.index_of(:scenario_collaborator)..
-      )
-  end
-
-  def self.viewable_by?(user)
-    joins(:saved_scenario_users)
-      .where(
-        'saved_scenario_users.user_id': user.id,
-        'saved_scenario_users.role_id': User::Roles.index_of(:scenario_viewer)..
-      )
-  end
-
   # Returns a collection of SavedScenarioUsers
   def owners
     saved_scenario_users.where(role_id: User::Roles.index_of(:scenario_owner))

@@ -14,7 +14,7 @@ class SavedScenariosController < ApplicationController
 
   # GET /saved_scenarios or /saved_scenarios.json
   def index
-    current_user
+    @saved_scenarios = current_user
       .saved_scenarios
       .available
       .includes(:featured_scenario, :users)

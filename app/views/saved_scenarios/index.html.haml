@@ -4,6 +4,6 @@
 
 - if @saved_scenarios.present?
   - @saved_scenarios.each do |saved_scenario|
-    = render(SavedScenarioRow::Component.new(path: saved_scenario_path(saved_scenario), saved_scenario: saved_scenario))
+    = render(SavedScenarios::Row::Component.new(path: saved_scenario_path(saved_scenario), saved_scenario: saved_scenario))
 - else
   =t('saved_scenarios.empty')

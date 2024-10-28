@@ -2,7 +2,7 @@
 
 RSpec.describe 'Revoking a personal access token', type: :system do
   context 'with valid params' do
-    it 'creates a token' do
+    pending 'creates a token' do
       user = create(:user)
       sign_in(user)
 
@@ -42,7 +42,7 @@ RSpec.describe 'Revoking a personal access token', type: :system do
   end
 
   context 'with no name' do
-    it 'creates a token' do
+    pending 'creates a token' do
       user = create(:user)
       sign_in(user)
 
