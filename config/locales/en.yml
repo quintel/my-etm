@@ -95,3 +95,8 @@ en:
     empty: You don't have any scenarios.
   flash:
     need_login: Please log in again
+
+  version:
+    latest: |
+      This scenario was created in the live version of the ETM
+      which includes all the latest monthly updates. Learn more..

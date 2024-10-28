@@ -2,6 +2,7 @@
 = render(partial: "block_right_menu", object: @saved_scenario)
 
 = render(SavedScenarios::Info::Component.new(path: saved_scenario_path(@saved_scenario), button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
+= render(HovercardWithVersion::Component.new(version: @saved_scenario.version))
 
 %div.mt-5.mb-5.pb-5.border-b.border-solid.border-gray-200
   - if @saved_scenario.featured?
