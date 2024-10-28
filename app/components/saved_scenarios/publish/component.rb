@@ -1,4 +1,4 @@
-module PublishSavedScenario
+module SavedScenarios::Publish
   class Component < ApplicationComponent
     option :path_on
     option :path_off

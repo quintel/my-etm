@@ -1,4 +1,5 @@
 <%= content_for(:page_title, t('.title')) %>
+<%= content_for(:menu_title, t('.title')) %>
 <% render partial: 'identity/sidebar' %>
 
 <%= render(Identity::PageHeaderComponent.new(title: t('.title'), message: t('.explanation'))) %>

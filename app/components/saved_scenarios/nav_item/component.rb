@@ -1,4 +1,4 @@
-module SavedScenarioNavItem
+module SavedScenarios::NavItem
   class Component < ApplicationComponent
     option :path
     option :title

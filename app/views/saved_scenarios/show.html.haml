@@ -1,13 +1,13 @@
 - content_for :menu_title, @saved_scenario.title
-- content_for :block_right, render("block_right_menu", saved_scenario: @saved_scenario)
+= render(partial: "block_right_menu", object: @saved_scenario)
 
-= render(SavedScenarioInfo::Component.new(path: saved_scenario_path(@saved_scenario), button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
+= render(SavedScenarios::Info::Component.new(path: saved_scenario_path(@saved_scenario), button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
 
 %div.mt-5.mb-5.pb-5.border-b.border-solid.border-gray-200
   - if @saved_scenario.featured?
     = @saved_scenario.featured_owner_name
   - else
-    = render(SavedScenarioInfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners))
+    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners))
 
     - if @saved_scenario.collaborators.presence
       - @saved_scenario.collaborators.each do |collaborator|

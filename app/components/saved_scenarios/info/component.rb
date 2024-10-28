@@ -1,4 +1,4 @@
-module SavedScenarioInfo
+module SavedScenarios::Info
   class Component < ApplicationComponent
     option :path
     option :saved_scenario

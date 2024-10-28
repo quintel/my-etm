@@ -16,6 +16,6 @@ class Ability
     can :update,  SavedScenario, id: SavedScenario.collaborated_by?(user).pluck(:id)
     can :destroy, SavedScenario, id: SavedScenario.owned_by?(user).pluck(:id)
 
-    can :destroy, Collection, user_id: user.id
+    # can :destroy, Collection, user_id: user.id
   end
 end

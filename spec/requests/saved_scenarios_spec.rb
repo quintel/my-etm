@@ -84,6 +84,8 @@ RSpec.describe "/saved_scenarios", type: :request do
   end
 
   describe "POST /create" do
+    before { sign_in(user) }
+
     context "with valid parameters" do
       it "creates a new SavedScenario" do
         expect {
@@ -185,7 +187,7 @@ RSpec.describe "/saved_scenarios", type: :request do
     context 'with an unowned saved scenario' do
       before do
         admin_scenario.update!(private: true)
-        post(:publish, params: { id: admin_scenario.id })
+        put publish_saved_scenario_url(admin_scenario)
       end
 
       it 'returns 404' do
@@ -232,7 +234,7 @@ RSpec.describe "/saved_scenarios", type: :request do
     context 'with an unowned saved scenario' do
       before do
         user_scenario.update!(private: false)
-        post(:unpublish, params: { id: admin_scenario.id })
+        put unpublish_saved_scenario_url(admin_scenario)
       end
 
       it 'returns 404' do

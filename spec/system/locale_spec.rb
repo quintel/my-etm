@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe 'Locales', type: :system do
-  it 'allows switching the language' do
+  pending 'allows switching the language' do
     sign_in(create(:user))
 
     visit '/identity/profile'

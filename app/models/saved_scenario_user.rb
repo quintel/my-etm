@@ -19,6 +19,10 @@ class SavedScenarioUser < ApplicationRecord
     params.except(:role_id)
   end
 
+  def initials
+    user.present? ? user.name.first : user_email.first
+  end
+
   private
 
   def no_user_present?
