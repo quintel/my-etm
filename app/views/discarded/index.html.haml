@@ -1,0 +1,12 @@
+- content_for :title, t('trash.title')
+- content_for :menu_title, t('trash.title')
+- content_for :block_right, "FILTERS"
+
+- if @resources.present?
+  - @resources.each do |resource|
+    - if resource.is_a?(SavedScenario)
+      = render(SavedScenarios::Row::Component.new(path: saved_scenario_path(resource), saved_scenario: resource))
+- else
+  .text-sm.text-midnight-400.mb-2=t('trash.empty.title')
+
+  =t('trash.empty.description', deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)

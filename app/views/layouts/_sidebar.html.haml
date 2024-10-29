@@ -9,7 +9,7 @@
 
   = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections'))
 
-  = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded'))
+  = render(SidebarItem::Component.new(path: discarded_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded'))
 
   .absolute.bottom-0.left-0.inline-block.w-full
     .p-5.pl-6.text-midnight-800

@@ -114,8 +114,8 @@ class SavedScenariosController < ApplicationController
       @saved_scenario.discarded_at = Time.zone.now
       @saved_scenario.save(touch: false)
 
-      flash.notice = t('scenario.trash.discarded_flash')
-      flash[:undo_params] = [undiscard_saved_scenario_path(@saved_scenario), { method: :put }]
+      flash.notice = t('trash.discarded_flash')
+      flash[:undo_params] = undiscard_saved_scenario_path(@saved_scenario)
     end
 
     redirect_back(fallback_location: saved_scenarios_path)
@@ -129,11 +129,11 @@ class SavedScenariosController < ApplicationController
       @saved_scenario.discarded_at = nil
       @saved_scenario.save(touch: false)
 
-      flash.notice = t('scenario.trash.undiscarded_flash')
-      flash[:undo_params] = [discard_saved_scenario_path(@saved_scenario), { method: :put }]
+      flash.notice = t('trash.undiscarded_flash')
+      flash[:undo_params] = discard_saved_scenario_path(@saved_scenario)
     end
 
-    redirect_back(fallback_location: discarded_saved_scenarios_path)
+    redirect_back(fallback_location: discarded_path)
   end
 
   private

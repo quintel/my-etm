@@ -12,7 +12,7 @@ module SavedScenarios::NavItem
       elsif @static
         "text-midnight-800 hover:underline"
       else
-        "text-midnight-400 hover:text-midnight-800"
+        "text-midnight-450 hover:text-midnight-800"
       end
     end
   end
