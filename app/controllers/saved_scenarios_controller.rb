@@ -1,5 +1,5 @@
 class SavedScenariosController < ApplicationController
-  load_resource only: %i[discard undiscard publish unpublish]
+  load_resource only: %i[discard undiscard publish unpublish confirm_destroy]
   load_and_authorize_resource only: %i[show new create edit update destroy]
 
   before_action :require_user, only: %i[index]
@@ -8,7 +8,7 @@ class SavedScenariosController < ApplicationController
     authorize!(:update, @saved_scenario)
   end
 
-  before_action only: %i[discard undiscard] do
+  before_action only: %i[discard undiscard confirm_destroy] do
     authorize!(:destroy, @saved_scenario)
   end
 
@@ -64,20 +64,15 @@ class SavedScenariosController < ApplicationController
     end
   end
 
+  def confirm_destroy
+    render :confirm_destroy, layout: 'application'
+  end
+
   # DELETE /saved_scenarios/1 or /saved_scenarios/1.json
   def destroy
-    @saved_scenario.destroy!
-
-    respond_to do |format|
-      format.html do
-        redirect_to(
-            saved_scenarios_path,
-            status: :see_other,
-            notice: "Scenario was successfully destroyed."
-        )
-      end
-      format.json { head :no_content }
-    end
+    @saved_scenario.destroy
+    flash.notice = t('scenario.trash.deleted_flash')
+    redirect_to discarded_path
   end
 
   # Makes a scenario public.

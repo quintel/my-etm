@@ -80,4 +80,18 @@
       ))%>
     <% end %>
   <% end %>
+  <% if saved_scenario.collaborator?(current_user) && saved_scenario.discarded? %>
+    <%= render(Hovercard::Component.new(
+      path: '',
+      text: t("scenario_bar.destroy.description")
+    )) do %>
+      <%= render(SavedScenarios::NavItem::Component.new(
+        path: confirm_destroy_saved_scenario_path(saved_scenario),
+        title: t("scenario_bar.destroy.title"),
+        icon: 'x-mark',
+        static: true,
+        data: { turbo_frame: 'modal' }
+      ))%>
+    <% end %>
+  <% end %>
 <% end %>

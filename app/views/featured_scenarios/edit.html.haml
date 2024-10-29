@@ -24,5 +24,4 @@
     = submit_tag t('scenario.save'), class: 'button w-1/4 bg-midnight-900 text-midnight-200'
     = link_to t('scenario.discard_changes'), saved_scenario_path(@featured_scenario.saved_scenario), class: 'button w-1/4 ml-auto mr-0'
     - if @featured_scenario.persisted?
-      -# = button_to 'Destroy', saved_scenario_feature_path(@featured_scenario.saved_scenario), method: :delete, form: { data: { turbo_confirm: 'Are you sure?' } }
       = link_to t('featured_scenario.unfeature'), confirm_destroy_saved_scenario_feature_path(@featured_scenario.saved_scenario), data: { turbo_frame: 'modal' } , class: 'button w-1/4 ml-auto mr-0'
