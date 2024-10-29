@@ -44,6 +44,11 @@ module SavedScenario::Users
     ssu.present? && ssu.role_id >= User::Roles.index_of(:scenario_viewer)
   end
 
+  # Returns true, if the user was not given an explicit role on the scenario
+  def no_explicit_access?(user)
+    !viewer?(user)
+  end
+
   # Convenience method to quickly set the owner for a scenario, e.g. when creating it as
   # Scenario.create(user: User). Only works to set the first user, returns false otherwise.
   def user=(user)

@@ -23,6 +23,14 @@ class SavedScenarioUser < ApplicationRecord
     user.present? ? user.name.first : user_email.first
   end
 
+  def email
+    user.present? ? user.email : user_email
+  end
+
+  def name
+    user&.name
+  end
+
   private
 
   def no_user_present?
