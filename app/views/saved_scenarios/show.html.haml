@@ -8,7 +8,7 @@
   - if @saved_scenario.featured?
     = @saved_scenario.featured_owner_name
   - else
-    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners))
+    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners, privacy: @saved_scenario.no_explicit_access?(current_user)))
 
     - if @saved_scenario.collaborators.presence
       - @saved_scenario.collaborators.each do |collaborator|
