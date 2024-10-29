@@ -20,7 +20,11 @@
 .mt-5.show-description
   - if @saved_scenario.localized_description(I18n.locale).presence
     = @saved_scenario.localized_description(I18n.locale)
+  - elsif @saved_scenario.description.blank? && @saved_scenario.collaborator?(current_user)
+    =link_to edit_saved_scenario_path(@saved_scenario), class: 'hover:underline' do
+      = t('scenario.no_description')
+      = t('scenario.create_description')
   - elsif @saved_scenario.description.blank?
-    =link_to t('scenario.no_description'), edit_saved_scenario_path(@saved_scenario), class: 'hover:underline'
+    = t('scenario.no_description')
   - else
     = @saved_scenario.description
