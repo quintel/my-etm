@@ -151,9 +151,9 @@ RSpec.describe "/saved_scenarios", type: :request do
       }.to change(SavedScenario, :count).by(-1)
     end
 
-    it "redirects to the saved_scenarios list" do
+    it "redirects to the trash can" do
       delete saved_scenario_url(user_scenario)
-      expect(response).to redirect_to(saved_scenarios_url)
+      expect(response).to redirect_to(discarded_url)
     end
   end
 

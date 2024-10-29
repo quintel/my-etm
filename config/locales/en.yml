@@ -95,6 +95,9 @@ en:
       description:
         true: This scenario has been featured on a home page. Edit settings here.
         false: Feature this scenario on the home page
+    destroy:
+      title: Delete permanently
+      description: Permanently delete this scenario.
   scenario:
     succesful_update: Your scenario was succesfully updated
     title: Title
@@ -105,6 +108,14 @@ en:
 
   saved_scenarios:
     empty: You don't have any scenarios.
+    confirm_destroy:
+      title: Permanently deleting scenario
+      warning_header: You are permanently deleting your scenario
+      warning: |
+        Deleting this scenario will remove all data including history,
+        any grants for access, title and description.
+      irreversible: This action is irreversible
+      submit: Delete this scenario
   featured_scenarios:
     confirm_destroy:
       title: Unfeaturing scenario

@@ -11,6 +11,7 @@ Rails.application.routes.draw do
       put :unpublish
       put :discard
       put :undiscard
+      get :confirm_destroy
     end
   end
 

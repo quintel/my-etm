@@ -5,6 +5,7 @@ module SavedScenarios::NavItem
     option :icon
     option :active, default: proc { false }
     option :static, default: proc { false }
+    option :data, default: proc { {} }
 
     def css_classes
       if @active
