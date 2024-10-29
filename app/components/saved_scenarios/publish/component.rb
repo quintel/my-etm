@@ -6,6 +6,7 @@ module SavedScenarios::Publish
     option :icon_off
     option :title
     option :status
+    option :available, default: proc { false }
 
     def path
       @status ? @path_on : @path_off
@@ -13,6 +14,10 @@ module SavedScenarios::Publish
 
     def icon
       @status ? @icon_on : @icon_off
+    end
+
+    def available_css
+      @available ? "" : "pointer-events-none"
     end
   end
 end

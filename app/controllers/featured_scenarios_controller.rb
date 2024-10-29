@@ -3,7 +3,7 @@
 # Allows featuring and unfeaturing saved scenarios.
 class FeaturedScenariosController < ApplicationController
   before_action :ensure_admin
-  before_action :set_featured_scenario, only: %i[show update destroy]
+  before_action :set_featured_scenario, only: %i[show update confirm_destroy destroy]
 
   def create
     # should take owner id instead of owner!
@@ -30,6 +30,11 @@ class FeaturedScenariosController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  # TODO: use turbo for a pop-up
+  def confirm_destroy
+    render :confirm_destroy, layout: 'application'
   end
 
   def destroy

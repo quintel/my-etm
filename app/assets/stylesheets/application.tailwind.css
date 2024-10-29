@@ -26,6 +26,11 @@
     @apply hover:text-midnight-200;
   }
 
+  .button-warning {
+    @apply bg-red-600;
+    @apply text-midnight-200;
+  }
+
   .logo {
     filter: brightness(0.25);
   }
@@ -49,3 +54,101 @@ input[type="email"], input[type="password"], input[type="text"], select {
 }
 
 
+/**
+  * Modal -----------------------------------------------------------------------------------------
+  */
+
+  @keyframes modal-backdrop-enter {
+  from {
+    @apply bg-gray-900/0 backdrop-blur-none;
+  }
+
+  to {
+    @apply bg-gray-900/75 backdrop-blur-sm;
+  }
+}
+
+@keyframes modal-backdrop-leave {
+  from {
+    @apply bg-gray-900/75 backdrop-blur-sm;
+  }
+
+  to {
+    @apply bg-gray-900/0 backdrop-blur-none;
+  }
+}
+
+.modal-backdrop {
+  @apply bg-gray-900/75 backdrop-blur-sm transition;
+
+  animation-iteration-count: 1;
+  animation: modal-backdrop-enter 0.15s ease-in-out;
+  height: 100vh;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  z-index: 40;
+}
+
+.modal-backdrop.modal-backdrop-leave {
+  @apply bg-gray-900/0 backdrop-blur-none;
+  animation-name: modal-backdrop-leave;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.0);
+  }
+}
+
+@keyframes modal-leave {
+  from {
+    opacity: 1;
+    transform: scale(1.0);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.modal {
+  @apply bg-white rounded-md shadow-xl text-sm;
+
+  animation-iteration-count: 1;
+  animation: modal-enter 0.15s ease-in-out;
+  opacity: 1;
+  transform: scale(1.0) translateY(0px);
+  width: 500px;
+  z-index: 50;
+}
+
+.modal.modal-leave {
+  animation-name: modal-leave;
+  opacity: 0;
+}
+
+.modal-wrapper {
+  @apply py-12;
+
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: fill-available;
+  justify-content: start;
+  left: 0;
+  overflow: auto;
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  z-index: 50;
+}

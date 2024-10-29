@@ -96,9 +96,20 @@ en:
     no_description: This scenario has no description. Click here to create one.
   saved_scenarios:
     empty: You don't have any scenarios.
+  featured_scenarios:
+    confirm_destroy:
+      title: Unfeaturing scenario
+      warning_header: You are removing all featured settings
+      warning: |
+        Unfeaturing this scenario will remove the localised title and
+        description, and remove the scenario from the homepage.
+        The title and dscription will default back to their
+        original settings from before the featuring.
+      irreversible: This action is irreversible
+      submit: Confirm unfeaturing
+
   flash:
     need_login: Please log in again
-
   version:
     latest: |
       This scenario was created in the live version of the ETM
