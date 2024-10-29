@@ -20,6 +20,7 @@
 
   <div class="border-t border-solid border-gray-200 my-10"></div>
 
+  <%# TODO: if viewer: link should not be clickable %>
   <%= render(Hovercard::Component.new(
       path: '',
       text: t("scenario_bar.private.description.#{saved_scenario.private}")
@@ -31,6 +32,7 @@
       title: t("scenario_bar.private.#{saved_scenario.private}"),
       icon_on:'eye-slash',
       icon_off: 'eye',
+      available: current_user && saved_scenario.collaborator?(current_user)
     ))%>
   <% end %>
   <% if current_user&.admin? %>

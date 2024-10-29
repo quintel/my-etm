@@ -17,32 +17,31 @@
         tabindex="-1"
       >
         <%# begin: header %>
-        <div class="border-b px-8 pt-5 pb-4 flex items-center">
-          <h2 class="text-lg font-semibold" id="modal-title">
-            <%= @title %>
-          </h2>
+        <div class="px-8 pt-5 pb-4 flex flex-col bg-midnight-300 rounded-t-md">
           <% if stimulus.enabled? %>
             <button
               class="
-                p-1
                 -mr-2
                 rounded
                 ml-auto
                 transition
-                text-gray-600
-                hover:bg-gray-200
-                active:bg-gray-300
+                text-midnight-800
+                hover:text-midnight-400
+                active:text-midnight-400
               "
               data-action="<%= stimulus.button_close_action %>"
               aria-label="Close"
             >
-              <%= inline_svg_tag("hero/20/x-mark.svg") %>
+              <%= heroicon 'x-circle', options: { class: 'w-6 h-6' } %>
             </button>
           <% end %>
+          <h2 class="text-xl text-midnight-800" id="modal-title">
+            <%= @title %>
+          </h2>
         </div>
         <%# end: header %>
         <%# begin: content %>
-        <div class="px-8 py-6 bg-gray-50 rounded-b">
+        <div class="px-8 py-6 bg-midnight-200 rounded-b">
           <%= content %>
         </div>
         <%# end: content %>
