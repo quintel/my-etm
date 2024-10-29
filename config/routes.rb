@@ -9,8 +9,12 @@ Rails.application.routes.draw do
     member do
       put :publish
       put :unpublish
+      put :discard
+      put :undiscard
     end
   end
+
+  get :discarded, to: 'discarded#index'
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

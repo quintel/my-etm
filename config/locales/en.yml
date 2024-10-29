@@ -28,6 +28,8 @@
 #       enabled: "ON"
 
 en:
+  undo: Undo
+
   time:
     formats:
       short: "%-d %b %H:%M"
@@ -74,7 +76,12 @@ en:
     edit:
       title: Edit
       description: Edit the title and description of this scenario
-    discard: Discard
+    discarded:
+      true: Restore
+      false: Discard
+      description:
+        true: Restore from the trash bin
+        false: Move to trash. After 60 days it will be permanently destroyed.
     private:
       true: Private
       false: Public
@@ -89,12 +96,13 @@ en:
         true: This scenario has been featured on a home page. Edit settings here.
         false: Feature this scenario on the home page
   scenario:
-    succesful_update: updated!
+    succesful_update: Your scenario was succesfully updated
     title: Title
     save: Save
     discard_changes: Discard changes
     no_description: This scenario has no description.
     create_description: Click here to create one.
+
   saved_scenarios:
     empty: You don't have any scenarios.
   featured_scenarios:
@@ -109,9 +117,23 @@ en:
       irreversible: This action is irreversible
       submit: Confirm unfeaturing
 
+  trash:
+    title: Trash bin
+    notice: Scenarios in the trash will be automatically deleted after %{deleted_after} days.
+    discarded_flash: Your scenario was put in the trash
+    undiscarded_flash: Your scenario was restored
+    deleted_flash: Your scenario has been permanently deleted
+    empty:
+      title:
+        There are no items in the trash
+      description:
+        Deleted items are sent to the trash where you can choose to permanently
+        delete or restore them. Trashed scenarios are automatically removed after %{deleted_after}
+        days.
   flash:
     need_login: Please log in again
   version:
     latest: |
       This scenario was created in the live version of the ETM
       which includes all the latest monthly updates. Learn more..
+

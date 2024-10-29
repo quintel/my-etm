@@ -16,10 +16,15 @@ module.exports = {
       },
       colors: {
         midnight: {
+          // light and medium background
           200: "#fdfdfd",
           300: "#fbf7f6",
+          // light gray & medium gray
           400: "#aba8a7",
+          450: 'rgb(125, 118, 115)',
+          // dark background
           600: "#fdece0",
+          // dark text
           800: "#462c34",
           // brand colors (blue, orange, green)
           900: "#4e7be4",
