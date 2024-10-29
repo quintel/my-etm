@@ -93,7 +93,8 @@ en:
     title: Title
     save: Save
     discard_changes: Discard changes
-    no_description: This scenario has no description. Click here to create one.
+    no_description: This scenario has no description.
+    create_description: Click here to create one.
   saved_scenarios:
     empty: You don't have any scenarios.
   featured_scenarios:
