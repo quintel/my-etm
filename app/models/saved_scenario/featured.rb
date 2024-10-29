@@ -7,7 +7,7 @@ module SavedScenario::Featured
   end
 
   def featured_owner_name
-    featured? ? featured_scenario.owner.name : owners.first.name
+    featured? && featured_scenario.owner.present? ? featured_scenario.owner.name : owners.first.name
   end
 
   def localized_title(locale)

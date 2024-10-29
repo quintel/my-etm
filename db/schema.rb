@@ -61,8 +61,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_23_140627) do
     t.string "group"
     t.string "title_en", null: false
     t.string "title_nl", null: false
-    t.text "description_en"
-    t.text "description_nl"
     t.index ["owner_id"], name: "index_featured_scenarios_on_owner_id"
     t.index ["saved_scenario_id"], name: "index_featured_scenarios_on_saved_scenario_id"
   end

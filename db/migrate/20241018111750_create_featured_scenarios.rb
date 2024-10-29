@@ -6,8 +6,6 @@ class CreateFeaturedScenarios < ActiveRecord::Migration[7.2]
       t.string :group
       t.string :title_en, null: false
       t.string :title_nl, null: false
-      t.text :description_en
-      t.text :description_nl
     end
   end
 end

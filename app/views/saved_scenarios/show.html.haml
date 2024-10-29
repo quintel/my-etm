@@ -1,5 +1,5 @@
-- content_for :menu_title, @saved_scenario.title
-= render(partial: "block_right_menu", object: @saved_scenario)
+- content_for :menu_title, @saved_scenario.localized_title(I18n.locale)
+= render(partial: "block_right_menu", locals: { saved_scenario: @saved_scenario })
 
 = render(SavedScenarios::Info::Component.new(path: saved_scenario_path(@saved_scenario), button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
 = render(HovercardWithVersion::Component.new(version: @saved_scenario.version))
