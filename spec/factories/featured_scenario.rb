@@ -6,8 +6,6 @@ FactoryBot.define do
     group { FeaturedScenario::GROUPS.first }
     title_en { 'English title' }
     title_nl { 'Dutch title' }
-    description_en { 'English description' }
-    description_nl { 'Dutch description' }
 
     owner { association :featured_scenario_user }
   end

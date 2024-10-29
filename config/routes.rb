@@ -2,6 +2,8 @@ require 'sidekiq/web'
 
 Rails.application.routes.draw do
   resources :saved_scenarios do
+    resource :feature, only: %i[show create update destroy], controller: 'featured_scenarios'
+
     member do
       put :publish
       put :unpublish

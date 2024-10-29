@@ -1,6 +1,6 @@
-- content_for :title, "Editing #{@saved_scenario.title}"
-- content_for :menu_title, "Editing #{@saved_scenario.title}"
-= render(partial: "block_right_menu", object: @saved_scenario)
+- content_for :title, "Editing #{@saved_scenario.localized_title(I18n.locale)}"
+- content_for :menu_title, "Editing #{@saved_scenario.localized_title(I18n.locale)}"
+= render(partial: "block_right_menu",  locals: { saved_scenario: @saved_scenario })
 
 = form_for(@saved_scenario, url: saved_scenario_path(@saved_scenario), html: { method: :put, class: 'flex flex-col h-full' }) do |f|
   = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'

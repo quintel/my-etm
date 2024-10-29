@@ -1,0 +1,2 @@
+<%= form.label :owner_id, t('scenario.owner'), class: 'text-sm text-gray-400 mb-2'%>
+<%= form.select :owner_id, options_from_collection_for_select(FeaturedScenarioUser.all, "id", "name"), class: 'mb-2'%>

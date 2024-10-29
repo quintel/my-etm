@@ -9,8 +9,6 @@ describe FeaturedScenario do
 
   describe 'validations' do
     it { is_expected.to validate_presence_of(:saved_scenario_id) }
-    it { is_expected.to validate_presence_of(:description_en) }
-    it { is_expected.to validate_presence_of(:description_nl) }
     it { is_expected.to validate_presence_of(:title_en) }
     it { is_expected.to validate_presence_of(:title_nl) }
     it { is_expected.to validate_inclusion_of(:group).in_array(FeaturedScenario::GROUPS) }

@@ -85,6 +85,9 @@ en:
     featured:
       true: Featured
       false: Make this featured
+      description:
+        true: This scenario has been featured on a home page. Edit settings here.
+        false: Feature this scenario on the home page
   scenario:
     succesful_update: updated!
     title: Title
