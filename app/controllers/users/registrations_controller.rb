@@ -7,7 +7,7 @@ module Users
 
     def confirm_destroy
       @counts = stats_for_destroy
-      render :confirm_destroy, layout: 'identity'
+      render :confirm_destroy, layout: 'application'
     end
 
     def destroy
@@ -53,23 +53,13 @@ module Users
     end
 
     # Fetches information about what entities will be deleted with the account.
-    # TODO REFACTOR
     def stats_for_destroy
-      if Settings.etmodel_uri.present?
-        client = MyEtm::Auth.client_app_client(current_user, scopes: %w[scenarios:read])
-
-        saved_scenarios = client.get('/api/v1/saved_scenarios').body['meta']['total']
-        transition_paths = client.get('/api/v1/transition_paths').body['meta']['total']
-      else
-        saved_scenarios = 0
-        transition_paths = 0
-      end
-
       {
-        scenarios: current_user.saved_scenarios.count,
+        saved_scenarios: current_user.saved_scenarios.count,
         personal_access_tokens: current_user.personal_access_tokens.not_expired.count,
         oauth_applications: current_user.oauth_applications.count,
-        transition_paths:
+        collections: 0
+        # collections: current_user.collections.count
       }
     end
   end

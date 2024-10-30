@@ -1,9 +1,9 @@
 <%= render(Identity::RowComponent.new(title: @title)) do %>
-  <div class="pb-8">
-    <div class="font-medium"><%= content %></div>
+  <div>
+    <div><%= content %></div>
 
     <% if message? %>
-      <div class="text-gray-500 mt-2 text-sm"><%= message %></div>
+      <div class="text-midnight-450 mt-2 text-sm"><%= message %></div>
     <% end %>
 
     <% if button? %>

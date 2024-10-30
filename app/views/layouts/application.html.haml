@@ -18,14 +18,13 @@
 
   %body
     = render partial: "layouts/sidebar"
-    .p-10.py-5.flex.flex-col.h-full{class: 'ml-[300px]'}
+    .p-10.py-5.flex.flex-col.h-screen{class: 'ml-[300px]'}
       = render partial: "layouts/buttons"
       .text-xl.mb-5.mt-5
         = yield(:menu_title)
-      .grow
-        .flex.h-full
-          %div{class: 'basis-3/4'}
-            = yield
-          = render partial: "layouts/block_right"
+      .grow.flex.overflow-y-auto
+        %div.height-0.overflow-y-auto{class: 'basis-3/4'}
+          = yield
+        = render partial: "layouts/block_right"
       = render partial: "layouts/footer"
     = turbo_frame_tag :modal

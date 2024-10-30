@@ -31,6 +31,16 @@
     @apply text-midnight-200;
   }
 
+  .button-success {
+    @apply bg-midnight-600;
+    @apply text-midnight-800;
+  }
+
+  .button-gray {
+    @apply bg-midnight-300;
+    @apply text-midnight-800;
+  }
+
   .logo {
     filter: brightness(0.25);
   }

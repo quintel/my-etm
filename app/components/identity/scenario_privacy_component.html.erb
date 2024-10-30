@@ -1,24 +1,24 @@
-<div class="inline-flex bg-gray-200 p-1 rounded-lg gap-1">
+<div class="inline-flex bg-midnight-300 p-1 rounded-lg gap-1">
   <% if @private %>
     <%= button_to identity_change_scenario_privacy_path, method: :post, params: { user: { private_scenarios: false } }, form_class: 'flex items-center', class: button_classes('!py-1 inline-flex items-center gap-1', color: :gray) do %>
-      <%= inline_svg 'hero/20/eye.svg', class: '-ml-0.5 mr-0.5 opacity-90' %>
+      <%= heroicon 'eye', options: { class: 'w-5 h-5' } %>
       Public
     <% end %>
     <button
       class="<%= button_classes 'inline-flex items-center gap-1 pointer-events-none !py-1', color: :success %>"
     >
-      <%= inline_svg 'hero/20/lock-closed.svg', class: '-ml-0.5' %>
+      <%= heroicon 'eye-slash', options: { class: 'w-5 h-5' } %>
       Private
     </button>
   <% else %>
     <button
       class="<%= button_classes 'inline-flex items-center gap-1 pointer-events-none !py-1', color: :success %>"
     >
-      <%= inline_svg 'hero/20/eye.svg', class: '-ml-0.5 mr-0.5' %>
+      <%= heroicon 'eye', options: { class: 'w-5 h-5' } %>
       Public
     </button>
     <%= button_to identity_change_scenario_privacy_path, method: :post, params: { user: { private_scenarios: true } }, form_class: 'flex items-center', class: button_classes('!py-1 inline-flex items-center gap-1', color: :gray) do %>
-      <%= inline_svg 'hero/20/lock-closed.svg', class: '-ml-0.5 opacity-90' %>
+      <%= heroicon 'eye-slash', options: { class: 'w-5 h-5' } %>
       Private
     <% end %>
   <% end %>

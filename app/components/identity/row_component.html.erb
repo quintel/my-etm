@@ -1,12 +1,12 @@
-<div class="flex my-4 text-base">
-  <div class="w-44 text-gray-500 font-medium flex-shrink-0 ">
+<div class="flex flex-col my-4 text-base">
+  <div class="w-44 text-midnight-400 text-sm ">
     <% if title_contents? %>
       <%= title_contents %>
     <% else %>
       <%= @title %>
     <% end %>
   </div>
-  <div class="flex-grow">
+  <div class="mt-2">
     <%= content %>
   </div>
 </div>

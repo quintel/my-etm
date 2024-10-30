@@ -4,16 +4,20 @@
     = image_tag 'header/logo-round.png', class: 'h-8 inline mb-1 mr-2 hover:animate-spin'
     %span Energy Transition Model
 
+  - if current_user
+    = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.saved_scenarios'), icon: 'adjustments-horizontal', active: controller_name == 'saved_scenarios'))
 
-  = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.saved_scenarios'), icon: 'adjustments-horizontal', active: controller_name == 'saved_scenarios'))
+    = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections'))
 
-  = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections'))
-
-  = render(SidebarItem::Component.new(path: discarded_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded'))
+    = render(SidebarItem::Component.new(path: discarded_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded' ))
 
   .absolute.bottom-0.left-0.inline-block.w-full
     .p-5.pl-6.text-midnight-800
       %span= heroicon 'language', options: { class: 'inline-block w-6 h-6' }
       Switch language
-    .bg-midnight-600.py-3{ class: 'hover:underline' }
-      = render(SidebarItem::ProfileComponent.new(path: identity_profile_path, title: t('sidebar.profile'), icon: 'user-circle', active: controller_name == 'settings', text: 'text-midnight-800'))
+    - if current_user
+      .bg-midnight-600.py-3{ class: 'hover:underline' }
+        = render(SidebarItem::ProfileComponent.new(path: identity_profile_path, title: current_user.name, icon: 'user-circle', active: controller_name == 'settings', text: 'text-midnight-800'))
+    - else
+      -# TODO: login!
+      LOGIN

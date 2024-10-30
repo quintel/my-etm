@@ -1,5 +1,5 @@
 <div class="row <%= icon? ? "" : "numbered" %> mb-6">
-  <label for="<%= @label_for %>" class="text-base font-medium">
+  <label for="<%= @label_for %>" class="text-base text-sm text-midnight-400">
     <% if icon? %>
       <!-- // --tw-bg-opacity: 1; // --tw-text-opacity: 1; // align-items:
       center; // background-color: rgb(156 163 175/var(--tw-bg-opacity)); //
@@ -40,7 +40,7 @@
   </div>
 
   <% if @hint.present? %>
-    <p class="text-gray-500 mt-2"><%= @hint %></p>
+    <p class="text-midnight-450 mt-2"><%= @hint %></p>
   <% end %>
 
   <%= after_hint %>

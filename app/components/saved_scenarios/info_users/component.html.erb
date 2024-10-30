@@ -1,13 +1,13 @@
 <div class="flex flex-col">
   <span class="text-sm text-midnight-400"><%= @title %></span>
-  <div>
+  <div class="flex">
     <% @users.each do |user| %>
       <%= render(Hovercard::Component.new(
         path: '',
         text: hover_text_for(user),
         placement_class: "left-2"
       )) do %>
-        <span class="inline-block bg-midnight-900 rounded-md h-8 w-8 mr-5 pt-1 mt-1 text-center text-midnight-200"><%= initials_for(user) %></span>
+        <span class="inline-block bg-midnight-900 rounded-md h-8 w-8 mr-2 pt-1 mt-1 text-center text-midnight-200"><%= initials_for(user) %></span>
       <% end %>
     <% end %>
   </div>
