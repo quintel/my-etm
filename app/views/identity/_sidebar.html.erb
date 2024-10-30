@@ -10,13 +10,15 @@
     path: identity_tokens_path,
     title: t('identity.tokens.index.title'),
     explanation: t('identity.tokens.index.explanation'),
-    active: controller_name == 'tokens'
+    active: controller_name == 'tokens',
+    icon: "code-bracket"
   )) %>
 
   <%= render(Identity::SidebarItemComponent.new(
     path: oauth_authorized_applications_path,
     title: t('identity.authorized_applications.index.title'),
     explanation: t('identity.authorized_applications.index.explanation'),
-    active: controller_name == 'authorized_applications'
+    active: controller_name == 'authorized_applications',
+    icon: "computer-desktop"
   )) %>
 <% end %>

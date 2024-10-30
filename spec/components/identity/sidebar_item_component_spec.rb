@@ -14,7 +14,7 @@ RSpec.describe Identity::SidebarItemComponent, type: :component do
     end
 
     it 'has active item classes' do
-      expect(rendered).to have_css('a', class: 'border-gray-200')
+      expect(rendered).to have_css('a', class: 'text-midnight-450')
     end
   end
 
@@ -31,7 +31,7 @@ RSpec.describe Identity::SidebarItemComponent, type: :component do
     end
 
     it 'has active item classes' do
-      expect(rendered).to have_css('a', class: 'border-midnight-600')
+      expect(rendered).to have_css('a', class: 'text-midnight-800')
     end
   end
 end

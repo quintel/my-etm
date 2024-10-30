@@ -5,12 +5,13 @@ class Identity::SidebarItemComponent < ApplicationComponent
   option :title
   option :explanation
   option :active, default: proc { false }
+  option :icon, default: proc { 'identification' }
 
   def css_classes
     if @active
-      'border-midnight-600 text-midnight-700 hover:text-midnight-700 hover:bg-gray-50'
+      "text-midnight-800 rounded-md bg-midnight-600 hover:text-midnight-800"
     else
-      'border-gray-200 text-gray-700 hover:border-gray-350 hover:text-gray-700 hover:bg-gray-50'
+      "text-midnight-450 hover:text-midnight-800"
     end
   end
 end
