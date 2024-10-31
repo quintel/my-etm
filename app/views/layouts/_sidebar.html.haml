@@ -12,6 +12,7 @@
     = render(SidebarItem::Component.new(path: discarded_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded' ))
 
   .absolute.bottom-0.left-0.inline-block.w-full
+    -# = render(SelectLocale::Component.new)
     .p-5.pl-6.text-midnight-800
       %span= heroicon 'language', options: { class: 'inline-block w-6 h-6' }
       Switch language

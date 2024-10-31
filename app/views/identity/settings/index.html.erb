@@ -4,7 +4,7 @@
 
 <%= render(Identity::PageHeaderComponent.new(title: t('.title'), message: t('.explanation'))) %>
 
-<h3 class="text-midnight-800 mb-5"><%= t('.account') %></h3>
+<h3 class="text-midnight-800 mt-5 pt-5 border-t"><%= t('.account') %></h3>
 
 <%= render(Identity::ProfileEmailComponent.new(title: t('activerecord.attributes.user.email'), email: current_user.email, confirmed: current_user.confirmed_at)) %>
 
@@ -25,7 +25,7 @@
   <% end %>
 <% end %>
 
-<h3 class="text-midnight-800 mb-5 pt-5"><%= t('.profile') %></h3>
+<h3 class="text-midnight-800 mb-5 mt-5 pt-5 border-t"><%= t('.profile') %></h3>
 
 <%= render(Identity::ProfileRowComponent.new(title: t('activerecord.attributes.user.name'))) do |row| %>
   <%= current_user.name %>
@@ -41,7 +41,7 @@
   <% end %>
 <% end %>
 
-<h3 class="text-midnight-800 mb-5 pt-5"><%= t('.settings') %></h3>
+<h3 class="text-midnight-800 mb-5 mt-5 pt-5 border-t"><%= t('.settings') %></h3>
 
 <%= render(Identity::ProfileRowComponent.new(title: t('.privacy.title'))) do |row| %>
   <% row.with_message do %>

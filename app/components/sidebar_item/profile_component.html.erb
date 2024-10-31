@@ -1,0 +1,9 @@
+<div class="flex">
+  <%= link_to @path, class: "flex p-2 pl-6 w-full transition #{css_classes}" do %>
+    <span class="mr-5"><%= heroicon @icon, options: { class: 'w-6 h-6' } %></span>
+    <span><%= @title %></span>
+  <% end %>
+  <div class="w-1/4 p-2 text-midnight-800">
+    <%=heroicon 'chevron-down', options: { class: 'w-5 h-5' } %>
+  </div>
+</div>
