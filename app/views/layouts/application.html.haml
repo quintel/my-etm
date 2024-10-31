@@ -23,8 +23,16 @@
       .text-xl.mb-5.mt-5
         = yield(:menu_title)
       .grow.flex.overflow-y-auto.flex-wrap-reverse{class: 'lg:flex-nowrap'}
+        = turbo_frame_tag :toast do
+          - if notice
+            = render(ToastComponent.new(type: :notice, message: notice))
+          - if alert
+            = render(ToastComponent.new(type: :alert, message: alert))
         %div.height-0.overflow-y-auto.pr-5{class: 'basis-full lg:basis-3/4'}
           = yield
         = render partial: "layouts/block_right"
       = render partial: "layouts/footer"
     = turbo_frame_tag :modal
+
+
+

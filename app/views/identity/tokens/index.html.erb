@@ -1,12 +1,13 @@
 <%= content_for(:page_title, t('.title')) %>
+<%= content_for(:menu_title, t('.title')) %>
 <% render partial: 'identity/sidebar' %>
 
 <%= render(Identity::PageHeaderComponent.new(
   title: t('.title'), message: t('.explanation')
 )) do |header| %>
-  <%= header.actions do %>
-    <%= link_to new_identity_token_path, class: button_classes(color: :primary) do %>
-      <%= inline_svg 'hero/20/plus-sm.svg', class: '-ml-1 mr-1' %>
+  <%= header.with_actions do %>
+    <%= link_to new_identity_token_path, class: button_classes('flex', color: :primary) do %>
+      <%= heroicon 'plus-circle', options: { class: 'w-6 h-6 mr-2' }%>
       <%= t('.create_token') %>
     <% end %>
     <%= link_to 'https://docs.energytransitionmodel.com/api/authentication', target: '_blank', class: button_classes('ml-2') do %>

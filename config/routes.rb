@@ -1,24 +1,6 @@
 require 'sidekiq/web'
 
 Rails.application.routes.draw do
-  resources :saved_scenarios do
-    resource :feature, only: %i[show create update destroy], controller: 'featured_scenarios' do
-      get :confirm_destroy
-    end
-
-    member do
-      put :publish
-      put :unpublish
-      put :discard
-      put :undiscard
-      get :confirm_destroy
-    end
-  end
-
-  get :discarded, to: 'discarded#index'
-
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
   use_doorkeeper
   use_doorkeeper_openid_connect
 
@@ -56,6 +38,22 @@ Rails.application.routes.draw do
   devise_scope :user do
     get 'identity/delete_account', to: 'users/registrations#confirm_destroy', as: :delete_account
   end
+
+  resources :saved_scenarios do
+    resource :feature, only: %i[show create update destroy], controller: 'featured_scenarios' do
+      get :confirm_destroy
+    end
+
+    member do
+      put :publish
+      put :unpublish
+      put :discard
+      put :undiscard
+      get :confirm_destroy
+    end
+  end
+
+  get :discarded, to: 'discarded#index'
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

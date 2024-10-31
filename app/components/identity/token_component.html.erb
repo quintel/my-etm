@@ -1,5 +1,5 @@
-<%= turbo_frame_tag(@token, class: 'block border-b pb-12 mb-6 last:border-b-0 last:pb-0 last:mb-0') do %>
-  <h3 class="text-xl font-semibold mb-8"><%= @token.name %></h3>
+<%= turbo_frame_tag(@token, class: 'block bg-midnight-300 border p-5 mb-6 rounded-md last:border-b-0 last:pb-0 last:mb-0') do %>
+  <h3 class="text-xl text-midnight-800 mb-2"><%= @token.name %></h3>
 
   <div data-controller="clipboard">
     <%= render(Identity::RowComponent.new(title: t('.token'))) do |row| %>
@@ -50,7 +50,7 @@
           data-action="clipboard#copy"
           data-clipboard-target="button"
         >
-          <%= inline_svg 'hero/20/duplicate.svg', class: 'mr-1' %>
+          <%= heroicon 'clipboard', options: {class: 'w-6 h-6'} %>
           <%= t('.copy') %>
         </button>
         <span
@@ -146,8 +146,8 @@
   <% end %>
 
   <%= render(Identity::RowComponent.new(title: 'Revoke')) do |row| %>
-    <%= button_to identity_token_path(@token), class: button_classes('text-sm text-red-600 hover:text-red-700 active:text-red-700'), method: :delete do %>
-      <%= inline_svg 'font-awesome/16/trash.svg', class: 'mr-1.5' %>
+    <%= button_to identity_token_path(@token), class: button_classes('text-sm flex text-red-600 hover:text-red-700 active:text-red-700'), method: :delete do %>
+      <%= heroicon 'trash', options: {class: 'w-5 h-5 mr-2'} %>
       <%= t('.revoke_token') %>
     <% end %>
 

@@ -1,7 +1,7 @@
 <%= render(Identity::EmptyStateComponent.new(title: t('.title'))) do |es| %>
   <%= format_paragraphs(t('.message')) %>
 
-  <% es.buttons do %>
+  <% es.with_buttons do %>
     <%= link_to new_identity_token_path, class: button_classes(color: :success, size: :lg) do %>
       <%= t('identity.tokens.index.create_token') %>
     <% end %>
