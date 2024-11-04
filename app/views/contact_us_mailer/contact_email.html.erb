@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Feedback from the ETM</title>
+  <style>
+    p {font-family: Arial, sans-serif; color: #333;}
+    p a {color: #007BFF; text-decoration: none;}
+    p.light {
+      color: #aba8a7;
+      font-size: .875rem;
+      line-height: 1.25rem;
+    }
+  </style>
+</head>
+
+<body style="background:#fdfdfd">
+
+<div style="border:1px solid #aba8a7;border-radius:3px;padding:2rem;margin-bottom:2rem">
+  <%= simple_format(@message.message) %>
+</div>
+
+<p class="light">
+  Name
+</p>
+<p style="margin-bottom:2rem">
+  <%= @message.name %>
+</p>
+
+<p class="light">
+  Email
+</p>
+<p style="margin-bottom:2rem">
+  <%= @message.email %>
+</p>
+
+<hr/>
+
+<p class="light">
+  Environment
+</p>
+<p style="margin-bottom:2rem">
+  <%= Rails.env %>
+</p>
+<p class="light">
+  Locale
+</p>
+<p style="margin-bottom:2rem">
+  <%= @locale %>
+</p>
+<p class="light">
+  User agent
+</p>
+<p style="margin-bottom:2rem">
+  <%= @user_agent %>
+</p>
+
+</body>
+</html>

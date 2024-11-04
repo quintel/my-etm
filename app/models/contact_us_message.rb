@@ -28,7 +28,7 @@ class ContactUsMessage < Dry::Struct
 
   def valid?
     attributes = to_hash
-    schema = ContactUsContract.new.call(attributes)
+    schema = ContactUs::Contract.new.call(attributes)
     @errors = schema.errors(locale: I18n.locale).to_h.values.flatten
 
     @errors.empty?

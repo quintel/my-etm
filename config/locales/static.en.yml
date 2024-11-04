@@ -70,3 +70,5 @@ en:
         We would like to hear from you!
       send_message: Send message
       address: Address
+      success_flash: |
+        Thank you for contacting us. Your message is on its way!
