@@ -35,13 +35,11 @@ class StaticPagesController < ApplicationController
         user_agent: request.env['HTTP_USER_AGENT']
       ).deliver
 
-      # TODO: add cute toast!
-      flash[:notice] = t('pages.contact.success_flash')
+      flash[:notice] = t('contact.contact.success_flash')
       redirect_to contact_url
     else
-      puts @message.errors
-      puts @message.message
-      render :contact, status: :unprocessable_entity
+      flash[:alert] = @message.errors.join(', ')
+      redirect_to contact_url
     end
   end
 

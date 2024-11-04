@@ -1,4 +1,4 @@
-class ContactUsContract < Dry::Validation::Contract
+class ContactUs::Contract < Dry::Validation::Contract
   params do
     required(:email).filled(:string)
     required(:name).filled(:string)
