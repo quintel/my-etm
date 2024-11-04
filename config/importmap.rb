@@ -15,3 +15,5 @@ pin 'hotkeys-js', to: 'https://ga.jspm.io/npm:hotkeys-js@3.10.1/dist/hotkeys.esm
 pin_all_from "app/javascript/controllers", under: "controllers"
 pin "trix"
 pin "@rails/actiontext", to: "actiontext.esm.js"
+pin "leaflet" # @1.9.4
+pin "leaflet-css" # @0.1.0
