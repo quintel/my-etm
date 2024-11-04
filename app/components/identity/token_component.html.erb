@@ -1,4 +1,4 @@
-<%= turbo_frame_tag(@token, class: 'block bg-midnight-300 border p-5 mb-6 rounded-md last:border-b-0 last:pb-0 last:mb-0') do %>
+<%= turbo_frame_tag(@token, class: 'block bg-midnight-300 border p-5 mb-6 rounded-md last:mb-0') do %>
   <h3 class="text-xl text-midnight-800 mb-2"><%= @token.name %></h3>
 
   <div data-controller="clipboard">
@@ -46,11 +46,11 @@
           <%= t('.make_sure_to_copy') %>
         </p>
         <button
-          class="<%= button_classes('text-sm mt-3') %>"
+          class="<%= button_classes('text-sm my-2 flex') %>"
           data-action="clipboard#copy"
           data-clipboard-target="button"
         >
-          <%= heroicon 'clipboard', options: {class: 'w-6 h-6'} %>
+          <%= heroicon 'clipboard', options: {class: 'w-5 h-5 mr-2'} %>
           <%= t('.copy') %>
         </button>
         <span
