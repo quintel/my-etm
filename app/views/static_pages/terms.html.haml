@@ -1,0 +1,14 @@
+- content_for(:page_title) { t('terms.terms.title') }
+- content_for(:menu_title) { t('terms.terms.title') }
+= render(partial: "block_right")
+
+.text-midnight-450= t('terms.terms.description')
+
+.p-5
+  Quintel Intelligence<br />
+  Keizersgracht 639<br />
+  1017 DT Amsterdam<br />
+  The Netherlands
+.p-5
+  E-mail:
+  =link_to 'info@energytransitionmodel.com', 'mailto:info@energytransitionmodel.com', class: 'hover:underline'

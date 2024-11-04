@@ -1,4 +1,4 @@
 .text-center.mt-5
-  = t('footer.terms')
-  %span.ml-5= t('footer.privacy')
-  %span.ml-5= t('footer.contact_us')
+  %span{class: 'hover:underline'}=link_to t('footer.terms'), terms_path
+  %span.ml-5{class: 'hover:underline'}=link_to t('footer.privacy'), privacy_path
+  %span.ml-5{class: 'hover:underline'}= link_to t('footer.contact_us'), contact_path

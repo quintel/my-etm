@@ -1,0 +1,20 @@
+<% content_for :block_right do %>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: contact_path,
+      title: t('static.contact'),
+      icon: 'chat-bubble-left',
+      active: action_name == 'contact')
+    )%>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: privacy_path,
+      title: t('static.privacy'),
+      icon: 'users',
+      active: action_name == 'privacy')
+    )%>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: terms_path,
+      title: t('static.terms'),
+      icon: 'book-open',
+      active: action_name == 'terms')
+    )%>
+<% end %>

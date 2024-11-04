@@ -64,7 +64,7 @@
 @import 'actiontext.css';
 
 
-input[type="email"], input[type="password"], input[type="text"], select {
+input[type="email"], input[type="password"], input[type="text"], select, textarea {
   @apply border-gray-200 rounded-md bg-midnight-200;
 }
 

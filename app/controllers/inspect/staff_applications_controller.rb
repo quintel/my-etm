@@ -16,7 +16,7 @@ module Inspect
         flash[:alert] = result.failure.errors.full_messages.to_sentence
       end
 
-      redirect_to root_path
+      redirect_to user_settings_path
     end
   end
 end

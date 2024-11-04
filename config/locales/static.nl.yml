@@ -1,0 +1,68 @@
+nl:
+  privacy:
+    privacy:
+      title: Privacy
+      description: |
+        Deze site valt onder het Nederlands recht en wordt gehost vanuit Nederland. Deze site is eigendom
+        van en wordt onderhouden door Quintel Intelligence B.V.. Alle vragen m.b.t. privacy moeten in eerste
+        instantie gericht worden aan <a class="underline" href="mailto:info@energytransitionmodel.com">info@energytransitionmodel.com</a>.
+    data:
+      title: Verzameling van data
+      description: |
+        Deze website verzamelt e-mailadressen ten behoeve van het inloggen van de gebruiker, waardoor deze
+        scenario's kan opslaan en laden. De betreffende adressen worden daarnaast alleen bewaard en
+        desgevraagd benut om de gebruikers bij updates op de hoogte te stellen van nieuwe versies van het
+        Energietransitiemodel.
+        <br/><br/>
+        De data die het Energietransitiemodel vanaf de computer (PC) van een gebruiker naar de webserver
+        stuurt (o.a. www.energietransitiemodel.nl), zijn anoniem en bevatten geen e-mailadres of andere
+        gegevens die de gebruiker kunnen identificeren. In de data die het Energietransitiemodel vanaf de PC
+        van een gebruiker naar de webserver verstuurt, lan wel het IP-adres worden gelogd, om te voorkomen
+        dat gebruikers buitensporig veel data versturen en zo de webserver verstoren. De verstuurde data
+        bestaat uit alle modelparameters die men in het model heeft ingesteld, en eventueel andere
+        bijkomstigheden, zoals naam en beschrijving van een scenario.
+        <br/><br/>
+        De serverlogs en databases worden gebruikt bij het opsporen van problemen met de webserver en zijn
+        toegankelijk voor de politie en andere gerechtelijke autoriteiten in en buiten Nederland.
+    cookie:
+      title: Cookies & Sessies
+      description: |
+        Deze website maakt gebruik van cookies ten behoeve van de instellingen en de waaren van het scenario
+        van de gebruiker.
+    objections:
+      title: Bezwaren
+      description: |
+        Voor meer informatie of bezwaren kunt u contact opnemen via e-mail met
+        <a href="mailto:info@energytransitionmodel.com" class="underline">info@energytransitionmodel.com</a>.
+        <br/><br/>
+        We gaan zeer serieus om met uw privacy en verkopen of stellen uw gegevens niet beschikbaar aan
+        derden. De verzamelde gegevens die niet op individuen kunnen worden teruggeleid kunnen wel door ons
+        met derden worden gedeeld, o.a. via de websites www.energietransitiemodel.nl en
+        www.energytransitionmodel.com.
+        <br/><br/>
+        Quintel Intelligence B.V.
+  terms:
+    terms:
+      title: Terms of Service
+      description: |
+        Quintel Intelligence doet zijn uiterste best om ervoor te zorgen dat het Energietransitiemodel (ETM)
+        correcte resultaten geeft. Desondanks kan op geen enkele manier gegarandeerd worden dat de
+        uitkomsten altijd correct zijn. Daarom kunnen aan uitkomsten, aanbevelingen of opmerkingen in het
+        ETM geen rechten worden ontleend.
+        <br/><br/>
+        U bent verantwoordelijk voor alle inhoud die wordt verstrekt aan het Energietransitiemodel en zorgt
+        ervoor dat u voldoet aan wetten, regels en voorschriften. U gaat ermee akkoord dat u alle rechten of
+        licenties hebt verkregen voor de inhoud die u uploadt.
+        <br/><br/>
+        U behoudt alle rechten op inhoud die u aan het ETM verstrekt. Door inhoud in te voeren, verleent u
+        ons een licentie voor gebruik, kopiëren, wijzigen, herdistribueren en in sublicentie geven, en gaat
+        u ermee akkoord dat deze licentie het ETM toestaat deze inhoud aan derden te verstrekken
+        <br/><br/>
+        Als u van mening bent dat uw inhoud aan het ETM is verstrekt op een manier die inbreuk op het
+        auteursrecht inhoudt, neem dan contact met ons op:
+  contact:
+    contact:
+      title: Contact Us
+      description: |
+        Do you have any ideas, questions, or comments about the Energy Transition Model?
+        We would like to hear from you!

@@ -34,15 +34,6 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def require_no_user
-    if current_user
-      store_location
-      flash[:notice] = "You must be logged out to access this page"
-      redirect_to root_path
-      throw(:abort)
-    end
-  end
-
   def require_user
     return if current_user
 

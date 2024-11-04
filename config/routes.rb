@@ -55,6 +55,12 @@ Rails.application.routes.draw do
 
   get :discarded, to: 'discarded#index'
 
+  get :contact, to: 'static_pages#contact'
+  post :send_message, to: 'static_pages#send_message'
+  get :privacy, to: 'static_pages#privacy'
+  get :terms,   to: 'static_pages#terms'
+  get :root,    to: 'static_pages#empty'
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check

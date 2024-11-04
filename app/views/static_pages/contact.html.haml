@@ -1,0 +1,49 @@
+- content_for(:page_title) { t('contact.contact.title') }
+- content_for(:menu_title) { t('contact.contact.title') }
+= render(partial: "block_right")
+
+.text-midnight-450.mb-10= t('contact.contact.description')
+
+= form_for(@message, url: send_message_path, html: { method: :post, class: 'flex flex-wrap' }) do |f|
+  = invisible_captcha :country
+
+  .grow.pr-5{class: 'basis-3/4'}
+    = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.message'))) do |row|
+      - row.title_contents do
+        = f.label :message, class: 'block py-1.5'
+      .mb-4
+        = f.text_area :message, required: true, class: 'w-full resize-none h-[300px]'
+        = render(FieldErrorsComponent.new(record: @message, attribute: :message))
+
+  .flex.flex-col.ml-auto.mr-0{class: 'basis-1/4'}
+    = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.name'))) do |row|
+      - row.title_contents do
+        = f.label :name, class: 'block py-1.5'
+
+      .mb-4
+        = f.text_field :name, required: true, autofocus: true, autocomplete: 'name', class: "field"
+        = render(FieldErrorsComponent.new(record: @message, attribute: :name))
+
+    = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.email'))) do |row|
+      - row.title_contents do
+        = f.label :email, class: 'block py-1.5'
+
+      .mb-4
+        = f.text_field :email, required: true, class: "field"
+        = render(FieldErrorsComponent.new(record: @message, attribute: :email))
+
+    .mt-auto.mb-8
+      = f.submit t('contact.contact.send_message'), class: button_classes('text-sm hover:cursor-pointer', color: :success)
+
+.flex.mt-10
+  = render(Map::Component.new)
+  %div.ml-10
+    .p-5
+      .text-sm.text-midnight-400= t('contact.contact.address')
+      Quintel Intelligence<br />
+      Keizersgracht 639<br />
+      1017 DT Amsterdam<br />
+      The Netherlands
+    .p-5
+      .text-sm.text-midnight-400 Email
+      =link_to 'info@energytransitionmodel.com', 'mailto:info@energytransitionmodel.com', class: 'hover:underline'

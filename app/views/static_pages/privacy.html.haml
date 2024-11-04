@@ -1,0 +1,14 @@
+- content_for(:page_title) { t('privacy.privacy.title') }
+- content_for(:menu_title) { t('privacy.privacy.title') }
+= render(partial: "block_right")
+
+.text-midnight-450= t('privacy.privacy.description')
+
+.pt-5.text-sm.text-midnight-400.pb-2= t('privacy.data.title')
+= t('privacy.data.description').html_safe
+
+.pt-5.text-sm.text-midnight-400.pb-2= t('privacy.cookie.title')
+= t('privacy.cookie.description').html_safe
+
+.pt-5.text-sm.text-midnight-400.pb-2= t('privacy.objections.title')
+= t('privacy.objections.description').html_safe
