@@ -18,7 +18,7 @@
       </span>
     <% else %>
       <span class="text-sm inline-flex items-center text-red-600 font-medium ml-4">
-        <%= inline_svg_tag("hero/20/exclamation.svg", class: "mr-1") %>
+        <%= heroicon 'exclamation-triangle', options: {class: 'w-5 h-5 mr-2'} %>
         <%= t('.not_confirmed') %>
       </span>
     <% end %>

@@ -7,7 +7,7 @@
             <%= render(PasswordFieldComponent.new(form: f, name: :current_password, class: "field", autofocus: true, autocomplete: 'current-password', required: true)) %>
           </div>
 
-          <% row.icon { inline_svg_tag("hero/20/key.svg") } %>
+          <% row.icon { heroicon 'key', options: {class: 'w-5 h-5'} } %>
 
           <% row.after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @user, attribute: :current_password)) %>
@@ -19,7 +19,7 @@
             <%= f.email_field :email, value: action_name == "edit_email" ? "" : @user.email, autocomplete: 'email', required: true, class: "field" %>
           </div>
 
-          <% row.icon { inline_svg_tag("hero/20/mail.svg") } %>
+          <% row.icon { heroicon 'envelope', options: {class: 'w-5 h-5 mr-2'} } %>
 
           <% row.after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @user, attribute: :email)) %>
