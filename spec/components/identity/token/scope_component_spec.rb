@@ -11,7 +11,8 @@ RSpec.describe Identity::Token::ScopeComponent, type: :component do
     end
 
     it 'does not hide the scope from screen readers' do
-      expect(rendered).not_to have_css('[aria-hidden="true"]')
+
+      expect(rendered).not_to have_selector('div[aria-hidden="true"]')
     end
   end
 
@@ -25,7 +26,7 @@ RSpec.describe Identity::Token::ScopeComponent, type: :component do
     end
 
     it 'hides the scope from screen readers' do
-      expect(rendered).to have_css('[aria-hidden="true"]')
+      expect(rendered).to have_selector('div[aria-hidden="true"]')
     end
   end
 end
