@@ -12,12 +12,14 @@
       icon: 'clock',
       active: controller_name == 'history')
     )%>
-    <%= render(SavedScenarios::NavItem::Component.new(
-      path: saved_scenario_path(saved_scenario),
-      title: t('scenario_bar.manage_access'),
-      icon: 'user-group',
-      active: controller_name == 'saved_scenario_users')
-    )%>
+    <% if saved_scenario.owner?(current_user) || current_user&.admin? %>
+      <%= render(SavedScenarios::NavItem::Component.new(
+        path: saved_scenario_path(saved_scenario),
+        title: t('scenario_bar.manage_access'),
+        icon: 'user-group',
+        active: controller_name == 'saved_scenario_users')
+      )%>
+    <% end %>
   </div>
 
   <div class="border-l lg:border-l-0 lg:border-t flex flex-col border-solid border-gray-200 pr-5 lg:pr-0 lg:mt-10 lg:pt-10">
@@ -66,7 +68,7 @@
         ))%>
       <% end %>
     <% end %>
-    <% if saved_scenario.collaborator?(current_user)%>
+    <% if saved_scenario.owner?(current_user)%>
       <%= render(Hovercard::Component.new(
         path: '',
         text: t("scenario_bar.discarded.description.#{saved_scenario.discarded?}")
@@ -82,7 +84,7 @@
         ))%>
       <% end %>
     <% end %>
-    <% if saved_scenario.collaborator?(current_user) && saved_scenario.discarded? %>
+    <% if saved_scenario.owner?(current_user) && saved_scenario.discarded? %>
       <%= render(Hovercard::Component.new(
         path: '',
         text: t("scenario_bar.destroy.description")

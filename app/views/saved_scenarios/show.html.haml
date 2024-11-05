@@ -5,26 +5,20 @@
 
 - if flash[:undo_params]
   = render(NoticeBanner::Component.new(path: flash[:undo_params], text: notice_message, button_text: "#{t('undo')}?"))
-- elsif notice_message
-  = render(NoticeBanner::Component.new(text: notice_message))
 
 - if @saved_scenario.discarded?
   = render(NoticeBanner::TrashComponent.new(text: t('trash.notice', deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)))
 
-= render(HovercardWithVersion::Component.new(version: @saved_scenario.version))
+.w-min
+  = render(HovercardWithVersion::Component.new(version: @saved_scenario.version))
 
-%div.mt-5.mb-5.pb-5.border-b.border-solid.border-gray-200
+.flex.gap-5.mt-5.mb-5.pb-5.border-b.border-solid.border-gray-200
   - if @saved_scenario.featured?
     = @saved_scenario.featured_owner_name
   - else
     = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners, privacy: @saved_scenario.no_explicit_access?(current_user)))
-
-    - if @saved_scenario.collaborators.presence
-      - @saved_scenario.collaborators.each do |collaborator|
-        = collaborator.user_email
-    - if @saved_scenario.viewers.presence
-      - @saved_scenario.viewers.each do |viewer|
-        = viewer.user_email
+    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.collaborators'), users: @saved_scenario.collaborators, privacy: @saved_scenario.no_explicit_access?(current_user)))
+    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.viewers'), users: @saved_scenario.viewers, privacy: @saved_scenario.no_explicit_access?(current_user)))
 
 .mt-5.show-description
   - if @saved_scenario.localized_description(I18n.locale).presence
