@@ -12,7 +12,7 @@
     = render(SidebarItem::Component.new(path: discarded_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded' ))
 
     - if current_user.admin?
-      = render(SidebarItem::Component.new(path: admin_path, title: t('sidebar.admin'), icon: 'beaker', active: controller_name == 'admin' ))
+      = render(SidebarItem::Component.new(path: admin_path, title: t('sidebar.admin'), icon: 'beaker', active: %[users staff_applications].include?(controller_name)))
 
   .absolute.bottom-0.left-0.inline-block.w-full
     -# = render(SelectLocale::Component.new)

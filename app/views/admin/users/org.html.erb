@@ -1,4 +1,23 @@
 <%- content_for :menu_title, 'Admin panel' %>
 <%= render(partial: "/admin/block_right_menu") %>
 
-Welcome admins!
+<div class="text-midnight-450">
+  <%= t('admin.welcome') %>
+</div>
+
+<div class="mt-10 text-midnight-400 text-sm">
+  Current admins
+</div>
+<div class="mt-2 border border-gray-200 rounded-md p-5">
+  <% @admins.each do |user| %>
+    <%= render Admin::UserRow::Component.new(
+      user: user,
+      path: admin_edit_user_path(user),
+      confirm_path: admin_confirm_user_path(user),
+      confirmed: user.confirmed?
+    )%>
+  <% end %>
+</div>
+<div class="mt-10 text-midnight-800 text-sm">
+  <%= t('admin.add_admin') %>
+</div>

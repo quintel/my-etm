@@ -6,7 +6,7 @@ module Admin
 
     # All admins of the organisation
     def org
-
+      @admins = User.where(admin: true).includes(:saved_scenarios)
     end
 
     # All users

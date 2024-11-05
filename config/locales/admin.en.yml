@@ -1,5 +1,11 @@
 en:
   admin:
+    bar:
+      general: General
+      users: Users
+      scenarios: All scenarios
+      collections: All collections
+      applications: Local ETM & applications
     users:
       edit:
         title: Edit user
@@ -10,3 +16,10 @@ en:
         submit: Update
         success: User was successfully updated!
       is_an_admin: This user is an admin
+    welcome: |
+      Welcome to the admin panel. Here you can use your special powers
+      to edit users, check all saved scenarios and collections from clients,
+      and to configure your local ETM through the applications menu.
+    add_admin: |
+      If you wish to add an admin, please go to the users panel and
+      edit them from there.

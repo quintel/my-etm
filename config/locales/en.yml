@@ -69,6 +69,7 @@ en:
     collections: Collections
     discarded: Trash
     profile: My profile
+    admin: Admin
   scenario_bar:
     info: Info
     history: History
