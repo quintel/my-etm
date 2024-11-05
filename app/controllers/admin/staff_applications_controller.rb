@@ -1,8 +1,16 @@
 # frozen_string_literal: true
 
-module Inspect
+module Admin
   # Updates a staff application with a new URI.
   class StaffApplicationsController < ApplicationController
+    include AdminController
+
+    # Shows all staff applications that have been setup
+    def index
+
+    end
+
+
     def update
       result = CreateStaffApplication.call(
         current_user,
@@ -16,7 +24,7 @@ module Inspect
         flash[:alert] = result.failure.errors.full_messages.to_sentence
       end
 
-      redirect_to user_settings_path
+      redirect_to admin_applications_path
     end
   end
 end

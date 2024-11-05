@@ -1,0 +1,32 @@
+<% content_for :block_right do %>
+  <%= render(SavedScenarios::NavItem::Component.new(
+    path: admin_path,
+    title: t('admin_bar.general'),
+    icon: 'information-circle',
+    active: controller_name == 'users' && action_name =='org')
+  )%>
+  <%= render(SavedScenarios::NavItem::Component.new(
+    path: admin_path,
+    title: t('admin_bar.users'),
+    icon: 'user-group',
+    active: controller_name == 'users' && action_name =='all')
+  )%>
+  <%= render(SavedScenarios::NavItem::Component.new(
+    path: admin_path,
+    title: t('admin_bar.scenarios'),
+    icon: 'adjustments-horizontal',
+    active: controller_name == 'scenarios')
+  )%>
+  <%= render(SavedScenarios::NavItem::Component.new(
+    path: admin_path,
+    title: t('admin_bar.collections'),
+    icon: 'chart-bar-square',
+    active: controller_name == 'collections')
+  )%>
+  <%= render(SavedScenarios::NavItem::Component.new(
+    path: admin_applications_path,
+    title: t('admin_bar.applications'),
+    icon: 'computer-desktop',
+    active: controller_name == 'staff_applications')
+  )%>
+<% end %>

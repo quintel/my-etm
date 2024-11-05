@@ -55,6 +55,13 @@ Rails.application.routes.draw do
 
   get :discarded, to: 'discarded#index'
 
+  namespace :admin do
+    get '/', to: redirect('/admin/org')
+    get 'org', to: 'users#org'
+    get 'applications', to: 'staff_applications#index'
+    put 'applications', to: 'staff_applications#update'
+  end
+
   get :contact, to: 'static_pages#contact'
   post :send_message, to: 'static_pages#send_message'
   get :privacy, to: 'static_pages#privacy'
