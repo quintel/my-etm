@@ -6,7 +6,7 @@
     active: controller_name == 'users' && action_name =='org')
   )%>
   <%= render(SavedScenarios::NavItem::Component.new(
-    path: admin_path,
+    path: admin_users_path,
     title: t('admin_bar.users'),
     icon: 'user-group',
     active: controller_name == 'users' && action_name =='all')

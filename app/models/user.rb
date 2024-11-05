@@ -26,6 +26,8 @@ class User < ApplicationRecord
   has_many :saved_scenarios, through: :saved_scenario_users
   has_many :personal_access_tokens, dependent: :destroy
 
+  has_one :featured_scenario_user
+
   validates :name, presence: true, length: { maximum: 191 }
 
   def valid_password?(password)
@@ -40,6 +42,10 @@ class User < ApplicationRecord
 
   def active_for_authentication?
     super && deleted_at.nil?
+  end
+
+  def featured?
+    featured_scenario_user.present?
   end
 
   def as_json(options = {})

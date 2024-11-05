@@ -1,0 +1,12 @@
+en:
+  admin:
+    users:
+      edit:
+        title: Edit user
+        name: Name
+        email: Email
+        password: Password
+        admin: Admin
+        submit: Update
+        success: User was successfully updated!
+      is_an_admin: This user is an admin

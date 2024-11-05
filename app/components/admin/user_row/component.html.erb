@@ -1,0 +1,50 @@
+<%= link_to @path, id: "user_#{@user.id}", class:"grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md hover:bg-midnight-600 #{css_classes}", data: { turbo_frame: 'modal' } do %>
+  <%# GRID COL 1 %>
+  <div class="flex flex-col">
+    <span><%= @user.name %></span>
+    <div class="text-sm text-midnight-400">
+      <span><%= @user.email %></span>
+    </div>
+  </div>
+
+  <%# GRID COL 2 %>
+  <span class="text-midnight-400 text-sm mt-3">
+    <% if @user.last_sign_in_at.present? %>
+      Last sign in <%= time_ago_in_words(@user.last_sign_in_at) %> ago
+    <% else %>
+      Never signed in </span>
+    <% end %>
+  </span>
+
+  <%# GRID COL 3 %>
+  <span class="text-midnight-400 text-sm mt-3">
+    <%= @user.saved_scenarios.count %>
+    Saved scenarios
+    <%#= @user.collections.count %>
+    xx
+    Collections
+  </span>
+
+  <%# GRID COL 4 %>
+  <div class="flex mt-3 text-midnight-400">
+
+    <% if @user.admin? %>
+      <span class="mr-0 ml-auto">
+        <%= render(Hovercard::Component.new(path: '', text: t('admin.users.is_an_admin'))) do %>
+          <%= heroicon 'beaker', options: { class: 'w-4 h-4' } %>
+        <% end %>
+      </span>
+    <% end %>
+
+    <% if @user.featured? %>
+      <span><%= heroicon 'star', options: { class: 'w-4 h-4' } %></span>
+    <% end %>
+
+    <% unless @confirmed %>
+      <%= link_to @confirm_path, class: button_classes("mr-0 ml-auto", color: :primary), method: :put, data: { 'turbo-method': :put } do %>
+        <%= heroicon 'exclamation-triangle', options: { class: 'w-4 h-4' } %>
+        <%= t('admin.user.confirm') %>
+       <% end %>
+    <% end %>
+  </div>
+<% end %>

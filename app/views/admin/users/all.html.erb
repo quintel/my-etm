@@ -1,0 +1,11 @@
+<%- content_for :menu_title, 'All users' %>
+<%= render(partial: "/admin/block_right_menu") %>
+
+<% @users.each do |user| %>
+  <%= render Admin::UserRow::Component.new(
+    user: user,
+    path: admin_edit_user_path(user),
+    confirm_path: admin_confirm_user_path(user),
+    confirmed: user.confirmed?
+  )%>
+<% end %>

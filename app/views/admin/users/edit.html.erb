@@ -1,0 +1,50 @@
+<%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
+  <%= turbo_frame_tag :update_user_form do %>
+    <%= form_for(@user, url: admin_update_user_path, html: { method: :put }) do |f| %>
+      <%= render(FormSteps::WrapperComponent.new) do |steps| %>
+        <%= render(FormSteps::RowComponent.new(title: t('.name'), label_for: "user_name")) do |row| %>
+          <%= f.text_field :name, value: @user.name, required: true, autofocus: true, autocomplete: 'name', class: "field" %>
+
+          <% row.icon { heroicon 'identification', options: {class: 'w-5 h-5 mr-2'} } %>
+
+          <% row.after_hint do %>
+            <%= render(FieldErrorsComponent.new(record: @user, attribute: :name)) %>
+          <% end %>
+        <% end %>
+
+        <%= render(FormSteps::RowComponent.new(title: t('.email'), label_for: "user_email")) do |row| %>
+          <div class="relative">
+            <%= f.email_field :email, value: action_name == "edit_email" ? "" : @user.email, autocomplete: 'email', required: true, class: "field" %>
+          </div>
+
+          <% row.icon { heroicon 'envelope', options: {class: 'w-5 h-5 mr-2'} } %>
+
+          <% row.after_hint do %>
+            <%= render(FieldErrorsComponent.new(record: @user, attribute: :email)) %>
+          <% end %>
+        <% end %>
+
+        <%= render(FormSteps::RowComponent.new(title: t('.new_password'), label_for: "user_password")) do |row| %>
+          <div class="relative">
+            <%= render(PasswordFieldComponent.new(form: f, name: :password, class: "field", autocomplete: 'new-password')) %>
+          </div>
+
+          <% row.after_hint do %>
+            <%= render(FieldErrorsComponent.new(record: @user, attribute: :password)) %>
+          <% end %>
+        <% end %>
+
+        <%= render(FormSteps::RowComponent.new(title: t('.admin'), label_for: "user_email")) do |row| %>
+          <div class="relative text-midnight-450 inline-flex">
+            <%= f.check_box :admin, value: @user.admin?, class: "field" %>
+          </div>
+        <% end %>
+
+        <div class="mt-6 pb-2 flex items-center gap-2">
+          <%= button_tag t('.submit'), class: button_classes("text-base", size: :lg, color: :success) %>
+          <%= modal.close_link(t('identity.cancel'), admin_users_path, class: button_classes("text-base", size: :lg)) %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
