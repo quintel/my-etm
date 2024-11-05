@@ -1,7 +1,7 @@
 <%= render(Identity::ProfileRowComponent.new(title: t('.title'))) do |row| %>
   <% if @subscribed %>
     <div class="flex items-center gap-1 text-emerald-600">
-      <%= inline_svg_tag 'hero/20/circle-check.svg', class: '-ml-0.5' %>
+      <%= heroicon 'check-circle', options: {class: 'w-5 h-5 mr-2'} %>
       <%= t('.subscribed') %>
     </div>
 
