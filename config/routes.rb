@@ -63,6 +63,7 @@ Rails.application.routes.draw do
     put 'user/:user_id',         to: 'users#update',  as: :update_user
     put 'user/:user_id/confirm', to: 'users#confirm', as: :confirm_user
 
+    get 'scenarios', to: 'saved_scenarios#index'
 
     get 'applications', to: 'staff_applications#index'
     put 'applications', to: 'staff_applications#update'

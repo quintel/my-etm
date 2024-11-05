@@ -5,7 +5,7 @@ module SavedScenarios::Row
 
     # Initials to show
     def initials_for(saved_scenario_user)
-      saved_scenario_user.initials.capitalize
+      saved_scenario_user&.initials&.capitalize || "?"
     end
 
     def first_owner

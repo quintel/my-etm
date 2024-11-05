@@ -1,17 +1,21 @@
-<%= link_to @path, class: "flex w-full transition mb-5 p-2 pr-4 rounded-md hover:bg-midnight-600" do %>
-  <span class="bg-midnight-900 rounded-md h-8 w-8 mr-5 pt-1 mt-1 text-center text-midnight-200"><%= initials_for(first_owner) %></span>
-  <div class="flex flex-col">
-    <span><%= @saved_scenario.title %></span>
-    <div class="text-sm text-midnight-400">
-      <span><%= @saved_scenario.area_code %></span>
-      <span><%= @saved_scenario.end_year %></span>
+<%= link_to @path, class: "grid grid-cols-4 w-full transition mb-5 p-2 pr-4 rounded-md hover:bg-midnight-600" do %>
+  <div class="flex col-span-2">
+    <span class="bg-midnight-900 rounded-md h-8 w-8 mr-5 pt-1 mt-1 text-center text-midnight-200"><%= initials_for(first_owner) %></span>
+    <div class="flex flex-col">
+      <span><%= @saved_scenario.title %></span>
+      <div class="text-sm text-midnight-400">
+        <span><%= @saved_scenario.area_code %></span>
+        <span><%= @saved_scenario.end_year %></span>
+      </div>
     </div>
+    <span class="text-midnight-400"> #<%= @saved_scenario.version %></span>
   </div>
-  <span class="text-midnight-400"> #<%= @saved_scenario.version %></span>
   <span class="text-midnight-400 mx-auto text-sm mt-3"> Last updated <%= time_ago_in_words(@saved_scenario.updated_at) %> ago </span>
   <div class="ml-auto mr-0 mt-3 text-midnight-400">
     <% if @saved_scenario.private %>
-      <span><%= heroicon 'eye-slash', options: { class: 'w-4 h-4' } %></span>
+      <%= render(Hovercard::Component.new(path: '', text: t('scenario.private'))) do %>
+        <span><%= heroicon 'eye-slash', options: { class: 'w-4 h-4' } %></span>
+      <% end %>
     <% end %>
   </div>
 <% end %>

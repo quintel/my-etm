@@ -1,0 +1,11 @@
+<% content_for :menu_title, 'All saved scenarios' %>
+<%= render(partial: "/admin/block_right_menu") %>
+
+<% if @saved_scenarios.present? %>
+  <% @saved_scenarios.each do |saved_scenario| %>
+    <%= render(SavedScenarios::Row::Component.new(path: saved_scenario_path(saved_scenario), saved_scenario: saved_scenario))%>
+  <% end %>
+<% else %>
+  <%=t('saved_scenarios.empty')%>
+<% end %>
+

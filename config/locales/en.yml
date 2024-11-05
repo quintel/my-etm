@@ -103,6 +103,7 @@ en:
     succesful_update: Your scenario was succesfully updated
     title: Title
     save: Save
+    private: This scenario has been made private by the owner
     discard_changes: Discard changes
     no_description: This scenario has no description.
     create_description: Click here to create one.
