@@ -400,6 +400,14 @@ GEM
     ruby-vips (2.2.2)
       ffi (~> 1.12)
       logger
+    sassc (2.4.0)
+      ffi (~> 1.9)
+    sassc-rails (2.1.2)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     securerandom (0.3.1)
     sentry-ruby (5.19.0)
       bigdecimal
@@ -515,6 +523,7 @@ DEPENDENCIES
   rspec-rails
   rubocop-rails-omakase
   rubocop-rspec
+  sassc-rails
   sentry-sidekiq
   shoulda-matchers
   sidekiq
