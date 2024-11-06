@@ -30,20 +30,19 @@ etsource_lazy_load_dataset: true
 # http://beta.et-model.com/pages/refresh_gqueries
 client_refresh_url:
 
-# TODO: FIx this config
-# Optional scheme and hostname for ETEngine which will be used to send requests to ETModel.
-etmodel_uri: localhost:3001
+# TODO: Fix this config
 
-clients:
-  etmodel:
-    id:
-    secret:
-    uri: localhost:3001
-  engine:
-    id:
-    secret:
-    uri: localhost:3000
 
+etmodel:
+  uid: etmodel
+  secret:
+  uri: localhost:3001
+etengine:
+  uid: etengine
+  secret:
+  uri: localhost:3000
+collections:
+  uri: localhost:3005
 myetm:
   iss: my-etm
   uri: localhost:3002

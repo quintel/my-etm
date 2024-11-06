@@ -1,20 +1,20 @@
 # frozen_string_literal: true
+require 'myetm/staff_applications'
 
 module Admin
   # Updates a staff application with a new URI.
   class StaffApplicationsController < ApplicationController
     include AdminController
 
-    # Shows all staff applications that have been setup
     def index
-
+      @staff_applications = MyEtm::StaffApplications.all
     end
 
 
     def update
       result = CreateStaffApplication.call(
         current_user,
-        MyEtm::StaffApplications.find(params[:id]),
+        MyEtm::StaffApplications.find(params[:format]),
         uri: params[:uri].presence
       )
 

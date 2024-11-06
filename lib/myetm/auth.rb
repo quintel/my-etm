@@ -34,14 +34,14 @@ module MyEtm
     end
 
     # Creates a new JWT for the given user, authorizing requests to the provided client.
-    def user_jwt(user, scopes: [])
+    def user_jwt(user, scopes: [], client_uri: nil)
 
       payload = {
         iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
         aud: client_uri,
         exp: 1.minute.from_now.to_i,
         iat: Time.now.to_i,
-        scopes: scopes,
+        scopes: scopes, # TODO: Grab scopes from the user based on their roles
         sub: user.id,
         user: user.as_json(only: %i[id name])
       }
