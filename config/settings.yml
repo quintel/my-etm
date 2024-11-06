@@ -31,15 +31,9 @@ etsource_lazy_load_dataset: true
 client_refresh_url:
 
 # TODO: Fix this config
-
-
 etmodel:
-  uid: etmodel
-  secret:
   uri: localhost:3001
 etengine:
-  uid: etengine
-  secret:
   uri: localhost:3000
 collections:
   uri: localhost:3005
