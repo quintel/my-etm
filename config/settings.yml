@@ -30,13 +30,19 @@ etsource_lazy_load_dataset: true
 # http://beta.et-model.com/pages/refresh_gqueries
 client_refresh_url:
 
-# TODO: Fix this to fetch from ENV
+# TODO: Fix this config
+
+
 etmodel:
-  uri: http://localhost:3001
+  uid: etmodel
+  secret:
+  uri: localhost:3001
 etengine:
-  uri: http://localhost:3000
+  uid: etengine
+  secret:
+  uri: localhost:3000
 collections:
-  uri: http://localhost:3005
+  uri: localhost:3005
 myetm:
   iss: my-etm
   uri: http://localhost:3002

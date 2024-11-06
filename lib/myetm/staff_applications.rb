@@ -33,6 +33,7 @@ module MyEtm
           config_path: 'config/settings.local.yml',
           config_content: <<~YAML,
             idp_url: %<myetm_url>s
+            ete_url: %<etengine_url>s
 
             identity:
               client_id: %<uid>s
@@ -54,8 +55,7 @@ module MyEtm
           run_command: 'bundle exec rails server -p %<port>s',
           config_path: 'config/settings.local.yml',
           config_content: <<~YAML,
-            idp_url: %<myetm_url>s
-            ete_url: %<etengine_url>s
+            api_url: %<etmodel_url>s
 
             identity:
               client_id: %<uid>s
