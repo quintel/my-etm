@@ -29,7 +29,7 @@ module ApplicationHelper
   def format_staff_config(config, app)
 
     format(config, app.attributes.symbolize_keys.merge(
-      myetm_url: root_url.chomp('/'),
+      myetm_url: root_url.chomp('/root'),
       etengine_url: Settings.etengine.uri || 'http://YOUR_ETENGINE_URL',
       etmodel_url: Settings.etmodel.uri || 'http://YOUR_ETMODEL_URL',
       collections_url: Settings.collections.uri || 'http://YOUR_COLLECTIONS_URL'
