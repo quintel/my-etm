@@ -32,11 +32,13 @@ RSpec.describe "/saved_scenarios", type: :request do
     }
   }
 
+  let(:client) { Faraday.new(url: 'http://et.engine') }
   let(:user) { FactoryBot.create(:user) }
   let!(:user_scenario) { FactoryBot.create(:saved_scenario, id: 648695, user: user) }
   let(:admin) { FactoryBot.create :admin }
   let!(:admin_scenario) { FactoryBot.create :saved_scenario, user: admin, id: 648696 }
 
+  before { allow(MyEtm::Auth).to receive(:client_app_client).and_return(client) }
 
   describe "GET /index" do
     before do
@@ -177,7 +179,7 @@ RSpec.describe "/saved_scenarios", type: :request do
         expect(user_scenario.reload).not_to be_private
       end
 
-      pending 'updates the API scenarios' do
+      it 'updates the API scenarios' do
         expect(ApiScenario::UpdatePrivacy).to have_received(:call_with_ids).with(
           anything, [user_scenario.id], private: false
         )
@@ -224,7 +226,7 @@ RSpec.describe "/saved_scenarios", type: :request do
         expect(user_scenario.reload).to be_private
       end
 
-      pending 'updates the API scenarios' do
+      it 'updates the API scenarios' do
         expect(ApiScenario::UpdatePrivacy).to have_received(:call_with_ids).with(
           anything, [user_scenario.id], private: true
         )

@@ -53,6 +53,12 @@ Rails.application.routes.draw do
       put :undiscard
       get :confirm_destroy
     end
+
+    resources :users, controller: 'saved_scenario_users' do
+      member do
+        get :confirm_destroy
+      end
+    end
   end
 
   get :discarded, to: 'discarded#index'

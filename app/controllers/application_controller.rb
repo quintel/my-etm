@@ -17,6 +17,10 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  rescue_from ActiveRecord::RecordNotFound do
+    render_not_found
+  end
+
   def initialize_memory_cache
     NastyCache.instance.initialize_request
   end
@@ -64,6 +68,10 @@ class ApplicationController < ActionController::Base
     if respond_to?(:current_user) && current_user
       Sentry.set_user(id: current_user.id, email: current_user.email)
     end
+  end
+
+  def engine_client
+    MyEtm::Auth.client_app_client(current_user, :engine)
   end
 
   # Internal: Renders a 404 page.

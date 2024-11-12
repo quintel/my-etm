@@ -16,4 +16,8 @@ module User::Roles
   def self.name_for(id)
     ROLES[id]
   end
+
+  def roles
+    ROLES
+  end
 end
