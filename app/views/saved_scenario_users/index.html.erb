@@ -1,0 +1,33 @@
+<% content_for(:title) { "#{@saved_scenario.title} <% #{t('meta.name')}" } %>
+<% content_for :menu_title, @saved_scenario.localized_title(I18n.locale) %>
+<%= render(partial: "saved_scenarios/block_right_menu", locals: { saved_scenario: @saved_scenario }) %>
+
+<div class="text-midnight-450">
+  <%= t('saved_scenario_users.manage_description').html_safe %>
+</div>
+
+<div class="mt-10 text-midnight-400 text-sm">
+  <%= t("saved_scenario_users.manage_access") %>
+</div>
+
+<div class="mt-2 border border-gray-200 rounded-md p-5">
+  <% @saved_scenario.saved_scenario_users.each do |user| %>
+    <%= render SavedScenarioUser::UserRow::Component.new(
+      user: user,
+      destroy_path: confirm_destroy_saved_scenario_user_path(id: user.id),
+      confirmed: !user.pending?,
+      destroyable: !(user.role == :scenario_owner && @saved_scenario.single_owner?)
+    )%>
+  <% end %>
+</div>
+
+<%= link_to "#{t('saved_scenario_users.invite')}", new_saved_scenario_user_path, data: { turbo_frame: :modal }, class: button_classes(color: :default_colored) %>
+
+<%# #saved_scenario_users_table
+  = render partial: 'user_table', format: :js, locals: { saved_scenario: @saved_scenario }
+
+.actions.scenario-users
+.save.button.scenario-button.show-new-saved-scenario-user-form{ data: { form_url: new_saved_scenario_user_path } }
+  = t('saved_scenario_users.invite') %>
+
+

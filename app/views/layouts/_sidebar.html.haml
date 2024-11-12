@@ -5,7 +5,7 @@
     %span Energy Transition Model
 
   - if current_user
-    = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.saved_scenarios'), icon: 'adjustments-horizontal', active: controller_name == 'saved_scenarios'))
+    = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.saved_scenarios'), icon: 'adjustments-horizontal', active: %w[saved_scenarios saved_scenario_users].include?(controller_name)))
 
     = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections'))
 

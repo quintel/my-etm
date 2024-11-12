@@ -30,7 +30,7 @@ class SavedScenarioUsersController < ApplicationController
       saved_scenario_id: @saved_scenario.id
     )
 
-    render 'new', layout: false
+    render 'new', layout: 'application'
   end
 
   # Creates a new SavedScenarioUser for the given SavedScenario.
@@ -94,7 +94,7 @@ class SavedScenarioUsersController < ApplicationController
   #
   # GET /saved_scenarios/:saved_scenario_id/users/:id/confirm_destroy
   def confirm_destroy
-    render 'confirm_destroy', layout: false
+    render 'confirm_destroy',  layout: 'application'
   end
 
   # Destroys an existing SavedScenarioUser for this SavedScenario.

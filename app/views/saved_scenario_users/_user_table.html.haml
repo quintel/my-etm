@@ -17,14 +17,14 @@
         - else
           %td.role
             %div
-              = form_for saved_scenario_user, url: "#{saved_scenario_users_path}/#{saved_scenario_user.id}", remote: true, method: 'put' do |f|
-                = f.hidden_field :id, value: saved_scenario_user.id
-                = f.input :role_id, label: false, input_html: { class: 'update-saved-scenario-user', id: "saved_scenario_user_role_id[#{saved_scenario_user.id}]" }, collection: User::Roles.roles.map{ |r| [t("scenario.users.roles.#{r[1]}"), r[0]] }, selected: saved_scenario_user.role_id,
-                -# disabled: only_owner?(@saved_scenario, saved_scenario_user)
-              %div.checkmark
-                .fa.fa-check
-              %div.cross
-                .fa.fa-times
+              -# = form_for saved_scenario_user, url: "#{saved_scenario_users_path}/#{saved_scenario_user.id}", remote: true, method: 'put' do |f|
+              -#   = f.hidden_field :id, value: saved_scenario_user.id
+              -#   = f.input :role_id, label: false, input_html: { class: 'update-saved-scenario-user', id: "saved_scenario_user_role_id[#{saved_scenario_user.id}]" }, collection: User::Roles.roles.map{ |r| [t("scenario.users.roles.#{r[1]}"), r[0]] }, selected: saved_scenario_user.role_id,
+              -#   -# disabled: only_owner?(@saved_scenario, saved_scenario_user)
+              -# %div.checkmark
+              -#   .fa.fa-check
+              -# %div.cross
+              -#   .fa.fa-times
 
         -# %td.remove{class: only_owner?(@saved_scenario, saved_scenario_user) ? 'remove disabled' : 'remove'}
         -#   = content_tag :svg,

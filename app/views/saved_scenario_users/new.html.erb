@@ -1,0 +1,34 @@
+<%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
+  <%= turbo_frame_tag :change_email_form do %>
+    <%= form_for(@saved_scenario_user, url: saved_scenario_users_path, html: { method: :post }) do |f| %>
+      <%= render(FormSteps::WrapperComponent.new) do |steps| %>
+        <%= render(FormSteps::RowComponent.new(title: t('.email'), label_for: "user_email", hint: t('.new_email_hint'))) do |row| %>
+          <div class="relative">
+            <%= f.email_field :user_email, autocomplete: 'email', required: true, class: "field" %>
+          </div>
+
+          <% row.icon { heroicon 'envelope', options: {class: 'w-5 h-5 mr-2'} } %>
+
+          <% row.after_hint do %>
+            <%= render(FieldErrorsComponent.new(record: @saved_scenario_user, attribute: :user_email)) %>
+          <% end %>
+        <% end %>
+        <%= render(FormSteps::RowComponent.new(title: t('.role'), label_for: "role_id", hint: t('.new_email_hint'))) do |row| %>
+          <div class="relative">
+            <%= f.select :role_id, User::Roles.roles.map{ |r| [t("saved_scenario_users.roles.#{r[1]}"), r[0]] }
+                %>
+          </div>
+
+          <% row.icon { heroicon 'user-plus', options: {class: 'w-5 h-5 mr-2'} } %>
+        <% end %>
+
+        <div class="mt-6 pb-2 flex items-center gap-2">
+          <%= button_tag t('.submit'), class: button_classes("text-base", size: :lg, color: :success) %>
+          <%= modal.close_link(t('identity.cancel'), saved_scenario_users_path, class: button_classes("text-base", size: :lg)) %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%# selected: t("scenario.users.roles.#{User::Roles.name_for(1)}") %>

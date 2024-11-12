@@ -17,7 +17,7 @@ module User::Roles
     ROLES[id]
   end
 
-  def roles
+  def self.roles
     ROLES
   end
 end
