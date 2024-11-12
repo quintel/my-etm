@@ -1,0 +1,21 @@
+<%= render(ModalComponent.new(title: t('.title', name: @saved_scenario_user.name || @saved_scenario_user.email))) do |modal| %>
+  <%= turbo_frame_tag :modal do %>
+    <%= form_for(@saved_scenario_user, url: saved_scenario_user_path(@saved_scenario_user), html: { method: :delete, data: { turbo: false } }) do |f| %>
+      <div class="flex-col mb-10">
+        <p class="mb-2">
+          <%= t('.warning') %>
+        </p>
+        <p class="mb-5 pl-5 rounded-md px-1 py-2 bg-midnight-600">
+          <%= "#{@saved_scenario_user.name || @saved_scenario_user.email} (#{t("saved_scenario_users.roles.#{User::Roles.name_for(@saved_scenario_user.role_id).to_s}")})" %>
+        </p>
+        <p class="text-sm text-midnight-450">
+          <%= t('.irreversible') %>
+        </p>
+      </div>
+      <div class="mt-6 pb-2 flex items-center gap-2">
+        <%= button_tag t('.submit'), class: button_classes("text-base", size: :lg, color: :warning) %>
+        <%= modal.close_link(t('identity.cancel'), saved_scenario_users_path(@saved_scenario), class: button_classes("text-base", size: :lg)) %>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

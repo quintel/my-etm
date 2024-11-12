@@ -31,6 +31,14 @@ class SavedScenarioUser < ApplicationRecord
     user&.name
   end
 
+  def pending?
+    user_email.present?
+  end
+
+  def role
+    User::Roles.name_for(role_id)
+  end
+
   private
 
   def no_user_present?

@@ -14,7 +14,7 @@
     )%>
     <% if saved_scenario.owner?(current_user) || current_user&.admin? %>
       <%= render(SavedScenarios::NavItem::Component.new(
-        path: saved_scenario_path(saved_scenario),
+        path: saved_scenario_users_path(saved_scenario),
         title: t('scenario_bar.manage_access'),
         icon: 'user-group',
         active: controller_name == 'saved_scenario_users')
