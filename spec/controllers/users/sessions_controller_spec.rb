@@ -20,8 +20,11 @@ RSpec.describe Users::SessionsController do
   end
 
   before do
+    Settings.etmodel_uri = 'http://etmodel.test'
     request.env['devise.mapping'] = Devise.mappings[:user]
   end
+
+  after { Settings.reload! }
 
   context 'when signing out with an access token' do
     before { sign_in(user) }
