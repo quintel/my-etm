@@ -79,11 +79,11 @@ class SavedScenariosController < ApplicationController
   def publish
     @saved_scenario.update(private: false)
 
-    # ApiScenario::UpdatePrivacy.call_with_ids(
-    #   engine_client,
-    #   @saved_scenario.all_scenario_ids,
-    #   private: false
-    # )
+    ApiScenario::UpdatePrivacy.call_with_ids(
+      engine_client,
+      @saved_scenario.all_scenario_ids,
+      private: false
+    )
 
     redirect_to saved_scenario_path(@saved_scenario)
   end
@@ -92,11 +92,11 @@ class SavedScenariosController < ApplicationController
   def unpublish
     @saved_scenario.update(private: true)
 
-    # ApiScenario::UpdatePrivacy.call_with_ids(
-    #   engine_client,
-    #   @saved_scenario.all_scenario_ids,
-    #   private: true
-    # )
+    ApiScenario::UpdatePrivacy.call_with_ids(
+      engine_client,
+      @saved_scenario.all_scenario_ids,
+      private: true
+    )
 
     redirect_to saved_scenario_path(@saved_scenario)
   end
