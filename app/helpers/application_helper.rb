@@ -19,10 +19,24 @@ module ApplicationHelper
     session[:back_to_etm_url] || Settings.etmodel_uri || 'https://energytransitionmodel.com'
   end
 
-    # Like simple_format, except without inserting breaks on newlines.
-    def format_paragraphs(text)
-      # rubocop:disable Rails/OutputSafety
-      text.split("\n\n").map { |content| content_tag(:p, sanitize(content)) }.join.html_safe
-      # rubocop:enable Rails/OutputSafety
-    end
+  # Like simple_format, except without inserting breaks on newlines.
+  def format_paragraphs(text)
+    # rubocop:disable Rails/OutputSafety
+    text.split("\n\n").map { |content| content_tag(:p, sanitize(content)) }.join.html_safe
+    # rubocop:enable Rails/OutputSafety
+  end
+
+  def format_staff_config(config, app)
+
+    format(config, app.attributes.symbolize_keys.merge(
+      myetm_url: root_url.chomp('/root'),
+      etengine_url: Settings.etengine.uri || 'http://YOUR_ETENGINE_URL',
+      etmodel_url: Settings.etmodel.uri || 'http://YOUR_ETMODEL_URL',
+      collections_url: Settings.collections.uri || 'http://YOUR_COLLECTIONS_URL'
+    ))
+  end
+
+  def format_staff_run_command(command, app)
+    format(command, port: app.uri ? URI.parse(app.uri).port : nil)
+  end
 end

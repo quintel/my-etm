@@ -1,4 +1,10 @@
 class User < ApplicationRecord
+  ROLES = {
+    1 => :scenario_viewer,
+    2 => :scenario_collaborator,
+    3 => :scenario_owner
+  }.freeze
+
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable, :registerable
   devise :database_authenticatable, :registerable,
