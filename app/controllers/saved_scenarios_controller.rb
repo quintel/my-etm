@@ -1,4 +1,6 @@
 class SavedScenariosController < ApplicationController
+  before_action :authenticate_user!
+
   load_resource only: %i[discard undiscard publish unpublish confirm_destroy]
   load_and_authorize_resource only: %i[show new create edit update destroy]
 
@@ -36,19 +38,33 @@ class SavedScenariosController < ApplicationController
 
   # POST /saved_scenarios or /saved_scenarios.json
   def create
-    @saved_scenario = SavedScenario.new(saved_scenario_params)
+    ActiveRecord::Base.transaction do
+      @saved_scenario = SavedScenario.new(saved_scenario_params)
 
-    respond_to do |format|
       if @saved_scenario.save
-        format.html {
- redirect_to @saved_scenario, notice: t("scenario.succesful_update") }
-        format.json { render :show, status: :created, location: @saved_scenario }
+        SavedScenarioUser.create!(
+          saved_scenario: @saved_scenario,
+          user: current_user,
+          role_id: User::Roles.index_of(:scenario_owner)
+        )
+
+        respond_to do |format|
+          format.html {
+            redirect_to @saved_scenario, notice: t("scenario.succesful_update") }
+          format.json { render :show, status: :created, location: @saved_scenario }
+        end
       else
-        format.html { render :new, status: :unprocessable_entity }
-        format.json { render json: @saved_scenario.errors, status: :unprocessable_entity }
+        respond_to do |format|
+          format.html { render :new, status: :unprocessable_entity }
+          format.json { render json: @saved_scenario.errors, status: :unprocessable_entity }
+        end
+        # Rollback the transaction if the scenario save fails
+        raise ActiveRecord::Rollback
       end
     end
   end
+
+
 
   # PATCH/PUT /saved_scenarios/1 or /saved_scenarios/1.json
   def update

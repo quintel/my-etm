@@ -41,6 +41,8 @@ myetm:
   iss: my-etm
   uri: http://localhost:3002
 
+identity:
+  token_exchange_url: http://localhost:3002/identity/token_exchange
 
 # set to true if the server won't have online access. this disables Sentry,
 # etc.

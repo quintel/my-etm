@@ -6,39 +6,45 @@ module Api
     include CanCan::Ability
 
     def initialize(token, user)
-      can :read, Scenario, private: false
+      scopes =  if token.respond_to?(:scopes)
+                  token.scopes
+                else
+                  token[:scopes] || token['scopes']
+                end
+
+      can :read, SavedScenario, private: false
 
       # scenarios:read
       # --------------
 
-      return unless token.scopes.include?('scenarios:read')
+      return unless scopes.include?('scenarios:read')
 
-      can :read, Scenario, id: ScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_viewer)..).pluck(:scenario_id)
+      can :read, SavedScenario, id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_viewer)..).pluck(:saved_scenario_id)
 
       # scenarios:write
       # ---------------
 
-      return unless token.scopes.include?('scenarios:write')
+      return unless scopes.include?('scenarios:write')
 
-      can :create, Scenario
+      can :create, SavedScenario
 
       # Unowned public scenario.
-      can :update, Scenario, private: false
-      cannot :update, Scenario, private: false, id: ScenarioUser.pluck(:scenario_id)
+      can :update, SavedScenario, private: false
+      cannot :update, SavedScenario, private: false, id: SavedScenarioUser.pluck(:saved_scenario_id)
 
       # Self-owned scenario.
-      can :update, Scenario, id: ScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_collaborator)..).pluck(:scenario_id)
+      can :update, SavedScenario, id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_collaborator)..).pluck(:saved_scenario_id)
 
       # Actions that involve reading one scenario and writing to another.
-      can :clone, Scenario, private: false
-      can :clone, Scenario, id: ScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_collaborator)..).pluck(:scenario_id)
+      can :clone, SavedScenario, private: false
+      can :clone, SavedScenario, id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_collaborator)..).pluck(:saved_scenario_id)
 
       # scenarios:delete
       # ----------------
 
-      return unless token.scopes.include?('scenarios:delete')
+      return unless scopes.include?('scenarios:delete')
 
-      can :destroy, Scenario, id: ScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_owner)).pluck(:scenario_id)
+      can :destroy, SavedScenario, id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_owner)).pluck(:saved_scenario_id)
     end
   end
 end

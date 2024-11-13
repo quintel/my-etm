@@ -31,7 +31,7 @@ Rails.application.routes.draw do
     get 'newsletter', to: 'newsletter#edit', as: :edit_newsletter
     post 'newsletter', to: 'newsletter#update'
 
-    post 'token_exchange', to: 'token_exchange#create'
+    post 'token', to: 'access_tokens#create', as: :token
 
     resources :tokens, only: [:index, :new, :create, :destroy], as: :tokens
     resources :authorized_applications, only: [:index], as: :authorized_applications
@@ -57,6 +57,21 @@ Rails.application.routes.draw do
     resources :users, controller: 'saved_scenario_users' do
       member do
         get :confirm_destroy
+      end
+    end
+  end
+
+  namespace :api do
+    namespace :v1 do
+      resources :saved_scenarios do
+
+        member do
+          put :publish
+          put :unpublish
+          put :discard
+          put :undiscard
+          get :confirm_destroy
+        end
       end
     end
   end

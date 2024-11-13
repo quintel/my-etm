@@ -5,6 +5,8 @@ class User < ApplicationRecord
     3 => :scenario_owner
   }.freeze
 
+  attr_accessor :identity_user
+
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable, :registerable
   devise :database_authenticatable, :registerable,
@@ -56,5 +58,29 @@ class User < ApplicationRecord
 
   def as_json(options = {})
     super(options.merge(except: Array(options[:except])))
+  end
+
+  def self.from_identity!(identity_user)
+    where(id: identity_user.id).first_or_initialize.tap do |user|
+      is_new_user = !user.persisted?
+      user.identity_user = identity_user
+      user.name = identity_user.name
+
+      user.save!
+
+      # For new users, couple existing SavedScenarioUsers
+      if is_new_user
+        SavedScenarioUser
+          .where(user_email: user.email, user_id: nil)
+          .update_all(user_id: user.id, user_email: nil)
+      end
+    end
+  end
+
+  # Finds or creates a user from a JWT token.
+  def self.from_jwt!(token)
+    id = token['sub']
+    raise 'Token does not contain user information' unless id.present?
+    User.find_or_create_by!(id: id)
   end
 end
