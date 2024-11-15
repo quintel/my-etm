@@ -62,6 +62,7 @@ module MyEtm
       end
     end
 
+    # TODO: Fixme
     # Helper method to fetch the URI for the given client application (staff application).
     def client_uri_for(client_app)
       Settings.staff_applications[client_app].uri || raise("No URI configured for client: #{client_app}")
