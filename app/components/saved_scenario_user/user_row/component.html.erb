@@ -1,32 +1,41 @@
-<div class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md <%css_classes%>">
-  <%# GRID COL 1 %>
-  <div class="flex flex-col">
-    <span><%= @user.name %></span>
-    <div class="text-sm text-midnight-400">
-      <span><%= @user.email %></span>
+<%= turbo_frame_tag @user do %>
+  <div class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md <%css_classes%>">
+    <%# GRID COL 1 %>
+    <div class="flex flex-col">
+      <% if @confirmed %>
+        <span><%= @user.name %></span>
+        <div class="text-sm text-midnight-400">
+          <span><%= @user.email %></span>
+        </div>
+      <% else %>
+        <span><%= @user.email %></span>
+        <div class="text-sm text-midnight-400">
+          <span><%= t(".invite_sent") %></span>
+        </div>
+      <% end %>
     </div>
-  </div>
 
-  <%# GRID COL 2 %>
-  <span class="text-midnight-400 text-sm mt-3">
-    <% if !@confirmed %>
-      <%= t('saved_scenario_users.roles.pending') %>
-    <% end %>
-  </span>
-
-  <%# GRID COL 3 %>
-  <span class="text-midnight-400 text-sm mt-3">
-    <%= "#{t("saved_scenario_users.roles.#{User::Roles.name_for(@user.role_id).to_s}")}" %>
-  </span>
-
-  <%# GRID COL 4 %>
-  <div class="flex mt-2 text-midnight-400">
-    <span class="mr-0 ml-auto p-2 pl-6">
-      <%= render(Hovercard::Component.new(path: '', text: destroy_text)) do %>
-        <%= link_to @destroy_path, class: "transition text-sm hover:text-midnight-800 #{destroy_classes}" do%>
-          <%= heroicon 'trash', options: { class: 'w-5 h-5' } %>
-        <% end %>
+    <%# GRID COL 2 %>
+    <span class="text-midnight-400 text-sm mt-3">
+      <% if !@confirmed %>
+        <%= t('saved_scenario_users.roles.pending') %>
       <% end %>
     </span>
+
+    <%# GRID COL 3 %>
+    <span class="text-midnight-400 text-sm mt-3">
+      <%= "#{t("saved_scenario_users.roles.#{User::Roles.name_for(@user.role_id).to_s}")}" %>
+    </span>
+
+    <%# GRID COL 4 %>
+    <div class="flex mt-2 text-midnight-400">
+      <span class="mr-0 ml-auto p-2 pl-6">
+        <%= render(Hovercard::Component.new(path: '', text: destroy_text)) do %>
+          <%= link_to @destroy_path, class: "transition text-sm hover:text-midnight-800 #{destroy_classes}" do%>
+            <%= heroicon 'trash', options: { class: 'w-5 h-5' } %>
+          <% end %>
+        <% end %>
+      </span>
+    </div>
   </div>
-</div>
+<% end %>

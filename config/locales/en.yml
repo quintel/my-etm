@@ -134,12 +134,12 @@ en:
           inviting this person to create an account for the ETM.
         email: 'Email address'
       confirm_destroy:
-        title: 'Revoke access for %{name}'
         irreversible: This action is irreversible
-        warning: "You are about to revoke access to this scenario for:"
-        submit: 'Remove user'
-        not_possible: 'You can not remove yourself when there is no other owner.'
-        button: 'Remove this user'
+        warning: "You are about to revoke %{role} access."
+        confirm: 'Confirm'
+        cancel: 'Cancel'
+        not_possible: 'You can not revoke your own access when there is no other owner.'
+        button: 'Revoke access'
       errors:
         create: Something went wrong while trying create the invite!
         base: Please enter an email address.

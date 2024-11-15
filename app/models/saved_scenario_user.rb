@@ -10,6 +10,7 @@ class SavedScenarioUser < ApplicationRecord
   # Always make sure one owner is left on the SavedScenario
   # this record is part of before changing its role or removing it.
   before_save :ensure_one_owner_left_before_save
+  before_create :couple_existing_user
   before_destroy :ensure_one_owner_left_before_destroy
 
   def as_json(*)
@@ -37,6 +38,19 @@ class SavedScenarioUser < ApplicationRecord
 
   def role
     User::Roles.name_for(role_id)
+  end
+
+  # If email is supplied on create, see if we can find a user in the system
+  def couple_existing_user
+    return unless user_email.present? && user_id.blank?
+
+    couple_to(User.find_by(email: user_email))
+  end
+
+  # Couples the record to an existing User.
+  def couple_to(user)
+    self.user = user
+    self.user_email = nil if user
   end
 
   private

@@ -1,5 +1,7 @@
 module SavedScenarioUser::UserRow
   class Component < ApplicationComponent
+    include Turbo::FramesHelper
+
     option :user
     option :destroy_path
     option :destroyable, default: proc { true }

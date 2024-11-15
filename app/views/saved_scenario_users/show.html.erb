@@ -1,0 +1,6 @@
+<%= render SavedScenarioUser::UserRow::Component.new(
+  user: @saved_scenario_user,
+  destroy_path: confirm_destroy_saved_scenario_user_path(id: @saved_scenario_user.id),
+  confirmed: !@saved_scenario_user.pending?,
+  destroyable: !(@saved_scenario_user.role == :scenario_owner && @saved_scenario.single_owner?)
+)%>

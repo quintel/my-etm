@@ -10,7 +10,7 @@
   <%= t("saved_scenario_users.manage_access") %>
 </div>
 
-<div class="mt-2 border border-gray-200 rounded-md p-5">
+<div id="saved_scenario_users_table" class="mt-2 mb-5 border border-gray-200 rounded-md p-5">
   <% @saved_scenario.saved_scenario_users.each do |user| %>
     <%= render SavedScenarioUser::UserRow::Component.new(
       user: user,

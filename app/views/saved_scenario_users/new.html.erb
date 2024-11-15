@@ -1,5 +1,13 @@
 <%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
-  <%= turbo_frame_tag :change_email_form do %>
+  <%= turbo_frame_tag :add_user_form do %>
+    <% if alert %>
+      <div class="flex text-red-600 mb-5">
+        <span class="mr-5"><%= heroicon 'exclamation-triangle', options: { class: 'w-6 h-6' } %></span>
+        <span class="text-base">
+          <%= alert %>
+        </span>
+      </div>
+    <% end %>
     <%= form_for(@saved_scenario_user, url: saved_scenario_users_path, html: { method: :post }) do |f| %>
       <%= render(FormSteps::WrapperComponent.new) do |steps| %>
         <%= render(FormSteps::RowComponent.new(title: t('.email'), label_for: "user_email", hint: t('.new_email_hint'))) do |row| %>

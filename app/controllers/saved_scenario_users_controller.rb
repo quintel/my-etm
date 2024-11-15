@@ -4,14 +4,12 @@
 # for a given SavedScenario.
 class SavedScenarioUsersController < ApplicationController
   before_action :assign_saved_scenario
-  before_action :assign_saved_scenario_user, only: %i[update confirm_destroy destroy]
+  before_action :assign_saved_scenario_user, only: %i[update confirm_destroy destroy show]
 
   # Owners are the only ones with destroy rights.
   before_action do
     authorize!(:destroy, @saved_scenario)
   end
-
-  after_action :clear_flash, only: %i[create update destroy]
 
   # Render a page with a table showing all SavedScenarioUsers for a SavedScenario.
   #
@@ -43,19 +41,25 @@ class SavedScenarioUsersController < ApplicationController
     )
 
     if result.successful?
+      @saved_scenario_user = result.value
       @saved_scenario.reload
 
+      flash.notice = "#{@saved_scenario_user.email} was succesfully added"
+
       respond_to do |format|
-        format.js { render 'user_table', layout: false }
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_remove_modal, turbo_append_user, turbo_notice
+          ]
+        end
       end
     else
       flash[:alert] =
-        t("scenario.users.errors.#{result.errors.first}") ||
-        "#{t('scenario.users.errors.create')} #{t('scenario.users.errors.general')}"
+        t("saved_scenario_users.errors.#{result.errors.first}") ||
+        "#{t('saved_scenario_users.errors.create')} #{t('saved_scenario_users.errors.general')}"
 
-      respond_to do |format|
-        format.js { render 'form_flash', layout: false }
-      end
+      @saved_scenario_user = SavedScenarioUser.new(scenario_user_params)
+      render(:new, status: :unprocessable_entity)
     end
   end
 
@@ -78,7 +82,7 @@ class SavedScenarioUsersController < ApplicationController
 
       # TODO: Responds with new table, but this is picked up nowhere
       respond_to do |format|
-        format.js { render 'user_table', layout: false }
+
       end
     else
       flash[:alert] = t("scenario.users.errors.#{result.errors.first}") ||
@@ -106,15 +110,25 @@ class SavedScenarioUsersController < ApplicationController
 
     if result.successful?
       @saved_scenario.reload
+      flash.notice = "Access was succesfully revoked"
 
       respond_to do |format|
-        format.js { render 'user_table', layout: false }
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_remove_modal,
+            turbo_stream.remove("saved_scenario_user_#{@saved_scenario_user.id}"),
+            turbo_notice
+          ]
+        end
       end
     else
-      flash[:alert] = "#{t('scenario.users.errors.destroy')} #{t('scenario.users.errors.general')}"
+      puts result.errors
+      flash[:alert] = "#{t('saved_scenario_users.errors.destroy')} #{t('saved_scenario_users.errors.general')}"
 
       respond_to do |format|
-        format.js { render 'flash', layout: false }
+        format.turbo_stream do
+          render turbo_stream: turbo_alert
+        end
       end
     end
   end
@@ -146,7 +160,19 @@ class SavedScenarioUsersController < ApplicationController
     redirect_to saved_scenario_users_path, notice: 'Something went wrong'
   end
 
-  def clear_flash
-    flash.clear
+  def turbo_append_user
+    turbo_stream.append(
+      "saved_scenario_users_table",
+      SavedScenarioUser::UserRow::Component.new(
+        user: @saved_scenario_user,
+        destroy_path: confirm_destroy_saved_scenario_user_path(id: @saved_scenario_user.id),
+        confirmed: !@saved_scenario_user.pending?,
+        destroyable: !(@saved_scenario_user.role == :scenario_owner && @saved_scenario.single_owner?)
+      )
+    )
+  end
+
+  def turbo_remove_modal
+    turbo_stream.update(:modal, "")
   end
 end
