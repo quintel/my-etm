@@ -78,18 +78,22 @@ class SavedScenarioUsersController < ApplicationController
     )
 
     if result.successful?
-      @saved_scenario.reload
-
-      # TODO: Responds with new table, but this is picked up nowhere
       respond_to do |format|
-
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update(@saved_scenario_user, user_component)
+        end
       end
     else
-      flash[:alert] = t("scenario.users.errors.#{result.errors.first}") ||
-        "#{t('scenario.users.errors.update')} #{t('scenario.users.errors.general')}"
+      flash[:alert] = t("saved_scenario_users.errors.#{result.errors.first}") ||
+        "#{t('saved_scenario_users.errors.update')} #{t('saved_scenario_users.errors.general')}"
 
       respond_to do |format|
-        format.js { render 'flash', layout: false }
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_alert,
+            turbo_stream.update(@saved_scenario_user, user_component)
+          ]
+        end
       end
     end
   end
@@ -163,12 +167,17 @@ class SavedScenarioUsersController < ApplicationController
   def turbo_append_user
     turbo_stream.append(
       "saved_scenario_users_table",
-      SavedScenarioUser::UserRow::Component.new(
-        user: @saved_scenario_user,
-        destroy_path: confirm_destroy_saved_scenario_user_path(id: @saved_scenario_user.id),
-        confirmed: !@saved_scenario_user.pending?,
-        destroyable: !(@saved_scenario_user.role == :scenario_owner && @saved_scenario.single_owner?)
-      )
+      user_component
+    )
+  end
+
+  def user_component
+    SavedScenarioUser::UserRow::Component.new(
+      user: @saved_scenario_user,
+      destroy_path: confirm_destroy_saved_scenario_user_path(id: @saved_scenario_user.id),
+      update_path: saved_scenario_user_path(id: @saved_scenario_user.id),
+      confirmed: !@saved_scenario_user.pending?,
+      destroyable: !(@saved_scenario_user.role == :scenario_owner && @saved_scenario.single_owner?)
     )
   end
 

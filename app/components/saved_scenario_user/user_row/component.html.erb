@@ -24,7 +24,13 @@
 
     <%# GRID COL 3 %>
     <span class="text-midnight-400 text-sm mt-3">
-      <%= "#{t("saved_scenario_users.roles.#{User::Roles.name_for(@user.role_id).to_s}")}" %>
+      <%= form_for(@user, url: @update_path, html: { method: :put , data: { controller: "change-role", "turbo-method": :put }}) do |f| %>
+        <%= f.select :role_id,
+          User::Roles.roles.map{ |r| [t("saved_scenario_users.roles.#{r[1]}"), r[0]] },
+          {},
+          {class: disabled_classes, "data-action": "change->change-role#submit", **disabled}
+        %>
+      <% end %>
     </span>
 
     <%# GRID COL 4 %>

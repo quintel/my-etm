@@ -15,19 +15,11 @@
     <%= render SavedScenarioUser::UserRow::Component.new(
       user: user,
       destroy_path: confirm_destroy_saved_scenario_user_path(id: user.id),
+      update_path: saved_scenario_user_path(id: user.id),
       confirmed: !user.pending?,
       destroyable: !(user.role == :scenario_owner && @saved_scenario.single_owner?)
     )%>
   <% end %>
 </div>
 
-<%= link_to "#{t('saved_scenario_users.invite')}", new_saved_scenario_user_path, data: { turbo_frame: :modal }, class: button_classes(color: :default_colored) %>
-
-<%# #saved_scenario_users_table
-  = render partial: 'user_table', format: :js, locals: { saved_scenario: @saved_scenario }
-
-.actions.scenario-users
-.save.button.scenario-button.show-new-saved-scenario-user-form{ data: { form_url: new_saved_scenario_user_path } }
-  = t('saved_scenario_users.invite') %>
-
-
+<%= link_to "+ #{t('saved_scenario_users.invite')}", new_saved_scenario_user_path, data: { turbo_frame: :modal }, class: button_classes(color: :default_colored) %>

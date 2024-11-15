@@ -115,7 +115,7 @@ en:
         See the
         <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/" target=\"_blank\">
         documentation</a> for more information.
-      invite: '+ Invite others'
+      invite: 'Invite others'
       send_invite: Send invite
       name: 'Name'
       role: 'Role'
@@ -129,16 +129,18 @@ en:
         pending: 'Pending'
       new:
         title: 'Give someone access to your scenario'
-        description:
+        new_email_hint:
           If no existing user can be found for the given email address we will send an email
           inviting this person to create an account for the ETM.
         email: 'Email address'
+        role: Role
+        role_hint: Pick the type of access you want to grant.
       confirm_destroy:
         irreversible: This action is irreversible
         warning: "You are about to revoke %{role} access."
         confirm: 'Confirm'
         cancel: 'Cancel'
-        not_possible: 'You can not revoke your own access when there is no other owner.'
+        not_possible: 'You can not revoke your own access.'
         button: 'Revoke access'
       errors:
         create: Something went wrong while trying create the invite!
