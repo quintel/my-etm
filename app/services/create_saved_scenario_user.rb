@@ -19,8 +19,10 @@ class CreateSavedScenarioUser
   param :settings, default: proc { {} }
 
   def call
-    return api_response_invite if invite_failure?
     return failure unless saved_scenario_user.valid?
+    saved_scenario_user.couple_existing_user
+
+    return api_response_invite if invite_failure?
     return historical_scenarios_result if historical_scenarios_result.failure?
 
     saved_scenario_user.save
@@ -34,34 +36,24 @@ class CreateSavedScenarioUser
 
   def saved_scenario_user
     @saved_scenario_user ||= SavedScenarioUser.new(
-      succesful_user_params.merge(saved_scenario: saved_scenario)
+      settings.merge(saved_scenario: saved_scenario)
     )
   end
 
-  # This should never occur as the record is prevalidated by the engine
   def failure
     ServiceResult.failure(saved_scenario_user.errors.messages.keys)
   end
 
-  def succesful_user_params
-    raw = api_response_invite.value.first
-
-    {
-      user_id: raw['user_id'] ? raw['user_id'].to_i : nil,
-      user_email: raw['user_email'],
-      role_id: raw['role_id'].to_i
-    }
-  end
-
   def api_user_params
     @api_user_params ||= {
-      user_id: settings[:user_id],
-      user_email: settings[:user_email],
-      role: User::Roles.name_for(settings[:role_id].to_i)
+      user_id: saved_scenario_user.user_id,
+      user_email: saved_scenario_user.user_email,
+      role: saved_scenario_user.role
     }
   end
 
   # Create the user in the engine and send an invite
+  # TODO: send invite from my-etm!!
   def api_response_invite
     @api_response_invite ||= ApiScenario::Users::Create.call(
       http_client,

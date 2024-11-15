@@ -71,7 +71,8 @@ class ApplicationController < ActionController::Base
   end
 
   def engine_client
-    MyEtm::Auth.client_app_client(current_user, :engine)
+    # MyEtm::Auth.client_app_client(current_user, :engine)
+    Faraday.new("http://localhost:3000")
   end
 
   # Internal: Renders a 404 page.
@@ -102,5 +103,33 @@ class ApplicationController < ActionController::Base
     )
 
     true
+  end
+
+  def turbo_notice(message = nil)
+    if message.nil?
+      message = flash[:notice]
+      flash.delete(:notice)
+    end
+
+    return if message.nil?
+
+    turbo_stream.update(
+      'toast',
+      ToastComponent.new(type: :notice, message:).render_in(view_context)
+    )
+  end
+
+  def turbo_alert(message = nil)
+    if message.nil?
+      message = flash[:alert]
+      flash.delete(:alert)
+    end
+
+    return if message.nil?
+
+    turbo_stream.update(
+      'toast',
+      ToastComponent.new(type: :alert, message:).render_in(view_context)
+    )
   end
 end
