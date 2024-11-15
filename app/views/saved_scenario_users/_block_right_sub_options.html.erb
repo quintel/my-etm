@@ -1,0 +1,12 @@
+<%= render(Hovercard::Component.new(
+  path: '',
+  text: t("saved_scenario_users.new.title")
+)) do %>
+  <%= render(SavedScenarios::NavItem::Component.new(
+    path: new_saved_scenario_user_path,
+    title: t('saved_scenario_users.invite'),
+    icon: 'plus',
+    data: { turbo_frame: 'modal' },
+    static: true)
+  )%>
+<% end %>

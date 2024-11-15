@@ -21,7 +21,7 @@
             <%= render(FieldErrorsComponent.new(record: @saved_scenario_user, attribute: :user_email)) %>
           <% end %>
         <% end %>
-        <%= render(FormSteps::RowComponent.new(title: t('.role'), label_for: "role_id", hint: t('.new_email_hint'))) do |row| %>
+        <%= render(FormSteps::RowComponent.new(title: t('.role'), label_for: "role_id", hint: t('.role_hint'))) do |row| %>
           <div class="relative">
             <%= f.select :role_id, User::Roles.roles.map{ |r| [t("saved_scenario_users.roles.#{r[1]}"), r[0]] }
                 %>
