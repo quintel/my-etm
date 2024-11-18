@@ -4,7 +4,6 @@ class Identity::TokenComponent < ApplicationComponent
   include ButtonHelper
   include Turbo::FramesHelper
 
-  # TODO: Move this to a proper token generator class.
   TOKEN_PREFIX = Rails.env.staging? ? 'etm_beta_' : 'etm_'
 
   def initialize(token:)

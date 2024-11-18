@@ -43,7 +43,7 @@ module MyEtm
         iat: Time.now.to_i,
         scopes: scopes,
         sub: user.id,
-        user: user.as_json(only: %i[id name])
+        user: user.as_json(only: %i[id admin])
       }
 
       key = signing_key
@@ -68,15 +68,6 @@ module MyEtm
       Settings.staff_applications[client_app].uri || raise("No URI configured for client: #{client_app}")
     end
 
-    # Decodes and verifies a JWT token or exchanges a bearer token for a JWT
-    def decode(token)
-      if jwt_format?(token)
-        decode_jwt(token)
-      else
-        jwt_token = exchange_bearer_for_jwt(token)
-        decode_jwt(jwt_token)
-      end
-    end
 
     # Checks if the token is in JWT format
     def jwt_format?(token)
@@ -84,7 +75,7 @@ module MyEtm
     end
 
     # Decodes a JWT token
-    def decode_jwt(jwt_token)
+    def decode(jwt_token)
       decoded_token = JWT.decode(
         jwt_token,
         signing_key.public_key,
@@ -95,20 +86,6 @@ module MyEtm
       decoded_token.symbolize_keys
     rescue JWT::DecodeError, JWT::VerificationError, JWT::ExpiredSignature => e
       raise DecodeError, "Token verification failed: #{e.message}"
-    end
-
-    # Exchanges a bearer token for a JWT token
-    def exchange_bearer_for_jwt(bearer_token)
-      response = Faraday.post(Settings.identity.token_exchange_url) do |req|
-        req.headers['Authorization'] = "Bearer #{bearer_token}"
-        req.headers['Content-Type'] = 'application/json'
-      end
-
-      if response.success?
-        JSON.parse(response.body)['jwt']
-      else
-        raise TokenExchangeError, 'Failed to exchange bearer token for JWT'
-      end
     end
 
     # Verifies specific claims within the token payload
@@ -127,7 +104,7 @@ module MyEtm
       raise DecodeError, 'Token has expired' unless decoded_token['exp'] && decoded_token['exp'] > Time.now.to_i
     end
 
-    module_function :decode, :jwt_format?, :decode_jwt, :exchange_bearer_for_jwt, :verify_claims, :signing_key_content, :user_jwt, :signing_key
+    module_function :decode, :jwt_format?, :verify_claims, :signing_key_content, :user_jwt, :signing_key
 
   end
 end

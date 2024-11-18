@@ -17,7 +17,6 @@ module Users
       token = access_token
 
       super do
-        # TODO: Add logout_urls to the application and validate that the URL is permitted.
         if token
           token.revoke if token.accessible?
 
