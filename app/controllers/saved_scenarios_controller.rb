@@ -1,6 +1,5 @@
 class SavedScenariosController < ApplicationController
-  before_action :authenticate_user!
-
+  load_resource only: %i[discard undiscard publish unpublish confirm_destroy]
   load_and_authorize_resource only: %i[show new create edit update destroy]
 
   before_action :require_user, only: %i[index]

@@ -1,5 +1,7 @@
 module Admin::UserRow
   class Component < ApplicationComponent
+    include ButtonHelper
+
     option :user
     option :confirmed, default: proc { true }
     option :confirm_path

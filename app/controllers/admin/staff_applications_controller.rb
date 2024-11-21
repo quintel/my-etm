@@ -14,8 +14,8 @@ module Admin
     def update
       result = CreateStaffApplication.call(
         current_user,
-        MyEtm::StaffApplications.find(params[:format]),
-        uri: params[:uri].presence
+        MyEtm::StaffApplications.find(staff_application_params[:format]),
+        uri: staff_application_params[:uri].presence
       )
 
       if result.success?
@@ -25,6 +25,12 @@ module Admin
       end
 
       redirect_to admin_applications_path
+    end
+
+    private
+
+    def staff_application_params
+      params.permit(:format, :uri)
     end
   end
 end

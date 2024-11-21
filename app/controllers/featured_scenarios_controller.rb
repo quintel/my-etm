@@ -32,7 +32,6 @@ class FeaturedScenariosController < ApplicationController
     end
   end
 
-  # TODO: use turbo for a pop-up
   def confirm_destroy
     render :confirm_destroy, layout: 'application'
   end

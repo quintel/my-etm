@@ -5,6 +5,20 @@ module Api
 
       before_action :authenticate_request!
 
+      rescue_from ActionController::ParameterMissing do |e|
+        render json: { errors: [e.message] }, status: :bad_request
+      end
+
+      rescue_from ActiveRecord::RecordNotFound do |e|
+        render json: {
+          errors: ["No such #{e.model.underscore.humanize.downcase}: #{e.id}"]
+        }, status: :not_found
+      end
+
+      rescue_from ActiveModel::RangeError do
+        render_not_found
+      end
+
       rescue_from CanCan::AccessDenied do |e|
         if e.subject.is_a?(Scenario) && !e.subject.private?
           render status: :forbidden, json: { errors: ['Scenario does not belong to you'] }
@@ -35,13 +49,7 @@ module Api
 
       # Fetch the user based on the decoded token's subject
       def current_user
-        return @current_user if defined?(@current_user)
-
-        if decoded_token
-          user_id = decoded_token[:sub]
-          @current_user = User.find_by(id: user_id) # Use `find_by` to avoid exceptions for missing records
-        end
-        @current_user
+        @current_user ||= User.find_by(decoded_token[:sub]) if decoded_token
       end
 
       def current_ability
@@ -54,20 +62,8 @@ module Api
       end
 
       def authenticate_request!
-
         if decoded_token
           render json: { errors: ['Unauthorized'] }, status: :unauthorized unless current_user
-        end
-      end
-
-      # Many API actions require an active scenario. Let's set it here
-      # and let's prepare the field for the calculations.
-      #
-      def set_current_scenario
-        @scenario = if params[:scenario_id]
-          Scenario.find(params[:scenario_id])
-        else
-          Scenario.last
         end
       end
 
