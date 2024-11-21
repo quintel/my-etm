@@ -58,7 +58,7 @@ describe CreateSavedScenarioUser, type: :service do
     end
 
     it 'returns the scenario error messages' do
-      expect(result.errors).to eq(['Invalid email'])
+      expect(result.errors).to eq([ :user_email ])
     end
   end
 
@@ -96,9 +96,9 @@ describe CreateSavedScenarioUser, type: :service do
     end
   end
 
-  context 'when the API response contains a found linked user' do
+  context 'when there is a found linked user' do
     let(:existing_user) {create(:user)}
-    let(:api_result) { ServiceResult.success([{ 'role_id' => 1, 'user_id' => existing_user.id }]) }
+    let(:new_viewer_user_params) { { role_id: 1, user_email: existing_user.email } }
 
     it 'returns a ServiceResult' do
       expect(result).to be_a(ServiceResult)

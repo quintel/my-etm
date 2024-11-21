@@ -30,6 +30,9 @@
 en:
   undo: Undo
 
+  errors:
+    sorry: Oops! We're sorry
+
   time:
     formats:
       short: "%-d %b %H:%M"
