@@ -27,12 +27,14 @@ module ApplicationHelper
   end
 
   def format_staff_config(config, app)
+    etengine_url = Settings.etengine.uri || 'http://YOUR_ETENGINE_URL'
 
     format(config, app.attributes.symbolize_keys.merge(
       myetm_url: root_url.chomp('/root'),
-      etengine_url: Settings.etengine.uri || 'http://YOUR_ETENGINE_URL',
+      etengine_url: etengine_url,
       etmodel_url: Settings.etmodel.uri || 'http://YOUR_ETMODEL_URL',
-      collections_url: Settings.collections.uri || 'http://YOUR_COLLECTIONS_URL'
+      collections_url: Settings.collections.uri || 'http://YOUR_COLLECTIONS_URL',
+      etengine_uid: Doorkeeper::Application.find_by(uri: etengine_url)&.id || 'YOUR_ETEngine_ID_HERE'
     ))
   end
 

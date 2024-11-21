@@ -54,6 +54,7 @@
             config_content: <<~YAML,
               idp_url: %<myetm_url>s
               ete_url: %<etengine_url>s
+              ete_id: %<etengine_uid>s
 
               identity:
                 client_id: %<uid>s
@@ -81,8 +82,11 @@
               # Protocol and host for ETModel. No trailing slash please.
               NEXT_PUBLIC_ETMODEL_URL=%<etmodel_url>s
 
+              # Protocol and host for ETENGINE. No trailing slash please.
+              NEXT_PUBLIC_ETENGINE_URL=%<etengine_url>s
+
               # Authentication.
-              NEXTAUTH_URL=%<myetm_url>s
+              NEXTAUTH_URL=%<collections_url>s
               NEXTAUTH_SECRET=none
               AUTH_CLIENT_ID=%<uid>s
               AUTH_CLIENT_SECRET=%<secret>s

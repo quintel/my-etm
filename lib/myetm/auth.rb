@@ -51,21 +51,25 @@ module MyEtm
     end
 
     # Returns a Faraday client for a user, which will send requests to the specified client app.
-    def client_app_client(user, client_app, scopes: [])
-      client_uri = client_uri_for(client_app)
-
-      Faraday.new(client_uri) do |conn|
-        conn.request(:authorization, 'Bearer', -> { user_jwt(user, scopes:) })
-        conn.request(:json)
-        conn.response(:json)
-        conn.response(:raise_error)
+    def client_app_client(user, client_app)
+      client_app_client ||= begin
+        Faraday.new(client_app.uri) do |conn|
+          conn.request(:authorization, 'Bearer', -> { user_jwt(user, scopes: client_app.scopes, client_id: client_app.uid) })
+          conn.request(:json)
+          conn.response(:json)
+          conn.response(:raise_error)
+        end
       end
     end
 
-    # TODO: Fixme
-    # Helper method to fetch the URI for the given client application (staff application).
-    def client_uri_for(client_app)
-      Settings.staff_applications[client_app].uri || raise("No URI configured for client: #{client_app}")
+    def engine_client(user)
+      engine = OAuthApplication.find_by(uri: Settings.etengine.uri)
+      client_app_client(user, engine)
+    end
+
+    def model_client(user)
+      model = OAuthApplication.find_by(uri: Settings.etmodel.uri)
+      client_app_client(user, model)
     end
 
 
@@ -104,7 +108,7 @@ module MyEtm
       raise DecodeError, 'Token has expired' unless decoded_token['exp'] && decoded_token['exp'] > Time.now.to_i
     end
 
-    module_function :decode, :jwt_format?, :verify_claims, :signing_key_content, :user_jwt, :signing_key
+    module_function :decode, :jwt_format?, :verify_claims, :signing_key_content, :user_jwt, :signing_key, :model_client, :engine_client, :client_app_client
 
   end
 end
