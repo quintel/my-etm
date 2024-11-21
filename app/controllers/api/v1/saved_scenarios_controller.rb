@@ -41,7 +41,7 @@ module Api
       def update
         respond_to do |format|
           if @saved_scenario.update(saved_scenario_update_params)
-            render :show, status: :ok, location: @saved_scenario
+            render json: @saved_scenario, status: :ok
           else
             render json: @saved_scenario.errors, status: :unprocessable_entity
           end
