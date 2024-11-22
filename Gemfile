@@ -55,7 +55,7 @@ gem 'dry-validation'
 gem 'inline_svg'
 gem 'local_time'
 gem 'erb-formatter'
-
+gem 'pagy'
 
 
 

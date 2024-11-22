@@ -7,6 +7,8 @@ class ApplicationController < ActionController::Base
   before_action :set_locale
   before_action :configure_sentry
   before_action :store_user_location!, if: :storable_location?
+  include Pagy::Backend
+
 
   rescue_from CanCan::AccessDenied do |_exception|
     if current_user

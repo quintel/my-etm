@@ -59,10 +59,11 @@ class SavedScenario < ApplicationRecord
     self.scenario_id = x.id unless x.nil?
   end
 
-  # Public: Determines if this scenario can be loaded.
-  def loadable?
-    Engine::Area.code_exists?(area_code)
-  end
+  # TODO: Determine if necessary
+  # # Public: Determines if this scenario can be loaded.
+  # def loadable?
+  #   Engine::Area.code_exists?(area_code)
+  # end
 
   def days_until_last_update
     (Time.current - updated_at) / 60 / 60 / 24

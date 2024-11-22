@@ -75,6 +75,16 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :collections do
+    member do # TODO: check which routes are actually necessary
+      put :publish
+      put :unpublish
+      put :discard
+      put :undiscard
+      get :confirm_destroy
+    end
+  end
+
   get :discarded, to: 'discarded#index'
 
   namespace :admin do

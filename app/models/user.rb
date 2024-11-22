@@ -32,6 +32,7 @@ class User < ApplicationRecord
   has_many :staff_applications, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
   has_many :saved_scenarios, through: :saved_scenario_users
+  has_many :collections, dependent: :destroy
   has_many :personal_access_tokens, dependent: :destroy
 
   has_one :featured_scenario_user

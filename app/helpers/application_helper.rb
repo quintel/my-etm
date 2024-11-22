@@ -1,4 +1,6 @@
 module ApplicationHelper
+  include Pagy::Frontend
+
   def notice_message
     if notice.is_a?(Hash)
       notice[:message] || notice["message"]

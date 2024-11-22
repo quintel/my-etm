@@ -1,0 +1,30 @@
+- content_for :title, t('collections.title')
+- content_for :menu_title, t('collections.title')
+
+%main.intro
+  %p.description= t('collections.introduction')
+
+  - if @saved_scenarios.none? { |s| can_use_as_myc_scenario?(s) } && @collections.none?
+    %p.description
+      %strong= t('collections.no_scenarios')
+    %ol.description.instructions
+      %li= t('collections.how.step1_html', root_path: root_path)
+      %li= t('collections.how.step2')
+      %li= t('collections.how.step3')
+  - else
+    - if @collections.present?
+      %h2= t('collections.resume')
+      - @collections.each do |collection|
+        = render(Collections::Row::Component.new(path: collection_path(collection), collection: collection))
+      - if (next_url = pagy_next_url(@pagy_collections))
+        = link_to 'More...', next_url, remote: true
+    - else
+      .get-started= t('collections.get_started')
+
+    - if @saved_scenarios.any? { |s| can_use_as_myc_scenario?(s) }
+      %h2= t('collections.start')
+      = form_with url: collections_path, method: 'post', class: 'select-scenarios' do
+        - @saved_scenarios.each do |ss|
+          - if can_use_as_myc_scenario?(ss)
+            = render(Collections::ScenarioButton::Component.new(saved_scenario: ss))
+        = pagy_nav(@pagy_scenarios)
