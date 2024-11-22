@@ -11,7 +11,7 @@ RSpec.describe 'Revoking a personal access token', type: :system do
 
     expect(page).to have_content('API access')
 
-    click_button 'Revoke token'
+    click_button 'Revoke'
     expect(page).to have_content('You have no access tokens')
   end
 end

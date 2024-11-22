@@ -39,12 +39,10 @@ module Api
 
       # PATCH/PUT /saved_scenarios/1 or /saved_scenarios/1.json
       def update
-        respond_to do |format|
-          if @saved_scenario.update(saved_scenario_update_params)
-            render json: @saved_scenario, status: :ok
-          else
-            render json: @saved_scenario.errors, status: :unprocessable_entity
-          end
+        if @saved_scenario.update_with_api_params(saved_scenario_params)
+          render json: @saved_scenario, status: :ok
+        else
+          render json: @saved_scenario.errors, status: :unprocessable_entity
         end
       end
 
@@ -60,36 +58,9 @@ module Api
       # Only allow a list of trusted parameters through.
       def saved_scenario_params
         params.require(:saved_scenario).permit(
-          :scenario_id, :scenario_id_history, :title,
-          :description, :area_code, :end_year, :private
+          :scenario_id, :title,
+          :description, :area_code, :end_year, :private, :discarded
         )
-      end
-
-      # Only allow a list of trusted parameters through.
-      def saved_scenario_update_params
-        params.require(:saved_scenario).permit(
-          :title, :description
-        )
-      end
-
-      def hydrate_scenarios(saved_scenarios)
-        scenarios = Scenario
-          .accessible_by(current_ability)
-          .where(id: saved_scenarios.map { |s| s['scenario_id'] })
-          .includes(:scaler, :users)
-          .index_by(&:id)
-
-        saved_scenarios.map do |saved_scenario|
-          scenario   = scenarios[saved_scenario['scenario_id']]
-          serialized = scenario ? ScenarioSerializer.new(self, scenario).as_json : nil
-
-          saved_scenario[:scenario] = serialized
-          saved_scenario
-        end
-      end
-
-      def hydrate_scenario(saved_scenario)
-        hydrate_scenarios([saved_scenario]).first
       end
     end
   end

@@ -6,13 +6,9 @@ module Api
     include CanCan::Ability
 
     def initialize
-      can :create, Scenario
-      can :read,   Scenario, private: false
-      can :update, Scenario, private: false
-      cannot :update, Scenario, private: false, id: ScenarioUser.pluck(:scenario_id)
-
-      # Actions that involve reading one scenario and writing to another.
-      can :clone,  Scenario, private: false
+      can :create, SavedScenario
+      can :read,   SavedScenario, private: false
+      can :update, SavedScenario, private: false
     end
   end
 end

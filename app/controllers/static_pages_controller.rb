@@ -13,8 +13,8 @@ class StaticPagesController < ApplicationController
 
   def contact
     @message = ContactUsMessage.new(
-      name: current_user&.name,
-      email: current_user&.email,
+      name: current_user&.name || "",
+      email: current_user&.email || "",
       message: ""
     )
   end
