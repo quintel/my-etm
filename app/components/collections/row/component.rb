@@ -10,7 +10,7 @@ module Collections::Row
 
     # Generate initials for the owner
     def initials_for(user)
-      user&.initials&.capitalize || "?"
+      user&.name&.first&.capitalize || "?"
     end
   end
 end

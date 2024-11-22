@@ -76,9 +76,15 @@ Rails.application.routes.draw do
   end
 
   resources :collections do
-    member do # TODO: check which routes are actually necessary
-      put :publish
-      put :unpublish
+    collection do
+      get :list
+      post :list
+      get :new_transition
+      post :create_transition
+      post :index
+    end
+
+    member do
       put :discard
       put :undiscard
       get :confirm_destroy
@@ -96,6 +102,10 @@ Rails.application.routes.draw do
     put 'user/:user_id/confirm', to: 'users#confirm', as: :confirm_user
 
     get 'scenarios', to: 'saved_scenarios#index'
+    get 'collections', to: 'collections#index'
+    post 'collections', to: 'collections#index'
+    get 'collections/list', to: 'collections#list'
+    post 'collections/list', to: 'collections#list'
 
     get 'applications', to: 'staff_applications#index'
     put 'applications', to: 'staff_applications#update'

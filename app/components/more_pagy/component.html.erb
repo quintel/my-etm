@@ -1,0 +1,12 @@
+<% if @pagy.next.present? %>
+    <%= button_to t('more'), pagy_url_for(@pagy, @pagy.next),
+      class:"
+        text-sm
+        text-midnight-800
+        rounded-md border
+        border-midnight-940
+        p-2 px-5
+        float-right
+        hover:bg-midnight-940"
+    %>
+<% end %>

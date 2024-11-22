@@ -16,8 +16,7 @@ module Admin
 
     # Instant confirmation for our users that struggle with their spam
     def confirm
-      @user.confirm!
-      flash[:notice] = "User confirmed."
+      @user.confirm
     end
 
     def edit; end

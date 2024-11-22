@@ -1,0 +1,12 @@
+<%= turbo_frame_tag "collections" do %>
+  <%= render(PagyComponent.new(pagy_objects: pagy_collections)) do %>
+    <div id="collections_list">
+      <% collections.each do |collection| %>
+        <%= render(Collections::Row::Component.new(
+          path: collection_path(collection),
+          collection: collection
+          )) %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

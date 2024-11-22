@@ -16,9 +16,9 @@
   - if @saved_scenario.featured?
     = @saved_scenario.featured_owner_name
   - else
-    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners, privacy: @saved_scenario.no_explicit_access?(current_user)))
-    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.collaborators'), users: @saved_scenario.collaborators, privacy: @saved_scenario.no_explicit_access?(current_user)))
-    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.viewers'), users: @saved_scenario.viewers, privacy: @saved_scenario.no_explicit_access?(current_user)))
+    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.owners'), users: @saved_scenario.owners, color: 'bg-midnight-900' ,privacy: @saved_scenario.no_explicit_access?(current_user)))
+    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.collaborators'), users: @saved_scenario.collaborators, color: 'bg-midnight-990', privacy: @saved_scenario.no_explicit_access?(current_user)))
+    = render(SavedScenarios::InfoUsers::Component.new(title: t('saved_scenario.viewers'), users: @saved_scenario.viewers, color: 'bg-midnight-970', privacy: @saved_scenario.no_explicit_access?(current_user)))
 
 .mt-5.show-description
   - if @saved_scenario.localized_description(I18n.locale).presence

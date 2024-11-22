@@ -1,0 +1,47 @@
+<%- content_for :menu_title, @collection.title %>
+<%= render(partial: "collections/show/block_right_menu", locals: { collection: @collection })%>
+
+<%= render(Collections::Info::Component.new(
+    path: myc_url(@collection),
+    button_title: t('collections.open'),
+    collection: @collection,
+    time: time_ago_in_words(@collection.created_at))
+)%>
+
+<% if @collection.discarded?%>
+  <%= render(NoticeBanner::TrashComponent.new(text: t('trash.notice', deleted_after: Collection::AUTO_DELETES_AFTER.in_days.to_i)))%>
+<% end %>
+
+<div class="w-min mb-5">
+  <%= render(HovercardWithVersion::Component.new(version: @collection.version))%>
+</div>
+
+<div class="pt-5 border-t border-solid border-gray-200">
+  <% if @collection.interpolated? %>
+    <%= t('collections.interpolated.long_description') %>
+
+    <% if @collection.saved_scenarios.present? %>
+      <div class="mt-5 text-midnight-400 text-sm">
+        <%= t('collections.interpolated.based_on') %>
+      </div>
+      <div class="w-fit">
+        <%= render(Collections::SavedScenario::Component.new(
+          path: saved_scenario_path(@collection.saved_scenarios.first),
+          saved_scenario: @collection.saved_scenarios.first,
+          access: !@collection.saved_scenarios.first.private? || @collection.saved_scenarios.first.viewer?(current_user)
+        ))%>
+      </div>
+    <% end %>
+  <% elsif @collection.saved_scenarios.present? %>
+    <%= t('collections.contains') %>
+    <div class="flex flex-wrap mt-5">
+      <% @collection.saved_scenarios.each do |saved_scenario| %>
+        <%= render(Collections::SavedScenario::Component.new(
+          path: saved_scenario_path(saved_scenario),
+          saved_scenario: saved_scenario,
+          access: !saved_scenario.private? || saved_scenario.viewer?(current_user)
+        ))%>
+      <% end %>
+    </div>
+  <% end %>
+</div>

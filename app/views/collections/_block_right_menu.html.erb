@@ -1,0 +1,55 @@
+<% content_for :block_right do %>
+  <div class="flex flex-col">
+  <% if %w[index list].include?(action_name) %>
+    <% if has_collections %>
+      <%= form_with url: list_collections_path,
+        method: :get,
+        data: { controller: "search-form", search_form_target: "form", turbo_frame: "collections", 'turbo-method': "get" } do |form|
+        %>
+        <div class="flex flex-col pl-5">
+          <div class="mb-5 flex text-midnight-800">
+            <%= form.text_field :title,
+              placeholder: t('collections.search_by_title'),
+              class: "p-2 text-sm",
+              autocomplete: "off",
+              data: { action: "input->search-form#search" }
+            %>
+            <%= heroicon 'magnifying-glass', options: {class: 'w-5 h-5 ml-2 my-auto'} %>
+          </div>
+          <div>
+            <%= form.check_box :interpolated,
+              class: "rounded-md mr-5 border-midnight-400 !checked:bg-midnight-920 text-midnight-920",
+              data: { action: "input->search-form#search" }
+            %>
+            <%= form.label :interpolated, t('collections.filter.transition') ,
+              class: "text-sm text-midnight-450"
+            %>
+          </div>
+          <div class="mt-2">
+            <%= form.check_box :plain,
+              class: "rounded-md mr-5 border-midnight-400 !checked:bg-midnight-920 text-midnight-920",
+              data: { action: "input->search-form#search" }
+            %>
+            <%= form.label :plain, t('collections.filter.plain'),
+              class: "text-sm text-midnight-450"
+            %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  <% else %>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: collections_path,
+      title: t('collections.all'),
+      icon: 'arrow-left',
+      active: controller_name == 'collections' && action_name == 'index')
+    )%>
+  <% end %>
+  </div>
+
+  <div class="border-l lg:border-l-0 lg:border-t flex flex-col border-solid border-gray-200 pr-5 lg:pr-0 lg:mt-10 lg:pt-10">
+
+    <%= render(partial: "block_right_sub_options") %>
+
+  </div>
+<% end %>

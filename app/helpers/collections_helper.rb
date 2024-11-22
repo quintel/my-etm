@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module CollectionsHelper
   # Public: The full URL to the Collections application for an instance of
   # Collections.

@@ -68,6 +68,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_21_141121) do
     t.string "title", null: false
     t.string "area_code"
     t.integer "end_year"
+    t.string "version", default: "latest"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.boolean "interpolation", default: true
@@ -89,32 +90,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_21_141121) do
     t.string "title_nl", null: false
     t.index ["owner_id"], name: "index_featured_scenarios_on_owner_id"
     t.index ["saved_scenario_id"], name: "index_featured_scenarios_on_saved_scenario_id"
-  end
-
-  create_table "multi_year_chart_saved_scenarios", id: false, charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.bigint "multi_year_chart_id", null: false
-    t.bigint "saved_scenario_id", null: false
-    t.index ["multi_year_chart_id"], name: "index_multi_year_chart_saved_scenarios_on_multi_year_chart_id"
-    t.index ["saved_scenario_id"], name: "index_multi_year_chart_saved_scenarios_on_saved_scenario_id"
-  end
-
-  create_table "multi_year_chart_scenarios", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.bigint "multi_year_chart_id", null: false
-    t.integer "scenario_id", null: false
-    t.index ["multi_year_chart_id"], name: "index_multi_year_chart_scenarios_on_multi_year_chart_id"
-    t.index ["scenario_id"], name: "index_multi_year_chart_scenarios_on_scenario_id"
-  end
-
-  create_table "multi_year_charts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.string "title", null: false
-    t.string "area_code"
-    t.integer "end_year"
-    t.datetime "created_at", null: false
-    t.datetime "discarded_at"
-    t.boolean "interpolation", default: true
-    t.index ["discarded_at"], name: "index_multi_year_charts_on_discarded_at"
-    t.index ["user_id"], name: "index_multi_year_charts_on_user_id"
   end
 
   create_table "oauth_access_grants", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -244,10 +219,6 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_21_141121) do
   add_foreign_key "collection_saved_scenarios", "saved_scenarios"
   add_foreign_key "collection_scenarios", "collections"
   add_foreign_key "collections", "users"
-  add_foreign_key "multi_year_chart_saved_scenarios", "multi_year_charts"
-  add_foreign_key "multi_year_chart_saved_scenarios", "saved_scenarios"
-  add_foreign_key "multi_year_chart_scenarios", "multi_year_charts"
-  add_foreign_key "multi_year_charts", "users"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"

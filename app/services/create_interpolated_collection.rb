@@ -3,7 +3,7 @@
 # Receives a 2050 Engine::Scenario and creates scenarios for selected years, with
 # input values interpolated from the source scenario. Interpolator also creates
 # a duplicate of the original scenario.
-class CreateCollection # TODO: Test once auth is merged
+class CreateInterpolatedCollection
   include Service
 
   DEFAULT_YEARS = [2023, 2030, 2040].freeze
@@ -43,7 +43,7 @@ class CreateCollection # TODO: Test once auth is merged
   rescue ActiveRecord::RecordInvalid => e
     clean_up_failure
 
-    # The user does not provide any data which should cause saving the MYC to
+    # The user does not provide any data which should cause saving the collection to
     # fail. Re-raise the exception so we can log it.
     raise e
   end
@@ -51,15 +51,15 @@ class CreateCollection # TODO: Test once auth is merged
   private
 
   def create_collection
-    myc = Collection.new_from_saved_scenario(@saved_scenario, user: @user)
+    collection = Collection.new_from_saved_scenario(@saved_scenario, user: @user)
 
     scenarios.each do |sresult|
-      myc.scenarios.build(scenario_id: sresult.value['id'])
+      collection.scenarios.build(scenario_id: sresult.value['id'])
     end
 
-    Collection.transaction { myc.save! }
+    Collection.transaction { collection.save! }
 
-    myc
+    collection
   end
 
   # Internal: Sends requests to ETEngine to create the interpolated scenarios.
@@ -73,7 +73,7 @@ class CreateCollection # TODO: Test once auth is merged
       @years.filter_map do |year|
         next if any_errors
 
-        res = InterpolateApiScenario.call(
+        res = ApiScenario::Interpolate.call(
           @http_client,
           @saved_scenario.scenario_id,
           year,
@@ -91,11 +91,7 @@ class CreateCollection # TODO: Test once auth is merged
     scenarios.each do |sresult|
       next unless sresult.successful?
 
-      SetAPIScenarioCompatibility.dont_keep_compatible(@http_client, sresult.value['id'])
+      ApiScenario::SetCompatibility.dont_keep_compatible(@http_client, sresult.value['id'])
     end
-  end
-
-  def ete_url(*suffix)
-    "#{Settings.etengine.uri}/api/v3/scenarios/#{suffix.join('/')}"
   end
 end

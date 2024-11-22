@@ -6,6 +6,7 @@ class CreateCollections < ActiveRecord::Migration[7.2]
       t.string :title, null: false
       t.string :area_code
       t.integer :end_year
+      t.string :version, default: 'latest'
       t.datetime :created_at, null: false
       t.datetime :discarded_at
       t.boolean :interpolation, default: true

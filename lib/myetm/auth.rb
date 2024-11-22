@@ -3,6 +3,8 @@
 module MyEtm
   # Contains useful methods for authentication.
   module Auth
+    module_function
+
     DecodeError = Class.new(StandardError)
     TokenExchangeError = Class.new(StandardError)
 

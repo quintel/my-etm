@@ -1,0 +1,8 @@
+<%= turbo_stream.append "collections_list" do %>
+  <% @collections.each do |collection| %>
+    <%= render(Collections::Row::Component.new(path: collection_path(collection), collection: collection)) %>
+  <% end %>
+<% end %>
+<%= turbo_stream.update "next_url" do %>
+  <%= render(MorePagy::Component.new(pagy:@pagy_collections)) %>
+<% end %>

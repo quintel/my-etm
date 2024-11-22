@@ -11,7 +11,7 @@
 #
 # Returns a ServiceResult with either the parsed JSON response, or the errors
 # returned by ETEngine.
-InterpolateApiScenario = lambda do |http_client, scenario_id, end_year, keep_compatible: false|
+ApiScenario::Interpolate = lambda do |http_client, scenario_id, end_year, keep_compatible: false|
   ServiceResult.success(
     http_client.post(
       "/api/v3/scenarios/#{scenario_id}/interpolate",

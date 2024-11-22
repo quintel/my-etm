@@ -16,14 +16,19 @@
     src: url('Montserrat-VariableFont_wght.ttf') format('truetype');
   }
 
+  .text-readable-width {
+    width: 60rem;
+  }
+
   .button {
     @apply bg-gray-100;
     @apply p-2;
     @apply px-5;
     @apply rounded-md;
     @apply transition;
-    @apply hover:bg-midnight-950;
+    @apply hover:bg-midnight-400;
     @apply hover:text-midnight-200;
+    @apply hover:cursor-pointer;
   }
 
   .button-warning {
@@ -34,6 +39,7 @@
   .button-primary {
     @apply bg-midnight-980;
     @apply text-midnight-200;
+    @apply hover:bg-midnight-990;
   }
 
   .button-success {
@@ -166,4 +172,21 @@ input[type="email"], input[type="password"], input[type="text"], select, textare
   top: 0;
   width: 100vw;
   z-index: 50;
+}
+
+
+/**
+  * Collections -----------------------------------------------------------------------------------------
+  */
+
+form#new_collection .checkbox-wrapper:has(input:disabled) {
+  @apply bg-gray-100;
+  @apply text-midnight-400;
+}
+form#new_collection .checkbox-wrapper:has(input:checked) {
+  @apply bg-midnight-910;
+  @apply text-white;
+}
+form#new_collection .checkbox-wrapper:has(input:checked) span {
+  @apply text-midnight-200;
 }

@@ -26,10 +26,16 @@ module.exports = {
           600: "#fdece0",
           // dark text
           800: "#462c34",
-          // brand colors (blue, orange, green)
+          // brand colors (blue)
           900: "#4e7be4",
+          910: "#89a9ec",
+          940: "#d0e0f7",
+          // brand colors (orange,)
           950: "#f27316",
-          980: "#56b351"
+          970: "#f4cab3",
+          // brand colors (green)
+          980: "#56b351",
+          990: "#a5e0a1"
         }
       },
     },

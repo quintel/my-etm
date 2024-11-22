@@ -1,0 +1,16 @@
+<% content_for :block_right do %>
+  <div class="flex flex-col">
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: collections_path,
+      title: t('collections.all'),
+      icon: 'arrow-left',
+      active: controller_name == 'collections' && action_name == 'index')
+    )%>
+  </div>
+
+  <div class="border-l lg:border-l-0 lg:border-t flex flex-col border-solid border-gray-200 pr-5 lg:pr-0 lg:mt-10 lg:pt-10">
+
+    <%= render(partial: "collections/show/block_right_sub_options", locals: { collection: collection }) %>
+
+  </div>
+<% end %>

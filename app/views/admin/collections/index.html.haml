@@ -1,0 +1,8 @@
+- content_for :menu_title, "All collections"
+= render(partial: "block_right_sub_menu", locals: { has_collections: @collections.present? })
+= render(partial: "/admin/block_right_menu")
+
+- if @collections.present?
+  = render(partial: "collections", locals: {pagy_collections: @pagy_collections, collections: @collections})
+- else
+  =t('collections.try_now')

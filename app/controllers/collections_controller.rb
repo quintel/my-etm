@@ -1,67 +1,64 @@
 # frozen_string_literal: true
 
 class CollectionsController < ApplicationController
+  include Pagy::Backend
+  include Filterable
 
-  load_resource only: %i[show discard undiscard]
+  load_resource only: %i[discard undiscard new_transition create_transition confirm_destroy]
+  load_and_authorize_resource only: %i[show new destroy]
 
+  before_action :require_user, only: %i[index create new_transition create_transition]
   before_action :ensure_valid_config
 
-  before_action except: %i[show discard undiscard] do
-    authenticate_user!(show_as: :sign_in)
+  before_action only: %i[discard undiscard confirm_destroy] do
+    authorize!(:destroy, @collection)
   end
-
-  before_action only: %i[discard undiscard] do
-    authorize!(:destroy, @multi_year_chart)
-  end
-
-
-  # DONE
-#   Public Methods (Actions)
-# 	1.	index - GET /collections or /collections.json
-
-
-  # TODO - finish other methods, rest are just copied untested from Model
-    # DONE
-#   Public Methods (Actions)
-# 	1.	index - GET /collections or /collections.json
-
-    # In progress
-# 	2.	create - POST /collections or /collections.json
-
 
   # GET /collections or /collections.json
   def index
     # Include Pagy to paginate @collections or any other resource
-    @pagy_collections, @collections = pagy(user_collections)
-    @pagy_scenarios, @saved_scenarios = pagy(user_saved_scenarios)
+    @pagy_collections, @collections = pagy_countless(user_collections)
 
     respond_to do |format|
       format.html
-      format.js do
-        render(params[:wants] == 'scenarios' ? 'scenarios' : 'index')
-      end
+      format.turbo_stream
     end
   end
 
-  def new
-    @multi_year_chart = current_user.multi_year_charts.build(interpolation: false)
-
-    respond_to do |format|
-      format.html { render layout: 'application' }
-    end
-  end
-
-  # Part of the My Scenarios view, lists all MYC that are not discarded
+  # Renders a partial of collections based on turbo search and filters
   #
-  # GET multi_year_charts/list
+  # GET /collections/list
   def list
-    @multi_year_charts = user_collections
-      .kept
-      .includes(:user)
+    filtered = filter!(Collection).kept.where(user: current_user)
+
+    @pagy_collections, @collections = pagy(filtered)
+
+    respond_to do |format|
+      format.html { render(
+        partial: "collections",
+        locals: { collections: @collections, pagy_collections: @pagy_collections }
+      ) }
+      format.turbo_stream { render(:index) }
+    end
+  end
+
+  # Create a new collection of saved scenarios
+  #
+  # GET /collections/new
+  def new
+    @collection = current_user.collections.build(interpolation: false)
 
     respond_to do |format|
       format.html { render layout: 'application' }
     end
+  end
+
+  # Create a new collection from an interpolation of a saved scenario
+  #
+  # GET /collections/new_transition
+  def new_transition
+    @saved_scenarios = elegible_scenarios
+    @collection = new_transition_collection
   end
 
   def show
@@ -70,112 +67,101 @@ class CollectionsController < ApplicationController
     end
   end
 
-  # Creates a new MultiYearChart record based on the scenario specified in the
+  # Creates a new Collection record based on the scenario specified in the
   # params. This is the interpolation route
   #
   # Redirects to the external MYC app when successful.
   #
-  # POST /multi_year_charts
-  def create
-    result = CreateCollection.call(
+  # POST /collections/create_transition
+  def create_transition
+    result = CreateInterpolatedCollection.call(
       MyEtm::Auth.engine_client(current_user),
-      current_user.saved_scenarios.find(params.require(:scenario_id)), # TODO double check this
+      current_user.saved_scenarios.find(create_transition_params[:saved_scenario_ids]),
       current_user
     )
 
     if result.successful?
-      redirect_to helpers.myc_url(result.value), allow_other_host: true
+      redirect_to collection_path(result.value)
     else
-      flash.now[:error] = result.errors.join(', ')
+      flash[:alert] = result.errors.join(', ')
+      @collection = new_transition_collection
+      @saved_scenarios = elegible_scenarios
 
-      @scenarios = user_scenarios
-      @multi_year_charts = user_multi_year_charts
-
-      render :index, status: :unprocessable_entity
+      render :new_transition, status: :unprocessable_entity
     end
   end
 
-  def create_collection
-    saved_scenario_ids = create_collection_params.delete(:saved_scenarios)
-
-    collection = current_user.multi_year_charts.build(
+  def create
+    collection = current_user.collections.build(
       title: collection_title,
       interpolation: false
     )
 
-    saved_scenario_ids.uniq.reject(&:empty?).each do |saved_scenario_id|
-      collection.multi_year_chart_saved_scenarios.build(saved_scenario_id:)
+    create_collection_params[:saved_scenario_ids].uniq.reject(&:empty?).each do |saved_scenario_id|
+      collection.collection_saved_scenarios.build(saved_scenario_id:)
     end
 
     if collection.valid?
       collection.save
-      redirect_to show_multi_year_chart_path(collection)
+      redirect_to collection_path(collection)
     else
-      flash[:error] = t('multi_year_charts.failure')
-      redirect_to list_multi_year_charts_path
+      flash[:alert] = t('collections.failure')
+      redirect_to collections_path
     end
   end
 
-  # Removes a MultiYearChart record.
+  def confirm_destroy
+    render :confirm_destroy, layout: 'application'
+  end
+
+  # Removes a Collection record.
   #
-  # DELETE /multi_year_charts/:id
+  # DELETE /collections/:id
   def destroy
-    DeleteMultiYearChart.call(
+    DeleteCollection.call(
       engine_client,
-      current_user.multi_year_charts.find(params.require(:id))
+      current_user.collections.find(params.require(:id))
     )
 
-    redirect_to multi_year_charts_path
+    redirect_to collections_path
   end
 
   # Soft-deletes the myc so that it no longer appears in listings.
   #
-  # PUT /multi_year_charts/:id/discard
+  # PUT /collections/:id/discard
   def discard
-    unless @multi_year_chart.discarded?
-      @multi_year_chart.discarded_at = Time.zone.now
-      @multi_year_chart.save(touch: false)
+    unless @collection.discarded?
+      @collection.discarded_at = Time.zone.now
+      @collection.save(touch: false)
 
-      flash.notice = t('scenario.trash.discarded_flash')
-      flash[:undo_params] = [undiscard_multi_year_chart_path(@multi_year_chart), { method: :put }]
+      flash.notice = t('trash.discarded_flash')
+      flash[:undo_params] = [undiscard_collection_path(@collection), { method: :put }]
     end
 
-    redirect_back(fallback_location: list_multi_year_charts_path)
+    redirect_back(fallback_location: collections_path)
   end
 
   # Removes the soft-deletes of the scenario.
   #
-  # PUT /multi_year_charts/:id/undiscard
+  # PUT /collections/:id/undiscard
   def undiscard
-    unless @multi_year_chart.kept?
-      @multi_year_chart.discarded_at = nil
-      @multi_year_chart.save(touch: false)
+    unless @collection.kept?
+      @collection.discarded_at = nil
+      @collection.save(touch: false)
 
-      flash.notice = t('scenario.trash.undiscarded_flash')
-      flash[:undo_params] = [discard_multi_year_chart_path(@multi_year_chart), { method: :put }]
+      flash.notice = t('trash.undiscarded_flash')
+      flash[:undo_params] = [discard_collection_path(@collection), { method: :put }]
     end
 
-    redirect_back(fallback_location: discarded_saved_scenarios_path)
+    redirect_back(fallback_location: discarded_path)
   end
 
   private
 
-  def user_saved_scenarios
-    return [] unless current_user
-
-    # Fetch saved scenarios where the user has any role (viewer, collaborator, or owner)
-    scenarios = current_user
-      .saved_scenarios
-      .order('created_at DESC') # Order by most recent first
-
-    scenarios
-  end
-
   def user_collections
-    return [] unless current_user
-
     current_user
       .collections
+      .kept
       .order(created_at: :desc)
   end
 
@@ -187,11 +173,27 @@ class CollectionsController < ApplicationController
   end
 
   def create_collection_params
-    params.require(:multi_year_chart).permit(:title, saved_scenarios: [])
+    params.require(:collection).permit(:title, saved_scenario_ids: [])
+  end
+
+  def create_transition_params
+    params.require(:collection).permit(:saved_scenario_ids)
+  end
+
+  def filter_params
+    params.permit(:title)
+  end
+
+  def new_transition_collection
+    current_user.collections.build(interpolation: true)
+  end
+
+  def elegible_scenarios
+    current_user.saved_scenarios.where(end_year: 2050).order(updated_at: :desc)
   end
 
   def collection_title
     title = create_collection_params[:title]
-    title.empty? ? t('multi_year_charts.no_title') : title
+    title.empty? ? t('collections.no_title') : title
   end
 end

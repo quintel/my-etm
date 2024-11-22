@@ -8,6 +8,7 @@ class Ability
     can :manage, :all if user&.admin?
 
     can :read, SavedScenario, private: false
+    can :read, Collection
 
     return unless user
 
@@ -16,6 +17,8 @@ class Ability
     can :update,  SavedScenario, id: SavedScenario.collaborated_by?(user).pluck(:id)
     can :destroy, SavedScenario, id: SavedScenario.owned_by?(user).pluck(:id)
 
-    # can :destroy, Collection, user_id: user.id
+    can :create, Collection
+    can :update, Collection, user_id: user.id
+    can :destroy, Collection, user_id: user.id
   end
 end

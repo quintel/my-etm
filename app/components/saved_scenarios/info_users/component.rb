@@ -2,6 +2,7 @@ module SavedScenarios::InfoUsers
   class Component < ApplicationComponent
     option :users
     option :title
+    option :color,  default: proc { 'bg-midnight-900' }
     option :privacy, default: proc { true }
 
     # Initials to show

@@ -29,6 +29,7 @@
 
 en:
   undo: Undo
+  more: More...
 
   errors:
     sorry: Oops! We're sorry
@@ -195,3 +196,57 @@ en:
     latest: |
       This scenario was created in the live version of the ETM
       which includes all the latest monthly updates. Learn more..
+  collections:
+    title: Collections
+    no_title: Untitled collection
+    failure: Something went wrong!
+    all: View all collections
+    open: Open collection
+    contains: This collection contains the following scenarios
+    search_by_title: Filter by title
+    filter:
+      transition: Transition paths
+      plain: Scenario collections
+    interpolated:
+      description: This collection contains a transition path from now, until 2050
+      long_description: |
+        This collection consists of an interpolated 2050 scenario. Explore the possible transition
+        paths to a scenario for 2050 and discover the actions and consequences for aspired
+        goals in 2030 and 2040.
+    block_right:
+      compose_collection:
+        title: New scenario collection
+        description: Create a new collection from your saved scenarios
+      create_transition:
+        title: New transition path
+        description: |
+          Pick one of your 2050 scenarios to interpolate into scenarios
+          for 2030 and 2040
+    new:
+      title: Create a new collection
+      no_scenarios: You don't have any scenarios saved to add to a collection
+      form:
+        default_title: My new collection
+        scenario_ids: Included scenarios (max 6)
+        cancel: Cancel
+    new_transition:
+      title: Create a new transition path
+      description: |
+        Explore the possible transition paths to a scenario for 2050 and discover
+        the actions and consequences for aspired goals in 2030 and 2040.
+        Start by selecting one of your saved 2050 scenarios from your scenarios.
+      no_scenarios: You don't have any scenarios saved to start from.
+      start: Start
+    confirm_destroy:
+      title: Permanently deleting collection
+      warning_header: You are permanently deleting your collection
+      warning: |
+        Deleting will remove all references to this collection.
+      irreversible: This action is irreversible
+      submit: Delete this collection
+    try_now: Create your first collection
+    get_started: |
+      With Collections you are able to compare the outcomes of different scenarios
+      you created. You can either create a new collection from your own scenarios,
+      or create a transition path from one of your scenarios. We will create
+      interpolated scenarios for intermediate years for you.

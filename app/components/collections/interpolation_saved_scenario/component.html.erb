@@ -1,0 +1,32 @@
+<div
+  data-controller="select-inner-contents"
+  data-action="click->select-inner-contents#select"
+  class="
+    checkbox-wrapper
+    flex
+    p-2
+    px-5
+    rounded-md
+    text-midnight-800
+    bg-midnight-300
+    mr-2
+    mb-2
+    hover:bg-midnight-600
+    hover:cursor-pointer"
+  >
+  <%= form.radio_button :saved_scenario_ids,
+    @id, class: "hidden",
+    data: { 'select-inner-contents-target': 'button' }
+  %>
+  <div class="flex flex-col">
+    <span><%= @title %> </span>
+    <div>
+      <span class="text-sm text-midnight-450">
+        <%= @area %>
+      </span>
+      <span class="text-sm text-midnight-400">
+        <%= @end_year %>
+      </span>
+    </div>
+  </div>
+</div>

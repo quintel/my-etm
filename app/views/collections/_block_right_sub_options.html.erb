@@ -1,0 +1,24 @@
+<%= render(Hovercard::Component.new(
+    path: '',
+    text: t("collections.block_right.compose_collection.description")
+  )) do %>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: new_collection_path,
+      title: t("collections.block_right.compose_collection.title"),
+      icon: 'plus',
+      active: controller_name == 'collections' && action_name == 'new',
+      static: true)
+    )%>
+<% end %>
+<%= render(Hovercard::Component.new(
+    path: '',
+    text: t("collections.block_right.create_transition.description")
+  )) do %>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: new_transition_collections_path,
+      title: t("collections.block_right.create_transition.title"),
+      icon: 'plus',
+      active: controller_name == 'collections' && action_name == 'new_transition',
+      static: true)
+    )%>
+<% end %>

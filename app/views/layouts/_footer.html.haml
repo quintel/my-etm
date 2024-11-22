@@ -1,4 +1,5 @@
-.text-center.mt-5
-  %span{class: 'hover:underline'}=link_to t('footer.terms'), terms_path
-  %span.ml-5{class: 'hover:underline'}=link_to t('footer.privacy'), privacy_path
-  %span.ml-5{class: 'hover:underline'}= link_to t('footer.contact_us'), contact_path
+.flex
+  .text-center.mt-5.text-midnight-400.text-sm{class: 'basis-full lg:basis-1/4 lg:ml-auto lg:mb-0 lg:max-w-[300px]'}
+    %span{class: 'hover:underline'}=link_to t('footer.terms'), terms_path
+    %span.ml-5{class: 'hover:underline'}=link_to t('footer.privacy'), privacy_path
+    %span.ml-5{class: 'hover:underline'}= link_to t('footer.contact_us'), contact_path

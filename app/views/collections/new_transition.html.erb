@@ -1,0 +1,38 @@
+<% content_for :title, t('collections.new_transition.title') %>
+<% content_for :menu_title, t('collections.new_transition.title') %>
+<%= render(partial: "block_right_menu") %>
+
+<div class="text-readable-width text-midnight-400 mb-20">
+  <%= t('collections.new_transition.description') %>
+</div>
+
+<%= form_for(
+  @collection,
+  url: create_transition_collections_path,
+  html: { method: :post, class: 'flex flex-col h-full',
+  data: {controller: 'collections'} }) do |f| %>
+
+  <% if @saved_scenarios.present? %>
+    <div class="flex flex-wrap">
+      <% @saved_scenarios.each do |scenario| %>
+        <%= render(Collections::InterpolationSavedScenario::Component.new(
+            form: f,
+            id: scenario.id,
+            title: scenario.title,
+            end_year: scenario.end_year,
+            area: scenario.area_code
+          ))%>
+      <% end %>
+    </div>
+  <% else %>
+    <%= t('collections.new_transition.no_scenarios') %>
+  <% end %>
+
+  <div class="flex mt-10">
+    <% if @saved_scenarios.present? %>
+      <%= submit_tag t('collections.new_transition.start'), class: 'button button-primary mr-5' %>
+    <% end %>
+    <%= link_to t('collections.new.form.cancel'), collections_path, class: 'button' %>
+  </div>
+<% end %>
+

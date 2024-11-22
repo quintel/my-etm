@@ -1,0 +1,30 @@
+<% if collection.user == current_user %>
+  <%= render(Hovercard::Component.new(
+      path: '',
+      text: t("scenario_bar.discarded.description.#{collection.discarded?}")
+    )) do %>
+      <%= render(SavedScenarios::Publish::Component.new(
+        path_on: undiscard_collection_path(collection),
+        path_off: discard_collection_path(collection),
+        status: collection.discarded?,
+        title: t("scenario_bar.discarded.#{collection.discarded?}"),
+        icon_on: 'arrow-uturn-up',
+        icon_off: 'trash',
+        available: true
+      ))%>
+    <% end %>
+  <% if collection.discarded? %>
+    <%= render(Hovercard::Component.new(
+      path: '',
+      text: t("scenario_bar.destroy.description")
+    )) do %>
+      <%= render(SavedScenarios::NavItem::Component.new(
+        path: confirm_destroy_collection_path(collection),
+        title: t("scenario_bar.destroy.title"),
+        icon: 'x-mark',
+        static: true,
+        data: { turbo_frame: 'modal' }
+      ))%>
+    <% end %>
+  <% end %>
+<% end %>

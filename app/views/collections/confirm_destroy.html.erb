@@ -1,0 +1,24 @@
+<%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
+  <%= turbo_frame_tag :modal do %>
+    <%= form_for(@collection, url: collection_path(@collection), html: { method: :delete, data: { turbo: false } }) do |f| %>
+      <div class="flex-col mb-10">
+        <div class="flex text-red-600 mb-5">
+          <span class="mr-5"><%= heroicon 'exclamation-triangle', options: { class: 'w-6 h-6' } %></span>
+          <span class="text-base">
+            <%= t('.warning_header') %>
+          </span>
+        </div>
+        <p class="mb-2">
+          <%= t('.warning') %>
+        </p>
+        <p class="text-sm text-midnight-450">
+          <%= t('.irreversible') %>
+        </p>
+      </div>
+      <div class="mt-6 pb-2 flex items-center gap-2">
+        <%= button_tag t('.submit'), class: button_classes("text-base", size: :lg, color: :warning) %>
+        <%= modal.close_link(t('identity.cancel'), collection_path(@collection), class: button_classes("text-base", size: :lg)) %>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>
