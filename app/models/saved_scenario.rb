@@ -42,6 +42,17 @@ class SavedScenario < ApplicationRecord
 
   #   @scenario ||= FetchAPIScenario.call(engine_client, scenario_id).or(nil)
   # end
+  def restore_version(scenario_id)
+    return unless scenario_id && scenario_id_history.include?(scenario_id)
+
+    discard_no = scenario_id_history.index(scenario_id)
+    discarded = scenario_id_history[discard_no + 1...]
+
+    self.scenario_id = scenario_id
+    self.scenario_id_history = scenario_id_history[...discard_no]
+
+    discarded
+  end
 
   def scenario=(x)
     @scenario = x

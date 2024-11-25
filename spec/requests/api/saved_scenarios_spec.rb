@@ -22,14 +22,13 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns the saved scenarios' do
-        expect(response.parsed_body['data']).to eq([
-          user_ss1.as_json,
-          user_ss2.as_json
-        ])
+        expect(response.parsed_body).to match_array(
+          [user_ss1, user_ss2].as_json
+        )
       end
 
       it 'does not contain scenarios from other users' do
-        expect(JSON.parse(response.body)['data']).not_to include(other_ss.as_json)
+        expect(JSON.parse(response.body)).not_to include(other_ss.as_json)
       end
     end
 
@@ -66,7 +65,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       before do
         get '/api/v1/saved_scenarios',
           as: :json,
-          headers: authorization_header(user, [])
+          headers: access_token_header(user, "string")
       end
 
       it 'returns forbidden' do
@@ -110,7 +109,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       before do
         get "/api/v1/saved_scenarios/#{saved_scenario.id}",
           as: :json,
-          headers: access_token_header(create(user), [])
+          headers: access_token_header(create(:user), [])
       end
 
       it 'returns forbidden' do
@@ -173,7 +172,10 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
     end
 
     context 'when given a valid access token and data, but the user does not exist' do
-      before { user.destroy! }
+      before do
+        user.destroy!
+        @headers = access_token_header(nil, :write)
+      end
 
       it 'returns created' do
         request
@@ -185,17 +187,21 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'creates a saved scenario' do
-        expect { request }.to change(user.saved_scenarios, :count).by(1)
+        expect { request }.to change(SavedScenario, :count).by(1)
       end
 
       it 'returns the scenario' do
         request
-        expect(JSON.parse(response.body)).to eq(user.reload.saved_scenarios.last.as_json)
+        new_user = User.last
+        expect(JSON.parse(response.body)).to eq(new_user.saved_scenarios.last.as_json)
       end
     end
 
     context 'when given a valid access token and invalid data' do
-      before { user.destroy! }
+      before do
+        response
+        user.destroy!
+      end
 
       let(:scenario_attributes) { super().except(:area_code) }
 
@@ -210,7 +216,10 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
     end
 
     context 'when given a token without the scenarios:write scope' do
-      before { user.destroy! }
+      before do
+        response
+        user.destroy!
+      end
 
       let(:headers) do
         access_token_header(user, :read)
@@ -355,9 +364,9 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
           headers: access_token_header(create(:user), :write)
       end
 
-      it 'returns not found' do
+      it 'returns forbidden' do
         request
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_http_status(:forbidden)
       end
     end
 
@@ -365,7 +374,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       let(:request) do
         put "/api/v1/saved_scenarios/#{scenario.id}",
           as: :json,
-          params: scenario_attributes.merge(discarded: true),
+          params: { saved_scenario: { discarded: true } },
           headers: access_token_header(user, :write)
       end
 
@@ -384,7 +393,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         put "/api/v1/saved_scenarios/#{scenario.id}",
           as: :json,
           params: scenario_attributes.merge(discarded: true),
-          headers: authorization_header(user, %w[scenarios:read scenarios:write])
+          headers: access_token_header(user, :write)
       end
 
       before do
@@ -401,7 +410,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       let(:request) do
         put "/api/v1/saved_scenarios/#{scenario.id}",
           as: :json,
-          params: scenario_attributes.merge(discarded: false),
+          params: { saved_scenario: { discarded: false } },
           headers: access_token_header(user, :write)
       end
 
@@ -472,9 +481,9 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
           headers: access_token_header(create(:user), :delete)
       end
 
-      it 'returns not found' do
+      it 'returns forbidden' do
         request
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
