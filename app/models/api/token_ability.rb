@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
 module Api
-  # Describes the abilities of someone accessing the API with an access a token.
+  # Describes the abilities of someone accessing the API with an access token or session.
   class TokenAbility
     include CanCan::Ability
 
     def initialize(token, user)
-      scopes =  if token.respond_to?(:scopes)
-                  token.scopes
-                else
-                  token[:scopes] || token['scopes']
-                end
+      scopes = extract_scopes(token)
 
       can :read, SavedScenario, private: false
 
@@ -45,6 +41,18 @@ module Api
       return unless scopes.include?('scenarios:delete')
 
       can :destroy, SavedScenario, id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_owner)).pluck(:saved_scenario_id)
+    end
+
+    private
+
+    def extract_scopes(token)
+      if token.respond_to?(:scopes)         # doorkeeper_token
+        token.scopes
+      elsif token.is_a?(Hash)
+        token[:scopes] || token['scopes'] || []  # decoded_token
+      else
+        []
+      end
     end
   end
 end

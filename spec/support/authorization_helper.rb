@@ -2,6 +2,8 @@
 
 module AuthorizationHelper
   def access_token_header(user, scopes, expires_in: 1.hour)
+    user = create(:user) unless user&.persisted?
+
     scopes =
       case scopes
       when :public

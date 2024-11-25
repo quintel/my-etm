@@ -31,9 +31,8 @@ Rails.application.routes.draw do
     get 'newsletter', to: 'newsletter#edit', as: :edit_newsletter
     post 'newsletter', to: 'newsletter#update'
 
-    post 'token', to: 'access_tokens#create', as: :token
-
     resources :tokens, only: [:index, :new, :create, :destroy], as: :tokens
+    resources :access_tokens, only: [:create], as: :access_tokens
     resources :authorized_applications, only: [:index], as: :authorized_applications
   end
 

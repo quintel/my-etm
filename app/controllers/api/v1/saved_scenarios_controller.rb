@@ -1,7 +1,7 @@
 module Api
   module V1
     class SavedScenariosController < BaseController
-      render json:
+      before_action :doorkeeper_authorize!
 
       load_and_authorize_resource(class: SavedScenario, only: %i[index show create update destroy])
 
@@ -48,10 +48,12 @@ module Api
 
       # DELETE /saved_scenarios/1 or /saved_scenarios/1.json
       def destroy
-        @saved_scenario.destroy
-        render status: :ok
+        if @saved_scenario.destroy
+          render json: { message: "Scenario deleted successfully" }, status: :ok
+        else
+          render json: { error: "Failed to delete scenario" }, status: :unprocessable_entity
+        end
       end
-
 
       private
 
