@@ -49,6 +49,7 @@ module Api
       end
 
       # Fetch the user based on the decoded token or session.
+      # Fetch the user based on the decoded token or session.
       def current_user
         return @current_user if defined?(@current_user)
 

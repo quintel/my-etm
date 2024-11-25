@@ -67,5 +67,17 @@ module Api
         []
       end
     end
+
+    private
+
+    def extract_scopes(token)
+      if token.respond_to?(:scopes)         # doorkeeper_token
+        token.scopes
+      elsif token.is_a?(Hash)
+        token[:scopes] || token['scopes'] || []  # decoded_token
+      else
+        []
+      end
+    end
   end
 end
