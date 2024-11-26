@@ -83,7 +83,7 @@ class CollectionsController < ApplicationController
     if result.successful?
       redirect_to collection_path(result.value)
     else
-      flash[:error] = result.errors.join(', ')
+      flash[:alert] = result.errors.join(', ')
       @collection = new_transition_collection
       @saved_scenarios = elegible_scenarios
 

@@ -75,7 +75,7 @@ describe CollectionsController do
 
       it 'sets the error message in the flash' do
         post :create_transition, params: { collection: { saved_scenario_ids: scenario.id }}
-        expect(flash[:error]).to eq("That didn't work.")
+        expect(flash[:alert]).to eq("That didn't work.")
       end
 
       it 'calls the CreateInterpolatedCollection service' do
