@@ -2,46 +2,55 @@
 
 RSpec.describe MyEtm::Auth do
   describe '.user_jwt' do
-    subject do
+    subject(:decoded_jwt) do
       JWT.decode(
-        described_class.user_jwt(user, scopes: %w[read write]),
+        token,
         described_class.signing_key.public_key,
         true,
         algorithm: 'RS256'
       )
     end
 
-    before { Settings.etmodel_uri = 'http://etmodel.test' }
-
-    after { Settings.reload! }
-
+    let(:token) { described_class.user_jwt(user, scopes: scopes, client_id: client_id) }
     let(:user) { create(:user) }
+    let(:scopes) { %w[read write] }
+    let(:client_id) { 'test-client-id' }
 
-    let(:payload) { subject[0] }
-    let(:header) { subject[1] }
+    let(:payload) { decoded_jwt[0] }
+    let(:header) { decoded_jwt[1] }
+
+    before do
+      Settings.etmodel_uri = 'http://etmodel.test'
+    end
+
+    after do
+      Settings.reload!
+    end
 
     it 'returns a JWT for the given user' do
-      expect(payload['user']).to eq(user.as_json(only: %i[id name]))
+      expect(payload['user']).to eq(user.as_json(only: %i[admin id]))
     end
 
     it 'includes the scopes in the JWT payload' do
-      expect(payload['scopes']).to eq(%w[read write])
+      expect(payload['scopes']).to eq(scopes)
     end
 
     it 'includes the issuer in the JWT payload' do
-    expect(payload['iss']).to eq(Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil))
+      expect(payload['iss']).to eq(Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil))
     end
 
-    pending 'includes the audience in the JWT payload' do
-      expect(payload['aud']).to eq(Settings.etmodel_uri)
+    it 'includes the audience in the JWT payload' do
+      expect(payload['aud']).to eq(client_id)
     end
 
     it 'includes the expiration time in the JWT payload' do
-      expect(payload['exp']).to be_within(1).of(1.minute.from_now.to_i)
+      expected_exp = (Time.now + 1.minute).to_i
+      expect(payload['exp']).to be_within(1).of(expected_exp)
     end
 
     it 'includes the issued at time in the JWT payload' do
-      expect(payload['iat']).to be_within(1).of(Time.now.to_i)
+      expected_iat = Time.now.to_i
+      expect(payload['iat']).to be_within(1).of(expected_iat)
     end
 
     it 'includes the subject in the JWT payload' do
@@ -52,32 +61,12 @@ RSpec.describe MyEtm::Auth do
       expect(header['kid']).to eq(described_class.signing_key.to_jwk['kid'])
     end
 
-    pending 'raises an error when no ETModel URI is set' do
-      Settings.etmodel_uri = nil
+    context 'when client_id is not provided' do
+      let(:client_id) { nil }
 
-      expect { described_class.user_jwt(build(:user)) }.to raise_error(
-        "No ETModel URI. Please set the 'etmodel_uri' setting in config/settings.local.yml."
-      )
-    end
-  end
-
-  describe '.client_app_client' do
-    subject do
-      described_class.client_app_client(user, etmodel)
-    end
-
-    before { Settings.etmodel_uri = 'http://etmodel.test' }
-
-    after { Settings.reload! }
-
-    let(:user) { create(:user) }
-
-    pending 'sets the scheme for the client' do
-      expect(subject.scheme).to eq('http')
-    end
-
-    pending 'sets the host for the client' do
-      expect(subject.host).to eq('etmodel.test')
+      it 'does not include an audience in the JWT payload' do
+        expect(payload['aud']).to eq(nil)
+      end
     end
   end
 end

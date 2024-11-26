@@ -39,7 +39,7 @@ module MyEtm
       payload = {
         iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
         aud: client_id,
-        exp: 1.hour.from_now.to_i,
+        exp: 1.minute.from_now.to_i,
         iat: Time.now.to_i,
         scopes: scopes,
         sub: user.id,

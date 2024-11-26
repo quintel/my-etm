@@ -9,7 +9,7 @@ RSpec.describe Identity::SyncUserJob, type: :job do
       Settings.etmodel_uri = 'http://example.org'
 
       allow(MyEtm::Auth)
-        .to receive(:client_app_client)
+        .to receive(:model_client)
         .with(user)
         .and_return(connection)
 
