@@ -16,7 +16,7 @@ module MyEtm
       end
 
       Faraday.new(Settings.mailchimp.list_url) do |conn|
-        conn.request(:authorization, :basic, '', Settings.mailchimp.api_key)
+        conn.request(:authorization, :basic, "", Settings.mailchimp.api_key)
         conn.request(:json)
         conn.response(:json)
         conn.response(:raise_error)
@@ -35,7 +35,7 @@ module MyEtm
 
     # Returns if the e-mail address is subscribed to the newsletter.
     def subscribed?(email)
-      %w[pending subscribed].include?(fetch_subscriber(email)['status'])
+      %w[pending subscribed].include?(fetch_subscriber(email)["status"])
     rescue Faraday::ResourceNotFound
       false
     end

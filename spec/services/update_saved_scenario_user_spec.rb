@@ -58,7 +58,7 @@ describe UpdateSavedScenarioUser, type: :service do
     end
 
     it 'returns the scenario error messages' do
-      expect(result.errors).to eq([:ownership])
+      expect(result.errors).to eq([ :ownership ])
     end
 
     it 'does not change the owner of the the SavedScenario' do
@@ -69,7 +69,7 @@ describe UpdateSavedScenarioUser, type: :service do
   end
 
   context 'when the API response is unsuccessful' do
-    let(:api_result) { ServiceResult.failure(['Nope']) }
+    let(:api_result) { ServiceResult.failure([ 'Nope' ]) }
 
     it 'returns a ServiceResult' do
       expect(result).to be_a(ServiceResult)
@@ -80,7 +80,7 @@ describe UpdateSavedScenarioUser, type: :service do
     end
 
     it 'returns the scenario error messages' do
-      expect(result.errors).to eq(['Nope'])
+      expect(result.errors).to eq([ 'Nope' ])
     end
   end
 end

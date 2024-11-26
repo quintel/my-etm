@@ -5,7 +5,7 @@ class Identity::TokenComponent < ApplicationComponent
   include Turbo::FramesHelper
 
   # TODO: this should not be here
-  TOKEN_PREFIX = Rails.env.staging? ? 'etm_beta_' : 'etm_'
+  TOKEN_PREFIX = Rails.env.staging? ? "etm_beta_" : "etm_"
 
   def initialize(token:)
     @token = token

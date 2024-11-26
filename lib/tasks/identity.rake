@@ -3,9 +3,9 @@
 namespace :identity do
   task scheduled: %i[trim_tokens notify_expiring_tokens]
 
-  desc 'Clear our revoked and expired tokens'
+  desc "Clear our revoked and expired tokens"
   task trim_tokens: :environment do
-    delete_before = (ENV['DOORKEEPER_DAYS_TRIM_THRESHOLD'] || 30).to_i.days.ago
+    delete_before = (ENV["DOORKEEPER_DAYS_TRIM_THRESHOLD"] || 30).to_i.days.ago
     expire = [
       <<~SQL.squish, { delete_before: }
         (revoked_at IS NOT NULL AND revoked_at < :delete_before) OR
@@ -23,7 +23,7 @@ namespace :identity do
     end
   end
 
-  desc 'Notify users of soon-to-expire tokens'
+  desc "Notify users of soon-to-expire tokens"
   task notify_expiring_tokens: :environment do
     tokens = PersonalAccessToken
       .joins(:oauth_access_token)

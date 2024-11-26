@@ -93,7 +93,7 @@ class NastyCache
 
   # alias to fetch(key, cache: true)
   def fetch_cached(key, &block)
-    fetch(key, :cache => true, &block)
+    fetch(key, cache: true, &block)
   end
 
   def get(key, opts = {})
@@ -113,9 +113,9 @@ class NastyCache
     Rails.cache.delete(rails_cache_key(key))
   end
 
-##############
-# protected
-##############
+  ##############
+  # protected
+  ##############
 
   # Expires Rails.cache. Easiest way is to Rails.cache.clear
   # Otherwise you could track the keys cached by MemoryCache in an
@@ -163,7 +163,7 @@ class NastyCache
   end
 
   def rails_cache_key(key)
-    ["NastyCache", local_timestamp, key].join('/')
+    [ "NastyCache", local_timestamp, key ].join("/")
   end
 
   # Internal: Sends a message to the Rails logger if NastyCache verbose mode

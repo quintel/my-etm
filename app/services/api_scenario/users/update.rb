@@ -15,13 +15,13 @@ module ApiScenario
       def call
         ServiceResult.success(
           @http_client.put(
-            "/api/v3/scenarios/#{@scenario_id}/users", scenario_users: [@scenario_user]
+            "/api/v3/scenarios/#{@scenario_id}/users", scenario_users: [ @scenario_user ]
           ).body
         )
       rescue Faraday::ResourceNotFound
-        ServiceResult.failure('Scenario not found')
+        ServiceResult.failure("Scenario not found")
       rescue Faraday::ForbiddenError
-        ServiceResult.failure('No access to this scenario')
+        ServiceResult.failure("No access to this scenario")
       rescue Faraday::UnprocessableEntityError => e
         ServiceResult.single_failure_from_unprocessable_entity_on_multiple_objects(e)
       rescue Faraday::Error => e

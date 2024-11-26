@@ -33,7 +33,7 @@ class FeaturedScenariosController < ApplicationController
   end
 
   def confirm_destroy
-    render :confirm_destroy, layout: 'application'
+    render :confirm_destroy, layout: "application"
   end
 
   def destroy

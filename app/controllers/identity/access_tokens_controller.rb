@@ -9,9 +9,9 @@ module Identity
       # Validate client credentials
       if valid_client?
         token = generate_access_token
-        render json: { access_token: token, token_type: 'Bearer', expires_in: 3600 }
+        render json: { access_token: token, token_type: "Bearer", expires_in: 3600 }
       else
-        render json: { error: 'invalid_client' }, status: :unauthorized
+        render json: { error: "invalid_client" }, status: :unauthorized
       end
     end
 

@@ -5,7 +5,7 @@ class Identity::SidebarItemComponent < ApplicationComponent
   option :title
   option :explanation
   option :active, default: proc { false }
-  option :icon, default: proc { 'identification' }
+  option :icon, default: proc { "identification" }
 
   def css_classes
     if @active

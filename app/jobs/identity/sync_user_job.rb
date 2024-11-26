@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'uri'
-require 'net/http'
+require "uri"
+require "net/http"
 
 # Syncs a user's identity with ETModel.
 class Identity::SyncUserJob < ApplicationJob
@@ -13,7 +13,7 @@ class Identity::SyncUserJob < ApplicationJob
     user = User.find(user_id)
 
     MyEtm::Auth.model_client(user).put(
-      '/api/v1/user',
+      "/api/v1/user",
       user.to_json(except: %i[admin created_at updated_at])
     )
 

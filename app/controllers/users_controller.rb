@@ -17,7 +17,7 @@ class UsersController < ApplicationController
 
     if @user.save
       @user.staff_applications.destroy_all unless @user.admin?
-      redirect_to users_path, notice: 'User updated'
+      redirect_to users_path, notice: "User updated"
     else
       render :edit
     end
@@ -29,7 +29,7 @@ class UsersController < ApplicationController
     @user.role_id = params[:user][:role_id] if current_user && current_user.admin?
 
     if @user.save
-      redirect_to users_path, notice: 'User added'
+      redirect_to users_path, notice: "User added"
     else
       render :new
     end
@@ -39,9 +39,9 @@ class UsersController < ApplicationController
     user = User.find_by(id: params[:id])
 
     if user.nil?
-      flash[:notice] = 'User does not exist.'
+      flash[:notice] = "User does not exist."
     elsif user.confirmed_at?
-      flash[:notice] = 'User is already confirmed.'
+      flash[:notice] = "User is already confirmed."
     else
       user.send_confirmation_instructions
       flash[:notice] = "Confirmation email resent to #{user.email}."
@@ -56,6 +56,8 @@ class UsersController < ApplicationController
   end
 
   def user_attributes
-    params.require(:user).permit(:email, :name, :admin)
+    attributes = [:email, :name]
+    attributes << :admin if current_user&.admin?
+    params.require(:user).permit(*attributes)
   end
 end

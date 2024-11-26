@@ -11,7 +11,7 @@ class ScenarioInvitationMailer < ApplicationMailer
       to: email,
       from: Settings.mailer.from,
       subject: "#{t('scenario_invitation_mailer.invite_user.subject')} #{@saved_scenario_title}",
-      template_name: 'scenario_invitation'
+      template_name: "scenario_invitation"
     )
   end
 

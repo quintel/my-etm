@@ -1,12 +1,13 @@
   # frozen_string_literal: true
-  require_relative 'staff_applications/app_config'
+
+  require_relative "staff_applications/app_config"
 
   module MyEtm
     # Holds config information about OAuth accounts created for staff users.
     module StaffApplications
       class << self
         def all
-          [etengine, etmodel, collections]
+          [ etengine, etmodel, collections ]
         end
 
         def find(key)
@@ -22,13 +23,13 @@
 
         def etengine
           AppConfig.new(
-            key: 'etengine',
-            name: 'Engine (Local)',
-            scopes: 'openid email profile roles public scenarios:read scenarios:write scenarios:delete',
-            uri: 'http://localhost:3000',
-            redirect_path: '/auth/identity/callback',
-            run_command: 'bundle exec rails server -p %<port>s',
-            config_path: 'config/settings.local.yml',
+            key: "etengine",
+            name: "Engine (Local)",
+            scopes: "openid email profile roles public scenarios:read scenarios:write scenarios:delete",
+            uri: "http://localhost:3000",
+            redirect_path: "/auth/identity/callback",
+            run_command: "bundle exec rails server -p %<port>s",
+            config_path: "config/settings.local.yml",
             config_content: <<~YAML,
               idp_url: %<myetm_url>s
 
@@ -44,13 +45,13 @@
 
         def etmodel
           AppConfig.new(
-            key: 'etmodel',
-            name: 'Model (Local)',
-            scopes: 'openid email profile roles public scenarios:read scenarios:write scenarios:delete',
-            uri: 'http://localhost:3001',
-            redirect_path: '/auth/identity/callback',
-            run_command: 'bundle exec rails server -p %<port>s',
-            config_path: 'config/settings.local.yml',
+            key: "etmodel",
+            name: "Model (Local)",
+            scopes: "openid email profile roles public scenarios:read scenarios:write scenarios:delete",
+            uri: "http://localhost:3001",
+            redirect_path: "/auth/identity/callback",
+            run_command: "bundle exec rails server -p %<port>s",
+            config_path: "config/settings.local.yml",
             config_content: <<~YAML,
               idp_url: %<myetm_url>s
               ete_url: %<etengine_url>s
@@ -68,13 +69,13 @@
 
         def collections
           AppConfig.new(
-            key: 'collections',
-            name: 'Collections (Local)',
-            scopes: 'openid email profile public scenarios:read scenarios:write',
-            uri: 'http://localhost:3005',
-            redirect_path: '/api/auth/callback/identity',
-            run_command: 'yarn dev -p %<port>s',
-            config_path: '.env.local',
+            key: "collections",
+            name: "Collections (Local)",
+            scopes: "openid email profile public scenarios:read scenarios:write",
+            uri: "http://localhost:3005",
+            redirect_path: "/api/auth/callback/identity",
+            run_command: "yarn dev -p %<port>s",
+            config_path: ".env.local",
             config_content: <<~ENV,
               # Protocol and host for MyETM. No trailing slash please.
               NEXT_PUBLIC_MYETM_URL=%<myetm_url>s

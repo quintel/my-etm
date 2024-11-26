@@ -6,9 +6,9 @@ class ContactUsMessage < Dry::Struct
   include ActiveModel::AttributeMethods
   include ActiveModel::Conversion
 
-  attribute :name,    Dry::Types['strict.string']
-  attribute :email,   Dry::Types['strict.string']
-  attribute :message, Dry::Types['strict.string']
+  attribute :name,    Dry::Types["strict.string"]
+  attribute :email,   Dry::Types["strict.string"]
+  attribute :message, Dry::Types["strict.string"]
 
   attr_reader :errors
 

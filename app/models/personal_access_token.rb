@@ -3,10 +3,10 @@
 class PersonalAccessToken < ApplicationRecord
   include Doorkeeper::Models::ExpirationTimeSqlMath
 
-  TOKEN_PREFIX = Rails.env.staging? ? 'etm_beta_' : 'etm_'
+  TOKEN_PREFIX = Rails.env.staging? ? "etm_beta_" : "etm_"
 
   belongs_to :user
-  belongs_to :oauth_access_token, class_name: 'Doorkeeper::AccessToken', dependent: :destroy
+  belongs_to :oauth_access_token, class_name: "Doorkeeper::AccessToken", dependent: :destroy
 
   validates :name, presence: true
 

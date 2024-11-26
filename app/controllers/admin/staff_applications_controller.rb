@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require 'myetm/staff_applications'
+
+require "myetm/staff_applications"
 
 module Admin
   # Updates a staff application with a new URI.
@@ -19,7 +20,7 @@ module Admin
       )
 
       if result.success?
-        flash[:notice] = 'The application was updated.'
+        flash[:notice] = "The application was updated."
       else
         flash[:alert] = result.failure.errors.full_messages.to_sentence
       end

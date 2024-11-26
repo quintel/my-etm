@@ -17,11 +17,11 @@ module ApiScenario
         ServiceResult.success(
           @http_client.post(
             "/api/v3/scenarios/#{@scenario_id}/users",
-            { scenario_users: [@scenario_user], invitation_args: @invitation_args }
+            { scenario_users: [ @scenario_user ], invitation_args: @invitation_args }
           ).body
         )
       rescue Faraday::ResourceNotFound
-        ServiceResult.failure('Scenario not found')
+        ServiceResult.failure("Scenario not found")
       rescue Faraday::UnprocessableEntityError => e
         ServiceResult.single_failure_from_unprocessable_entity_on_multiple_objects(e)
       rescue Faraday::Error => e

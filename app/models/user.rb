@@ -10,22 +10,22 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable, :registerable
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable,
-         :confirmable, :trackable
+    :recoverable, :rememberable, :validatable,
+    :confirmable, :trackable
 
   # rubocop:disable Rails/InverseOf
   has_many :access_grants,
-    class_name: 'Doorkeeper::AccessGrant',
+    class_name: "Doorkeeper::AccessGrant",
     foreign_key: :resource_owner_id,
     dependent: :delete_all
 
   has_many :access_tokens,
-    class_name: 'Doorkeeper::AccessToken',
+    class_name: "Doorkeeper::AccessToken",
     foreign_key: :resource_owner_id,
     dependent: :delete_all
 
   has_many :oauth_applications,
-    class_name: 'OAuthApplication',
+    class_name: "OAuthApplication",
     dependent: :delete_all,
     as: :owner
 
@@ -79,8 +79,8 @@ class User < ApplicationRecord
 
   # Finds or creates a user from a JWT token.
   def self.from_jwt!(token)
-    id = token['sub']
-    raise 'Token does not contain user information' unless id.present?
+    id = token["sub"]
+    raise "Token does not contain user information" unless id.present?
     User.find_or_create_by!(id: id)
   end
 end

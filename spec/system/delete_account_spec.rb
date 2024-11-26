@@ -24,7 +24,7 @@ RSpec.describe 'Registrations', type: :system do
     fill_in 'Password', with: user.password
 
     begin
-      click_button 'Permanently delete account'
+      click_button('Permanently delete account')
     rescue ActionController::RoutingError
       # This is raised because it redirects to ETModel, which isn't available in tests.
     end

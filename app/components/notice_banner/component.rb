@@ -3,6 +3,6 @@ module NoticeBanner
     option :text
     option :path, default: proc { "" }
     option :button_text, default: proc { "" }
-    option :icon, default: proc { 'information-circle' }
+    option :icon, default: proc { "information-circle" }
   end
 end

@@ -7,6 +7,6 @@ class DiscardedController < ApplicationController
       .saved_scenarios
       .discarded
       .includes(:featured_scenario, :users)
-      .order('updated_at DESC')
+      .order("updated_at DESC")
   end
 end

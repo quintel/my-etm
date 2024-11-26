@@ -6,10 +6,10 @@ describe SavedScenarioUsersController do
   before do
     # Disable relaying ScenarioUserUpdates to ETEngine
     allow(ApiScenario::Users::Create).to receive(:call).and_return(
-      ServiceResult.success([{
+      ServiceResult.success([ {
         'user_email' => 'test@test.com',
         'role_id' => User::Roles.index_of(:scenario_owner)
-      }])
+      } ])
     )
     allow(ApiScenario::Users::Update).to receive(:call).and_return(ServiceResult.success)
     allow(ApiScenario::Users::Destroy).to receive(:call).and_return(ServiceResult.success)
@@ -73,10 +73,10 @@ describe SavedScenarioUsersController do
   end
 
   describe 'a scenario user' do
-    let(:saved_scenario) { FactoryBot.create :saved_scenario, id: 648692 }
-    let(:user_viewer) { FactoryBot.create :user }
-    let(:user_collaborator) { FactoryBot.create :user }
-    let(:user_owner) { FactoryBot.create :user }
+    let(:saved_scenario) { FactoryBot.create(:saved_scenario, id: 648692) }
+    let(:user_viewer) { FactoryBot.create(:user) }
+    let(:user_collaborator) { FactoryBot.create(:user) }
+    let(:user_owner) { FactoryBot.create(:user) }
     let!(:scenario_viewer) do
       FactoryBot.create(
         :saved_scenario_user,
@@ -194,8 +194,8 @@ describe SavedScenarioUsersController do
   end
 
   describe 'a scenario owner' do
-    let(:user) { FactoryBot.create :user }
-    let(:saved_scenario) { FactoryBot.create :saved_scenario, id: 648694 }
+    let(:user) { FactoryBot.create(:user) }
+    let(:saved_scenario) { FactoryBot.create(:saved_scenario, id: 648694) }
     let!(:scenario_owner) do
       FactoryBot.create(
         :saved_scenario_user,
@@ -252,7 +252,7 @@ describe SavedScenarioUsersController do
         expect(
           saved_scenario.saved_scenario_users.find_by(user_email: 'test@test.com')&.role_id
         ).to eq(
-            User::Roles.index_of(:scenario_owner)
+          User::Roles.index_of(:scenario_owner)
         )
       end
 
@@ -284,8 +284,8 @@ describe SavedScenarioUsersController do
   end
 
   describe 'an admin user' do
-    let(:admin) { FactoryBot.create :admin }
-    let(:saved_scenario) { FactoryBot.create :saved_scenario, id: 648695 }
+    let(:admin) { FactoryBot.create(:admin) }
+    let(:saved_scenario) { FactoryBot.create(:saved_scenario, id: 648695) }
     let!(:scenario_owner) do
       FactoryBot.create(
         :saved_scenario_user,

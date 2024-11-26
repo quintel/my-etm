@@ -17,7 +17,7 @@ module Identity
       if @user.update(update_params)
         redirect_to(
           identity_profile_path,
-          notice: I18n.t('identity.settings.update_name.success')
+          notice: I18n.t("identity.settings.update_name.success")
         )
 
         SyncUserJob.perform_later(@user.id)
@@ -41,7 +41,7 @@ module Identity
 
         redirect_to(
           identity_profile_path,
-          notice: I18n.t('identity.settings.update_email.success')
+          notice: I18n.t("identity.settings.update_email.success")
         )
       else
         render(:edit_email, status: :unprocessable_entity)
@@ -63,7 +63,7 @@ module Identity
 
         redirect_to(
           identity_profile_path,
-          notice: I18n.t('identity.settings.update_password.success')
+          notice: I18n.t("identity.settings.update_password.success")
         )
       else
         render(:edit_password, status: :unprocessable_entity)

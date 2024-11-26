@@ -29,7 +29,7 @@ module Identity
       else
         Identity::TokenMailer.created_token(result.value!).deliver_later
 
-        flash[:notice] = t('identity.tokens.created')
+        flash[:notice] = t("identity.tokens.created")
         redirect_to identity_tokens_path
       end
     end
@@ -40,7 +40,7 @@ module Identity
     def destroy
       token.oauth_access_token.update!(revoked_at: Time.now.utc)
 
-      flash[:notice] = t('identity.tokens.revoked')
+      flash[:notice] = t("identity.tokens.revoked")
 
       respond_to do |format|
         format.html { redirect_to identity_tokens_path }
@@ -49,10 +49,10 @@ module Identity
           ui_action = if current_user.personal_access_tokens.not_expired.count.positive?
             turbo_stream.remove(token)
           else
-            turbo_stream.replace(@token, partial: 'identity/tokens/empty_state')
+            turbo_stream.replace(@token, partial: "identity/tokens/empty_state")
           end
 
-          render turbo_stream: [ui_action, turbo_notice]
+          render turbo_stream: [ ui_action, turbo_notice ]
         end
       end
     end

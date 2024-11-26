@@ -20,13 +20,13 @@ module ApiScenario
       @http_client.put("/api/v3/scenarios/#{@id}", scenario: { private: @private })
       ServiceResult.success
     rescue Faraday::ResourceNotFound
-      ServiceResult.failure('Scenario not found')
+      ServiceResult.failure("Scenario not found")
     rescue Faraday::UnprocessableEntityError
       # Trying to update an unowned scenario. Ignore.
       ServiceResult.success
     rescue Faraday::Error => e
       Sentry.capture_exception(e)
-      ServiceResult.failure('Failed to update scenario')
+      ServiceResult.failure("Failed to update scenario")
     end
   end
 end

@@ -11,7 +11,7 @@ class ContactUsMailer < ActionMailer::Base
       to: Settings.feedback_email,
       from: Settings.feedback_email,
       reply_to: message.email,
-      subject: 'ETM Feedback'
+      subject: "ETM Feedback"
     )
   end
 end

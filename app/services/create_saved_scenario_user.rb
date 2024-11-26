@@ -29,7 +29,7 @@ class CreateSavedScenarioUser
 
     ServiceResult.success(saved_scenario_user)
   rescue ActiveRecord::RecordNotUnique
-    ServiceResult.failure('duplicate')
+    ServiceResult.failure("duplicate")
   end
 
   private

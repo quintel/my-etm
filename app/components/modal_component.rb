@@ -22,11 +22,11 @@ class ModalComponent < ApplicationComponent
     @stimulus ||=
       if turbo_modal?
         StimulusConfig.new(
-          controller: 'modal',
+          controller: "modal",
           turbo_frame_id: :modal,
-          button_close_action: 'click->modal#close',
-          backdrop_close_action: 'mousedown->modal#closeWithBackdrop',
-          keyboard_close_action: 'keyup@window->modal#closeWithKeyboard'
+          button_close_action: "click->modal#close",
+          backdrop_close_action: "mousedown->modal#closeWithBackdrop",
+          keyboard_close_action: "keyup@window->modal#closeWithKeyboard"
         )
       else
         StimulusConfig.new(turbo_frame_id: :static_modal)
@@ -44,6 +44,6 @@ class ModalComponent < ApplicationComponent
   private
 
   def turbo_modal?
-    request.headers['Turbo-Frame'] == 'modal'
+    request.headers["Turbo-Frame"] == "modal"
   end
 end

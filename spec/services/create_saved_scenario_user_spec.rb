@@ -7,12 +7,12 @@ describe CreateSavedScenarioUser, type: :service do
   let(:user) { FactoryBot.create(:user) }
   let(:email) { 'hello@me.com' }
   let(:new_viewer_user_params) { { role_id: 1, user_email: email } }
-  let(:api_result) { ServiceResult.success([{ 'role_id' => 1, 'user_email' => email }]) }
+  let(:api_result) { ServiceResult.success([ { 'role_id' => 1, 'user_email' => email } ]) }
   let(:result) { described_class.call(client, saved_scenario, user.name, new_viewer_user_params) }
   let!(:saved_scenario) do
-    FactoryBot.create :saved_scenario,
-                      user: user,
-                      id: 648_695
+    FactoryBot.create(:saved_scenario,
+      user: user,
+      id: 648_695)
   end
 
   before do
@@ -34,7 +34,7 @@ describe CreateSavedScenarioUser, type: :service do
     describe '#value' do
       subject { result.value }
 
-      it { is_expected.to be_a SavedScenarioUser }
+      it { is_expected.to be_a(SavedScenarioUser) }
       it { is_expected.to be_persisted }
     end
 
@@ -47,7 +47,7 @@ describe CreateSavedScenarioUser, type: :service do
 
   context 'when the record was invalid' do
     let(:new_viewer_user_params) { { role_id: 1, user_email: 'ppp' } }
-    let(:api_result) { ServiceResult.failure(['Invalid email']) }
+    let(:api_result) { ServiceResult.failure([ 'Invalid email' ]) }
 
     it 'returns a ServiceResult' do
       expect(result).to be_a(ServiceResult)
@@ -76,12 +76,12 @@ describe CreateSavedScenarioUser, type: :service do
     end
 
     it 'returns the scenario error messages' do
-      expect(result.errors).to eq(['duplicate'])
+      expect(result.errors).to eq([ 'duplicate' ])
     end
   end
 
   context 'when the API response is unsuccessful' do
-    let(:api_result) { ServiceResult.failure(['Nope']) }
+    let(:api_result) { ServiceResult.failure([ 'Nope' ]) }
 
     it 'returns a ServiceResult' do
       expect(result).to be_a(ServiceResult)
@@ -92,12 +92,12 @@ describe CreateSavedScenarioUser, type: :service do
     end
 
     it 'returns the scenario error messages' do
-      expect(result.errors).to eq(['Nope'])
+      expect(result.errors).to eq([ 'Nope' ])
     end
   end
 
   context 'when there is a found linked user' do
-    let(:existing_user) {create(:user)}
+    let(:existing_user) { create(:user) }
     let(:new_viewer_user_params) { { role_id: 1, user_email: existing_user.email } }
 
     it 'returns a ServiceResult' do

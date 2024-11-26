@@ -13,7 +13,7 @@ module CreateStaffApplication
 
     uri = URI.parse(uri || app.uri || app_config.uri)
 
-    uri.path = ''
+    uri.path = ""
     uri.query = nil
     uri.fragment = nil
 

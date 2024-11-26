@@ -7,7 +7,7 @@ module Identity
     before_action :require_mailchimp_configured
 
     def edit
-      return redirect_to(identity_profile_path) unless turbo_frame_request?
+      redirect_to(identity_profile_path) unless turbo_frame_request?
     end
 
     def update

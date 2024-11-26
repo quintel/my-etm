@@ -4,8 +4,7 @@ module Users
   class SessionsController < Devise::SessionsController
     def create
       super do
-
-        if session['user_return_to'].to_s.start_with?('/oauth/authorize') && is_flashing_format?
+        if session["user_return_to"].to_s.start_with?("/oauth/authorize") && is_flashing_format?
           # Don't show the flash message when redirecting to an OAuth action.
           flash.delete(:notice)
         end

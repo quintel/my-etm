@@ -15,11 +15,11 @@ module ApiScenario
       def call
         ServiceResult.success(
           @http_client.delete(
-            "/api/v3/scenarios/#{@scenario_id}/users", scenario_users: [@scenario_user]
+            "/api/v3/scenarios/#{@scenario_id}/users", scenario_users: [ @scenario_user ]
           ).body
         )
       rescue Faraday::ResourceNotFound
-        ServiceResult.failure('Scenario not found')
+        ServiceResult.failure("Scenario not found")
       rescue Faraday::UnprocessableEntityError => e
         ServiceResult.single_failure_from_unprocessable_entity_on_multiple_objects(e)
       rescue Faraday::Error => e

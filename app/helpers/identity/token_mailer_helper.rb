@@ -4,11 +4,11 @@ module Identity
   module TokenMailerHelper
     def token_permissions(token)
       permissions = [
-        ['View your public scenarios', 'public'],
-        ["View other people's public scenarios", 'public'],
-        ['View your private scenarios', 'scenarios:read'],
-        ['Create new scenarios and change your public and private scenarios', 'scenarios:write'],
-        ['Delete your public and private scenarios', 'scenarios:delete']
+        [ "View your public scenarios", "public" ],
+        [ "View other people's public scenarios", "public" ],
+        [ "View your private scenarios", "scenarios:read" ],
+        [ "Create new scenarios and change your public and private scenarios", "scenarios:write" ],
+        [ "Delete your public and private scenarios", "scenarios:delete" ]
       ]
 
       permissions

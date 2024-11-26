@@ -28,7 +28,7 @@ class SavedScenarioUsersController < ApplicationController
       saved_scenario_id: @saved_scenario.id
     )
 
-    render 'new', layout: 'application'
+    render "new", layout: "application"
   end
 
   # Creates a new SavedScenarioUser for the given SavedScenario.
@@ -102,7 +102,7 @@ class SavedScenarioUsersController < ApplicationController
   #
   # GET /saved_scenarios/:saved_scenario_id/users/:id/confirm_destroy
   def confirm_destroy
-    render 'confirm_destroy',  layout: 'application'
+    render "confirm_destroy",  layout: "application"
   end
 
   # Destroys an existing SavedScenarioUser for this SavedScenario.
@@ -127,7 +127,8 @@ class SavedScenarioUsersController < ApplicationController
       end
     else
       puts result.errors
-      flash[:alert] = "#{t('saved_scenario_users.errors.destroy')} #{t('saved_scenario_users.errors.general')}"
+      flash[:alert] =
+"#{t('saved_scenario_users.errors.destroy')} #{t('saved_scenario_users.errors.general')}"
 
       respond_to do |format|
         format.turbo_stream do
@@ -161,7 +162,7 @@ class SavedScenarioUsersController < ApplicationController
   def assign_saved_scenario_user
     @saved_scenario_user = @saved_scenario.saved_scenario_users.find(permitted_params[:id])
   rescue ActiveRecord::RecordNotFound
-    redirect_to saved_scenario_users_path, notice: 'Something went wrong'
+    redirect_to saved_scenario_users_path, notice: "Something went wrong"
   end
 
   def turbo_append_user

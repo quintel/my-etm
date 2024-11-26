@@ -2,14 +2,14 @@
 
 module Users
   class RegistrationsController < Devise::RegistrationsController
-    before_action :configure_sign_up_params, only: [:create]
-    before_action :configure_account_update_params, only: [:update]
-    skip_before_action :require_no_authentication, only: [:new]
-    before_action :check_already_authenticated, only: [:new]
+    before_action :configure_sign_up_params, only: [ :create ]
+    before_action :configure_account_update_params, only: [ :update ]
+    skip_before_action :require_no_authentication, only: [ :new ]
+    before_action :check_already_authenticated, only: [ :new ]
 
     def confirm_destroy
       @counts = stats_for_destroy
-      render :confirm_destroy, layout: 'application'
+      render :confirm_destroy, layout: "application"
     end
 
     def destroy
@@ -46,22 +46,21 @@ module Users
 
     # If you have extra params to permit, append them to the sanitizer.
     def configure_sign_up_params
-      devise_parameter_sanitizer.permit(:sign_up, keys: [:name])
+      devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
     end
 
     # If you have extra params to permit, append them to the sanitizer.
     def configure_account_update_params
-      devise_parameter_sanitizer.permit(:account_update, keys: [:name])
+      devise_parameter_sanitizer.permit(:account_update, keys: [ :name ])
     end
 
     # Check if the user is already signed in and redirect back to client or to root.
     def check_already_authenticated
-      if user_signed_in?
+      return unless user_signed_in?
         token = MyEtm::Auth.user_jwt(current_user, client_uri: params[:redirect_to])
         redirect_url = URI(params[:redirect_to] || root_path)
         redirect_url.query = URI.encode_www_form(token: token)
         redirect_to redirect_url.to_s
-      end
     end
 
     # Fetches information about what entities will be deleted with the account.

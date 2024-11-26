@@ -8,20 +8,20 @@ module MyEtm
 
     # Generates a new signing key for use in development and saves it to the tmp directory.
     def signing_key_content
-      return ENV['OPENID_SIGNING_KEY'] if ENV['OPENID_SIGNING_KEY'].present?
+      return ENV["OPENID_SIGNING_KEY"] if ENV["OPENID_SIGNING_KEY"].present?
 
-      key_path = Rails.root.join('tmp/openid.key')
+      key_path = Rails.root.join("tmp/openid.key")
 
       return key_path.read if key_path.exist?
 
-      unless Rails.env.test? || Rails.env.development? || ENV['DOCKER_BUILD']
-        raise 'No signing key is present. Please set the OPENID_SIGNING_KEY environment ' \
-              'variable or add the key to tmp/openid.key.'
+      unless Rails.env.test? || Rails.env.development? || ENV["DOCKER_BUILD"]
+        raise "No signing key is present. Please set the OPENID_SIGNING_KEY environment " \
+              "variable or add the key to tmp/openid.key."
       end
 
       key = OpenSSL::PKey::RSA.new(2048).to_pem
 
-      unless ENV['DOCKER_BUILD']
+      unless ENV["DOCKER_BUILD"]
         key_path.write(key)
         key_path.chmod(0o600)
       end
@@ -47,14 +47,15 @@ module MyEtm
       }
 
       key = signing_key
-      JWT.encode(payload, key, 'RS256', typ: 'JWT', kid: key.to_jwk['kid'])
+      JWT.encode(payload, key, "RS256", typ: "JWT", kid: key.to_jwk["kid"])
     end
 
     # Returns a Faraday client for a user, which will send requests to the specified client app.
     def client_app_client(user, client_app)
       client_app_client ||= begin
         Faraday.new(client_app.uri) do |conn|
-          conn.request(:authorization, 'Bearer', -> { user_jwt(user, scopes: client_app.scopes, client_id: client_app.uid) })
+          conn.request(:authorization, "Bearer", -> {
+ user_jwt(user, scopes: client_app.scopes, client_id: client_app.uid) })
           conn.request(:json)
           conn.response(:json)
           conn.response(:raise_error)
@@ -75,7 +76,7 @@ module MyEtm
 
     # Checks if the token is in JWT format
     def jwt_format?(token)
-      token.count('.') == 2
+      token.count(".") == 2
     end
 
     # Decodes a JWT token
@@ -84,7 +85,7 @@ module MyEtm
         jwt_token,
         signing_key.public_key,
         true,
-        algorithm: 'RS256'
+        algorithm: "RS256"
       ).first
       verify_claims(decoded_token)
       decoded_token.symbolize_keys
@@ -96,19 +97,20 @@ module MyEtm
     def verify_claims(decoded_token)
       # Verify the issuer
       issuer = Doorkeeper::OpenidConnect.configuration.issuer.call(nil, nil)
-      raise DecodeError, 'Invalid issuer' unless decoded_token['iss'] == issuer
+      raise DecodeError, "Invalid issuer" unless decoded_token["iss"] == issuer
 
       # Dynamically fetch the expected audiences from OAuth applications
       expected_audiences = Doorkeeper::Application.pluck(:uid)
-      unless expected_audiences.include?(decoded_token['aud'])
-        raise DecodeError, 'Invalid audience'
+      unless expected_audiences.include?(decoded_token["aud"])
+        raise DecodeError, "Invalid audience"
       end
 
       # Verify the token has not expired
-      raise DecodeError, 'Token has expired' unless decoded_token['exp'] && decoded_token['exp'] > Time.now.to_i
+      raise DecodeError,
+        "Token has expired" unless decoded_token["exp"] && decoded_token["exp"] > Time.now.to_i
     end
 
-    module_function :decode, :jwt_format?, :verify_claims, :signing_key_content, :user_jwt, :signing_key, :model_client, :engine_client, :client_app_client
-
+    module_function :decode, :jwt_format?, :verify_claims, :signing_key_content, :user_jwt,
+      :signing_key, :model_client, :engine_client, :client_app_client
   end
 end

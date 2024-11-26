@@ -2,7 +2,7 @@
 
 module Users
   class DeviseController < ApplicationController
-    layout 'login'
+    layout "login"
 
     # Used to make Devise compatible with Turbo.
     class Responder < ActionController::Responder

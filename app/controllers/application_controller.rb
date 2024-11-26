@@ -84,12 +84,12 @@ class ApplicationController < ActionController::Base
   #
   # Returns true.
   def render_not_found(thing = nil)
-    content = Rails.root.join('public/404.html').read
+    content = Rails.root.join("public/404.html").read
 
     unless thing.nil?
       # Swap out the word "page" for something else, when appropriate.
       document = Nokogiri::HTML.parse(content)
-      header = document.at_css('h1')
+      header = document.at_css("h1")
       header.content = header.content.sub(/\bpage\b/, thing)
 
       content = document.to_s
@@ -113,7 +113,7 @@ class ApplicationController < ActionController::Base
     return if message.nil?
 
     turbo_stream.update(
-      'toast',
+      "toast",
       ToastComponent.new(type: :notice, message:).render_in(view_context)
     )
   end
@@ -127,7 +127,7 @@ class ApplicationController < ActionController::Base
     return if message.nil?
 
     turbo_stream.update(
-      'toast',
+      "toast",
       ToastComponent.new(type: :alert, message:).render_in(view_context)
     )
   end

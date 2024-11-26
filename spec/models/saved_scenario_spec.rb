@@ -119,7 +119,7 @@ RSpec.describe SavedScenario, type: :model do
       it 'adds the old scenario_id to the history' do
         expect { ss.update_with_api_params(scenario_id: 2) }
           .to change(ss, :scenario_id_history)
-          .from([]).to([1])
+          .from([]).to([ 1 ])
       end
     end
 

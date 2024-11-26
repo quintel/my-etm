@@ -7,7 +7,7 @@ class CreatePersonalAccessToken
     include ActiveModel::Validations
     extend ActiveModel::Translation
 
-    SCOPES_PUBLIC = 'openid public'
+    SCOPES_PUBLIC = "openid public"
     SCOPES_READ   = "#{SCOPES_PUBLIC} scenarios:read".freeze
     SCOPES_WRITE  = "#{SCOPES_READ} scenarios:write".freeze
     SCOPES_DELETE = "#{SCOPES_WRITE} scenarios:delete".freeze
@@ -19,12 +19,12 @@ class CreatePersonalAccessToken
       delete: SCOPES_DELETE
     }.freeze
 
-    ExpiresType = Dry::Types['coercible.integer'] | Dry::Types['coercible.string']
+    ExpiresType = Dry::Types["coercible.integer"] | Dry::Types["coercible.string"]
 
-    attribute :name,          Dry::Types['coercible.string'].default('')
-    attribute :permissions,   Dry::Types['coercible.symbol'].default(:public)
-    attribute :email_scope,   Dry::Types['params.bool'].default(false)
-    attribute :profile_scope, Dry::Types['params.bool'].default(false)
+    attribute :name,          Dry::Types["coercible.string"].default("")
+    attribute :permissions,   Dry::Types["coercible.symbol"].default(:public)
+    attribute :email_scope,   Dry::Types["params.bool"].default(false)
+    attribute :profile_scope, Dry::Types["params.bool"].default(false)
     attribute :expires_in,    ExpiresType.default(30)
 
     transform_keys(&:to_sym)
@@ -32,8 +32,8 @@ class CreatePersonalAccessToken
     validates :name, presence: true
     validates :permissions, inclusion: { in: SCOPES.keys }
     validates :expires_in,
-              numericality: { greater_than: 0, unless: :never_expires? },
-              inclusion: { in: %w[never], message: :invalid, if: :never_expires? }
+      numericality: { greater_than: 0, unless: :never_expires? },
+      inclusion: { in: %w[never], message: :invalid, if: :never_expires? }
 
     def to_oauth_token_params
       {
@@ -49,13 +49,13 @@ class CreatePersonalAccessToken
     def scopes
       [
         SCOPES[permissions],
-        email_scope ? 'email' : nil,
-        profile_scope ? 'profile' : nil
-      ].compact.join(' ')
+        email_scope ? "email" : nil,
+        profile_scope ? "profile" : nil
+      ].compact.join(" ")
     end
 
     def never_expires?
-      expires_in == 'never'
+      expires_in == "never"
     end
   end
 

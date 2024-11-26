@@ -10,7 +10,7 @@ RSpec.describe ScenarioInvitationMailer, type: :mailer do
 
     it 'renders the headers' do
       expect(mail.subject).to eq('Invitation: ETM scenario Some saved scenario')
-      expect(mail.to).to eq([email])
+      expect(mail.to).to eq([ email ])
       expect(mail.from).to eq(Mail::Field.parse("From: #{Settings.mailer.from}").addresses)
     end
 

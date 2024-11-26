@@ -6,12 +6,12 @@ module Api
       before_action :authenticate_request!
 
       rescue_from ActionController::ParameterMissing do |e|
-        render json: { errors: [e.message] }, status: :bad_request
+        render json: { errors: [ e.message ] }, status: :bad_request
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
         render json: {
-          errors: ["No such #{e.model.underscore.humanize.downcase}: #{e.id}"]
+          errors: [ "No such #{e.model.underscore.humanize.downcase}: #{e.id}" ]
         }, status: :not_found
       end
 
@@ -21,14 +21,14 @@ module Api
 
       rescue_from CanCan::AccessDenied do |e|
         if e.subject.is_a?(SavedScenario) && !e.subject.private?
-          render status: :forbidden, json: { errors: ['Scenario does not belong to you'] }
+          render status: :forbidden, json: { errors: [ "Scenario does not belong to you" ] }
         else
           render_not_found
         end
       end
 
       rescue_from MyEtm::Auth::DecodeError do
-        render json: { errors: ['Invalid or expired token'] }, status: :unauthorized
+        render json: { errors: [ "Invalid or expired token" ] }, status: :unauthorized
       end
 
       private
@@ -37,13 +37,13 @@ module Api
       def decoded_token
         return @decoded_token if defined?(@decoded_token)
 
-        auth_header = request.headers['Authorization']
-        token = auth_header&.split(' ')&.last
+        auth_header = request.headers["Authorization"]
+        token = auth_header&.split(" ")&.last
         return nil unless token
 
         @decoded_token = MyEtm::Auth.decode(token)
       rescue MyEtm::Auth::DecodeError, MyEtm::Auth::TokenExchangeError => e
-        Rails.logger.debug "Token decoding failed: #{e.message}"
+        Rails.logger.debug("Token decoding failed: #{e.message}")
         nil
       end
 
@@ -78,15 +78,15 @@ module Api
           @current_user = User.find(doorkeeper_token.resource_owner_id)
         elsif decoded_token
           unless current_user
-            render json: { errors: ['Unauthorized'] }, status: :unauthorized
+            render json: { errors: [ "Unauthorized" ] }, status: :unauthorized
           end
         else
-          render json: { errors: ['Authentication required'] }, status: :unauthorized
+          render json: { errors: [ "Authentication required" ] }, status: :unauthorized
         end
       end
 
       # Send a 404 response with an optional JSON body.
-      def render_not_found(body = { errors: ['Not found'] })
+      def render_not_found(body = { errors: [ "Not found" ] })
         render json: body, status: :not_found
       end
 
@@ -99,7 +99,7 @@ module Api
       def process_action(*args)
         super
       rescue ActionDispatch::Http::Parameters::ParseError => e
-        render status: 400, json: { errors: [e.message] }
+        render status: 400, json: { errors: [ e.message ] }
       end
 
       def track_token_use
@@ -122,7 +122,6 @@ module Api
         user_data = decoded_token[:user]
         User.find_or_create_by(id: decoded_token[:sub]) do |user|
           user.assign_attributes(user_data)
-
         end
       end
 

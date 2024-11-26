@@ -28,9 +28,9 @@ module SavedScenarioUser::UserRow
 
     def destroy_text
       if @destroyable
-        t('saved_scenario_users.confirm_destroy.button')
+        t("saved_scenario_users.confirm_destroy.button")
       else
-        t('saved_scenario_users.confirm_destroy.not_possible')
+        t("saved_scenario_users.confirm_destroy.not_possible")
       end
     end
   end

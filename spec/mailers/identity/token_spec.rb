@@ -12,7 +12,7 @@ RSpec.describe Identity::TokenMailer, type: :mailer do
 
     it 'renders the headers' do
       expect(mail.subject).to eq('You created a new token')
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
       expect(mail.from).to eq(Mail::Field.parse("From: #{Settings.mailer.from}").addresses)
     end
 
@@ -35,7 +35,7 @@ RSpec.describe Identity::TokenMailer, type: :mailer do
 
     it 'renders the headers' do
       expect(mail.subject).to eq('Your personal access token will expire soon')
-      expect(mail.to).to eq([user.email])
+      expect(mail.to).to eq([ user.email ])
       expect(mail.from).to eq(Mail::Field.parse("From: #{Settings.mailer.from}").addresses)
     end
 

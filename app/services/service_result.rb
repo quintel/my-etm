@@ -27,10 +27,10 @@ class ServiceResult
 
   # Public: Creates a failure result from a Faraday::UnprocessableEntityError.
   def self.failure_from_unprocessable_entity(exception, value = nil)
-    errors = exception.response[:body]['errors']
+    errors = exception.response[:body]["errors"]
 
     if errors.is_a?(Hash)
-      errors = exception.response[:body]['errors'].flat_map do |key, messages|
+      errors = exception.response[:body]["errors"].flat_map do |key, messages|
         messages.map { |message| "#{key.humanize} #{message}" }
       end
     end
@@ -39,7 +39,7 @@ class ServiceResult
   end
 
   def self.single_failure_from_unprocessable_entity_on_multiple_objects(exception, value = nil)
-    errors = exception.response[:body]['errors']
+    errors = exception.response[:body]["errors"]
     errors = errors.values.first if errors.is_a?(Hash)
 
     failure(errors, value)
@@ -74,7 +74,7 @@ class ServiceResult
   # Public: Returns the value if the result is successful, otherwise raises an error with the
   # given message.
   def unwrap(error_msg = nil)
-    error_msg ||= 'Cannot unwrap failed ServiceResult'
+    error_msg ||= "Cannot unwrap failed ServiceResult"
     failure? ? raise("#{error_msg}: #{Array(@errors).join(', ')}") : @value
   end
 end

@@ -1,5 +1,5 @@
 class StaticPagesController < ApplicationController
-  before_action :require_feedback_email, only: [:send_message]
+  before_action :require_feedback_email, only: [ :send_message ]
 
   # invisible_captcha(
   #   only: [:send_message],
@@ -8,7 +8,6 @@ class StaticPagesController < ApplicationController
   # )
 
   def empty
-
   end
 
   def contact
@@ -32,13 +31,13 @@ class StaticPagesController < ApplicationController
       ContactUsMailer.contact_email(
         @message,
         locale: I18n.locale,
-        user_agent: request.env['HTTP_USER_AGENT']
+        user_agent: request.env["HTTP_USER_AGENT"]
       ).deliver
 
-      flash[:notice] = t('contact.contact.success_flash')
+      flash[:notice] = t("contact.contact.success_flash")
       redirect_to contact_url
     else
-      flash[:alert] = @message.errors.join(', ')
+      flash[:alert] = @message.errors.join(", ")
       redirect_to contact_url
     end
   end

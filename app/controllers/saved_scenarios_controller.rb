@@ -18,7 +18,7 @@ class SavedScenariosController < ApplicationController
       .saved_scenarios
       .available
       .includes(:featured_scenario, :users)
-      .order('updated_at DESC')
+      .order("updated_at DESC")
   end
 
   # GET /saved_scenarios/1 or /saved_scenarios/1.json
@@ -77,13 +77,13 @@ class SavedScenariosController < ApplicationController
   end
 
   def confirm_destroy
-    render :confirm_destroy, layout: 'application'
+    render :confirm_destroy, layout: "application"
   end
 
   # DELETE /saved_scenarios/1 or /saved_scenarios/1.json
   def destroy
     @saved_scenario.destroy
-    flash.notice = t('scenario.trash.deleted_flash')
+    flash.notice = t("scenario.trash.deleted_flash")
     redirect_to discarded_path
   end
 
@@ -121,7 +121,7 @@ class SavedScenariosController < ApplicationController
       @saved_scenario.discarded_at = Time.zone.now
       @saved_scenario.save(touch: false)
 
-      flash.notice = t('trash.discarded_flash')
+      flash.notice = t("trash.discarded_flash")
       flash[:undo_params] = undiscard_saved_scenario_path(@saved_scenario)
     end
 
@@ -136,7 +136,7 @@ class SavedScenariosController < ApplicationController
       @saved_scenario.discarded_at = nil
       @saved_scenario.save(touch: false)
 
-      flash.notice = t('trash.undiscarded_flash')
+      flash.notice = t("trash.undiscarded_flash")
       flash[:undo_params] = discard_saved_scenario_path(@saved_scenario)
     end
 

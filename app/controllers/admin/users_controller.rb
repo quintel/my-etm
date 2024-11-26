@@ -11,26 +11,27 @@ module Admin
 
     # All users
     def all
-      @users = User.all.includes(:saved_scenarios)#, :collections)
+      @users = User.all.includes(:saved_scenarios) # , :collections)
     end
 
-    # Instant confirmation for our users that struggel with their spam
+    # Instant confirmation for our users that struggle with their spam
     def confirm
       @user.confirm!
+      flash[:notice] = "User confirmed."
     end
 
     def edit; end
 
     def update
-      if @user.update!(user_params.compact_blank)
-        flash[:notice] = t('admin.users.edit.success')
+      if @user.update(user_params.compact_blank)
+        flash[:notice] = t("admin.users.edit.success")
 
         respond_to do |format|
           format.html { redirect_to(admin_users_path) }
 
           format.turbo_stream do
             render turbo_stream: [
-              turbo_stream.update(:modal, ''),
+              turbo_stream.update(:modal, ""),
               turbo_user,
               turbo_notice
             ]
@@ -48,19 +49,17 @@ module Admin
     end
 
     def user_params
-      params.require(:user).permit(:name, :email, :password, :admin)
+      attributes = [:name, :email, :password]
+      attributes << :admin if current_user&.admin?
+      params.require(:user).permit(*attributes)
     end
 
     def turbo_notice(message = nil)
-      if message.nil?
-        message = flash[:notice]
-        flash.delete(:notice)
-      end
-
+      message ||= flash.delete(:notice)
       return if message.nil?
 
       turbo_stream.update(
-        'toast',
+        "toast",
         ToastComponent.new(type: :notice, message:).render_in(view_context)
       )
     end

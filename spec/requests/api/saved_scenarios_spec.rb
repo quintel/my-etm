@@ -23,7 +23,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       it 'returns the saved scenarios' do
         expect(response.parsed_body).to match_array(
-          [user_ss1, user_ss2].as_json
+          [ user_ss1, user_ss2 ].as_json
         )
       end
 
@@ -285,7 +285,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         expect { request }
           .to change { scenario.reload.scenario_id_history }
           .from([])
-          .to([previous_id])
+          .to([ previous_id ])
       end
     end
 
@@ -325,7 +325,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
     context 'when updating with a historic scenario ID' do
       before do
-        scenario.update(scenario_id_history: [999_999, 2, 111_111])
+        scenario.update(scenario_id_history: [ 999_999, 2, 111_111 ])
         scenario.reload
       end
 
@@ -337,7 +337,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       it 'changes the scenario ID history' do
         expect { request }
           .to change { scenario.reload.scenario_id_history }
-          .from([999_999, 2, 111_111]).to([999_999])
+          .from([ 999_999, 2, 111_111 ]).to([ 999_999 ])
       end
 
       it 'changes the scenario ID' do
