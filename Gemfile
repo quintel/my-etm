@@ -57,8 +57,6 @@ gem 'local_time'
 gem 'erb-formatter'
 gem 'pagy'
 
-
-
 # Testing
 gem 'capybara'
 

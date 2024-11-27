@@ -28,4 +28,11 @@
   <%= render(Login::ButtonComponent.new(form: f).with_content(t('.submit'))) %>
 <% end %>
 
+<p class="terms-agreement text-sm text-gray-600 mt-4 text-center">
+  By signing up, you agree to our
+  <a href="https://energytransitionmodel.com/terms-of-service" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Terms of Service</a>
+  and
+  <a href="https://energytransitionmodel.com/privacy-policy" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Privacy Policy</a>.
+</p>
+
 <%= render "devise/shared/links" %>
