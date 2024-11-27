@@ -1,4 +1,7 @@
 class SavedScenariosController < ApplicationController
+  include Pagy::Backend
+  include Filterable
+
   load_resource only: %i[discard undiscard publish unpublish confirm_destroy]
   load_and_authorize_resource only: %i[show new create edit update destroy]
 
@@ -12,16 +15,37 @@ class SavedScenariosController < ApplicationController
     authorize!(:destroy, @saved_scenario)
   end
 
-  # GET /saved_scenarios or /saved_scenarios.json
+  # GET /saved_scenarios
   def index
-    @saved_scenarios = current_user
-      .saved_scenarios
-      .available
-      .includes(:featured_scenario, :users)
-      .order("updated_at DESC")
+    @pagy_saved_scenarios, @saved_scenarios = pagy_countless(user_saved_scenarios)
+
+    respond_to do |format|
+      format.html
+      format.turbo_stream
+    end
   end
 
-  # GET /saved_scenarios/1 or /saved_scenarios/1.json
+  # Renders a partial of saved_scenarios based on turbo search and filters
+  #
+  # GET /saved_scenarios/list
+  def list
+    filtered = filter!(SavedScenario)
+      .viewable_by?(current_user)
+      .available
+      .includes(:featured_scenario, :users)
+
+    @pagy_saved_scenarios, @saved_scenarios = pagy(filtered)
+
+    respond_to do |format|
+      format.html { render(
+        partial: "saved_scenarios",
+        locals: { saved_scenarios: @saved_scenarios, pagy_saved_scenarios: @pagy_saved_scenarios }
+      ) }
+      format.turbo_stream { render(:index) }
+    end
+  end
+
+  # GET /saved_scenarios/1
   def show
   end
 
@@ -34,7 +58,7 @@ class SavedScenariosController < ApplicationController
   def edit
   end
 
-  # POST /saved_scenarios or /saved_scenarios.json
+  # POST /saved_scenarios
   def create
     ActiveRecord::Base.transaction do
       @saved_scenario = SavedScenario.new(saved_scenario_params)
@@ -49,12 +73,10 @@ class SavedScenariosController < ApplicationController
         respond_to do |format|
           format.html {
             redirect_to @saved_scenario, notice: t("scenario.succesful_update") }
-          format.json { render :show, status: :created, location: @saved_scenario }
         end
       else
         respond_to do |format|
           format.html { render :new, status: :unprocessable_entity }
-          format.json { render json: @saved_scenario.errors, status: :unprocessable_entity }
         end
         # Rollback the transaction if the scenario save fails
         raise ActiveRecord::Rollback
@@ -144,6 +166,15 @@ class SavedScenariosController < ApplicationController
   end
 
   private
+
+    def user_saved_scenarios
+      current_user
+        .saved_scenarios
+        .available
+        .includes(:featured_scenario, :users)
+        .order("updated_at DESC")
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_saved_scenario
       @saved_scenario = SavedScenario.find(params[:id])

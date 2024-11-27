@@ -158,6 +158,7 @@ en:
 
   saved_scenarios:
     empty: You don't have any scenarios.
+    search_by_title: Filter by title
     confirm_destroy:
       title: Permanently deleting scenario
       warning_header: You are permanently deleting your scenario

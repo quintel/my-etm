@@ -1,9 +1,9 @@
 - content_for :title, "Saved scenarios"
 - content_for :menu_title, "Saved scenarios"
-- content_for :block_right, "FILTERS"
+
+= render(partial: "block_right_with_filters", locals: { has_saved_scenarios: @saved_scenarios.present? })
 
 - if @saved_scenarios.present?
-  - @saved_scenarios.each do |saved_scenario|
-    = render(SavedScenarios::Row::Component.new(path: saved_scenario_path(saved_scenario), saved_scenario: saved_scenario))
+  = render(partial: "saved_scenarios", locals: {pagy_saved_scenarios: @pagy_saved_scenarios, saved_scenarios: @saved_scenarios})
 - else
   =t('saved_scenarios.empty')

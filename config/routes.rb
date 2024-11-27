@@ -45,6 +45,12 @@ Rails.application.routes.draw do
       get :confirm_destroy
     end
 
+    collection do
+      get :list
+      post :list
+      post :index
+    end
+
     member do
       put :publish
       put :unpublish

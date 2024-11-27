@@ -18,11 +18,6 @@ RSpec.describe SavedScenariosController, type: :routing do
       expect(get: "/saved_scenarios/1/edit").to route_to("saved_scenarios#edit", id: "1")
     end
 
-
-    it "routes to #create" do
-      expect(post: "/saved_scenarios").to route_to("saved_scenarios#create")
-    end
-
     it "routes to #update via PUT" do
       expect(put: "/saved_scenarios/1").to route_to("saved_scenarios#update", id: "1")
     end

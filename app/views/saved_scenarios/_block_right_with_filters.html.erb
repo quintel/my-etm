@@ -1,0 +1,20 @@
+<% content_for :block_right do %>
+  <% if has_saved_scenarios %>
+    <%= form_with url: list_saved_scenarios_path,
+      method: :get,
+      data: { controller: "search-form", search_form_target: "form", turbo_frame: "saved_scenarios", 'turbo-method': "get" } do |form|
+      %>
+      <div class="flex flex-col pl-5">
+        <div class="mb-5 flex text-midnight-800">
+          <%= form.text_field :title,
+            placeholder: t('saved_scenarios.search_by_title'),
+            class: "p-2 text-sm",
+            autocomplete: "off",
+            data: { action: "input->search-form#search" }
+          %>
+          <%= heroicon 'magnifying-glass', options: {class: 'w-5 h-5 ml-2 my-auto'} %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

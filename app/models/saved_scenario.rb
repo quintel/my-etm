@@ -13,6 +13,9 @@ class SavedScenario < ApplicationRecord
   # Discarded scenarios are deleted automatically after this period.
   AUTO_DELETES_AFTER = 60.days
 
+  # Used by Fiterable Concern
+  FILTER_PARAMS = %i[title].freeze
+
   has_one :featured_scenario, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
   has_many :users, through: :saved_scenario_users
@@ -29,10 +32,23 @@ class SavedScenario < ApplicationRecord
 
   serialize :scenario_id_history, coder: YAML, type: Array
 
+  scope :by_title, ->(title) { where("title LIKE ?", "%#{title}%") }
+
   # Returns all saved scenarios whose areas are avaliable.
   def self.available
     # kept.where(area_code: Engine::Area.keys)
     kept
+  end
+
+  # Public: Used to filter scenarios.
+  #
+  # Returns a collection of filtered SavedScenarios
+  def self.filter(filters)
+    scenarios = order(created_at: :desc)
+
+    scenarios = scenarios.by_title(filters["title"]) if filters["title"].present?
+
+    scenarios
   end
 
   # def scenario(engine_client)

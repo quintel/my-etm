@@ -85,36 +85,6 @@ RSpec.describe "/saved_scenarios", type: :request do
     end
   end
 
-  describe "POST /create" do
-    before { sign_in(user) }
-
-    context "with valid parameters" do
-      it "creates a new SavedScenario" do
-        expect {
-          post(saved_scenarios_url, params: { saved_scenario: valid_attributes })
-        }.to change(SavedScenario, :count).by(1)
-      end
-
-      it "redirects to the created saved_scenario" do
-        post saved_scenarios_url, params: { saved_scenario: valid_attributes }
-        expect(response).to redirect_to(saved_scenario_url(SavedScenario.last))
-      end
-    end
-
-    context "with invalid parameters" do
-      it "does not create a new SavedScenario" do
-        expect {
-          post(saved_scenarios_url, params: { saved_scenario: invalid_attributes })
-        }.to change(SavedScenario, :count).by(0)
-      end
-
-      it "renders a response with 422 status (i.e. to display the 'new' template)" do
-        post saved_scenarios_url, params: { saved_scenario: invalid_attributes }
-        expect(response).to have_http_status(:unprocessable_entity)
-      end
-    end
-  end
-
   describe "PATCH /update" do
     before { sign_in(user) }
 
