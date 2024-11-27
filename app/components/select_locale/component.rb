@@ -2,5 +2,6 @@
 
 module SelectLocale
   class Component < ApplicationComponent
+    option :current_language
   end
 end

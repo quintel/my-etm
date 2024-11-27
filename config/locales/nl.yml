@@ -1,4 +1,5 @@
 nl:
+  language: Nederlands
   time:
     formats:
       short: "%-d %b %H:%M"

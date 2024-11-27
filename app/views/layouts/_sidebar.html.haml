@@ -16,9 +16,10 @@
 
   .absolute.bottom-0.left-0.inline-block.w-full
     -# = render(SelectLocale::Component.new)
-    .p-5.pl-6.text-midnight-800
-      %span= heroicon 'language', options: { class: 'inline-block w-6 h-6' }
-      Switch language
+    .py-3.text-midnight-800
+      = render(SelectLocale::Component.new(current_language: t('language')))
+      -# %span= heroicon 'language', options: { class: 'inline-block w-6 h-6' }
+      -# Switch language
     - if current_user
       .bg-midnight-600.py-3{ class: 'hover:underline' }
         = render(SidebarItem::ProfileComponent.new(path: identity_profile_path, title: current_user.name, icon: 'user-circle', active: controller_name == 'settings', text: 'text-midnight-800'))

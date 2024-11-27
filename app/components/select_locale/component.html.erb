@@ -4,29 +4,23 @@
   data-controller="dropdown"
   aria-label="<%= t('select_language') %>"
 >
-  <button
+  <div
     id="select-locale-button"
     data-action="click->dropdown#toggle"
     class="
-      inline-flex
-      gap-1
-      font-medium
-      items-center
+      flex
+      p-2
+      pl-6
+      w-full
       transition
-      text-gray-600
-      hover:text-gray-800
-      hover:bg-gray-200
-      active:text-gray-900
-      active:bg-gray-300
-      rounded-md
-      px-2.5
-      py-1.5
-      mr-1
+      hover:underline
+      hover:cursor-pointer
     "
   >
-    <%= inline_svg 'hero/20/translate.svg' %>
-    <%= inline_svg 'hero/20/chevron-down.svg', class: '-mx-1' %>
-  </button>
+    <span class="mr-5"><%= heroicon 'language', options: { class: 'w-6 h-6' } %></span>
+    <span><%= @current_language %></span>
+    <%=heroicon 'chevron-down', options: {'data-dropdown-target': 'chevron', class: 'ml-auto mr-6 w-5 h-5' } %>
+  </div>
   <div
     role="menu"
     aria-labelledby="select-locale-button"
@@ -35,18 +29,10 @@
     class="
       hidden
       absolute
-      bg-white
-      font-medium
-      -left-8
-      mt-2
-      p-2
-      origin-center
-      ring-1
-      ring-black
-      ring-opacity-10
-      rounded-md
-      shadow-lg
-      text-gray-600
+      bg-midnight-300
+      bottom-14
+      px-5
+      w-full
       text-sm
       z-10
       focus:outline-none
@@ -59,14 +45,24 @@
     data-transition-leave-from="transform opacity-100 scale-100"
     data-transition-leave-to="transform opacity-0 scale-95"
   >
-    <%= render(SelectLocale::ItemComponent.new(
-      selected: I18n.locale == :en,
-      href: url_for(params.permit!.merge(locale: 'en'))
-    ).with_content('English')) %>
+    <div
+      class="
+        w-full
+        px-5
+        py-5
+        border-t
+        border-b
+      "
+      >
+      <%= render(SelectLocale::ItemComponent.new(
+        selected: I18n.locale == :en,
+        href: url_for(params.permit!.merge(locale: 'en'))
+      ).with_content('English')) %>
 
-    <%= render(SelectLocale::ItemComponent.new(
-      selected: I18n.locale == :nl,
-      href: url_for(params.permit!.merge(locale: 'nl'))
-    ).with_content('Nederlands')) %>
+      <%= render(SelectLocale::ItemComponent.new(
+        selected: I18n.locale == :nl,
+        href: url_for(params.permit!.merge(locale: 'nl'))
+      ).with_content('Nederlands')) %>
+    </div>
   </div>
 </div>
