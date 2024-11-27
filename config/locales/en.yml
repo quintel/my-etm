@@ -252,3 +252,14 @@ en:
       you created. You can either create a new collection from your own scenarios,
       or create a transition path from one of your scenarios. We will create
       interpolated scenarios for intermediate years for you.
+  user:
+    forgot_password:
+      mail:
+        subject: "Reset Your Password"
+      body:
+        header: "Password Reset Request"
+        message: "Someone has requested a link to change your password. You can do this through the link below."
+        button_text: "Change My Password"
+        link_message: "If the button doesn't work, copy and paste the link below into your browser:"
+        ignore_message: "If you didn't request this, please ignore this email."
+        no_change_message: "Your password won't change until you access the link above and create a new one."
