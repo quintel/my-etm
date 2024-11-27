@@ -42,7 +42,8 @@
       ))%>
       <%= render(SidebarItem::ProfileItemComponent.new(
         path: @sign_out_path,
-        icon: 'arrow-left'
+        icon: 'arrow-left',
+        data: "data-turbo=false"
       ).with_content(
         'Logout'
       ))%>
