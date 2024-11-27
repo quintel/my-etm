@@ -15,14 +15,10 @@
       = render(SidebarItem::Component.new(path: admin_path, title: t('sidebar.admin'), icon: 'beaker', active: %[users staff_applications].include?(controller_name)))
 
   .absolute.bottom-0.left-0.inline-block.w-full
-    -# = render(SelectLocale::Component.new)
     .py-3.text-midnight-800
       = render(SelectLocale::Component.new(current_language: t('language')))
-      -# %span= heroicon 'language', options: { class: 'inline-block w-6 h-6' }
-      -# Switch language
     - if current_user
-      .bg-midnight-600.py-3{ class: 'hover:underline' }
-        = render(SidebarItem::ProfileComponent.new(path: identity_profile_path, title: current_user.name, icon: 'user-circle', active: controller_name == 'settings', text: 'text-midnight-800'))
+      = render(SidebarItem::ProfileComponent.new(path: identity_profile_path, sign_out_path: destroy_user_session_path,title: current_user.name, icon: 'user-circle', active: controller_name == 'settings', text: 'text-midnight-800'))
     - else
       -# TODO: login!
       LOGIN

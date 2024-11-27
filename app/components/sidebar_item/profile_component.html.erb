@@ -1,9 +1,76 @@
-<div class="flex">
-  <%= link_to @path, class: "flex p-2 pl-6 w-full transition #{css_classes}" do %>
-    <span class="mr-5"><%= heroicon @icon, options: { class: 'w-6 h-6' } %></span>
-    <span><%= @title %></span>
-  <% end %>
-  <div class="w-1/4 p-2 text-midnight-800">
-    <%=heroicon 'chevron-down', options: { class: 'w-5 h-5' } %>
+<div
+  data-transition-target="content"
+  data-controller="dropdown"
+  aria-label="account"
+>
+  <div
+    role="menu"
+    aria-labelledby="account-options-button"
+    data-dropdown-target="content"
+    tabindex="-1"
+    class="
+      hidden
+      bg-midnight-300
+      bottom-14
+      px-5
+      border-t
+      w-full
+      text-sm
+      z-10
+      focus:outline-none
+    "
+    tabindex="0"
+    data-transition-enter-active="transition ease-out duration-100"
+    data-transition-enter-from="transform opacity-0 scale-90"
+    data-transition-enter-to="transform opacity-100 scale-100"
+    data-transition-leave-active="transition ease-in duration-150"
+    data-transition-leave-from="transform opacity-100 scale-100"
+    data-transition-leave-to="transform opacity-0 scale-95"
+  >
+    <div
+      class="
+        w-full
+        px-5
+        py-5
+      "
+      >
+      <%= render(SidebarItem::ProfileItemComponent.new(
+        path: @path,
+        icon: 'identification'
+      ).with_content(
+        'Profile'
+      ))%>
+      <%= render(SidebarItem::ProfileItemComponent.new(
+        path: @sign_out_path,
+        icon: 'arrow-left'
+      ).with_content(
+        'Logout'
+      ))%>
+    </div>
   </div>
+
+  <div class="
+    flex
+    bg-midnight-600
+    py-3
+    !outline-none
+    ">
+    <%= link_to @path, class: "flex p-2 pl-6 w-full hover:underline !outline-none transition #{css_classes}" do %>
+        <span class="mr-5"><%= heroicon @icon, options: { class: 'w-6 h-6' } %></span>
+        <span><%= @title %></span>
+    <% end %>
+    <div
+      id="account-options-button"
+      data-action="click->dropdown#toggle"
+      class="
+        w-1/4
+        p-2
+        text-midnight-800
+        hover:cursor-pointer
+      ">
+        <%=heroicon 'chevron-down', options: { 'data-dropdown-target': 'chevron', class: 'w-5 h-5' } %>
+    </div>
+  </div>
+
+
 </div>
