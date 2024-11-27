@@ -34,3 +34,14 @@ nl:
       scenario_viewer: gast
       scenario_collaborator: bewerker
       scenario_owner: eigenaar
+  user:
+    forgot_password:
+      mail:
+        subject: "Reset Je Wachtwoord"
+      body:
+        header: "Wachtwoord Reset Aanvraag"
+        message: "Iemand heeft gevraagd om een link om je wachtwoord te wijzigen. Je kunt dit doen via de onderstaande link."
+        button_text: "Wijzig Mijn Wachtwoord"
+        link_message: "Als de knop niet werkt, kopieer en plak de onderstaande link in je browser:"
+        ignore_message: "Als je deze aanvraag niet hebt gedaan, kun je deze e-mail negeren."
+        no_change_message: "Je wachtwoord wordt niet gewijzigd totdat je de bovenstaande link opent en een nieuw wachtwoord aanmaakt."
