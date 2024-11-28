@@ -88,9 +88,9 @@
 
               # Authentication.
               NEXTAUTH_URL=%<collections_url>s
-              NEXTAUTH_SECRET=none
               AUTH_CLIENT_ID=%<uid>s
               AUTH_CLIENT_SECRET=%<secret>s
+              ETENGINE_CLIENT_ID=%<etengine_uid>s
 
             ENV
           )
