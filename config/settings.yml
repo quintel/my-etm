@@ -43,6 +43,13 @@ myetm:
 
 collections_url: http://localhost:3005
 
+mailchimp:
+  newsletter:
+    list_url: <%= ENV.fetch('MAILCHIMP_LIST_URL', nil) %>
+    api_key: <%= ENV.fetch('MAILCHIMP_API_KEY', nil) %>
+  changelog:
+    list_url: "Need to make an env variable for this - details are stored securely for now"
+    api_key: <%= ENV.fetch('MAILCHIMP_API_KEY', nil) %>
 
 # set to true if the server won't have online access. this disables Sentry,
 # etc.
@@ -54,8 +61,3 @@ mailer:
 
 auth:
   issuer: <%= ENV.fetch('OPENID_ISSUER', 'http://localhost:3002') %>
-
-# Optional settings to configure the Mailchimp integration.
-mailchimp:
-  list_url: <%= ENV.fetch('MAILCHIMP_LIST_URL', nil) %>
-  api_key: <%= ENV.fetch('MAILCHIMP_API_KEY', nil) %>
