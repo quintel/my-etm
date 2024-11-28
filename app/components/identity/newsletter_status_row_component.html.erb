@@ -1,32 +1,38 @@
-<%= render(Identity::ProfileRowComponent.new(title: t('.title'))) do |row| %>
+<%= render(Identity::ProfileRowComponent.new(title: t(".title", audience: t("identity.audience.#{@audience}")))) do |row| %>
   <% if @subscribed %>
     <div class="flex items-center gap-1 text-emerald-600">
-      <%= heroicon 'check-circle', options: {class: 'w-5 h-5 mr-2'} %>
-      <%= t('.subscribed') %>
+      <%= heroicon 'check-circle', options: { class: 'w-5 h-5 mr-2' } %>
+      <%= t('.subscribed', audience: t("identity.audience.#{@audience}")) %>
     </div>
 
     <% row.message do %>
       <p>
-        <%= t('.subscribed_message') %>
+        <%= t('.subscribed_message', audience: t("identity.audience.#{@audience}")) %>
       </p>
     <% end %>
 
     <% row.button do %>
-      <%= button_to t('.unsubscribe'), identity_edit_newsletter_path, params: { subscribed: false }, class: button_classes(color: :default_colored) %>
+      <%= button_to t('.unsubscribe', audience: t("identity.audience.#{@audience}")),
+                    identity_update_subscription_path(@audience),
+                    params: { subscribed: false },
+                    class: button_classes(color: :default_colored) %>
     <% end %>
   <% else %>
     <div class="flex items-center gap-1">
-      <%= t('.not_subscribed') %>
+      <%= t('.not_subscribed', audience: t("identity.audience.#{@audience}")) %>
     </div>
 
     <% row.message do %>
       <p>
-        <%= t('.not_subscribed_message') %>
+        <%= t('.not_subscribed_message', audience: t("identity.audience.#{@audience}")) %>
       </p>
     <% end %>
 
     <% row.button do %>
-      <%= button_to t('.subscribe'), identity_edit_newsletter_path, params: { subscribed: true }, class: button_classes(color: :default_colored) %>
+      <%= button_to t('.subscribe', audience: t("identity.audience.#{@audience}")),
+                    identity_update_subscription_path(@audience),
+                    params: { subscribed: true },
+                    class: button_classes(color: :default_colored) %>
     <% end %>
   <% end %>
 <% end %>

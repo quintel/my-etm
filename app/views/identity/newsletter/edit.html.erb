@@ -1,3 +1,5 @@
-<%= turbo_frame_tag :newsletter do %>
-  <%= render(Identity::NewsletterStatusRowComponent.new(subscribed: MyEtm::Mailchimp.subscribed?(current_user.email))) %>
+<%= turbo_frame_tag @audience do %>
+  <%= render(Identity::NewsletterStatusRowComponent.new(
+    subscribed: MyEtm::Mailchimp.subscribed?(current_user.email, audience: @audience), audience: @audience
+  )) %>
 <% end %>

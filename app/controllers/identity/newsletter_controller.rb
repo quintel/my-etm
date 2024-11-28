@@ -5,6 +5,7 @@ module Identity
     include IdentityController
 
     before_action :require_mailchimp_configured
+    before_action :set_audience
 
     def edit
       redirect_to(identity_profile_path) unless turbo_frame_request?
@@ -14,12 +15,12 @@ module Identity
       @subscribed = ActiveModel::Type::Boolean.new.cast(params[:subscribed])
 
       service = if @subscribed
-        CreateNewsletterSubscription
+        CreateSubscription
       else
-        DeleteNewsletterSubscription
+        DeleteSubscription
       end
 
-      service.new.call(user: current_user).either(
+      service.new.call(user: current_user, audience: @audience).either(
         lambda do |_|
           respond_to do |format|
             format.turbo_stream
@@ -35,8 +36,24 @@ module Identity
 
     private
 
+    # Ensure Mailchimp is configured for the selected audience
     def require_mailchimp_configured
       redirect_to(identity_profile_path) unless MyEtm::Mailchimp.enabled?
+    end
+
+    # Determine which audience is being handled
+    def set_audience
+      @audience = params[:audience]
+
+      if @audience.is_a?(Hash)
+        @audience = @audience[:audience] || @audience['audience']
+      end
+
+      @audience = @audience&.to_sym
+
+      unless %i[newsletter changelog].include?(@audience)
+        redirect_to identity_profile_path, alert: "Invalid audience specified."
+      end
     end
   end
 end

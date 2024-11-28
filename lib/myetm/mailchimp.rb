@@ -5,39 +5,58 @@ module MyEtm
   module Mailchimp
     module_function
 
+    # Checks if Mailchimp is configured for a given audience
     def enabled?
-      Settings.dig(:mailchimp, :list_url).present? && Settings.dig(:mailchimp, :api_key).present?
+      Settings.mailchimp.newsletter.list_url.present? &&
+      Settings.mailchimp.newsletter.api_key.present? &&
+      Settings.mailchimp.changelog.list_url.present? &&
+      Settings.mailchimp.changelog.api_key.present?
     end
 
-    def client
-      unless enabled?
-        raise "Mailchimp is not configured. Please set the 'mailchimp.list_url' and " \
-              "'mailchimp.api_key' settings."
-      end
+    # Returns a Mailchimp API client for the given audience
+    def client(audience)
+      audience = audience.is_a?(Hash) ? audience[:audience]&.to_sym : audience&.to_sym
+      raise ArgumentError, "Invalid audience: #{audience.inspect}" unless %i[newsletter changelog].include?(audience)
 
-      Faraday.new(Settings.mailchimp.list_url) do |conn|
-        conn.request(:authorization, :basic, "", Settings.mailchimp.api_key)
+      Faraday.new(Settings.mailchimp[audience][:list_url]) do |conn|
+        conn.request(:authorization, :basic, "", Settings.mailchimp[audience][:api_key])
         conn.request(:json)
         conn.response(:json)
         conn.response(:raise_error)
       end
     end
 
+    # Returns the subscriber ID for a given email
     def subscriber_id(email)
       Digest::MD5.hexdigest(email.downcase)
     end
 
-    # Fetches the subscriber information if it exists. Raises Faraday::ResourceNotFound if the
-    # subscriber
-    def fetch_subscriber(email)
-      client.get("members/#{subscriber_id(email)}").body
+    # Fetches subscriber information for a given email and audience
+    def fetch_subscriber(email, audience)
+      client(audience).get("members/#{subscriber_id(email)}").body
     end
 
-    # Returns if the e-mail address is subscribed to the newsletter.
-    def subscribed?(email)
-      %w[pending subscribed].include?(fetch_subscriber(email)["status"])
+    # Checks if an email is subscribed to a given audience
+    def subscribed?(email, audience)
+      %w[pending subscribed].include?(fetch_subscriber(email, audience)["status"])
     rescue Faraday::ResourceNotFound
       false
+    end
+
+    # Subscribes an email to a given audience
+    def subscribe(email, audience, merge_fields: {}, status: "subscribed")
+      client(audience).put("members/#{subscriber_id(email)}", {
+        email_address: email,
+        status: status,
+        merge_fields: merge_fields
+      }).body
+    end
+
+    # Unsubscribes an email from a given audience
+    def unsubscribe(email, audience)
+      client(audience).patch("members/#{subscriber_id(email)}", {
+        status: "unsubscribed"
+      }).body
     end
   end
 end

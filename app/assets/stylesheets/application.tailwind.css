@@ -1,3 +1,5 @@
+@import "actiontext.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -67,7 +69,6 @@
   }
 }
 
-@import 'actiontext.css';
 
 
 input[type="email"], input[type="password"], input[type="text"], select, textarea {
