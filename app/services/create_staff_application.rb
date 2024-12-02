@@ -8,29 +8,47 @@ module CreateStaffApplication
   extend Dry::Monads[:result]
 
   def self.call(user, app_config, uri: nil)
+    # Find or initialize the staff application
     staff_app = user.staff_applications.find_or_initialize_by(name: app_config.key)
-    app = staff_app.application || user.oauth_applications.new
 
-    uri = URI.parse(uri || app.uri || app_config.uri)
+    # Parse and normalize the URI
+    parsed_uri = parse_and_normalize_uri(uri || staff_app.application&.uri || app_config.uri)
 
-    uri.path = ""
-    uri.query = nil
-    uri.fragment = nil
+    # Check if an application with this URI already exists
+    app = Doorkeeper::Application.find_by(uri: parsed_uri.to_s) ||
+          staff_app.application ||
+          user.oauth_applications.new
 
-    redirect_uri = uri.dup
+    # Build redirect URI
+    redirect_uri = parsed_uri.dup
     redirect_uri.path = app_config.redirect_path
 
+    # Update application attributes
     app.attributes = app_config.to_model_attributes.merge(
       owner: user,
-      uri: uri.to_s,
+      uri: parsed_uri.to_s,
       redirect_uri: redirect_uri.to_s
     )
 
+    # Save the application and handle failures
     return Failure(app) unless app.save
 
+    # Update and save the staff application
     staff_app.name = app_config.key
     staff_app.application = app
 
     staff_app.save ? Success(staff_app) : Failure(staff_app)
+  end
+
+  private
+
+  def self.parse_and_normalize_uri(uri_string)
+    uri = URI.parse(uri_string)
+    uri.path = ""
+    uri.query = nil
+    uri.fragment = nil
+    uri
+  rescue URI::InvalidURIError
+    raise ArgumentError, "Invalid URI: #{uri_string}"
   end
 end

@@ -4,6 +4,8 @@
 class Version
   LIST = %w[
     latest
+    2024.01
+    2024.02
   ].freeze
 
   # All available versions. Uses ActiveRecord syntax 'all' to

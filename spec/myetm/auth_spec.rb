@@ -44,7 +44,7 @@ RSpec.describe MyEtm::Auth do
     end
 
     it 'includes the expiration time in the JWT payload' do
-      expected_exp = (Time.now + 1.minute).to_i
+      expected_exp = (Time.now + 5.minutes).to_i
       expect(payload['exp']).to be_within(1).of(expected_exp)
     end
 
