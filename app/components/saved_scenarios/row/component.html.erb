@@ -1,4 +1,4 @@
-<%= link_to @path, class: "grid grid-cols-4 w-full transition mb-5 p-2 pr-4 rounded-md hover:bg-midnight-600" do %>
+<%= link_to @path, data: { turbo_frame: "_top" }, class: "grid grid-cols-4 w-full transition mb-5 p-2 pr-4 rounded-md hover:bg-midnight-600" do %>
   <div class="flex col-span-2">
     <span class="bg-midnight-900 rounded-md h-8 w-8 mr-5 pt-1 mt-1 text-center text-midnight-200"><%= initials_for(first_owner) %></span>
     <div class="flex flex-col">
