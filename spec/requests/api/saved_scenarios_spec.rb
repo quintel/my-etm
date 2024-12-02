@@ -4,6 +4,9 @@ require 'rails_helper'
 
 RSpec.describe 'API::SavedScenarios', type: :request, api: true do
   let(:user) { create(:user) }
+  let(:client) { Faraday.new(url: 'http://et.engine') }
+
+  before { allow(MyEtm::Auth).to receive(:engine_client).and_return(client) }
 
   describe 'GET /api/v1/saved_scenarios' do
     context 'with an access token with the correct scope' do
@@ -155,6 +158,12 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       }
     end
 
+    before do
+      allow(ApiScenario::SetCompatibility).to receive(:call)
+      allow(ApiScenario::VersionTags::Create).to receive(:call)
+      allow(ApiScenario::SetRoles).to receive(:to_preset)
+    end
+
     context 'when given a valid access token and data, and the user exists' do
       it 'returns created' do
         request
@@ -171,6 +180,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
     end
 
+    # TODO: check this: is strange??
     context 'when given a valid access token and data, but the user does not exist' do
       before do
         user.destroy!
@@ -264,6 +274,12 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         scenario_id: 2,
         title: 'My updated scenario'
       }
+    end
+
+    before do
+      allow(ApiScenario::SetCompatibility).to receive(:call)
+      allow(ApiScenario::VersionTags::Create).to receive(:call)
+      allow(ApiScenario::SetRoles).to receive(:to_preset)
     end
 
     context 'when given a valid access token and data' do

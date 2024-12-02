@@ -120,22 +120,4 @@ class SavedScenario < ApplicationRecord
 
     saved_scenarios
   end
-
-  # Updates a saved scenario with parameters from the API controller.
-  def update_with_api_params(params)
-    incoming_id = params[:scenario_id]
-    update_scenario_id(incoming_id)
-
-    self.attributes = params.except(:discarded, :scenario_id)
-
-    if params.key?(:discarded)
-      if params[:discarded]
-        self.discarded_at ||= Time.current
-      else
-        self.discarded_at = nil
-      end
-    end
-
-    save
-  end
 end

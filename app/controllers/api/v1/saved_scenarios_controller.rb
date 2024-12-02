@@ -18,29 +18,33 @@ module Api
         render json: current_user.saved_scenarios.find(params.require(:id))
       end
 
-      # POST /saved_scenarios or /saved_scenarios.json
+      # POST api/v1/saved_scenarios
       def create
-        @saved_scenario = SavedScenario.new(saved_scenario_params)
-        if @saved_scenario.save
-          # Associate the saved scenario with the current user
-          SavedScenarioUser.create!(
-            saved_scenario: @saved_scenario,
-            user: current_user,
-            role_id: User::Roles.index_of(:scenario_owner)
-          )
+        result = SavedScenario::Create.call(
+          engine_client,
+          saved_scenario_params,
+          current_user
+        )
 
-          render json: @saved_scenario, status: :created
+        if result.successful?
+          render json: result.value, status: :created
         else
-          render json: { errors: @saved_scenario.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: result.errors }, status: :unprocessable_entity
         end
       end
 
-      # PATCH/PUT /saved_scenarios/1 or /saved_scenarios/1.json
+      # PATCH/PUT api/v1/saved_scenarios/1
       def update
-        if @saved_scenario.update_with_api_params(saved_scenario_params)
-          render json: @saved_scenario, status: :ok
+        result = SavedScenario::Update.call(
+          engine_client,
+          @saved_scenario,
+          saved_scenario_params
+        )
+
+        if result.successful?
+          render json: result.value, status: :ok
         else
-          render json: @saved_scenario.errors, status: :unprocessable_entity
+          render json: { errors: result.errors }, status: :unprocessable_entity
         end
       end
 
@@ -61,6 +65,10 @@ module Api
           :scenario_id, :title,
           :description, :area_code, :end_year, :private, :discarded
         )
+      end
+
+      def engine_client
+        MyEtm::Auth.engine_client(current_user, scopes: doorkeeper_token.scopes)
       end
     end
   end
