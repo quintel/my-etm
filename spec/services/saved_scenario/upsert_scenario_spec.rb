@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe UpdateSavedScenario, type: :service do
+describe SavedScenario::UpsertScenario, type: :service do
   let(:client) { instance_double(Faraday::Connection) }
   let(:user) { FactoryBot.create(:user) }
   let(:result) { described_class.call(client, saved_scenario, 10) }

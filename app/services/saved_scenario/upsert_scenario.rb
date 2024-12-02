@@ -1,17 +1,15 @@
 # frozen_string_literal: true
 
-# Creates a new API scenario based on the given existing API `scenario_id`, and
-# then adds the current sceanrio to the provided SavedScenario, and adding the old
+# Adds the current scenario to the provided SavedScenario, and adding the old
 # scenario to history.
-# The new API scenario can be set as current one to continue working.
 #
 # saved_scenario  - The scenario to be updated
 # scenario_id     - The ID of the scenario to be saved.
 # settings        - Optional extra scenario data to be sent to ETEngine when
 #                   creating the new API scenario.
 #
-# Returns a ServiceResult with the new API scenario.
-class UpdateSavedScenario
+# Returns a ServiceResult with the saved scenario.
+class SavedScenario::UpsertScenario
   extend Dry::Initializer
   include Service
 
