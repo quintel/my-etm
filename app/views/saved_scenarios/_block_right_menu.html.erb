@@ -7,10 +7,10 @@
       active: controller_name == 'saved_scenarios' && action_name == 'show')
     )%>
     <%= render(SavedScenarios::NavItem::Component.new(
-      path: saved_scenario_path(saved_scenario),
+      path: saved_scenario_history_path(saved_scenario),
       title: t('scenario_bar.history'),
       icon: 'clock',
-      active: controller_name == 'history')
+      active: controller_name == 'saved_scenario_history')
     )%>
     <% if saved_scenario.owner?(current_user) || current_user&.admin? %>
       <%= render(SavedScenarios::NavItem::Component.new(

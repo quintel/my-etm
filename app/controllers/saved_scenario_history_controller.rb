@@ -18,7 +18,7 @@ class SavedScenarioHistoryController < ApplicationController
       @history = SavedScenarioHistoryPresenter.present(@saved_scenario, version_tags_result.value)
 
       respond_to do |format|
-        format.html { render 'index', layout: 'saved_scenario' }
+        format.html { render 'index' }
         format.js
         format.json { render json: @history }
       end

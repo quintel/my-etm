@@ -71,8 +71,7 @@ class ApplicationController < ActionController::Base
   end
 
   def engine_client
-    # MyEtm::Auth.client_app_client(current_user, :engine)
-    Faraday.new("http://localhost:3000")
+    MyEtm::Auth.engine_client(current_user)
   end
 
   # Internal: Renders a 404 page.

@@ -22,7 +22,7 @@ class SavedScenario < ApplicationRecord
 
   has_rich_text :description
 
-  validates :scenario_id, presence: true
+  validates :scenario_id, presence: true, numericality: { only_integer: true }
   validates :title,       presence: true
   validates :end_year,    presence: true
   validates :area_code,   presence: true

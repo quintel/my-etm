@@ -1,0 +1,26 @@
+<% content_for(:title) { "#{@saved_scenario.title} <% #{t('meta.name')}" } %>
+<% content_for :menu_title, @saved_scenario.localized_title(I18n.locale) %>
+<%= render(partial: "saved_scenarios/block_right_menu", locals: { saved_scenario: @saved_scenario }) %>
+
+<div class="text-midnight-450">
+  <%= t('saved_scenario_history.description') %>
+</div>
+
+<div class="mt-10 text-midnight-400 text-sm">
+  <%= t("saved_scenario_history.title") %>
+</div>
+
+<div>
+ <% @history.each do |historical_version| %>
+    <%= render(History::Row::Component.new(
+        user: historical_version['user'],
+        tag: "scenario_#{historical_version['scenario_id']}",
+        update_path: saved_scenario_update_history_path(
+            id: @saved_scenario.id, scenario_id: historical_version['scenario_id']
+        ),
+        updateable: !historical_version['frozen'],
+        updated_at: historical_version['last_updated_at'],
+        message: 'hello'
+    )) %>
+ <% end %>
+</div>
