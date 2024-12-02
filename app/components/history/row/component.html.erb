@@ -1,0 +1,38 @@
+<turbo-frame id=<%=@tag%>>
+  <div class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md <%css_classes%>">
+    <%# GRID COL 1 %>
+    <div class="flex flex-col">
+      <%# little block with initials %>
+      <%= @user %>
+      <%= @updated_at %>
+
+    </div>
+
+    <%# GRID COL 2/3 %>
+    <span class="text-midnight-400 col-span-2 text-sm mt-3">
+      <% if @message %>
+        <%= @message %>
+      <% else %>
+        <%= t('history.empty_message') %>
+      <% end %>
+    </span>
+
+    <%# GRID COL 4 %>
+    <div class="flex mt-2 text-midnight-400">
+      <span class="mr-0 ml-auto p-2 pl-6">
+        <%= render(Hovercard::Component.new(path: '', text: 'edit text')) do %>
+          <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800 #{destroy_classes}" do%>
+            <%= heroicon 'pencil', options: { class: 'w-5 h-5' } %>
+          <% end %>
+        <% end %>
+      </span>
+      <span class="mr-0 ml-2 p-2 pl-6">
+        <%= render(Hovercard::Component.new(path: '', text: 'restore')) do %>
+          <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800 #{destroy_classes}" do%>
+            <%= heroicon 'arrow-uturn-left', options: { class: 'w-5 h-5' } %>
+          <% end %>
+        <% end %>
+      </span>
+    </div>
+  </div>
+</turbo-frame>

@@ -6,10 +6,11 @@ require 'rails_helper'
 require_relative '../../app/services/create_interpolated_collection'
 
 describe CollectionsController do
-  describe '#create_transition' do
+  let(:client) { Faraday.new(url: 'http://et.engine') }
 
-    let(:client) { Faraday.new(url: 'http://et.engine') }
-    before { allow(MyEtm::Auth).to receive(:client_app_client).and_return(client) }
+  before { allow(MyEtm::Auth).to receive(:engine_client).and_return(client) }
+
+  describe '#create_transition' do
 
     context 'when signed in and given a valid saved scenario ID' do
       let(:scenario) { create(:saved_scenario, end_year: 2050, user: user) }

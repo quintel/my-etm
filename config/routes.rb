@@ -74,7 +74,7 @@ Rails.application.routes.draw do
     end
 
     get '/history' => 'saved_scenario_history#index'
-    put '/history/:scenario_id' => 'saved_scenario_history#update',  as: :update_saved_scenario_history
+    put '/history/:scenario_id' => 'saved_scenario_history#update',  as: :update_history
   end
 
   namespace :api do

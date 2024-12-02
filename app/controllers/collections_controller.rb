@@ -75,7 +75,7 @@ class CollectionsController < ApplicationController
   # POST /collections/create_transition
   def create_transition
     result = CreateInterpolatedCollection.call(
-      MyEtm::Auth.engine_client(current_user),
+      engine_client,
       current_user.saved_scenarios.find(create_transition_params[:saved_scenario_ids]),
       current_user
     )

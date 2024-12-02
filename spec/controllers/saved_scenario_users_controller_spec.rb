@@ -13,7 +13,7 @@ describe SavedScenarioUsersController do
     )
     allow(ApiScenario::Users::Update).to receive(:call).and_return(ServiceResult.success)
     allow(ApiScenario::Users::Destroy).to receive(:call).and_return(ServiceResult.success)
-    allow(MyEtm::Auth).to receive(:client_app_client).and_return(client)
+    allow(MyEtm::Auth).to receive(:engine_client).and_return(client)
   end
 
   let(:saved_scenario) { FactoryBot.create(:saved_scenario, id: 648691) }
