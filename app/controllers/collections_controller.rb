@@ -16,7 +16,6 @@ class CollectionsController < ApplicationController
 
   # GET /collections or /collections.json
   def index
-    # Include Pagy to paginate @collections or any other resource
     @pagy_collections, @collections = pagy_countless(user_collections)
 
     respond_to do |format|
@@ -94,6 +93,7 @@ class CollectionsController < ApplicationController
   def create
     collection = current_user.collections.build(
       title: collection_title,
+      version: create_collection_params[:version],
       interpolation: false
     )
 
@@ -173,7 +173,7 @@ class CollectionsController < ApplicationController
   end
 
   def create_collection_params
-    params.require(:collection).permit(:title, saved_scenario_ids: [])
+    params.require(:collection).permit(:title, :version, saved_scenario_ids: [])
   end
 
   def create_transition_params

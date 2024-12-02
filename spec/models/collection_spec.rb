@@ -57,9 +57,10 @@ RSpec.describe Collection, type: :model do
       before do
         saved_scenario = create(:saved_scenario, scenario_id: 111, user: user)
         create(:collection_saved_scenario, collection: myc, saved_scenario: saved_scenario)
+        myc.reload
       end
 
-      it 'returns the scenairo ids' do
+      it 'returns the scenario ids' do
         expect(myc.latest_scenario_ids).to include(111)
       end
     end
@@ -67,18 +68,39 @@ RSpec.describe Collection, type: :model do
 
   describe 'number of scenarios' do
     let(:user) { create(:user) }
-    let(:myc) { create(:collection, user: user, scenarios_count: 3) }
+    let(:myc) { create(:collection, user: user, scenarios_count: 7) }
 
     context 'with more than 6 combined scenarios' do
       before do
-        4.times do
-          saved_scenario = create(:saved_scenario, scenario_id: 111, user: user)
-          create(:collection_saved_scenario, collection: myc, saved_scenario: saved_scenario)
-        end
+        saved_scenario = create(:saved_scenario, scenario_id: 111, user: user)
+        create(:collection_saved_scenario, collection: myc, saved_scenario: saved_scenario)
       end
 
       it 'is not valid' do
         expect(myc).not_to be_valid
+      end
+    end
+  end
+
+  describe 'scenario versions' do
+    let(:user) { create(:user) }
+    let!(:available_versions) { Version.all }
+
+    let(:scenario1) { create(:saved_scenario, version: available_versions.first, user: user) }
+    let(:scenario2) { create(:saved_scenario, version: available_versions.second, user: user) }
+
+    context 'when all scenarios belong to the same version' do
+      it 'is valid' do
+        collection = build(:collection, user: user, saved_scenarios: [scenario1])
+        expect(collection).to be_valid
+      end
+    end
+
+    context 'when scenarios belong to different versions' do
+      it 'is not valid' do
+        collection = build(:collection, user: user, saved_scenarios: [scenario1, scenario2])
+        expect(collection).not_to be_valid
+        expect(collection.errors[:scenarios]).to include("must all belong to the collection's version (latest)")
       end
     end
   end

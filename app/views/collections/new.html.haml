@@ -2,21 +2,18 @@
 - content_for :menu_title, t('collections.new.title')
 = render(partial: "block_right_menu")
 
-
-= form_for(@collection, url: collections_path, html: { method: :post, class: 'flex flex-col h-full', data: {controller: 'collections'} }) do |f|
+= form_for(@collection, url: collections_path, html: { method: :post, class: 'flex flex-col h-full', data: { controller: 'collections' } }) do |f|
   = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5', placeholder: t('collections.new.form.default_title')
 
-  = f.label :title, t('collections.new.form.scenario_ids'), class: 'text-sm text-gray-400 mb-2'
-  .flex.flex-wrap
-    - if current_user.saved_scenarios.present?
-      = f.collection_check_boxes(:saved_scenario_ids, current_user.saved_scenarios.order(updated_at: :desc), :id, :title) do |b|
-        .checkbox-wrapper.p-2.px-5.rounded-md.text-midnight-800.bg-midnight-300.mr-2.mb-2{class: "hover:bg-midnight-600 hover:cursor-pointer", 'data-controller':"select-inner-contents", 'data-action': "click->select-inner-contents#select"}
-          = b.label { b.check_box(class: "hidden", data: {'collections-target': 'checkbox', 'select-inner-contents-target': 'button', action: 'change->collections#validate'}) + b.text }
-    - else
-      = t('collections.new.no_scenarios')
+  = f.label :version, t('collections.new.form.version'), class: 'text-sm text-gray-400 mb-2'
+  = f.select :version, Version.all.map { |v| [v.titleize, v] }, {}, id: 'version-select', data: { action: 'collections#versionChanged', 'collections-target': 'versionSelect' }, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
+
+  = f.label :saved_scenario_ids, t('collections.new.form.scenario_ids'), class: 'text-sm text-gray-400 mb-2'
+  #scenarios-container{ data: { 'collections-target': 'checkboxesContainer' } }
+    = render partial: 'scenarios', locals: { scenarios: current_user.saved_scenarios.order(updated_at: :desc) }
 
   .flex.mt-10
     - if current_user.saved_scenarios.present?
-      = submit_tag t('scenario.save'), class: 'button button-primary mr-5'
+      = f.submit t('scenario.save'), class: 'button button-primary mr-5'
     = link_to t('collections.new.form.cancel'), collections_path, class: 'button'

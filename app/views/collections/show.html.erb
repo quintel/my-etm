@@ -12,9 +12,6 @@
   <%= render(NoticeBanner::TrashComponent.new(text: t('trash.notice', deleted_after: Collection::AUTO_DELETES_AFTER.in_days.to_i)))%>
 <% end %>
 
-<div class="w-min mb-5">
-  <%= render(HovercardWithVersion::Component.new(version: @collection.version))%>
-</div>
 
 <div class="pt-5 border-t border-solid border-gray-200">
   <% if @collection.interpolated? %>

@@ -114,5 +114,11 @@ class Collection < ApplicationRecord
     if scenarios.size + saved_scenarios.size > 6
       errors.add(:scenarios, 'exceeds maximum of 6 scenarios')
     end
+
+    # Ensure all scenarios match the collection's version
+    invalid_scenarios = saved_scenarios.reject { |saved_scenario| saved_scenario.version == version }
+    if invalid_scenarios.any?
+      errors.add(:scenarios, "must all belong to the collection's version (#{version})")
+    end
   end
 end
