@@ -1,5 +1,5 @@
 class CreateCollection
-  Result = Struct.new(:successful?, :collection, :errors)
+  include Service
 
   def self.call(user, params)
     new(user, params).call
@@ -22,9 +22,9 @@ class CreateCollection
     end
 
     if collection.save
-      Result.new(true, collection, nil)
+      ServiceResult.success(collection)
     else
-      Result.new(false, nil, collection.errors.full_messages)
+      ServiceResult.failure(collection.errors.full_messages)
     end
   end
 

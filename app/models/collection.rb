@@ -22,7 +22,7 @@ class Collection < ApplicationRecord
 
   validates_presence_of :user_id
   validates :title, presence: true
-  validate :validate_scenarios
+  validate :validate_scenarios, :validate_scenario_versions
 
   scope :by_title, ->(title) { where("title LIKE ?", "%#{title}%") }
   scope :interpolated, ->() { where(interpolation: true) }
@@ -114,7 +114,9 @@ class Collection < ApplicationRecord
     if scenarios.size + saved_scenarios.size > 6
       errors.add(:scenarios, 'exceeds maximum of 6 scenarios')
     end
+  end
 
+  def validate_scenario_versions
     # Ensure all scenarios match the collection's version
     invalid_scenarios = saved_scenarios.reject { |saved_scenario| saved_scenario.version == version }
     if invalid_scenarios.any?
