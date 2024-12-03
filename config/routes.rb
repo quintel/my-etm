@@ -84,6 +84,7 @@ Rails.application.routes.draw do
       resources :collections, only: [:index, :show, :create, :destroy]
       resources :saved_scenarios, only: %i[index show create update destroy]
       resources :featured_scenarios, only: %i[index show]
+      resources :versions, only: [:index]
     end
   end
 
