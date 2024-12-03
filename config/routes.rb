@@ -78,6 +78,12 @@ Rails.application.routes.draw do
           get :confirm_destroy
         end
       end
+
+      resources :collections, only: [:index, :show, :create, :destroy] do
+        collection do
+          post :create_transition
+        end
+      end
     end
   end
 
