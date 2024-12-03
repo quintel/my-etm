@@ -3,7 +3,6 @@
 FactoryBot.define do
   factory :collection do
     user
-
     area_code { 'nl' }
     title { 'My Collection' }
     end_year { 2050 }
