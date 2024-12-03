@@ -68,22 +68,8 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :saved_scenarios do
-
-        member do
-          put :publish
-          put :unpublish
-          put :discard
-          put :undiscard
-          get :confirm_destroy
-        end
-      end
-
-      resources :collections, only: [:index, :show, :create, :destroy] do
-        collection do
-          post :create_transition
-        end
-      end
+      resources :saved_scenarios
+      resources :collections, only: [:index, :show, :create, :destroy]
     end
   end
 
@@ -93,7 +79,7 @@ Rails.application.routes.draw do
       post :list
       get :new_transition
       post :create_transition
-      # post :index
+      post :index
     end
 
     member do

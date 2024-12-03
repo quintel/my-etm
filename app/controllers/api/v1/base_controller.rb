@@ -22,6 +22,8 @@ module Api
       rescue_from CanCan::AccessDenied do |e|
         if e.subject.is_a?(SavedScenario) && !e.subject.private?
           render status: :forbidden, json: { errors: [ "Scenario does not belong to you" ] }
+        elsif e.subject.is_a?(Collection)
+          render status: :forbidden, json: { errors: [ "Collection does not belong to you" ] }
         else
           render_not_found
         end
