@@ -68,6 +68,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      resources :versions, only: [:index]
       resources :saved_scenarios do
 
         member do
