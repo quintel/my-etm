@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_11_21_141121) do
+ActiveRecord::Schema[7.2].define(version: 2024_12_03_170342) do
   create_table "action_text_rich_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "body", size: :long
@@ -178,6 +178,15 @@ ActiveRecord::Schema[7.2].define(version: 2024_11_21_141121) do
     t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_saved_scenarios_on_discarded_at"
     t.index ["scenario_id"], name: "index_saved_scenarios_on_scenario_id"
+  end
+
+  create_table "sessions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "session_id", null: false
+    t.text "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["session_id"], name: "index_sessions_on_session_id", unique: true
+    t.index ["updated_at"], name: "index_sessions_on_updated_at"
   end
 
   create_table "staff_applications", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
