@@ -40,6 +40,14 @@ Rails.application.routes.draw do
     get 'identity/delete_account', to: 'users/registrations#confirm_destroy', as: :delete_account
   end
 
+  root :to => "saved_scenarios#index"
+
+  resources :users, :except => %i[show destroy] do
+    member do
+      post 'resend_confirmation_email'
+    end
+  end
+
   resources :saved_scenarios do
     resource :feature, only: %i[show create update destroy], controller: 'featured_scenarios' do
       get :confirm_destroy
@@ -114,7 +122,7 @@ Rails.application.routes.draw do
   post :send_message, to: 'static_pages#send_message'
   get :privacy, to: 'static_pages#privacy'
   get :terms,   to: 'static_pages#terms'
-  get :root,    to: 'static_pages#empty'
+  # get :root,    to: 'static_pages#empty'
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

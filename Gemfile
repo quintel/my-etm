@@ -41,6 +41,7 @@ gem 'http_accept_language'
 gem 'listen'
 gem 'config'
 gem 'rack-cors',                      require: 'rack/cors'
+gem 'activerecord-session_store'
 
 # Views and CSS
 gem 'haml'

@@ -1,6 +1,6 @@
 module Identity
   class AccessTokensController < ApplicationController
-    skip_before_action :verify_authenticity_token # Skip CSRF checking for cross-site requests
+    skip_before_action :verify_authenticity_token
 
     def create
       @client = Doorkeeper::Application.find_by(uid: params[:client_id])

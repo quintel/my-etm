@@ -5,8 +5,6 @@ class User < ApplicationRecord
     3 => :scenario_owner
   }.freeze
 
-  attr_accessor :identity_user
-
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable and :omniauthable, :registerable
   devise :database_authenticatable, :registerable,
@@ -70,11 +68,11 @@ class User < ApplicationRecord
       user.save!
 
       # For new users, couple existing SavedScenarioUsers
-      if is_new_user
-        SavedScenarioUser
-          .where(user_email: user.email, user_id: nil)
-          .update_all(user_id: user.id, user_email: nil)
-      end
+      # if is_new_user
+      #   SavedScenarioUser
+      #     .where(user_email: user.email, user_id: nil)
+      #     .update_all(user_id: user.id, user_email: nil)
+      # end
     end
   end
 

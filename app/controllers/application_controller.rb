@@ -7,6 +7,7 @@ class ApplicationController < ActionController::Base
   before_action :set_locale
   before_action :configure_sentry
   before_action :store_user_location!, if: :storable_location?
+  before_action :store_redirect_url
 
   rescue_from CanCan::AccessDenied do |_exception|
     if current_user
@@ -130,5 +131,11 @@ class ApplicationController < ActionController::Base
       "toast",
       ToastComponent.new(type: :alert, message:).render_in(view_context)
     )
+  end
+
+  def store_redirect_url
+    if params[:redirect_url].present?
+      session[:redirect_url] = params[:redirect_url]
+    end
   end
 end
