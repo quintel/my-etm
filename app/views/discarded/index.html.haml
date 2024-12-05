@@ -5,11 +5,16 @@
 - if notice_message
   = render(NoticeBanner::Component.new(text: notice_message))
 
-- if @resources.present?
-  - @resources.each do |resource|
-    - if resource.is_a?(SavedScenario)
-      = render(SavedScenarios::Row::Component.new(path: saved_scenario_path(resource), saved_scenario: resource))
-- else
-  .text-sm.text-midnight-400.mb-2=t('trash.empty.title')
+= turbo_frame_tag "discarded" do
+  - if @resources.present?
+    - @resources.each do |resource|
+      - if resource.is_a?(SavedScenario)
+        = render(SavedScenarios::Row::Component.new(path: saved_scenario_path(resource), saved_scenario: resource))
+      - elsif resource.is_a?(Collection)
+        = render(Collections::Row::Component.new(path: collection_path(resource), collection: resource))
+    = turbo_frame_tag "next_url" do
+      = render(MorePagy::Component.new(pagy: @pagy))
+  - else
+    .text-sm.text-midnight-400.mb-2= t('trash.empty.title')
 
-  =t('trash.empty.description', deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)
+    = t('trash.empty.description', deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)

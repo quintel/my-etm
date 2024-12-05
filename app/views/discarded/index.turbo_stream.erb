@@ -1,0 +1,15 @@
+<%= turbo_stream.append "discarded" do %>
+  <% @resources.each do |resource| %>
+    <% if resource.is_a?(SavedScenario) %>
+      <%= render(SavedScenarios::Row::Component.new(path: saved_scenario_path(resource), saved_scenario: resource)) %>
+    <% elsif resource.is_a?(Collection) %>
+      <%= render(Collections::Row::Component.new(path: collection_path(resource), collection: resource)) %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.replace "next_url" do %>
+  <% if @pagy.next %>
+    <%= render(MorePagy::Component.new(pagy: @pagy)) %>
+  <% end %>
+<% end %>

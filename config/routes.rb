@@ -98,7 +98,12 @@ Rails.application.routes.draw do
     end
   end
 
-  get :discarded, to: 'discarded#index'
+  resources :discarded do
+    collection do
+      get :index
+      post :index
+    end
+  end
 
   namespace :admin do
     get '/', to: redirect('/admin/org')
@@ -117,7 +122,6 @@ Rails.application.routes.draw do
     put 'applications', to: 'staff_applications#update'
 
     resources :saved_scenarios do
-
       collection do
         # get :list
         # post :list
@@ -126,7 +130,6 @@ Rails.application.routes.draw do
     end
 
     resources :collections do
-
       collection do
         post :list
         post :index
