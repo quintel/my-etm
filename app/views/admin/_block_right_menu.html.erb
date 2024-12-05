@@ -12,7 +12,7 @@
     active: controller_name == 'users' && action_name =='all')
   )%>
   <%= render(SavedScenarios::NavItem::Component.new(
-    path: admin_scenarios_path,
+    path: admin_saved_scenarios_path,
     title: t('admin.bar.scenarios'),
     icon: 'adjustments-horizontal',
     active: controller_name == 'saved_scenarios')
