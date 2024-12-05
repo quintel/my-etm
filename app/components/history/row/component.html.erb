@@ -4,8 +4,7 @@
     <div class="flex flex-col">
       <%# little block with initials %>
       <%= @user %>
-      <%= @updated_at %>
-
+      <%=  t('time_ago', time: time_ago_in_words(@updated_at)) %>
     </div>
 
     <%# GRID COL 2/3 %>

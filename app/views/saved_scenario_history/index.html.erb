@@ -3,7 +3,7 @@
 <%= render(partial: "saved_scenarios/block_right_menu", locals: { saved_scenario: @saved_scenario }) %>
 
 <div class="text-midnight-450">
-  <%= t('saved_scenario_history.description') %>
+  <%= t('saved_scenario_history.description').html_safe %>
 </div>
 
 <div class="mt-10 text-midnight-400 text-sm">
