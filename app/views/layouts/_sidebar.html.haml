@@ -9,7 +9,7 @@
 
     = render(SidebarItem::Component.new(path: collections_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections'))
 
-    = render(SidebarItem::Component.new(path: discarded_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded' ))
+    = render(SidebarItem::Component.new(path: discarded_index_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded' ))
 
     - if current_user.admin?
       = render(SidebarItem::Component.new(path: admin_path, title: t('sidebar.admin'), icon: 'beaker', active: %[users staff_applications].include?(controller_name)))
@@ -20,5 +20,4 @@
     - if current_user
       = render(SidebarItem::ProfileComponent.new(path: identity_profile_path, sign_out_path: destroy_user_session_path,title: current_user.name, icon: 'user-circle', active: controller_name == 'settings', text: 'text-midnight-800'))
     - else
-      -# TODO: login!
-      LOGIN
+      redirect_to sign_up_path
