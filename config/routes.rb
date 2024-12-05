@@ -108,14 +108,30 @@ Rails.application.routes.draw do
     put 'user/:user_id',         to: 'users#update',  as: :update_user
     put 'user/:user_id/confirm', to: 'users#confirm', as: :confirm_user
 
-    get 'scenarios', to: 'saved_scenarios#index'
-    get 'collections', to: 'collections#index'
-    post 'collections', to: 'collections#index'
-    get 'collections/list', to: 'collections#list'
-    post 'collections/list', to: 'collections#list'
+    # get 'collections', to: 'collections#index'
+    # post 'collections', to: 'collections#index'
+    # get 'collections/list', to: 'collections#list'
+    # post 'collections/list', to: 'collections#list'
 
     get 'applications', to: 'staff_applications#index'
     put 'applications', to: 'staff_applications#update'
+
+    resources :saved_scenarios do
+
+      collection do
+        # get :list
+        # post :list
+        post :index
+      end
+    end
+
+    resources :collections do
+
+      collection do
+        post :list
+        post :index
+      end
+    end
   end
 
   get :contact, to: 'static_pages#contact'
