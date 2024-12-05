@@ -155,7 +155,13 @@ en:
         destroy: Something went wrong while trying to remove the user from the scenario!
         general: Please try again later. If you keep getting this error, please contact us.
         duplicate: This person is already invited to join the scenario.
-
+  saved_scenario_history:
+    description: |
+      Here you can see the history of your saved scenario. A description can be added to each historical version.
+      When you are owner of this scenario, you can reset the scenario to an older stage. See the
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
+      documentation</a> for more information.
+    title: History
   saved_scenarios:
     empty: You don't have any scenarios.
     search_by_title: Filter by title
