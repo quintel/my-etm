@@ -74,11 +74,19 @@ class FeaturedScenario < ApplicationRecord
     scenarios
   end
 
+  def version
+    saved_scenario.version
+  end
+
   def localized_title(locale)
     (locale == :nl ? title_nl : title_en) || saved_scenario.title
   end
 
   def localized_description(locale)
     (locale == :nl ? description_nl : description_en) || saved_scenario.description
+  end
+
+  def as_json(options = {})
+    super.merge(version: version)
   end
 end
