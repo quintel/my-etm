@@ -1,0 +1,32 @@
+module Api
+  module V1
+    class FeaturedScenariosController < BaseController
+      skip_before_action :authenticate_request!, only: [:index, :show]
+      before_action :set_featured_scenario, only: [:show]
+
+
+      # GET /api/v1/featured_scenarios
+      def index
+        featured_scenarios = FeaturedScenario.all
+
+        render json: {
+          featured_scenarios: featured_scenarios.as_json
+        }, status: :ok
+      end
+
+      # GET /api/v1/featured_scenarios/:id
+      def show
+        render json: @featured_scenario.as_json, status: :ok
+      end
+
+      private
+
+      # Find a single FeaturedScenario for the `show` action
+      def set_featured_scenario
+        @featured_scenario = FeaturedScenario.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'FeaturedScenario not found' }, status: :not_found
+      end
+    end
+  end
+end

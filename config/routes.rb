@@ -81,6 +81,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :collections, only: [:index, :show, :create, :destroy]
       resources :saved_scenarios, only: %i[index show create update destroy]
+      resources :featured_scenarios, only: %i[index show]
     end
   end
 
