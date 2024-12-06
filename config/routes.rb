@@ -28,8 +28,8 @@ Rails.application.routes.draw do
 
     post 'change_scenario_privacy', to: 'settings#update_scenario_privacy'
 
-    get ':audience', to: 'newsletter#edit', as: :edit_subscription
-    patch ':audience', to: 'newsletter#update', as: :update_subscription
+    get 'subscription/:audience', to: 'newsletter#edit', as: :edit_subscription
+    patch 'subscription/:audience', to: 'newsletter#update', as: :update_subscription
 
     resources :tokens, only: [:index, :new, :create, :destroy], as: :tokens
     resources :access_tokens, only: [:create], as: :access_tokens
