@@ -1,0 +1,30 @@
+<div class="
+    checkbox-wrapper
+    p-2
+    px-5
+    rounded-md
+    text-midnight-800
+    bg-midnight-300
+    mr-2
+    mb-2
+    hover:bg-midnight-600
+    hover:cursor-pointer
+    "
+    data-version= <%=scenario.version%>
+    data-collections-target= "scenario"
+    data-controller="select-inner-contents"
+    data-action="click->select-inner-contents#select"
+  >
+  <%= form.check_box :saved_scenario_ids,
+    {multiple: true,
+    class: "hidden",
+    data: {
+      'select-inner-contents-target': 'button',
+      'collections-target': 'checkbox', action:
+      'change->collections#validate'
+    }},
+    scenario.id,
+    nil
+  %>
+  <span><%= scenario.title %> </span>
+</div>

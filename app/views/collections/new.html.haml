@@ -2,11 +2,11 @@
 - content_for :menu_title, t('collections.new.title')
 = render(partial: "block_right_menu")
 
-= form_for(@collection, url: collections_path, html: { method: :post, class: 'flex flex-col h-full', data: { controller: 'collections' } }) do |f|
+= form_for(@collection, url: create_collections_path, html: { method: :post, class: 'flex flex-col h-full', data: { controller: 'collections' } }) do |f|
   = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5', placeholder: t('collections.new.form.default_title')
 
-  - versions = current_user.saved_scenarios.map(&:version).uniq
+  - versions = @scenarios.map(&:version).uniq
 
   - if versions.count > 1
     = f.label :version, t('collections.new.form.version'), class: 'text-sm text-gray-400 mb-2'
@@ -15,10 +15,14 @@
     = f.hidden_field :version, value: versions.first
 
   = f.label :saved_scenario_ids, t('collections.new.form.scenario_ids'), class: 'text-sm text-gray-400 mb-2'
-  #scenarios-container{ data: { 'collections-target': 'checkboxesContainer' } }
-    = render partial: 'scenarios', locals: { scenarios: current_user.saved_scenarios.order(updated_at: :desc) }
+  .flex.flex-wrap
+    - if @scenarios.present?
+      - @scenarios.each do |scenario|
+        = render(Collections::ScenarioPicker::Component.new(form: f, scenario: scenario))
+    - else
+      = t('collections.new.no_scenarios')
 
   .flex.mt-10
-    - if current_user.saved_scenarios.present?
+    - if @scenarios.present?
       = f.submit t('scenario.save'), class: 'button button-primary mr-5'
     = link_to t('collections.new.form.cancel'), collections_path, class: 'button'

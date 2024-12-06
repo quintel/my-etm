@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["scenario", "versionSelect"]
+  static targets = ["scenario", "versionSelect", "checkbox"]
 
   connect() {
     this.validate()
@@ -13,6 +13,9 @@ export default class extends Controller {
   }
 
   filterScenarios() {
+    if (!this.hasversionSelectTarget) {
+      return
+    }
     const selectedVersion = this.versionSelectTarget.value
 
     this.scenarioTargets.forEach((scenarioElement) => {
