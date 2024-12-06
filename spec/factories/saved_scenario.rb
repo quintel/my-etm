@@ -4,7 +4,7 @@ FactoryBot.define do
   factory :saved_scenario do
     transient do
       user { nil }
-      version { nil }
+      version { 'latest' }
     end
 
     title { 'Some scenario' }
