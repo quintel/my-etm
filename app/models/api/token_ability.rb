@@ -43,12 +43,7 @@ module Api
         id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_collaborator)..).pluck(:saved_scenario_id)
 
       can :update, Collection,
-        id: Collection.where(user_id: user.id)
-
-      # Actions that involve reading one scenario and writing to another.
-      can :clone, SavedScenario, private: false
-      can :clone, SavedScenario,
-        id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_collaborator)..).pluck(:saved_scenario_id)
+        id: Collection.where(user_id: user.id).pluck(:id)
 
       # scenarios:delete
       # ----------------
@@ -58,7 +53,7 @@ module Api
         id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_owner)).pluck(:saved_scenario_id)
 
       can :destroy, Collection,
-        id: Collection.where(user_id: user.id)
+        id: Collection.where(user_id: user.id).pluck(:id)
     end
 
     private

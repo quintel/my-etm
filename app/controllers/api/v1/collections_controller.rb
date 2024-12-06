@@ -30,7 +30,7 @@ module Api
 
       # DELETE /api/v1/collections/:id
       def destroy
-        if @collection.discard
+        if @collection.destroy
           head :no_content
         else
           render json: { errors: @collection.errors.full_messages }, status: :unprocessable_entity
