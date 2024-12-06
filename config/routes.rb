@@ -79,6 +79,7 @@ Rails.application.routes.draw do
       post :list
       get :new_transition
       post :create_transition
+      post :create, as: :create
       post :index
     end
 
