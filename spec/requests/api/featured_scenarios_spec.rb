@@ -7,20 +7,45 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
   let(:featured_scenario_id) { featured_scenarios.first.id }
 
   describe 'GET /api/v1/featured_scenarios' do
-    before do
-      get '/api/v1/featured_scenarios', as: :json
+    context 'without specifying a version' do
+      before do
+        get '/api/v1/featured_scenarios', as: :json
+      end
+
+      it 'returns all featured_scenarios' do
+        expect(response).to have_http_status(:ok)
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response['featured_scenarios'].size).to eq(3)
+
+        parsed_response['featured_scenarios'].each do |scenario|
+          expect(scenario.keys).to contain_exactly(
+            'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version'
+          )
+          expect(scenario['version']).to eq('latest')
+        end
+      end
     end
 
-    it 'returns all featured_scenarios' do
-      expect(response).to have_http_status(:ok)
-      parsed_response = JSON.parse(response.body)
-      expect(parsed_response['featured_scenarios'].size).to eq(3)
+    context 'when specifying a version' do
+      before do
+        scenario = build(:saved_scenario, version: "old")
+        scenario.save(validate: false)
+        create(:featured_scenario, saved_scenario: scenario)
 
-      parsed_response['featured_scenarios'].each do |scenario|
-        expect(scenario.keys).to contain_exactly(
-          'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version'
-        )
-        expect(scenario['version']).to eq('latest')
+        get '/api/v1/featured_scenarios', as: :json, params: { version: 'old' }
+      end
+
+      it 'returns featured_scenarios that are old' do
+        expect(response).to have_http_status(:ok)
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response['featured_scenarios'].size).to eq(1)
+
+        parsed_response['featured_scenarios'].each do |scenario|
+          expect(scenario.keys).to contain_exactly(
+            'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version'
+          )
+          expect(scenario['version']).to eq('old')
+        end
       end
     end
   end

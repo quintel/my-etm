@@ -126,7 +126,6 @@ class SavedScenarioUsersController < ApplicationController
         end
       end
     else
-      puts result.errors
       flash[:alert] =
 "#{t('saved_scenario_users.errors.destroy')} #{t('saved_scenario_users.errors.general')}"
 
