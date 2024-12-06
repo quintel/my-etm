@@ -4,6 +4,6 @@
 = render(partial: "admin/block_right_menu")
 
 - if @saved_scenarios.present?
-  = render(partial: "admin/saved_scenarios/saved_scenarios", locals: { pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios, saved_scenarios: @saved_scenarios })
+  = render(partial: "saved_scenarios", locals: { pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios, saved_scenarios: @saved_scenarios })
 - else
   = t('saved_scenarios.empty')

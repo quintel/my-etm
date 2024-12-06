@@ -1,8 +1,12 @@
 <%= turbo_frame_tag "saved_scenarios" do %>
-  <div id="saved_scenarios_list">
-    <% @saved_scenarios.each do |saved_scenario| %>
-      <%= render(SavedScenarios::Row::Component.new(path: saved_scenario_path(saved_scenario), saved_scenario: saved_scenario)) %>
-    <% end %>
-  </div>
-  <%= render(MorePagy::Component.new(pagy: @pagy_admin_saved_scenarios)) %>
+  <%= render(PagyComponent.new(pagy_objects: pagy_admin_saved_scenarios)) do %>
+    <div id="saved_scenarios_list">
+      <% saved_scenarios.each do |saved_scenario| %>
+        <%= render(SavedScenarios::Row::Component.new(
+          path: saved_scenario_path(saved_scenario),
+          saved_scenario: saved_scenario
+        )) %>
+      <% end %>
+    </div>
+  <% end %>
 <% end %>
