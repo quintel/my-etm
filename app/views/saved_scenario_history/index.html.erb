@@ -10,17 +10,14 @@
   <%= t("saved_scenario_history.title") %>
 </div>
 
-<div>
+<div class="border border-gray-200 rounded-md p-2 pt-5 mt-2">
  <% @history.each do |historical_version| %>
     <%= render(History::Row::Component.new(
-        user: historical_version['user'],
-        tag: "scenario_#{historical_version['scenario_id']}",
+        historical_version: historical_version,
+        tag: "scenario_#{historical_version.scenario_id}",
         update_path: saved_scenario_update_history_path(
-            id: @saved_scenario.id, scenario_id: historical_version['scenario_id']
-        ),
-        updateable: !historical_version['frozen'],
-        updated_at: historical_version['last_updated_at'],
-        message: 'hello'
+            id: @saved_scenario.id, scenario_id: historical_version.scenario_id
+        )
     )) %>
  <% end %>
 </div>

@@ -13,7 +13,11 @@ describe SavedScenarioHistoryController, vcr: true do
     allow(ApiScenario::VersionTags::Update).to receive(:call).and_return(ServiceResult.success)
     allow(ApiScenario::VersionTags::FetchAll).to receive(:call).and_return(ServiceResult.success(
       {
-        "123" => { 'user_id' => user.id, description: 'my last version' },
+        "123" => {
+          'user_id' => user.id,
+          'description' => 'my last version',
+          'last_updated_at' => 2.days.ago.to_json
+        },
         "122" => {},
         "111" => {}
       }
@@ -27,22 +31,14 @@ describe SavedScenarioHistoryController, vcr: true do
     end
 
     describe 'GET index' do
-      context 'as json' do
-        before do
-          get :index, format: :json, params: {
-            saved_scenario_id: saved_scenario.id
-          }
-        end
+      before do
+        get :index, params: {
+          saved_scenario_id: saved_scenario.id
+        }
+      end
 
-        it 'is succesful' do
-          expect(response).to be_ok
-        end
-
-        it 'contains the scenario versions of the full histoty' do
-          expect(JSON.parse(response.body)).to include({
-            'description' => 'my last version', 'scenario_id' => 123, 'user' => user.name
-          })
-        end
+      it 'is succesful' do
+        expect(response).to be_ok
       end
     end
 

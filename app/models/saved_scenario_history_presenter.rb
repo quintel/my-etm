@@ -4,7 +4,7 @@
 # scenarios and presents it as a json to be picked up by the front end
 class SavedScenarioHistoryPresenter
   def self.present(saved_scenario, history)
-    new(saved_scenario, history).as_json
+    new(saved_scenario, history).ordered
   end
 
   def initialize(saved_scenario, history)
@@ -14,7 +14,7 @@ class SavedScenarioHistoryPresenter
 
   # Sorts the version tags in the history based on the ordering within the saved scenarios history
   # With the current scenario being the first, and the oldest scenario last
-  def as_json(*)
+  def ordered
     @scenario_ids_ordered.filter_map { |id| present(id) }
   end
 
@@ -23,17 +23,20 @@ class SavedScenarioHistoryPresenter
   def present(scenario_id)
     version = @history[scenario_id.to_s]
 
-    return unless version
+    return if version.blank?
 
     if version.key?('user_id')
-      version['user'] = User.find(version.delete('user_id').to_i).name
+      version['frozen'] = false
+      version['user_name'] = User.find(version.delete('user_id').to_i).name
     else
       version['frozen'] = true
-      version['user'] = I18n.t('scenario.users.unknown')
+      version['user_name'] = I18n.t('saved_scenario_users.unknown')
     end
 
     version['scenario_id'] = scenario_id
+    version['description'] ||= ""
+    version['updated_at'] = version.delete('last_updated_at')
 
-    version
+    SavedScenarioHistory.from_params(version)
   end
 end
