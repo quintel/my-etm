@@ -1,19 +1,14 @@
 class CreateCollection
+  extend Dry::Initializer
   include Service
 
-  def self.call(user, params)
-    new(user, params).call
-  end
-
-  def initialize(user, params)
-    @user = user
-    @params = params
-  end
+  param :user
+  param :settings
 
   def call
-    collection = @user.collections.build(
+    collection = user.collections.build(
       title: collection_title,
-      version: @params[:version],
+      version: settings[:version],
       interpolation: false
     )
 
@@ -31,10 +26,10 @@ class CreateCollection
   private
 
   def collection_title
-    @params[:title].presence || I18n.t('collections.no_title')
+    settings[:title].presence || I18n.t('collections.no_title')
   end
 
   def scenario_ids
-    @params[:saved_scenario_ids].uniq.reject(&:blank?)
+    settings[:saved_scenario_ids].uniq.reject(&:blank?)
   end
 end
