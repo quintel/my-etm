@@ -37,6 +37,8 @@ class User < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 191 }
 
+  after_create :couple_saved_scenario_users
+
   def valid_password?(password)
     return true if super
 
@@ -59,21 +61,10 @@ class User < ApplicationRecord
     super(options.merge(except: Array(options[:except])))
   end
 
-  def self.from_identity!(identity_user)
-    where(id: identity_user.id).first_or_initialize.tap do |user|
-      is_new_user = !user.persisted?
-      user.identity_user = identity_user
-      user.name = identity_user.name
-
-      user.save!
-
-      # For new users, couple existing SavedScenarioUsers
-      # if is_new_user
-      #   SavedScenarioUser
-      #     .where(user_email: user.email, user_id: nil)
-      #     .update_all(user_id: user.id, user_email: nil)
-      # end
-    end
+  def couple_saved_scenario_users
+    SavedScenarioUser
+      .where(user_email: email, user_id: nil)
+      .update_all(user_id: id, user_email: nil)
   end
 
   # Finds or creates a user from a JWT token.
