@@ -1,0 +1,24 @@
+en:
+  admin:
+    bar:
+      general: Algemeen
+      users: Gebruikers
+      scenarios: Alle scenario's
+      collections: All collectoess
+      applications: ETM lokaal & applicaties
+    users:
+      edit:
+        title: Wijzig gebruiker
+        name: Naam
+        email: E-mail
+        password: Wachtwoord
+        admin: Admin
+        submit: Bijwerken
+        success: Gebruiker is succesvol bijgewerkt!
+      is_an_admin: Deze gebruiker is admin
+    welcome: |
+      Welkom in het adminoverzicht. Hier kun je je speciale bevoegdheden gebruiken
+      om gebruikers te bewerken, alle opgeslagen scenario's en collecties van gebruiker
+      te controleren en je lokale ETM configureren via het ETM lokaal & applicaties.
+    add_admin: |
+      Ga naar Gebruikers om een admin toe te voegen.
