@@ -1,7 +1,7 @@
-- content_for :title, "Saved scenarios"
-- content_for :menu_title, "Saved scenarios"
+- content_for :title, "All saved scenarios"
+- content_for :menu_title, "All saved scenarios"
 
-= render(partial: "admin/block_right_menu", locals: { has_saved_scenarios: @saved_scenarios.present? })
+= render(partial: "admin/block_right_menu")
 
 - if @saved_scenarios.present?
   = render(partial: "admin/saved_scenarios/saved_scenarios", locals: { pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios, saved_scenarios: @saved_scenarios })
