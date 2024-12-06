@@ -113,15 +113,10 @@ Rails.application.routes.draw do
     put 'user/:user_id',         to: 'users#update',  as: :update_user
     put 'user/:user_id/confirm', to: 'users#confirm', as: :confirm_user
 
-    # get 'collections', to: 'collections#index'
-    # post 'collections', to: 'collections#index'
-    # get 'collections/list', to: 'collections#list'
-    # post 'collections/list', to: 'collections#list'
-
     get 'applications', to: 'staff_applications#index'
     put 'applications', to: 'staff_applications#update'
 
-    resources :saved_scenarios do
+    resources :saved_scenarios, only: [:index] do
       collection do
         # get :list
         # post :list
@@ -129,9 +124,10 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :collections do
+    resources :collections, only: [:index] do
       collection do
         post :list
+        get :list
         post :index
       end
     end

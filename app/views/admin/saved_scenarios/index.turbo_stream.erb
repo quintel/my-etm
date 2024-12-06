@@ -1,6 +1,9 @@
 <%= turbo_stream.append "saved_scenarios_list" do %>
   <% @saved_scenarios.each do |saved_scenario| %>
-    <%= render(SavedScenarios::Row::Component.new(path: admin_saved_scenarios_path(saved_scenario), saved_scenario: saved_scenario)) %>
+    <%= render(SavedScenarios::Row::Component.new(
+      path: saved_scenario_path(saved_scenario),
+      saved_scenario: saved_scenario
+    )) %>
   <% end %>
 <% end %>
 <%= turbo_stream.update "next_url" do %>

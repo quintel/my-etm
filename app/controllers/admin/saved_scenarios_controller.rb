@@ -13,11 +13,7 @@ module Admin
       end
     end
 
-    # TODO: Implement other methods
-    #   # GET /saved_scenarios/1
-    # def show
-    # end
-
+    # TODO:
     # # Renders a partial of saved_scenarios based on turbo search and filters
     # #
     # # GET /saved_scenarios/list
@@ -36,11 +32,6 @@ module Admin
     #     format.turbo_stream { render(:index) }
     #   end
     # end
-
-    # def paginate
-    #   index
-    # end
-
 
     private
 
