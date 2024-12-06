@@ -1,6 +1,12 @@
 nl:
+  undo: Ongedaan maken
+  more: Meer...
   language: Nederlands
   continue_working: Terug aan het werk
+
+  errors:
+    sorry: Oeps! Onze excuses
+
   time:
     formats:
       short: "%-d %b %H:%M"
@@ -13,16 +19,16 @@ nl:
       short: "%-d %b"
       long: "%A %-d %B, %Y"
       date: "%A %-d %B, %Y"
-  activemodel:
-    attributes:
-      'create_personal_access_token/params':
-        name: Token name
-        expires_in: Expiration
-        permissions: Permissions
+  helpers:
+    label:
+      create_personal_access_token_params:
+        name: Token naam
+        expires_in: Vervaldatum
+        permissions: Rechten
   activerecord:
     attributes:
       user:
-        email: Emailadres
+        email: E-mailadres
         password: Wachtwoord
         password_confirmation: Voer wachtwoord nogmaals in
         current_password: Huidig wachtwoord
@@ -46,3 +52,189 @@ nl:
         link_message: "Als de knop niet werkt, kopieer en plak de onderstaande link in je browser:"
         ignore_message: "Als je deze aanvraag niet hebt gedaan, kun je deze e-mail negeren."
         no_change_message: "Je wachtwoord wordt niet gewijzigd totdat je de bovenstaande link opent en een nieuw wachtwoord aanmaakt."
+  sidebar:
+    saved_scenarios: Scenario's
+    collections: Collecties
+    discarded: Prullenbak
+    profile: Mijn profiel
+    admin: Admin
+  scenario_bar:
+    info: Info
+    history: Geschiedenis
+    manage_access: Beheer toegang
+    edit:
+      title: Pas aan
+      description: Pas titel en beschrijving aan van dit scenario
+    discarded:
+      true: Herstel
+      false: Verwijder
+      description:
+        true: Herstel van prullenbak
+        false: Verplaats naar prullenbak. Na %{deleted_after} dagen wordt deze permanent verwijderd.
+    private:
+      true: Privé
+      false: Openbaar
+      description:
+        true: Alleen mensen met toegang kunnen dit scenario bekijken of kopieëren
+        false: |
+          Iedereen kan dit scenario bekijken of kopieëren, maar alleen mensen met toegang kunnen veranderingen doen
+    featured:
+      true: Uitgelicht
+      false: Maak uitgelicht
+      description:
+        true: Dit scenario staat uitgelicht op de startpagina. Bewerk instellingen hier.
+        false: Maak dit scenario uitgelicht op de startpagina.
+    destroy:
+      title: Permanent verwijderen
+      description: Verwijder dit scenario permanent.
+  scenario:
+    succesful_update: Je scenario is succesvol bijgewerkt
+    title: Titel
+    save: Opslaan
+    private: Dit scenario is privé gemaakt door de eigenaar
+    discard_changes: Verwijder wijzigingen
+    no_description: Dit scenario heeft geen beschrijving.
+    create_description: Klik hier om er één aan te maken.
+  saved_scenario_users:
+      manage_description:
+        Hier kun je beheren wie toegang heeft tot jouw scenario en op welke manier.
+        Klik op 'Anderen uitnodigen' om iemand toegang te geven tot jouw scenario of
+        gebruik bovenstaande tabel om gekoppelde gebruikers te beheren.<br/><br/>
+        Zie de
+        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/" target=\"_blank\">
+        documentatie</a> voor meer informatie.
+      invite: 'Anderen uitnodigen'
+      send_invite: Stuur uitnodiging
+      name: 'Naam'
+      role: 'Rol'
+      you: 'jij'
+      unknown: 'Onbekende gebruiker'
+      nameless: 'Naamloze gebruiker'
+      roles:
+        scenario_owner: 'Eigenaar'
+        scenario_collaborator: 'Bewerker'
+        scenario_viewer: 'Gast'
+        pending: 'In afwachting'
+      new:
+        title: 'Geef iemand toegang to jouw scenario'
+        new_email_hint:
+          Als er geen bestaande gebruiker wordt gevonden voor het opgegeven e-mailadres,
+          wordt er een e-mail gestuurd op deze persoon uit te nodigen een aacount aan
+          te amken voor het ETM.
+        email: 'E-mailadres'
+        role: Rol
+        role_hint: Kies het type toegang dat je wilt verlenen.
+      confirm_destroy:
+        irreversible: Deze handeling is onomkeerbaar
+        warning: "Je staat op het punt om de toegang %{role} in te trekken."
+        confirm: 'Bevestig'
+        cancel: 'Annuleer'
+        not_possible: 'Je kan niet je eigen toegang intrekken.'
+        button: 'Toegang intrekken'
+      errors:
+        create: Er ging iets mis bij het maken van de uitnodiging!
+        base: Geef een e-mailadres op
+        user_email: Het ingevoerde e-mailadres is ongeldig.
+        update: Er ging iets mis in het bijwerken van deze rol!
+        destroy: Er ging iets mis bij het verwijderen van de gebruiker van het scenario!
+        general: Probeer het later nog eens. Neem contact met ons op als je deze foutmelding blijft krijgen.
+        duplicate: Deze persoon is al uitgenodigd voor dit scenario.
+
+  saved_scenarios:
+    empty: Je hebt nog geen scenario's.
+    search_by_title: Filter op titel
+    confirm_destroy:
+      title: Verwijder scenario permanent
+      warning_header: Je staat op het punt je scenario permanent te verwijderen
+      warning: |
+        Bij het verwijderen van dit scenario worden alle gegevens verwijdered,
+        inclusief scenariogeschiedenis, toegangsrechten, titel
+        en beschrijving.
+      irreversible: Deze handeling is onomkeerbaar
+      submit: Verwijder dit scenario
+  featured_scenarios:
+    confirm_destroy:
+      title: Maak scenario niet uitgelicht
+      warning_header: Je staat op het punt alle uitgelichte instellingen te verwijderen
+      warning: |
+        Door dit scenario niet meer uitgelicht te maken, worden the
+        uitgelichte titel en beschrijving verwijderd en verdwijnt het
+        scenario van de startpagina. De titel en beschrijving worden
+        teruggezet naar de oorspronkelijke instellingen van voordat het
+        een uitgelicht scenario werd.
+      irreversible: Deze handeling is onomkeerbaar
+      submit: Bevestig scenario niet meer uitlichten
+
+  trash:
+    title: Prullenbak
+    notice: Verwijderde scenario's worden automatisch permanent verwijderd na %{deleted_after} dagen.
+    discarded_flash: Je scenario was verplaatst naar de prullenbak
+    undiscarded_flash: Je scenario is hersteld
+    deleted_flash: Je scenario is permanent verwijderd
+    empty:
+      title:
+        Er zijn geen items in de prullenbak
+      description:
+        Verwijderde items worden verplaatst naar de prullenbak. Hier kun je aangeven
+        deze permanent te verwijderen of te herstellen. Verwijderde scenarios worden
+        automatisch permanent verwijderd na %{deleted_after} dagen.
+  flash:
+    need_login: Log opnieuw in
+  version:
+    latest: |
+      Dit scenario is gemaakt in de live versie van het ETM die de nieuwste, maandelijkse
+      updates bevat. Meer informatie...
+  collections:
+    title: Collecties
+    no_title: Collectie zonder titel
+    failure: Er ging iets mis!
+    all: Bekijk alle collecties
+    open: Open collectie
+    contains: Deze collecties bevat de volgende scenario's
+    search_by_title: Filter op titel
+    filter:
+      transition: Transitiepaden
+      plain: Collecties
+    interpolated:
+      description: Deze collectie bevat een transitiepad van nu tot 2050
+      long_description: |
+        Deze collectie bestaat uit een geïnterpoleerd 2050 scenario. Verken de mogelijke paden
+        naar een scenario voor 2050 en ontdek de mogelijkheden en consequenties voor geambieerde
+        doelen in 2030 en 2040.
+    block_right:
+      compose_collection:
+        title: Nieuwe collectie
+        description: Maak een collectie van je opgeslagen scenario's
+      create_transition:
+        title: Nieuw transitiepad
+        description: |
+          Kies een 2050 scenario om te interpoleren naar scenario's voor
+          2030 en 2040
+    new:
+      title: Maan nieuwe collectie
+      no_scenarios: Je hebt geen opgeslagen scenario's om aan een collectie toe te voegen
+      form:
+        default_title: Mijn nieuwe collectie
+        scenario_ids: Inbegrepen scenario's (max 6)
+        cancel: Annuleer
+    new_transition:
+      title: Maak nieuwe transitiepad
+      description: |
+        Verken de mogelijke transitiepaden naar een scenario voor 2050 en ontdek
+        de mogelijkheden en consequenties voor geambieerde doelen in 2030 en 2040.
+        Begin door een 2050 scenario van jouw opgeslagen scenario's te selecteren.
+      no_scenarios: Je hebt geen opgeslagen scenario's om mee te beginnen.
+      start: Start
+    confirm_destroy:
+      title: Collectie permanent verwijderen
+      warning_header: Je verwijdert je collectie permanent
+      warning: |
+        Alle verwijzingen naar de collectie worden verwijderd.
+      irreversible: Deze handeling is onomkeerbaar
+      submit: Verwijder deze collectie
+    try_now: Maak je eerste collectie
+    get_started: |
+      Met collecties kun je de uitkomsten van verschillende scenario's die je hebt
+      gemaakt met elkaar vergelijken. Je kunt een nieuwe collectie maken van je
+      eigen scenario's. Ook kun je een transitiepad maken met één van je scenario's,
+      waarmee geïnterpoleerde scenario's voor de tussenliggende jaren worden gemaakt.
