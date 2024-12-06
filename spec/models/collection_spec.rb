@@ -85,21 +85,34 @@ RSpec.describe Collection, type: :model do
   describe 'scenario versions' do
     let(:user) { create(:user) }
 
-    before do
-      # Stub `Version.all` to return mock versions
-      allow(Version).to receive(:all).and_return([version, version_1])
-    end
-
     let(:version) { "version" }
     let(:version_1) { "version_1" }
 
-    let(:scenario1) { create(:saved_scenario, version: version, user: user) }
-    let(:scenario2) { create(:saved_scenario, version: version_1, user: user, scenario_id: 99) }
+    # We don't validate to be able to stub the versions
+    let(:scenario1) do
+       s = build(:saved_scenario, version: version, user: user)
+       s.save(validate: false)
+
+       s
+    end
+    let(:scenario2) do
+      s = build(:saved_scenario, version: version_1, user: user, scenario_id: 99)
+      s.save(validate: false)
+
+      s
+    end
 
     context 'when all scenarios belong to the same version' do
-      it 'is valid' do
-        collection = build(:collection, user: user, saved_scenarios: [scenario1])
+      let(:collection) { create(:collection, user: user, version: version) }
 
+      before do
+        create(:saved_scenario_user, saved_scenario: scenario1, user: user)
+        create(:collection_saved_scenario, saved_scenario: scenario1, collection: collection)
+
+        collection.reload
+      end
+
+      it 'is valid' do
         expect(collection).to be_valid
       end
     end
@@ -108,6 +121,8 @@ RSpec.describe Collection, type: :model do
       let(:collection) { create(:collection, user: user, version: version) }
 
       before do
+        create(:saved_scenario_user, saved_scenario: scenario1, user: user)
+        create(:saved_scenario_user, saved_scenario: scenario2, user: user)
         create(:collection_saved_scenario, saved_scenario: scenario1, collection: collection)
         create(:collection_saved_scenario, saved_scenario: scenario2, collection: collection)
 

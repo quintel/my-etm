@@ -7,8 +7,6 @@ module Api
 
       # GET /api/v1/featured_scenarios
       def index
-        featured_scenarios = FeaturedScenario.all
-
         render json: {
           featured_scenarios: featured_scenarios.as_json
         }, status: :ok
@@ -26,6 +24,19 @@ module Api
         @featured_scenario = FeaturedScenario.find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: 'FeaturedScenario not found' }, status: :not_found
+      end
+
+      def version
+        params.permit(:version)
+      end
+
+      def featured_scenarios
+        if version.present?
+          FeaturedScenario.joins(:saved_scenario)
+            .where(saved_scenario: { version: version['version'] })
+        else
+          FeaturedScenario.all
+        end
       end
     end
   end

@@ -4,13 +4,13 @@ FactoryBot.define do
   factory :saved_scenario do
     transient do
       user { nil }
-      version { 'latest' }
     end
 
     title { 'Some scenario' }
     end_year { 2050 }
     area_code { 'nl' }
     scenario_id { 648_695 }
+    version { 'latest' }
 
     after(:create) do |saved_scenario, evaluator|
       if evaluator.user.present?
