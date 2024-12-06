@@ -19,20 +19,16 @@ class SavedScenarioHistoryController < ApplicationController
 
       respond_to do |format|
         format.html { render 'index' }
-        format.js
-        format.json { render json: @history }
       end
     else
-      # TODO: respond_to -> pass error to js
-      # @error = ...
       @history = {}
       respond_to do |format|
-        format.json { render version_tags_result.errors }
-        format.js
+        format.html { render 'index' }
       end
     end
   end
 
+  # TODO: make this HTML / turbo
   # PUT /saved_scenarios/:id/history/:scenario_id
   def update
     result = ApiScenario::VersionTags::Update.call(
@@ -52,10 +48,18 @@ class SavedScenarioHistoryController < ApplicationController
     end
   end
 
+  # TODO: check if restore is better here or on SavedScenario
+  # Here might be easier to remove with turbo from frame/view
+
   private
 
   def update_params
     params.permit(:description)
+  end
+
+  # We pass this around all of the time or we do it with js?
+  def history_params
+    params.permit(:user_name, :description)
   end
 
   def assign_saved_scenario

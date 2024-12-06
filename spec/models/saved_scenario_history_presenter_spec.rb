@@ -28,19 +28,23 @@ describe SavedScenarioHistoryPresenter do
   let(:user) { create(:user) }
   let(:saved_scenario) { create(:saved_scenario, scenario_id: 123, scenario_id_history: [111, 122]) }
 
+  it 'returns SavedScenarioHistory objects' do
+    expect(subject.first).to be_a(SavedScenarioHistory)
+  end
+
   it 'returns the versions sorted from current to last' do
-    expect(subject.map { |v| v['scenario_id'] }).to eq([123, 122, 111])
+    expect(subject.map(&:scenario_id)).to eq([ 123, 122, 111 ])
   end
 
   it 'subsitutes the user id for a users name' do
-    expect(subject.first).to include({ 'user' => user.name })
+    expect(subject.first.user_name).to eq(user.name)
   end
 
-  it 'removes the user id' do
-    expect(subject.first.keys).not_to include('user_id')
+  it 'sets frozen' do
+    expect(subject.first.frozen).to be_falsey
   end
 
   it 'sets a "unknown" name when no user was known for the version (older scenario compatability)' do
-    expect(subject.last.keys).to include('user')
+    expect(subject.last.user_name).to eq('Unknown user')
   end
 end
