@@ -5,14 +5,14 @@
     %span Energy Transition Model
 
   - if current_user
-    = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.saved_scenarios'), icon: 'adjustments-horizontal', active: %w[saved_scenarios saved_scenario_users].include?(controller_name)))
+    = render(SidebarItem::Component.new(path: saved_scenarios_path, title: t('sidebar.saved_scenarios'), icon: 'adjustments-horizontal', active: %w[saved_scenarios saved_scenario_users].include?(controller_name) && !controller_path.include?('admin')))
 
-    = render(SidebarItem::Component.new(path: collections_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections'))
+    = render(SidebarItem::Component.new(path: collections_path, title: t('sidebar.collections'), icon: 'chart-bar-square', active: controller_name == 'collections' && !controller_path.include?('admin')))
 
     = render(SidebarItem::Component.new(path: discarded_index_path, title: t('sidebar.discarded'), icon: 'trash', active: controller_name == 'discarded' ))
 
     - if current_user.admin?
-      = render(SidebarItem::Component.new(path: admin_path, title: t('sidebar.admin'), icon: 'beaker', active: %[users staff_applications].include?(controller_name)))
+      = render(SidebarItem::Component.new(path: admin_path, title: t('sidebar.admin'), icon: 'beaker', active: controller_path.include?('admin')))
 
   .absolute.bottom-0.left-0.inline-block.w-full
     .py-3.text-midnight-800
