@@ -1,0 +1,19 @@
+- content_for(:page_title) { t('collaborate.collaborate.title') }
+- content_for(:menu_title) { t('collaborate.collaborate.title') }
+= render(partial: "block_right")
+
+.pt-5.text-sm.text-midnight-400.pb-2= t('collaborate.about.title')
+.text-readable-width= t('collaborate.about.description').html_safe
+.text-midnight-450.mt-2.ml-5.underline= link_to t('collaborate.about.link'), "https://quintel.com/projects"
+
+.pt-5.text-sm.text-midnight-400.pb-2= t('collaborate.open_source.title')
+.text-readable-width= t('collaborate.open_source.description').html_safe
+.text-midnight-450.mt-2.ml-5.underline= link_to t('collaborate.open_source.link'), "https://github.com/quintel"
+
+.pt-5.text-sm.text-midnight-400.pb-2= t('collaborate.development.title')
+.text-readable-width= t('collaborate.development.description').html_safe
+.text-midnight-450.mt-2.ml-5.underline= link_to t('collaborate.development.link'), contact_path
+
+.pt-5.text-sm.text-midnight-400.pb-2= t('collaborate.partners.title')
+.text-readable-width= t('collaborate.partners.description').html_safe
+.text-midnight-450.mt-2.ml-5.underline= link_to t('collaborate.partners.link'), "https://quintel.com/contact"

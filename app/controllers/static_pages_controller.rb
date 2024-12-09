@@ -24,6 +24,9 @@ class StaticPagesController < ApplicationController
   def terms
   end
 
+  def collaborate
+  end
+
   def send_message
     @message = ContactUsMessage.from_params(feedback_params)
 

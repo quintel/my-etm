@@ -141,6 +141,7 @@ Rails.application.routes.draw do
   post :send_message, to: 'static_pages#send_message'
   get :privacy, to: 'static_pages#privacy'
   get :terms,   to: 'static_pages#terms'
+  get :collaborate,   to: 'static_pages#collaborate'
   # get :root,    to: 'static_pages#empty'
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

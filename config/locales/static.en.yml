@@ -72,3 +72,47 @@ en:
       address: Address
       success_flash: |
         Thank you for contacting us. Your message is on its way!
+  collaborate:
+    collaborate:
+      title: Collaborate
+    about:
+      title: About Quintel
+      description: |
+        Quintel aims to accelerate the energy transition with state-of-the-art and
+        open-source tools and data. We do this in collaboration with our partners.
+        In addition to our continuous development of the ETM, we help grid operators,
+        policy makers, consultants, and many others to use and apply the ETM.
+      link: See what we can do for you →
+    open_source:
+      title: Open source
+      description: |
+        At Quintel we strongly believe that sharing knowledge and a collaborative approach can greatly
+        accelerate the energy transition. Therefore, we offer the ETM as a fully open-source tool. This
+        means that anyone can access, review, and improve the data, calculations, definitions, and software
+        that is part of the model.
+        </br>
+        </br>
+        While the ETM is created and developed by Quintel, it is made possible thanks to the work of
+        thousands of contributors to open-source projects such as Ruby on Rails, Backbone, React, and many
+        more. Icons and images used in the ETM are thanks to Hero Icons, Font Awesome, and Freepik
+        (Flaticon).
+      link: See our GitHub page →
+    development:
+      title: Development process
+      description: |
+        The modelling principles and the data underlying the ETM are continuously maintained and improved by
+        Quintel to match the ever-changing needs of the energy transition. These needs are indicated in part
+        by our users, who can propose changes on any part of the model due to its open-source nature.
+        </br>
+        </br>
+        Additionally, these needs come from our extensive network of partners, who we collaborate with in
+        development projects. Do you have any suggestions for model improvements?
+      link: Let us know →
+    partners:
+      title: Partners
+      description: |
+        The expansion and improvement of the ETM fully depends on (the continuous) support from partners.
+        Over the years many grid operators, government parties, consultancies, universities, and knowledge
+        institutes have actively contributed knowledge and resources making sure the ETM remains a leading
+        open-source tool. Are you interested in collaborating to expand or improve the ETM?
+      link: Contact us →
