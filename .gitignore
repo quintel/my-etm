@@ -38,3 +38,11 @@
 !/app/assets/builds/.keep
 
 **/.DS_Store
+
+/config/credentials/production.key
+
+/config/credentials/staging.key
+
+/config/credentials/development.key
+
+/config/credentials/test.key
