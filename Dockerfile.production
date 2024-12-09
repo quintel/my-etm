@@ -7,8 +7,7 @@ RUN apt-get update -yqq && \
     automake \
     autoconf \
     build-essential \
-    libmysqlclient-dev \
-    libmysqlclient21 \
+    default-libmysqlclient-dev \
     libmariadb-dev \
     mariadb-client \
     git \
