@@ -33,4 +33,4 @@ COPY . /app/
 
 RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
 
-CMD [".docker/entrypoint.sh"]
+CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
