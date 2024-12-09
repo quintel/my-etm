@@ -1,0 +1,4 @@
+MYSQL_DATABASE=etengine_development
+MYSQL_PWD=dev
+MYSQL_ROOT_PASSWORD=dev
+USER=root

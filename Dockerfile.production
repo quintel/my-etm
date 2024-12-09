@@ -4,10 +4,30 @@ LABEL maintainer="dev@quintel.com"
 
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     build-essential \
+    default-libmysqlclient-dev \
     gnupg2 \
     nodejs \
-    default-libmysqlclient-dev \
+    zlib1g-dev \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# RUN apt-get update -yqq && \
+#   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+#     automake \
+#     autoconf \
+#     build-essential \
+#     default-libmysqlclient-dev \
+#     libmariadb-dev \
+#     mariadb-client \
+#     git \
+#     gnupg \
+#     graphviz \
+#     libreadline-dev \
+#     libxml2-dev \
+#     libxslt1-dev \
+#     libyaml-dev \
+#     nodejs \
+#     zlib1g \
+#     zlib1g-dev
 
 ENV LANG=C.UTF-8 \
   BUNDLE_JOBS=4 \
