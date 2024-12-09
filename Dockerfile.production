@@ -7,26 +7,16 @@ RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -yq --n
     gnupg2 \
     libpq-dev \
     nodejs \
+    libmariadb-dev \
+    mariadb-client \
+    default-mysql-client \
+    default-mysql-client-core \
+    default-mysql-server \
+    default-mysql-server-core \
+    mysql-common \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# RUN apt-get update -yqq && \
-#   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
-#     automake \
-#     autoconf \
-#     build-essential \
-#     default-libmysqlclient-dev \
-#     libmariadb-dev \
-#     mariadb-client \
-#     git \
-#     gnupg \
-#     graphviz \
-#     libreadline-dev \
-#     libxml2-dev \
-#     libxslt1-dev \
-#     libyaml-dev \
-#     nodejs \
-#     zlib1g \
-#     zlib1g-dev
+RUN ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21
 
 ENV LANG=C.UTF-8 \
   BUNDLE_JOBS=4 \
