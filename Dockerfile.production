@@ -2,39 +2,50 @@ FROM ruby:3.3.6
 
 LABEL maintainer="dev@quintel.com"
 
-RUN apt-get update -yqq && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
-    automake \
-    autoconf \
+RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
     build-essential \
-    default-libmysqlclient-dev \
-    libmariadb-dev \
-    mariadb-client \
-    git \
-    gnupg \
-    graphviz \
-    libreadline-dev \
-    libxml2-dev \
-    libxslt1-dev \
-    libyaml-dev \
+    gnupg2 \
+    libpq-dev \
     nodejs \
-    zlib1g \
-    zlib1g-dev
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN gem install bundler -v '2.5.18'
+# RUN apt-get update -yqq && \
+#   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+#     automake \
+#     autoconf \
+#     build-essential \
+#     default-libmysqlclient-dev \
+#     libmariadb-dev \
+#     mariadb-client \
+#     git \
+#     gnupg \
+#     graphviz \
+#     libreadline-dev \
+#     libxml2-dev \
+#     libxslt1-dev \
+#     libyaml-dev \
+#     nodejs \
+#     zlib1g \
+#     zlib1g-dev
 
-# Throw errors if Gemfile has been modified since Gemfile.lock
-RUN bundle config unset deployment || true
-RUN bundle config --global frozen 1
+ENV LANG=C.UTF-8 \
+  BUNDLE_JOBS=4 \
+  BUNDLE_RETRY=3 \
+  RAILS_ENV=production
 
+RUN gem update --system && gem install bundler
 
 COPY Gemfile* /app/
 WORKDIR /app
-RUN bundle config set --local deployment 'true'
-RUN bundle install --jobs=4 --retry=3 --without="development test"
+
+RUN bundle config frozen true \
+ && bundle config jobs 4 \
+ && bundle config deployment true \
+ && bundle config without 'development test' \
+ && bundle install
 
 COPY . /app/
 
-RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
+RUN bin/rails assets:clobber && bundle exec rails assets:precompile
 
 CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
