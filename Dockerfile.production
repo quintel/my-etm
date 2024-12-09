@@ -7,7 +7,7 @@ RUN apt-get update -yqq && \
     automake \
     autoconf \
     build-essential \
-    libmysqlclient-dev \
+    default-libmysqlclient-dev \
     default-mysql-client \
     git \
     gnupg \
