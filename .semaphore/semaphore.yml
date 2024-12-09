@@ -22,11 +22,13 @@ blocks:
             - bundle install || (rm -rf vendor/bundle && cache clear && bundle install)
             - cache store
             - 'bundle exec rake db:setup'
-            - bundle exec rake assets:precompile
+            - 'bundle exec rake assets:precompile'
             - bundle exec rspec
+      secrets:
+        - name: MyETM credentials master.key
 
 promotions:
   - name: Deploy to staging
     pipeline_file: deploy_staging.yml
     auto_promote:
-      when: "result = 'passed' and branch = 'master'"
+      when: result = 'passed' and branch = 'master'
