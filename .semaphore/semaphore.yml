@@ -24,8 +24,6 @@ blocks:
             - 'bundle exec rake db:setup'
             - 'bundle exec rake assets:precompile'
             - bundle exec rspec
-      secrets:
-        - name: MyETM credentials master.key
 
 promotions:
   - name: Deploy to staging

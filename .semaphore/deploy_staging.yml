@@ -26,5 +26,6 @@ blocks:
       secrets:
         - name: Docker Hub credentials
         - name: Staging SSH settings
+        - name: MyETM credentials master.key
     run:
       when: branch = 'master'
