@@ -7,8 +7,8 @@ RUN apt-get update -yqq && \
     automake \
     autoconf \
     build-essential \
-    libmariadb-dev \
-    mariadb-client \
+    default-libmysqlclient-dev \
+    mysql-client \
     git \
     gnupg \
     graphviz \
@@ -21,7 +21,6 @@ RUN apt-get update -yqq && \
     zlib1g-dev
 
 RUN gem install bundler:2.5.18
-RUN gem update --system
 
 # Throw errors if Gemfile has been modified since Gemfile.lock
 RUN bundle config --global frozen 1
