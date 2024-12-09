@@ -2,51 +2,39 @@ FROM ruby:3.3.5-alpine
 
 LABEL maintainer="dev@quintel.com"
 
-RUN apk update -qq && apk install -yq --no-install-recommends \
-    build-essential \
-    default-libmysqlclient-dev \
-    gnupg2 \
+# Install required packages
+RUN apk update && apk add --no-cache \
+    build-base \
+    mariadb-connector-c-dev \
+    mariadb-dev \
     nodejs \
-    zlib1g-dev \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    npm \
+    zlib-dev \
+    tzdata \
+    git
 
-# RUN apt-get update -yqq && \
-#   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
-#     automake \
-#     autoconf \
-#     build-essential \
-#     default-libmysqlclient-dev \
-#     libmariadb-dev \
-#     mariadb-client \
-#     git \
-#     gnupg \
-#     graphviz \
-#     libreadline-dev \
-#     libxml2-dev \
-#     libxslt1-dev \
-#     libyaml-dev \
-#     nodejs \
-#     zlib1g \
-#     zlib1g-dev
-
+# Set environment variables
 ENV LANG=C.UTF-8 \
-  BUNDLE_JOBS=4 \
-  BUNDLE_RETRY=3 \
-  RAILS_ENV=production
+    BUNDLE_JOBS=4 \
+    BUNDLE_RETRY=3 \
+    RAILS_ENV=production
 
+# Install bundler
 RUN gem update --system && gem install bundler:2.5.18
 
+# Copy Gemfile and install gems
 COPY Gemfile* /app/
 WORKDIR /app
-
 RUN bundle config frozen true \
- && bundle config jobs 4 \
  && bundle config deployment true \
  && bundle config without 'development test' \
- && bundle install
+ && bundle install --jobs=4 --retry=3
 
+# Copy application files
 COPY . /app/
 
+# Precompile Rails assets
 RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
 
+# Start the application
 CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
