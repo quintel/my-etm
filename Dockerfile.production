@@ -8,10 +8,28 @@ RUN apk update && apk add --no-cache \
     mariadb-connector-c-dev \
     mariadb-dev \
     nodejs \
-    npm \
     zlib-dev \
-    tzdata \
     git
+
+    # Old version
+# RUN apt-get update -yqq && \
+#   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+#     automake \
+#     autoconf \
+#     build-essential \
+#     default-libmysqlclient-dev \
+#     libmariadb-dev \
+#     mariadb-client \
+#     git \
+#     gnupg \
+#     graphviz \
+#     libreadline-dev \
+#     libxml2-dev \
+#     libxslt1-dev \
+#     libyaml-dev \
+#     nodejs \
+#     zlib1g \
+#     zlib1g-dev
 
 # Set environment variables
 ENV LANG=C.UTF-8 \
