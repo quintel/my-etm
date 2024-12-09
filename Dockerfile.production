@@ -2,36 +2,34 @@ FROM ruby:3.3.5-slim
 
 LABEL maintainer="dev@quintel.com"
 
-# Add MariaDB repository and install libmysqlclient21
+# Install required packages
 RUN apt-get update -yqq && \
-    apt-get install -yqq --no-install-recommends gnupg2 curl && \
-    curl -fsSL https://mariadb.org/mariadb_release_signing_key.asc | apt-key add - && \
-    echo "deb [arch=amd64] http://ftp.hosteurope.de/mirror/mariadb/repo/10.6/debian buster main" > /etc/apt/sources.list.d/mariadb.list \
-        apt-get update -yqq && \
-        apt-get install -yqq --no-install-recommends \
-        libmysqlclient21 \
-        default-libmysqlclient-dev \
-        mariadb-client \
-        build-essential \
-        git \
-        nodejs \
-        zlib1g-dev \
-        libreadline-dev \
-        libxml2-dev \
-        libxslt1-dev \
-        libyaml-dev \
-        graphviz && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+      build-essential \
+      default-libmysqlclient-dev \
+      libmariadb-dev \
+      mariadb-client \
+      nodejs \
+      yarn \
+      git \
+      gnupg \
+      graphviz \
+      libreadline-dev \
+      libxml2-dev \
+      libxslt1-dev \
+      libyaml-dev \
+      zlib1g \
+      zlib1g-dev && \
+    ln -s /usr/lib/x86_64-linux-gnu/libmariadb.so /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21 && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install Bundler
-RUN gem update --system && gem install bundler:2.5.18
-# Set environment variables for Bundler and Rails
-ENV LANG=C.UTF-8 \
-    BUNDLE_JOBS=4 \
-    BUNDLE_RETRY=3 \
-    RAILS_ENV=production
+RUN gem install bundler:2.5.18
 
-# Install gems
+# Set Bundler configuration
+RUN bundle config --global frozen 1
+
+# Copy Gemfile and install gems
 COPY Gemfile* /app/
 WORKDIR /app
 RUN bundle config set --local deployment 'true' && \
@@ -40,7 +38,7 @@ RUN bundle config set --local deployment 'true' && \
 # Copy application files
 COPY . /app/
 
-# Precompile assets
+# Precompile Rails assets
 RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
 
 # Start the application
