@@ -1,0 +1,36 @@
+FROM ruby:3.3.5
+
+LABEL maintainer="dev@quintel.com"
+
+RUN apt-get update -yqq && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+    automake \
+    autoconf \
+    build-essential \
+    default-libmysqlclient-dev \
+    git \
+    gnupg \
+    graphviz \
+    libreadline-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libyaml-dev \
+    nodejs \
+    zlib1g \
+    zlib1g-dev
+
+RUN gem install bundler:2.5.18
+
+# Throw errors if Gemfile has been modified since Gemfile.lock
+RUN bundle config --global frozen 1
+
+COPY Gemfile* /app/
+WORKDIR /app
+RUN bundle config set --local deployment 'true'
+RUN bundle install --jobs=4 --retry=3 --without="development test"
+
+COPY . /app/
+
+RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
+
+CMD [".docker/entrypoint.sh"]

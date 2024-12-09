@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app:cached
+      - bundle:/usr/local/bundle
+      - node_modules:/app/node_modules
+      - rails_cache:/app/tmp/cache
+      - storage:/app/storage
+    env_file:
+      - .docker/env/development/database
+      - .docker/env/development/web
+    tmpfs:
+      - /tmp
+      - /app/tmp/pids
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: mariadb:10
+    command: --default-authentication-plugin=mysql_native_password
+    env_file:
+      - .docker/env/development/database
+    healthcheck:
+      test: mysqladmin ping
+      interval: 2s
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  bundle:
+  db_data:
+  node_modules:
+  rails_cache:
+  storage:
