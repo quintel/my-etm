@@ -21,7 +21,7 @@ RUN apt-get update -yqq && \
     zlib1g-dev
 
 RUN gem install bundler:2.5.18
-RUN gem install mysql2 -v '0.5.6' -- --with-mysql-config=/usr/bin/mysql_config
+RUN gem update --system
 
 # Throw errors if Gemfile has been modified since Gemfile.lock
 RUN bundle config --global frozen 1
