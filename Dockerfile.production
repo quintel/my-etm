@@ -2,7 +2,7 @@ FROM ruby:3.3.5-alpine
 
 LABEL maintainer="dev@quintel.com"
 
-RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
+RUN apk update -qq && apk install -yq --no-install-recommends \
     build-essential \
     default-libmysqlclient-dev \
     gnupg2 \
