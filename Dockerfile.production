@@ -7,8 +7,8 @@ RUN apt-get update -yqq && \
     automake \
     autoconf \
     build-essential \
-    default-libmysqlclient-dev \
-    mysql-client \
+    libmariadb-dev \
+    mariadb-client \
     git \
     gnupg \
     graphviz \
