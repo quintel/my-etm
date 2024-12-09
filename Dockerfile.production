@@ -21,9 +21,10 @@ RUN apt-get update -yqq && \
     zlib1g \
     zlib1g-dev
 
-RUN gem install bundler:2.5.18
+RUN gem install bundler -v '2.5.18'
 
 # Throw errors if Gemfile has been modified since Gemfile.lock
+RUN bundle config unset deployment || true
 RUN bundle config --global frozen 1
 
 
