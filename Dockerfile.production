@@ -8,6 +8,7 @@ RUN apt-get update -yqq && \
     autoconf \
     build-essential \
     libmysqlclient-dev \
+    libmysqlclient21 \
     libmariadb-dev \
     mariadb-client \
     git \
