@@ -1,8 +1,8 @@
-FROM ruby:3.3.6
+FROM ruby:3.3.5
 
 LABEL maintainer="dev@quintel.com"
 
-RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     build-essential \
     gnupg2 \
     libpq-dev \
