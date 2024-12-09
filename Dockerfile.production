@@ -1,59 +1,46 @@
-FROM ruby:3.3.5-alpine
+FROM ruby:3.3.5-slim
 
 LABEL maintainer="dev@quintel.com"
 
-# Install required packages
-RUN apk update && apk add --no-cache \
-    ruby-dev \
-    build-base \
-    nodejs \
-    zlib-dev \
-    libxml2-dev \
-    mysql-dev \
-    tzdata \
-    git
+# Add MariaDB repository and install libmysqlclient21
+RUN apt-get update -yqq && \
+    apt-get install -yqq --no-install-recommends gnupg2 curl && \
+    curl -fsSL https://mariadb.org/mariadb_release_signing_key.asc | apt-key add - && \
+    echo "deb [arch=amd64] http://ftp.hosteurope.de/mirror/mariadb/repo/10.6/debian buster main" > /etc/apt/sources.list.d/mariadb.list \
+        apt-get update -yqq && \
+        apt-get install -yqq --no-install-recommends \
+        libmysqlclient21 \
+        default-libmysqlclient-dev \
+        mariadb-client \
+        build-essential \
+        git \
+        nodejs \
+        zlib1g-dev \
+        libreadline-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        libyaml-dev \
+        graphviz && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-    # Old version
-# RUN apt-get update -yqq && \
-#   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
-#     automake \
-#     autoconf \
-#     build-essential \
-#     default-libmysqlclient-dev \
-#     libmariadb-dev \
-#     mariadb-client \
-#     git \
-#     gnupg \
-#     graphviz \
-#     libreadline-dev \
-#     libxml2-dev \
-#     libxslt1-dev \
-#     libyaml-dev \
-#     nodejs \
-#     zlib1g \
-#     zlib1g-dev
-
-# Set environment variables
+# Install Bundler
+RUN gem update --system && gem install bundler:2.5.18
+# Set environment variables for Bundler and Rails
 ENV LANG=C.UTF-8 \
     BUNDLE_JOBS=4 \
     BUNDLE_RETRY=3 \
     RAILS_ENV=production
 
-# Install bundler
-RUN gem update --system && gem install bundler:2.5.18
-
-# Copy Gemfile and install gems
+# Install gems
 COPY Gemfile* /app/
 WORKDIR /app
-RUN bundle config frozen true \
- && bundle config deployment true \
- && bundle config without 'development test' \
- && bundle install --jobs=4 --retry=3
+RUN bundle config set --local deployment 'true' && \
+    bundle install --jobs=4 --retry=3 --without="development test"
 
 # Copy application files
 COPY . /app/
 
-# Precompile Rails assets
+# Precompile assets
 RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
 
 # Start the application
