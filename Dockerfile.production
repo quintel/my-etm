@@ -4,6 +4,7 @@ LABEL maintainer="dev@quintel.com"
 
 # Install required packages
 RUN apk update && apk add --no-cache \
+    ruby-dev \
     build-base \
     nodejs \
     zlib-dev \
