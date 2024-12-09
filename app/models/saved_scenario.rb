@@ -51,13 +51,13 @@ class SavedScenario < ApplicationRecord
     scenarios
   end
 
-  # def scenario(engine_client)
-  #   unless engine_client.is_a?(Faraday::Connection)
-  #     raise "SavedScenario#scenario expects an HTTP client as its first argument"
-  #   end
+  # Public: Destroys all scenarios which were discarded some time ago.
+  def self.destroy_old_discarded!
+    discarded
+      .where(discarded_at: ..SavedScenario::AUTO_DELETES_AFTER.ago)
+      .destroy_all
+  end
 
-  #   @scenario ||= FetchAPIScenario.call(engine_client, scenario_id).or(nil)
-  # end
   def restore_version(scenario_id)
     return unless scenario_id && scenario_id_history.include?(scenario_id)
 
