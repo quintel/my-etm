@@ -5,10 +5,11 @@ LABEL maintainer="dev@quintel.com"
 # Install required packages
 RUN apk update && apk add --no-cache \
     build-base \
-    mariadb-connector-c-dev \
-    mariadb-dev \
     nodejs \
     zlib-dev \
+    libxml2-dev \
+    mysql-dev \
+    tzdata \
     git
 
     # Old version
