@@ -5,13 +5,15 @@ LABEL maintainer="dev@quintel.com"
 # Install required packages
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
       build-essential \
-      libmariadb-dev \
+      libmysqlclient-dev \
       nodejs \
       git \
       gnupg \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # RUN apt-get update -qq && apt-get install -y default-libmysqlclient-dev
+# ENV BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
+# ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
 # Install Bundler
 RUN gem update --system && gem install bundler
