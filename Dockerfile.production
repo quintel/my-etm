@@ -3,28 +3,23 @@ FROM ruby:3.3.5-slim
 LABEL maintainer="dev@quintel.com"
 
 # Install required packages
-RUN apt-get update -yqq && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
       build-essential \
-      default-libmysqlclient-dev \
-      libmariadb-dev \
-      mariadb-client \
       nodejs \
-      yarn \
       git \
-      gnupg \
-      graphviz \
-      libreadline-dev \
-      libxml2-dev \
-      libxslt1-dev \
-      libyaml-dev \
-      zlib1g \
-      zlib1g-dev && \
-    ln -s /usr/lib/x86_64-linux-gnu/libmariadb.so /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21 && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+      gnupg2 \
+      # libreadline-dev \
+      # libxml2-dev \
+      # libxslt1-dev \
+      # libyaml-dev \
+      # zlib1g \
+      # zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN apt-get update -qq && apt-get install -y default-libmysqlclient-dev
 
 # Install Bundler
-RUN gem install bundler:2.5.18
+RUN gem update --system && gem install bundler
 
 # Set Bundler configuration
 RUN bundle config --global frozen 1
@@ -39,7 +34,7 @@ RUN bundle config set --local deployment 'true' && \
 COPY . /app/
 
 # Precompile Rails assets
-RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
+RUN RAILS_ENV=production bundle exec rails assets:precompile
 
 # Start the application
 CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
