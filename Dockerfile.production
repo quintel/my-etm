@@ -21,20 +21,24 @@ RUN apt-get update -qq && apt-get install -y default-libmysqlclient-dev
 # Install Bundler
 RUN gem update --system && gem install bundler
 
-# Set Bundler configuration
-RUN bundle config --global frozen 1
+RUN echo locate libmysqlclient.so
 
 # Copy Gemfile and install gems
 COPY Gemfile* /app/
 WORKDIR /app
-RUN bundle config set --local deployment 'true' && \
-    bundle install --jobs=4 --retry=3 --without="development test"
+
+RUN bundle config frozen true \
+ && bundle config jobs 4 \
+ && bundle config deployment true \
+ && bundle config without 'development test' \
+ && bundle install
 
 # Copy application files
 COPY . /app/
 
 # Precompile Rails assets
-RUN RAILS_ENV=production bundle exec rails assets:precompile
+RUN bin/rails assets:clobber && bundle exec rails assets:precompile
+RUN RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1  bundle exec rails assets:precompile
 
 # Start the application
 CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
