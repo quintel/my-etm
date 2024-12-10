@@ -5,7 +5,7 @@ LABEL maintainer="dev@quintel.com"
 # Install required packages
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
       build-essential \
-      libmysqlclient-dev \
+      libmariadb-dev \
       nodejs \
       git \
       gnupg \
@@ -35,7 +35,7 @@ RUN bundle config frozen true \
 COPY . /app/
 
 # Precompile Rails assets
-RUN RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1  bundle exec rails assets:precompile
+RUN RAILS_ENV=production bundle exec rails assets:precompile
 
 # Start the application
 CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
