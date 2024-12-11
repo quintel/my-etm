@@ -87,6 +87,6 @@ class FeaturedScenario < ApplicationRecord
   end
 
   def as_json(options = {})
-    super.merge(version: version)
+    super.merge(version: version, end_year: end_year)
   end
 end
