@@ -1,35 +1,74 @@
-FROM ruby:3.3.5-slim
+# FROM ruby:3.3.5-slim
 
-LABEL maintainer="dev@quintel.com"
+# LABEL maintainer="dev@quintel.com"
 
-# Install required packages
+# # Install required packages
+# RUN apt-get update -yqq && \
+#   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+#       build-essential \
+#       # default-libmysqlclient-dev \
+#       nodejs \
+#       git \
+#       gnupg \
+#     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# # Install Bundler
+# RUN gem install bundler:2.5.18
+
+# # Copy Gemfile and install gems
+# COPY Gemfile* /app/
+# WORKDIR /app
+
+# RUN bundle config frozen true \
+#  && bundle config jobs 4 \
+#  && bundle config deployment true \
+#  && bundle config without 'development test' \
+#  && bundle install
+
+# # Copy application files
+# COPY . /app/
+
+# # Precompile Rails assets
+# RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
+
+# # Start the application
+# CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
+
+
+# Stage 1: Build
+FROM ruby:3.3.5-slim AS builder
+
+ARG RAILS_MASTER_KEY
+ENV RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+
+# Install packages and dependencies
 RUN apt-get update -yqq && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
-      build-essential \
-      # default-libmysqlclient-dev \
-      nodejs \
-      git \
-      gnupg \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Install Bundler
-RUN gem install bundler:2.5.18
-
-# Copy Gemfile and install gems
-COPY Gemfile* /app/
-WORKDIR /app
-
-RUN bundle config frozen true \
- && bundle config jobs 4 \
- && bundle config deployment true \
- && bundle config without 'development test' \
- && bundle install
+    DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
+        build-essential \
+        default-libmysqlclient-dev \
+        nodejs \
+        git \
+        gnupg \
+      && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Copy application files
-COPY . /app/
+COPY . /app
+WORKDIR /app
 
-# Precompile Rails assets
+# Create master.key during the build process
+RUN echo $RAILS_MASTER_KEY > /app/config/master.key
+
+# Precompile assets
 RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
+
+# Remove the master key after assets are precompiled
+RUN rm /app/config/master.key
+
+# Stage 2: Final image
+FROM ruby:3.3.5-slim
+
+# Copy application files and precompiled assets from builder stage
+COPY --from=builder /app /app
 
 # Start the application
 CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
