@@ -1,9 +1,10 @@
-version: '3'
+# version: '3.8'
 
 services:
   web:
     build:
       context: .
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
@@ -15,20 +16,32 @@ services:
     tmpfs:
       - /tmp
       - /app/tmp/pids
+    environment:
+      RAILS_ENV: development
+      DATABASE_HOST: database
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: password
+      DATABASE_NAME: my_etm_development
     depends_on:
       database:
         condition: service_healthy
+    command: bundle exec rails server -b 0.0.0.0
 
   database:
     image: mariadb:10
     command: --default-authentication-plugin=mysql_native_password
-    env_file:
-      - .docker/env/development/database
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: my_etm_development
     healthcheck:
-      test: mysqladmin ping
-      interval: 2s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
     volumes:
       - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
 
 volumes:
   bundle:

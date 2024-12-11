@@ -6,7 +6,6 @@ LABEL maintainer="dev@quintel.com"
 RUN apt-get update -yqq && \
   DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
       build-essential \
-      # default-libmysqlclient-dev \
       nodejs \
       git \
       gnupg \
