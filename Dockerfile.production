@@ -14,21 +14,30 @@ RUN apt-get update -yqq && \
 # Install Bundler
 RUN gem install bundler:2.5.18
 
-# Copy Gemfile and install gems
-COPY Gemfile* /app/
+# Set the working directory
 WORKDIR /app
 
-RUN bundle config frozen true \
- && bundle config jobs 4 \
- && bundle config deployment true \
- && bundle config without 'development test' \
- && bundle install
+# Copy Gemfile and Gemfile.lock before installing gems
+COPY Gemfile Gemfile.lock ./
 
-# Copy application files
+# Install production gems only
+RUN bundle config set without 'development test' && \
+  bundle config set deployment 'true' && \
+  bundle install --jobs 4 --retry 3
+
+# Copy the rest of the application code
 COPY . /app/
 
+# Precompile Rails assets (optional; uncomment if needed)
+# RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
 # Precompile Rails assets
-RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
+COPY public /app/public
+
+# Set environment to production
+ENV RAILS_ENV=production
+
+# Expose the default Rails port
+EXPOSE 3000
 
 # Start the application
 CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
