@@ -89,9 +89,9 @@ group :development, :test do
   gem "factory_bot_rails"
   gem 'shoulda-matchers'
   gem "rails-controller-testing"
-
-    # Use console on exceptions pages [https://github.com/rails/web-console]
-  gem "web-console"
 end
+
+# Use console on exceptions pages [https://github.com/rails/web-console]
+gem 'web-console', group: :development
 
 gem "invisible_captcha", "~> 2.3"
