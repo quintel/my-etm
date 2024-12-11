@@ -3,7 +3,8 @@ FROM ruby:3.3.5-slim
 LABEL maintainer="dev@quintel.com"
 
 # Install required packages
-RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
+RUN apt-get update -yqq && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
       build-essential \
       default-libmysqlclient-dev \
       nodejs \
