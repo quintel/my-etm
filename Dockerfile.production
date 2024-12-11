@@ -13,7 +13,7 @@ RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
 
 # RUN apt-get update -qq && apt-get install -y default-libmysqlclient-dev
 # ENV BUNDLE_BUILD__MYSQL2="--with-mysql-config=/usr/bin/mysql_config"
-# ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
 # Symlink MariaDB to MySQL
 RUN ln -s /usr/lib/x86_64-linux-gnu/libmariadb.so /usr/lib/x86_64-linux-gnu/libmysqlclient.so.21
