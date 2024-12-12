@@ -61,6 +61,9 @@ GEM
       multi_json (~> 1.11, >= 1.11.2)
       rack (>= 2.0.8, < 4)
       railties (>= 6.1)
+    activerecord-trilogy-adapter (2.2.0)
+      activerecord (~> 7.1.a)
+      trilogy (>= 2.3.0)
     activestorage (7.2.1.1)
       actionpack (= 7.2.1.1)
       activejob (= 7.2.1.1)
@@ -488,6 +491,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord-session_store
+  activerecord-trilogy-adapter
   bootsnap
   brakeman
   cancancan (~> 3.0)
