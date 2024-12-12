@@ -19,7 +19,7 @@ blocks:
             - checkout
             - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
             - cache restore
-            - 'docker build -f Dockerfile.production -t my-etm:beta .'
+            - 'docker build --platform linux/amd64 -f Dockerfile.production -t my-etm:beta .'
             - 'docker tag my-etm:beta quintel/my-etm:beta'
             - 'docker push quintel/my-etm:beta'
             - cache store
