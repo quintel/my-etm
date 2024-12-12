@@ -21,7 +21,7 @@ blocks:
             - cache restore
             - 'docker build -f Dockerfile.production -t my-etm:beta .'
             - 'docker tag my-etm:beta quintel/my-etm:beta'
-            - 'docker push quintel/my-etm:beta'
+            - 'docker push new quintel/my-etm:beta'
             - cache store
       secrets:
         - name: Docker Hub credentials
