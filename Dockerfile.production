@@ -1,44 +1,46 @@
 FROM ruby:3.3.5-slim
 
-LABEL maintainer="dev@quintel.com"
+RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
+    build-essential \
+    gnupg2 \
+    libreadline-dev \
+    libxml2-dev \
+    default-libmysqlclient-dev \
+    libpq-dev \
+    libxslt1-dev \
+    libyaml-dev \
+    nodejs \
+    zlib1g \
+    zlib1g-dev \
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Install required packages
-RUN apt-get update -yqq && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends \
-      build-essential \
-      default-libmysqlclient-dev \
-      nodejs \
-      git \
-      gnupg \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+ENV LANG=C.UTF-8 \
+  BUNDLE_JOBS=4 \
+  BUNDLE_RETRY=3 \
+  RAILS_ENV=production \
+  DOCKER_BUILD=true
 
-# Install Bundler
-RUN gem install bundler:2.5.18
+RUN gem update --system && gem install bundler
 
-# Set the working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy Gemfile and Gemfile.lock before installing gems
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile* ./
 
-# Install production gems only
-RUN bundle config set without 'development test' && \
-  bundle config set deployment 'true' && \
-  bundle install --jobs 4 --retry 3
+RUN bundle config frozen true \
+ && bundle config jobs 4 \
+ && bundle config deployment true \
+ && bundle config without 'development test' \
+ && bundle install
 
-# Copy the rest of the application code
-COPY . /app/
+COPY . .
 
-# Precompile Rails assets (optional; uncomment if needed)
-# RUN RAILS_ENV=production DOCKER_BUILD=true bundle exec rails assets:precompile
-# Precompile Rails assets
-COPY public /app/public
+# Precompile assets
+# SECRET_KEY_BASE or RAILS_MASTER_KEY is required in production, but we don't
+# want real secrets in the image or image history. The real secret is passed in
+# at run time
+ARG SECRET_KEY_BASE=fakekeyforassets
+RUN bin/rails assets:clobber && bundle exec rails assets:precompile
 
-# Set environment to production
-ENV RAILS_ENV=production
-
-# Expose the default Rails port
 EXPOSE 3000
 
-# Start the application
-CMD ["bundle", "exec", "--keep-file-descriptors", "puma", "-C", "config/puma.rb"]
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]

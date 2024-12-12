@@ -2,19 +2,23 @@ default: &default
   adapter: mysql2
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: <%= ENV.fetch('MYSQL_USER', 'root') %>
-  password: <%= ENV.fetch('MYSQL_PASSWORD', nil) %>
-  host: <%= ENV.fetch('DATABASE_HOST', 'localhost') %>
-  port: <%= ENV.fetch('DATABASE_PORT', 3306) %>
+  socket: <%= ENV['DATABASE_HOST'].present? ? nil : '/tmp/mysql.sock' %>
 
-development:
+development: &development
   <<: *default
   database: <%= ENV.fetch('MYSQL_DATABASE', 'my_etm_development') %>
+  host: <%= ENV.fetch('DATABASE_HOST', nil) %>
+  username: <%= ENV.fetch('MYSQL_USER', 'root') %>
+  password: <%= ENV.fetch('MYSQL_PASSWORD', nil) %>
 
 test:
-  <<: *default
-  database: <%= ENV.fetch('MYSQL_DATABASE', 'my_etm_test') %>
+  <<: *development
+  database: my_etm_test
 
 production:
   <<: *default
-  database: <%= ENV.fetch('MYSQL_DATABASE', 'my_etm_production') %>
+  url: <%= ENV['DATABASE_URL'] %>
+
+staging:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
