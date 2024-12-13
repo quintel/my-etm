@@ -13,6 +13,8 @@ Rails.application.routes.draw do
     mount Sidekiq::Web => '/sidekiq'
   end
 
+  get '/last_visited_page', to: 'application#last_visited_page', as: :last_visited_page
+
   namespace :identity do
     get '/', to: redirect('/identity/profile')
     get 'profile', to: 'settings#index', as: :profile
