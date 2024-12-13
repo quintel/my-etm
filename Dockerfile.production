@@ -1,6 +1,10 @@
 FROM ruby:3.3.5-slim
 
-RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_8.1_all.deb
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
 RUN dpkg -i mysql-apt-config_8.1_all.deb
 RUN cd ..
 
