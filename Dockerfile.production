@@ -5,8 +5,7 @@ RUN  apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
-RUN dpkg -i mysql-apt-config_0.8.33-1_all.deb
-RUN cd ..
+RUN cd /tmp && dpkg -i mysql-apt-config_0.8.33-1_all.deb
 
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     build-essential \
