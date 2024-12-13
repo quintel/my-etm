@@ -36,6 +36,10 @@ class ApplicationController < ActionController::Base
       session[:locale] || http_accept_language.preferred_language_from(I18n.available_locales)
   end
 
+  def last_visited_page
+    redirect_to cookies[:last_visited_page] || root_path
+  end
+
   private
 
   def require_user

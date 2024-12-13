@@ -1,5 +1,6 @@
 nl:
   language: Nederlands
+  continue_working: Terug aan het werk
   time:
     formats:
       short: "%-d %b %H:%M"
