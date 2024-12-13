@@ -18,11 +18,9 @@ blocks:
           commands:
             - checkout
             - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-            - cache restore
             - 'docker build --progress plain -f Dockerfile.production -t my-etm:test .'
             - 'docker tag my-etm:test quintel/my-etm:test'
             - 'docker push quintel/my-etm:test'
-            - cache store
             - echo $SSH_FINGERPRINT >> ~/.ssh/known_hosts
             - ssh -i ~/.ssh/id_deploy "${SSH_USER}@${SSH_HOST}" -p $SSH_PORT "cd /var/www/my-etm && ./deploy.sh"
       secrets:
