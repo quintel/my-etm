@@ -1,10 +1,10 @@
-FROM ruby:3.3.5-slim
+FROM ruby:3.3.5-slim-bullseye
 
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     build-essential \
     gnupg2 \
-    wget \
-    lsb-release \
+    # wget \
+    # lsb-release \
     libreadline-dev \
     libxml2-dev \
     default-libmysqlclient-dev \
@@ -16,10 +16,10 @@ RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     zlib1g-dev \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
-RUN cd /tmp && dpkg -i mysql-apt-config_0.8.33-1_all.deb
+# RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
+# RUN cd /tmp && dpkg -i mysql-apt-config_0.8.33-1_all.deb
 
-RUN apt update && apt-get install -yq libmysqlclient21
+# RUN apt update && apt-get install -yq libmysqlclient21
 
 ENV LANG=C.UTF-8 \
   BUNDLE_JOBS=4 \
@@ -45,8 +45,7 @@ COPY . .
 # SECRET_KEY_BASE or RAILS_MASTER_KEY is required in production, but we don't
 # want real secrets in the image or image history. The real secret is passed in
 # at run time
-ARG SECRET_KEY_BASE=fakekeyforassets
-RUN bundle exec rails assets:clobber && bundle exec rails assets:precompile
+RUN SECRET_KEY_BASE=fakekeyforassets bundle exec rails assets:clobber && bundle exec rails assets:precompile
 
 EXPOSE 3000
 
