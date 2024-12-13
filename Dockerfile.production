@@ -2,7 +2,7 @@ FROM ruby:3.3.5-slim-bullseye
 
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     build-essential \
-    gnupg2 \
+    gnupg \
     # wget \
     # lsb-release \
     libreadline-dev \
