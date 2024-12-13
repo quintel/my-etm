@@ -7,6 +7,10 @@ FactoryBot.define do
     title_en { 'English title' }
     title_nl { 'Dutch title' }
 
-    owner { association :featured_scenario_user }
+    transient do
+      with_owner { false }
+    end
+
+    owner { with_owner ? association(:featured_scenario_user) : nil }
   end
 end
