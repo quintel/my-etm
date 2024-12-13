@@ -87,6 +87,10 @@ class FeaturedScenario < ApplicationRecord
   end
 
   def as_json(options = {})
-    super.merge(version: version, end_year: end_year)
+    super.merge(
+      version: version,
+      end_year: end_year,
+      author: owner&.user&.name || "No author"
+    )
   end
 end
