@@ -1,15 +1,10 @@
 FROM ruby:3.3.5-slim
 
-RUN  apt-get update \
-  && apt-get install -y wget lsb-release \
-  && rm -rf /var/lib/apt/lists/*
-
-RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
-RUN cd /tmp && dpkg -i mysql-apt-config_0.8.33-1_all.deb
-
 RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     build-essential \
     gnupg2 \
+    wget \
+    lsb-release \
     libmysqlclient21 \
     libreadline-dev \
     libxml2-dev \
@@ -21,6 +16,9 @@ RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     zlib1g \
     zlib1g-dev \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
+RUN cd /tmp && dpkg -i mysql-apt-config_0.8.33-1_all.deb
 
 ENV LANG=C.UTF-8 \
   BUNDLE_JOBS=4 \
