@@ -5,7 +5,6 @@ RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
     gnupg2 \
     wget \
     lsb-release \
-    libmysqlclient21 \
     libreadline-dev \
     libxml2-dev \
     default-libmysqlclient-dev \
@@ -19,6 +18,8 @@ RUN apt-get update -qq && apt-get install -yq --no-install-recommends \
 
 RUN cd /tmp && wget https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb
 RUN cd /tmp && dpkg -i mysql-apt-config_0.8.33-1_all.deb
+
+RUN apt-get install -yq libmysqlclient21
 
 ENV LANG=C.UTF-8 \
   BUNDLE_JOBS=4 \
