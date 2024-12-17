@@ -27,7 +27,7 @@ class SavedScenario < ApplicationRecord
   validates :end_year,    presence: true
   validates :area_code,   presence: true
   validates :version, presence: true, inclusion: {
-    in: Version.all, message: "Version should be one of #{Version.all}"
+    in: Version.tags, message: "Version should be one of #{Version.tags}"
   }
 
   serialize :scenario_id_history, coder: YAML, type: Array

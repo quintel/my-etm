@@ -38,7 +38,7 @@ module Api
         result = SavedScenario::Update.call(
           engine_client,
           @saved_scenario,
-          saved_scenario_params
+          saved_scenario_params.except(:version)
         )
 
         if result.successful?
@@ -62,7 +62,7 @@ module Api
       # Only allow a list of trusted parameters through.
       def saved_scenario_params
         params.require(:saved_scenario).permit(
-          :scenario_id, :title,
+          :scenario_id, :title, :version,
           :description, :area_code, :end_year, :private, :discarded
         )
       end
