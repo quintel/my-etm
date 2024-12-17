@@ -1,7 +1,7 @@
 - content_for :menu_title, @saved_scenario.localized_title(I18n.locale)
 = render(partial: "block_right_menu", locals: { saved_scenario: @saved_scenario })
 
-= render(SavedScenarios::Info::Component.new(path: "#{Settings.etmodel.uri}/saved_scenarios/#{@saved_scenario.id}/load?"+"engine_id=#{@saved_scenario.scenario_id}&name=#{URI.encode_www_form_component(@saved_scenario.title)}", button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
+= render(SavedScenarios::Info::Component.new(path: "#{Version.model_url(@saved_scenario.version)}/saved_scenarios/#{@saved_scenario.id}/load?"+"engine_id=#{@saved_scenario.scenario_id}&name=#{URI.encode_www_form_component(@saved_scenario.title)}", button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
 
 - if flash[:undo_params]
   = render(NoticeBanner::Component.new(path: flash[:undo_params], text: notice_message, button_text: "#{t('undo')}?"))

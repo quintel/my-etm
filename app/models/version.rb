@@ -4,10 +4,11 @@
 class Version
   URL = "energytransitionmodel.com".freeze
 
+  # Tag => prefix
   LIST = {
-    "latest" => "https://#{Version::URL}",
-    "stable.01" => "https://stable.#{Version::URL}",
-    "stable.02" => "https://stable2.#{Version::URL}"
+    "latest" => "",
+    "stable.01" => "stable.",
+    "stable.02" => "stable2."
   }.freeze
 
   # All available versions. Uses ActiveRecord syntax 'all' to
@@ -20,7 +21,26 @@ class Version
     LIST.keys
   end
 
+  def self.model_url(tag)
+    "https://#{LIST[tag]}#{Version::URL}"
+  end
+
+  def self.engine_url(tag)
+    "https://#{LIST[tag]}engine.#{Version::URL}"
+  end
+
+  # TODO: Collections url
+
+  # TODO: urls for local development => Add a local version and
+  # exceptions for the urls
+
   def self.as_json(*)
-    LIST.map { |tag, url| { tag: tag, url: url } }
+    Version.tags.map do |tag|
+      {
+        tag: tag,
+        url: Version.model_url(tag),
+        engine_url: Version.engine_url(tag)
+      }
+    end
   end
 end
