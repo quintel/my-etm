@@ -1,3 +1,5 @@
 .flex.py-5
-  .bg-gray-100.p-2.px-5.mr-0.ml-auto.rounded-md
-    = link_to t('continue_working'), last_visited_page_path, class: 'continue-button'
+  .flex.basis-full{class: 'lg:basis-3/4'}
+    - if cookies[:last_visited_page].present?
+      .bg-gray-100.p-2.px-5.mr-0.ml-auto.rounded-md
+        = link_to t('continue_working'), last_visited_page_path, class: 'continue-button'
