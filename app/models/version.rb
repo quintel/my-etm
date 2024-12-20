@@ -3,12 +3,20 @@
 # A valid version of the ETM
 class Version
   URL = "energytransitionmodel.com".freeze
+  DEFAULT_TAG = Rails.env.development? ? "local" : "latest" # Default to "local" in development
 
   # Tag => prefix
   LIST = {
+    "local" => "",
     "latest" => "",
     "stable.01" => "stable.",
     "stable.02" => "stable2."
+  }.freeze
+
+  LOCAL_URLS = {
+    "collections" => Settings.collections.uri,
+    "model" => Settings.etmodel.uri,
+    "engine" => Settings.etengine.uri
   }.freeze
 
   # All available versions. Uses ActiveRecord syntax 'all' to
@@ -21,26 +29,39 @@ class Version
     LIST.keys
   end
 
-  def self.model_url(tag)
-    "https://#{LIST[tag]}#{Version::URL}"
+  def self.collections_url(tag = nil)
+    build_url("collections", tag)
   end
 
-  def self.engine_url(tag)
-    "https://#{LIST[tag]}engine.#{Version::URL}"
+  def self.model_url(tag = nil)
+    build_url("model", tag)
   end
 
-  # TODO: Collections url
-
-  # TODO: urls for local development => Add a local version and
-  # exceptions for the urls
+  def self.engine_url(tag = nil)
+    build_url("engine", tag)
+  end
 
   def self.as_json(*)
     Version.tags.map do |tag|
       {
         tag: tag,
-        url: Version.model_url(tag),
-        engine_url: Version.engine_url(tag)
+        model_url: model_url(tag),
+        engine_url: engine_url(tag),
+        collections_url: collections_url(tag)
       }
+    end
+  end
+
+  private
+
+  def self.build_url(context, tag)
+    tag ||= DEFAULT_TAG
+    raise ArgumentError, "Invalid version tag: #{tag}" unless LIST.key?(tag)
+
+    if tag == "local"
+      LOCAL_URLS[context]
+    else
+      "https://#{LIST[tag]}#{context == 'model' ? '' : "#{context}."}#{URL}"
     end
   end
 end
