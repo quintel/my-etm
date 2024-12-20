@@ -8,6 +8,9 @@ class ApplicationController < ActionController::Base
   before_action :configure_sentry
   before_action :store_user_location!, if: :storable_location?
   before_action :store_redirect_url
+  before_action :set_version_tag
+
+  helper_method :current_version_tag
 
   rescue_from CanCan::AccessDenied do |_exception|
     if current_user
@@ -75,7 +78,7 @@ class ApplicationController < ActionController::Base
   end
 
   def engine_client
-    MyEtm::Auth.engine_client(current_user)
+    MyEtm::Auth.engine_client(current_user, current_version_tag)
   end
 
   # Internal: Renders a 404 page.
@@ -140,5 +143,13 @@ class ApplicationController < ActionController::Base
     if params[:redirect_url].present?
       session[:redirect_url] = params[:redirect_url]
     end
+  end
+
+  def set_version_tag
+    @version_tag = params[:version] || Version::DEFAULT_TAG
+  end
+
+  def current_version_tag
+    @version_tag
   end
 end

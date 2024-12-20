@@ -4,6 +4,7 @@ module Api
       include ActionController::MimeResponds
 
       before_action :authenticate_request!
+      before_action :set_version_tag
 
       rescue_from ActionController::ParameterMissing do |e|
         render json: { errors: [ e.message ] }, status: :bad_request
@@ -34,7 +35,6 @@ module Api
       end
 
       private
-
 
       def decoded_token
         return @decoded_token if defined?(@decoded_token)
@@ -117,7 +117,13 @@ module Api
         false
       end
 
-      private
+      def set_version_tag
+        @version_tag = params[:version] || Version::DEFAULT_TAG
+      end
+
+      def current_version_tag
+        @version_tag
+      end
 
       def find_user_from_token
         return unless decoded_token

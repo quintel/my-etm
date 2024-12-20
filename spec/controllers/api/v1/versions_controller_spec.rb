@@ -19,8 +19,9 @@ RSpec.describe 'API::V1::Versions', type: :request do
 
       expect(parsed_response['versions']).to be_present
       expect(parsed_response['versions'].map { |v| v['tag'] }).to match_array(Version.tags)
-      expect(parsed_response['versions'].first).to have_key('url')
+      expect(parsed_response['versions'].first).to have_key('model_url')
       expect(parsed_response['versions'].first).to have_key('engine_url')
+      expect(parsed_response['versions'].first).to have_key('collections_url')
     end
   end
 end

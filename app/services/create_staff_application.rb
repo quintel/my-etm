@@ -25,7 +25,7 @@ module CreateStaffApplication
 
     # Update application attributes
     app.attributes = app_config.to_model_attributes.merge(
-      owner: user,
+      owner_id: user.id,
       uri: parsed_uri.to_s,
       redirect_uri: redirect_uri.to_s
     )
