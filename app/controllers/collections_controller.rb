@@ -75,7 +75,7 @@ class CollectionsController < ApplicationController
   # POST /collections/create_transition
   def create_transition
     result = CreateInterpolatedCollection.call(
-      engine_client,
+      engine_client(create_transition_params[:version]),
       current_user.saved_scenarios.find(create_transition_params[:saved_scenario_ids]),
       current_user
     )
@@ -120,8 +120,8 @@ class CollectionsController < ApplicationController
   # DELETE /collections/:id
   def destroy
     DeleteCollection.call(
-      engine_client,
-      current_user.collections.find(params.require(:id))
+      engine_client(@collection.version),
+      @collection
     )
 
     redirect_to collections_path
@@ -178,7 +178,7 @@ class CollectionsController < ApplicationController
   end
 
   def create_transition_params
-    params.require(:collection).permit(:saved_scenario_ids)
+    params.require(:collection).permit(:version, :saved_scenario_ids)
   end
 
   def filter_params

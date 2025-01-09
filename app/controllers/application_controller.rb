@@ -7,10 +7,9 @@ class ApplicationController < ActionController::Base
   before_action :set_locale
   before_action :configure_sentry
   before_action :store_user_location!, if: :storable_location?
-  before_action :store_redirect_url
-  before_action :set_version_tag
+  before_action :set_active_version_tag
 
-  helper_method :current_version_tag
+  helper_method :active_version_tag
 
   rescue_from CanCan::AccessDenied do |_exception|
     if current_user
@@ -39,8 +38,8 @@ class ApplicationController < ActionController::Base
       session[:locale] || http_accept_language.preferred_language_from(I18n.available_locales)
   end
 
-  def last_visited_page
-    redirect_to cookies[:last_visited_page] || root_path
+  def active_version_tag
+    session[:active_version_tag] || Version::DEFAULT_TAG
   end
 
   private
@@ -77,8 +76,8 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def engine_client
-    MyEtm::Auth.engine_client(current_user, current_version_tag)
+  def engine_client(version_tag)
+    MyEtm::Auth.engine_client(current_user, version_tag)
   end
 
   # Internal: Renders a 404 page.
@@ -139,17 +138,14 @@ class ApplicationController < ActionController::Base
     )
   end
 
-  def store_redirect_url
-    if params[:redirect_url].present?
-      session[:redirect_url] = params[:redirect_url]
-    end
-  end
+  # Validates the version tag passed from the latest request and sets it in the
+  # session, so we can redirect back to that version later.
+  #
+  # TODO: somebody has to set this!
+  def set_active_version_tag
+    return unless params[:active_version]
+    return unless Version.tags.include?(params[:active_version].to_s)
 
-  def set_version_tag
-    @version_tag = params[:version] || Version::DEFAULT_TAG
-  end
-
-  def current_version_tag
-    @version_tag
+    session[:active_version_tag] = params[:active_version]
   end
 end

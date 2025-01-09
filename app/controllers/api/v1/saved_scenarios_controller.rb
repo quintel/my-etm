@@ -68,7 +68,15 @@ module Api
       end
 
       def engine_client
-        MyEtm::Auth.engine_client(current_user, current_version_tag)
+        MyEtm::Auth.engine_client(current_user, active_version_tag)
+      end
+
+      def active_version_tag
+        if Version.tags.include?(saved_scenario_params[:version].to_s)
+          saved_scenario_params[:version]
+        else
+          Version::DEFAULT_TAG
+        end
       end
     end
   end

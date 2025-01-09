@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
+# TODO: port to db and hook into OAuth apps. This is a mess and not nice to keep up for beta and pro!
 # A valid version of the ETM
 class Version
   URL = "energytransitionmodel.com".freeze
-  DEFAULT_TAG = Rails.env.development? ? "local" : "latest" # Default to "local" in development
+  DEFAULT_TAG =  "latest"
 
   # Tag => prefix
   LIST = {
-    "local" => "",
     "latest" => "",
     "stable.01" => "stable.",
     "stable.02" => "stable2."
@@ -58,7 +58,7 @@ class Version
     tag ||= DEFAULT_TAG
     raise ArgumentError, "Invalid version tag: #{tag}" unless LIST.key?(tag)
 
-    if tag == "local"
+    if Rails.env.development?
       LOCAL_URLS[context]
     else
       "https://#{LIST[tag]}#{context == 'model' ? '' : "#{context}."}#{URL}"

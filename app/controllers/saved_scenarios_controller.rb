@@ -114,7 +114,7 @@ class SavedScenariosController < ApplicationController
     @saved_scenario.update(private: false)
 
     ApiScenario::UpdatePrivacy.call_with_ids(
-      engine_client,
+      engine_client(@saved_scenario.version),
       @saved_scenario.all_scenario_ids,
       private: false
     )
@@ -127,7 +127,7 @@ class SavedScenariosController < ApplicationController
     @saved_scenario.update(private: true)
 
     ApiScenario::UpdatePrivacy.call_with_ids(
-      engine_client,
+      engine_client(@saved_scenario.version),
       @saved_scenario.all_scenario_ids,
       private: true
     )
