@@ -26,7 +26,7 @@ describe CollectionsController do
       end
 
       it 'redirects to the collection' do
-        post :create_transition, params: { collection: {saved_scenario_ids: scenario.id }}
+        post :create_transition, params: { collection: {saved_scenario_ids: scenario.id, version: Version.tags.last }}
 
         expect(response).to redirect_to(
           collection_path(Collection.last)

@@ -57,7 +57,6 @@ module Users
     # Check if the user is already signed in and redirect back to client or to root.
     def check_already_authenticated
       return unless user_signed_in?
-        redirect_uri = session[:redirect_url].chomp('/')
         token = MyEtm::Auth.user_jwt(current_user, client_id: params[:client_id])
         redirect_url = URI(params[:redirect_url] || root_path)
         redirect_url.query = URI.encode_www_form(token: token)

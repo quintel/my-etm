@@ -12,7 +12,10 @@ class SavedScenarioHistoryController < ApplicationController
 
   # GET /saved_scenarios/:id/history
   def index
-    version_tags_result = ApiScenario::VersionTags::FetchAll.call(engine_client, @saved_scenario)
+    version_tags_result = ApiScenario::VersionTags::FetchAll.call(
+      engine_client(@saved_scenario.version),
+      @saved_scenario
+    )
 
     if version_tags_result.successful?
       @history = SavedScenarioHistoryPresenter.present(@saved_scenario, version_tags_result.value)
@@ -32,7 +35,7 @@ class SavedScenarioHistoryController < ApplicationController
   # PUT /saved_scenarios/:id/history/:scenario_id
   def update
     result = ApiScenario::VersionTags::Update.call(
-      engine_client,
+      engine_client(@saved_scenario.version),
       params[:scenario_id],
       update_params[:description]
     )

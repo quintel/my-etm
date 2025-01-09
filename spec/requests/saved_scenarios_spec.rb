@@ -38,7 +38,7 @@ RSpec.describe "/saved_scenarios", type: :request do
   let(:admin) { FactoryBot.create(:admin) }
   let!(:admin_scenario) { FactoryBot.create(:saved_scenario, user: admin, id: 648696) }
 
-  before { allow(MyEtm::Auth).to receive(:client_app_client).and_return(client) }
+  before { allow(MyEtm::Auth).to receive(:client_for).and_return(client) }
 
   describe "GET /index" do
     before do

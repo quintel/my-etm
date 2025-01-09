@@ -53,29 +53,29 @@ module MyEtm
     end
 
     # Returns a Faraday client for a user, which will send requests to the specified client app.
-    def client_app_client(user, client_app)
-      client_app_client ||= begin
-        Faraday.new(client_app.uri) do |conn|
-          conn.request(:authorization, "Bearer", -> {
- user_jwt(user, scopes: client_app.scopes, client_id: client_app.uid) })
-          conn.request(:json)
-          conn.response(:json)
-          conn.response(:raise_error)
-        end
+    def client_for(user, client_app)
+      Faraday.new(client_app.uri) do |conn|
+        conn.request(
+          :authorization,
+          "Bearer",
+          -> { user_jwt(user, scopes: client_app.scopes, client_id: client_app.uid) }
+        )
+        conn.request(:json)
+        conn.response(:json)
+        conn.response(:raise_error)
       end
     end
 
-    # TODO: Refactor usage to include the version_tag
     def engine_client(user, version_tag = Version::DEFAULT_TAG)
       uri = Version.engine_url(version_tag)
       engine = OAuthApplication.find_by(uri: uri)
-      client_app_client(user, engine)
+      client_for(user, engine)
     end
 
     def model_client(user, version_tag = Version::DEFAULT_TAG)
       uri = Version.model_url(version_tag)
       model = OAuthApplication.find_by(uri: uri)
-      client_app_client(user, model)
+      client_for(user, model)
     end
 
     # Checks if the token is in JWT format
@@ -115,6 +115,6 @@ module MyEtm
     end
 
     module_function :decode, :jwt_format?, :verify_claims, :signing_key_content, :user_jwt,
-      :signing_key, :model_client, :engine_client, :client_app_client
+      :signing_key, :model_client, :engine_client, :client_for
   end
 end
