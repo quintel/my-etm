@@ -53,12 +53,17 @@ module MyEtm
     end
 
     # Returns a Faraday client for a user, which will send requests to the specified client app.
-    def client_for(user, client_app)
+    #
+    # If scopes are specified (e.g. from an access token) these scopes are granted
+    # Otherwise the configured app scopes are used
+    def client_for(user, client_app, scopes: [])
+      scopes = scopes.empty? ? client_app.scopes : scopes
+
       Faraday.new(client_app.uri) do |conn|
         conn.request(
           :authorization,
           "Bearer",
-          -> { user_jwt(user, scopes: client_app.scopes, client_id: client_app.uid) }
+          -> { user_jwt(user, scopes: scopes, client_id: client_app.uid) }
         )
         conn.request(:json)
         conn.response(:json)
@@ -66,12 +71,17 @@ module MyEtm
       end
     end
 
-    def engine_client(user, version_tag = Version::DEFAULT_TAG)
+    # Returns a Faraday client for a version of ETEngine
+    #
+    # If scopes are specified (e.g. from an access token) these scopes are granted
+    # Otherwise the configured app scopes are used
+    def engine_client(user, version_tag = Version::DEFAULT_TAG, scopes: [])
       uri = Version.engine_url(version_tag)
       engine = OAuthApplication.find_by(uri: uri)
-      client_for(user, engine)
+      client_for(user, engine, scopes: scopes)
     end
 
+    # Returns a Faraday client for a version of ETModel
     def model_client(user, version_tag = Version::DEFAULT_TAG)
       uri = Version.model_url(version_tag)
       model = OAuthApplication.find_by(uri: uri)
