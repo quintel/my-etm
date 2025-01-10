@@ -68,7 +68,11 @@ module Api
       end
 
       def engine_client
-        MyEtm::Auth.engine_client(current_user, active_version_tag, scopes: doorkeeper_token.scopes)
+        MyEtm::Auth.engine_client(
+          current_user,
+          active_version_tag,
+          scopes: doorkeeper_token ? doorkeeper_token.scopes : []
+        )
       end
 
       def active_version_tag
