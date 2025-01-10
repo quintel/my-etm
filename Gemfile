@@ -27,6 +27,8 @@ gem "jbuilder"
 
 gem 'rake'
 
+gem "stackprof"
+gem "sentry-ruby"
 
 # Auth
 gem 'cancancan', '~> 3.0'
