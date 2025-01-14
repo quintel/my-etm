@@ -34,6 +34,9 @@ module MyEtm
     # Don't generate system test files.
     config.generators.system_tests = nil
 
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::ActiveRecordStore, key: "_idp_session"
+
     config.to_prepare do
       Doorkeeper::AuthorizationsController.layout 'login'
       Doorkeeper::AuthorizedApplicationsController.layout 'identity'
