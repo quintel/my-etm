@@ -5,6 +5,7 @@ require 'myetm/auth'
 Doorkeeper::OpenidConnect.configure do
   issuer do |_resource_owner, _application|
     Settings.auth.issuer
+  jwks_uri -> { "#{Settings.auth.issuer}/oauth/discovery/keys" }
   end
 
   signing_key MyEtm::Auth.signing_key_content
