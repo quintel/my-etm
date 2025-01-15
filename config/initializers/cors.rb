@@ -1,6 +1,9 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins '*'
+    origins do |origin, _env|
+      # Allow requests from *.energytransitionmodel.com
+      origin =~ /\.energytransitionmodel\.com$/ || origin == 'energytransitionmodel.com'
+    end
     resource '/oauth/*',
       headers: :any,
       methods: [:get, :post, :options],
