@@ -6,7 +6,7 @@ etengine:
 collections:
   uri: http://localhost:3005
 myetm:
-  iss: my-etm
+  iss: <%= ENV.fetch('OPENID_ISSUER', 'http://localhost:3002') %> # TODO: Check if necessary
   uri: <%= ENV.fetch('OPENID_ISSUER', 'http://localhost:3002') %>
 
 collections_url: http://localhost:3005
