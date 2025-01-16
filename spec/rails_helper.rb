@@ -39,6 +39,15 @@ RSpec.configure do |config|
     Rails.root.join('spec/fixtures')
   ]
 
+  # config.before(:suite) do
+  #   # Seed initial Version data for specs
+  #   Version.create!([
+  #     { tag: "latest", url_prefix: "", default: true },
+  #     { tag: "stable.01", url_prefix: "stable." },
+  #     { tag: "stable.02", url_prefix: "stable2." }
+  #   ])
+  # end
+
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
   # instead of true.

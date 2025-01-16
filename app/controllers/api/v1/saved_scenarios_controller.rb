@@ -79,7 +79,7 @@ module Api
         if Version.tags.include?(saved_scenario_params[:version].to_s)
           saved_scenario_params[:version]
         else
-          Version::DEFAULT_TAG
+          Version.default.tag
         end
       end
     end
