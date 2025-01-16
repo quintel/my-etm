@@ -1,5 +1,5 @@
 .sidebar.fixed.top-0.bottom-0.overflow-y-auto.bg-midnight-300{class: 'lg:left-0 w-[300px]'}
-  %a.logo.p-5.mb-3.inline-block.w-full.text-midnight-800{href: Version.model_url(active_version_tag)}
+  %a.logo.p-5.mb-3.inline-block.w-full.text-midnight-800{href: Version.find_by(tag: active_version_tag).model_url}
     = image_tag 'header/logo-round.png', class: 'h-8 inline mb-1 mr-2 hover:animate-spin'
     %span Energy Transition Model
 

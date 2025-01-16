@@ -32,7 +32,7 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
         scenario.save(validate: false)
         create(:featured_scenario, saved_scenario: scenario)
 
-        get '/api/v1/featured_scenarios', as: :json, params: { version: 'old' }
+        get '/api/v1/featured_scenarios', as: :json, params: { version: "old" }
       end
 
       it 'returns featured_scenarios that are old' do

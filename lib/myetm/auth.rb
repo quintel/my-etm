@@ -76,6 +76,7 @@ module MyEtm
       JWT.encode(payload, key, "RS256", typ: "JWT", kid: key.to_jwk["kid"])
     end
 
+    # TODO: Handle errors better
     # Returns a Faraday client for a user, which will send requests to the specified client app.
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted
@@ -99,15 +100,15 @@ module MyEtm
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted
     # Otherwise the configured app scopes are used
-    def engine_client(user, version_tag = Version::DEFAULT_TAG, scopes: [])
-      uri = Version.engine_url(version_tag)
+    def engine_client(user, version_tag = Version.default.tag, scopes: [])
+      uri = Version.find_by(tag: version_tag)&.engine_url
       engine = OAuthApplication.find_by(uri: uri)
       client_for(user, engine, scopes: scopes)
     end
 
     # Returns a Faraday client for a version of ETModel
-    def model_client(user, version_tag = Version::DEFAULT_TAG)
-      uri = Version.model_url(version_tag)
+    def model_client(user, version_tag = Version.default.tag)
+      uri = Version.find_by(tag: version_tag)&.model_url
       model = OAuthApplication.find_by(uri: uri)
       client_for(user, model)
     end

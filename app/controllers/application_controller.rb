@@ -39,7 +39,7 @@ class ApplicationController < ActionController::Base
   end
 
   def active_version_tag
-    session[:active_version_tag] || Version::DEFAULT_TAG
+    session[:active_version_tag] || Version.default.tag
   end
 
   private

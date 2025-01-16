@@ -1,67 +1,54 @@
-# frozen_string_literal: true
-
-# TODO: port to db and hook into OAuth apps. This is a mess and not nice to keep up for beta and pro!
-# A valid version of the ETM
-class Version
+class Version < ApplicationRecord
   URL = "energytransitionmodel.com".freeze
-  DEFAULT_TAG =  "latest"
-
-  # Tag => prefix
-  LIST = {
-    "latest" => "",
-    "stable.01" => "stable.",
-    "stable.02" => "stable2."
-  }.freeze
-
   LOCAL_URLS = {
     "collections" => Settings.collections_url,
     "model" => Settings.etmodel.uri,
     "engine" => Settings.etengine.uri
   }.freeze
 
-  # All available versions. Uses ActiveRecord syntax 'all' to
-  # make future porting to db easier
-  def self.all
-    LIST
-  end
+  validates :tag, presence: true, uniqueness: true
+  validates :url_prefix, presence: true, unless: -> { tag == "latest" }
 
+  # Fetch all version tags
   def self.tags
-    LIST.keys
+    pluck(:tag)
   end
 
-  def self.collections_url(tag = nil)
-    build_url("collections", tag)
+  # Find the default version
+  def self.default
+    find_by(default: true)
   end
 
-  def self.model_url(tag = nil)
-    build_url("model", tag)
+  # URL methods for collections, model, and engine
+  def collections_url
+    build_url("collections")
   end
 
-  def self.engine_url(tag = nil)
-    build_url("engine", tag)
+  def model_url
+    build_url("model")
   end
 
-  def self.as_json(*)
-    Version.tags.map do |tag|
-      {
-        tag: tag,
-        model_url: model_url(tag),
-        engine_url: engine_url(tag),
-        collections_url: collections_url(tag)
-      }
-    end
+  def engine_url
+    build_url("engine")
+  end
+
+  # Serialize versions for API responses
+  def as_json(*)
+    super.merge(
+      model_url: model_url,
+      engine_url: engine_url,
+      collections_url: collections_url
+    )
   end
 
   private
 
-  def self.build_url(context, tag)
-    tag ||= DEFAULT_TAG
-    raise ArgumentError, "Invalid version tag: #{tag}" unless LIST.key?(tag)
-
+  # Build the URL for the given context and tag
+  def build_url(context)
     if Rails.env.development?
       LOCAL_URLS[context]
     else
-      "https://#{LIST[tag]}#{context == 'model' ? '' : "#{context}."}#{URL}"
+      "https://#{url_prefix}#{context == 'model' ? '' : "#{context}."}#{URL}"
     end
   end
 end
