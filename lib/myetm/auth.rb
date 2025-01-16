@@ -10,25 +10,32 @@ module MyEtm
 
     # Generates a new signing key for use in development and saves it to the tmp directory.
     def signing_key_content
-      return ENV["OPENID_SIGNING_KEY"] if ENV["OPENID_SIGNING_KEY"].present?
+      raw_key = if ENV["OPENID_SIGNING_KEY"].present?
+                  ENV["OPENID_SIGNING_KEY"]
+                else
+                  key_path = Rails.root.join("tmp/openid.key")
+                  key_path.exist? ? key_path.read : generate_or_raise_key
+                end
+      reformat_key(raw_key)
+    end
 
-      key_path = Rails.root.join("tmp/openid.key")
+    def reformat_flat_key(raw_key)
+      stripped_key = raw_key.strip
 
-      return key_path.read if key_path.exist?
-
-      unless Rails.env.test? || Rails.env.development? || ENV["DOCKER_BUILD"]
-        raise "No signing key is present. Please set the OPENID_SIGNING_KEY environment " \
-              "variable or add the key to tmp/openid.key."
+      unless stripped_key.include?("-----BEGIN RSA PRIVATE KEY-----") &&
+             stripped_key.include?("-----END RSA PRIVATE KEY-----")
+        raise "Invalid RSA key format"
       end
 
-      key = OpenSSL::PKey::RSA.new(2048).to_pem
+      # Extract key content
+      key_content = stripped_key.gsub("-----BEGIN RSA PRIVATE KEY-----", "")
+                                 .gsub("-----END RSA PRIVATE KEY-----", "")
+                                 .gsub(/\s+/, "")
 
-      unless ENV["DOCKER_BUILD"]
-        key_path.write(key)
-        key_path.chmod(0o600)
-      end
+      formatted_body = key_content.scan(/.{1,64}/).join("\n")
 
-      key
+      # Reassemble the key in proper PEM format
+      "-----BEGIN RSA PRIVATE KEY-----\n#{formatted_body}\n-----END RSA PRIVATE KEY-----"
     end
 
     # Returns the signing key as an OpenSSL::PKey::RSA instance.
