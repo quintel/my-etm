@@ -14,8 +14,11 @@ module MyEtm
                   ENV["OPENID_SIGNING_KEY"]
                 else
                   key_path = Rails.root.join("tmp/openid.key")
-                  key_path.exist? ? key_path.read : generate_or_raise_key
+                  key_path.exist? ? key_path.read : nil
                 end
+
+      raise "No signing key is available" if raw_key.blank?
+
       reformat_key(raw_key)
     end
 
