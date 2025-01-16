@@ -39,14 +39,21 @@ RSpec.configure do |config|
     Rails.root.join('spec/fixtures')
   ]
 
-  # config.before(:suite) do
-  #   # Seed initial Version data for specs
-  #   Version.create!([
-  #     { tag: "latest", url_prefix: "", default: true },
-  #     { tag: "stable.01", url_prefix: "stable." },
-  #     { tag: "stable.02", url_prefix: "stable2." }
-  #   ])
-  # end
+  config.before(:suite) do
+    # Ensure the test database has the required Version records
+    versions = [
+      { tag: "latest", url_prefix: "", default: true },
+      { tag: "stable.01", url_prefix: "stable." },
+      { tag: "stable.02", url_prefix: "stable2." }
+    ]
+
+    versions.each do |version_data|
+      Version.find_or_create_by!(tag: version_data[:tag]) do |version|
+        version.url_prefix = version_data[:url_prefix]
+        version.default = version_data[:default]
+      end
+    end
+  end
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false

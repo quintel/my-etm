@@ -1,13 +1,16 @@
 class Version < ApplicationRecord
+
+  has_many :oauth_applications, dependent: :nullify
+
+  validates :tag, presence: true, uniqueness: true
+  validates :url_prefix, presence: true, unless: -> { tag == "latest" }
+
   URL = "energytransitionmodel.com".freeze
   LOCAL_URLS = {
     "collections" => Settings.collections_url,
     "model" => Settings.etmodel.uri,
     "engine" => Settings.etengine.uri
   }.freeze
-
-  validates :tag, presence: true, uniqueness: true
-  validates :url_prefix, presence: true, unless: -> { tag == "latest" }
 
   # Fetch all version tags
   def self.tags

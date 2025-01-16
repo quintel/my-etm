@@ -8,7 +8,8 @@ RSpec.describe Users::SessionsController do
       name: 'Test Application',
       uri: 'https://example.com',
       redirect_uri: 'https://example.com/auth/callback',
-      owner: user
+      owner: user,
+      version: Version.default
     )
   end
 

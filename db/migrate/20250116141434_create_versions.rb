@@ -8,5 +8,7 @@ class CreateVersions < ActiveRecord::Migration[7.2]
     end
 
     add_index :versions, :tag, unique: true
+
+    add_reference :oauth_applications, :version, foreign_key: true
   end
 end

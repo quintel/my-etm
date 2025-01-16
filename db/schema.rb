@@ -135,8 +135,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_16_141434) do
     t.integer "owner_id", null: false
     t.string "owner_type", null: false
     t.boolean "first_party", default: false, null: false
+    t.bigint "version_id"
     t.index ["owner_id", "owner_type"], name: "index_oauth_applications_on_owner_id_and_owner_type"
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
+    t.index ["version_id"], name: "index_oauth_applications_on_version_id"
   end
 
   create_table "oauth_openid_requests", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -241,6 +243,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_16_141434) do
   add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_tokens", "users", column: "resource_owner_id"
+  add_foreign_key "oauth_applications", "versions"
   add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
   add_foreign_key "personal_access_tokens", "oauth_access_tokens"
   add_foreign_key "personal_access_tokens", "users"
