@@ -8,18 +8,32 @@ module MyEtm
     DecodeError = Class.new(StandardError)
     TokenExchangeError = Class.new(StandardError)
 
-    # Generates a new signing key for use in development and saves it to the tmp directory.
+    # Fetches or generates a new signing key
     def signing_key_content
-      raw_key = if ENV["OPENID_SIGNING_KEY"].present?
-                  ENV["OPENID_SIGNING_KEY"]
-                else
-                  key_path = Rails.root.join("tmp/openid.key")
-                  key_path.exist? ? key_path.read : nil
-                end
+      if ENV["OPENID_SIGNING_KEY"].present?
+        raw_key = ENV["OPENID_SIGNING_KEY"]
+        return reformat_flat_key(raw_key)
+      else
+        key_path = Rails.root.join("tmp/openid.key")
+        if key_path.exist?
+          return reformat_flat_key(key_path.read)
+        end
 
-      raise "No signing key is available" if raw_key.blank?
+        unless Rails.env.test? || Rails.env.development? || ENV["DOCKER_BUILD"]
+          raise "No signing key is present. Please set the OPENID_SIGNING_KEY environment " \
+                "variable or add the key to tmp/openid.key."
+        end
 
-      reformat_key(raw_key)
+        key = OpenSSL::PKey::RSA.new(2048).to_pem
+
+        unless ENV["DOCKER_BUILD"]
+          FileUtils.mkdir_p(key_path.dirname) unless key_path.dirname.exist?
+          key_path.write(key)
+          key_path.chmod(0o600)
+        end
+
+        key
+      end
     end
 
     def reformat_flat_key(raw_key)
