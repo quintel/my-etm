@@ -3,13 +3,12 @@ etmodel:
   uri: http://localhost:3001
 etengine:
   uri: http://localhost:3000
-collections:
-  uri: http://localhost:3005
+
 myetm:
   iss: my-etm
   uri: <%= ENV.fetch('OPENID_ISSUER', 'http://localhost:3002') %>
 
-collections_url: http://localhost:3005
+collections_url: <%= ENV.fetch('COLLECTIONS_URL', 'http://localhost:3005') %>
 
 mailchimp:
   newsletter:

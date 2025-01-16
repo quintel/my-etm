@@ -7,6 +7,7 @@ require "net/http"
 class Identity::SyncUserJob < ApplicationJob
   queue_as :default
 
+  # TODO: Apply to all stable versions
   def perform(user_id)
     return false unless Settings.etmodel.uri && Settings.etengine.uri
 

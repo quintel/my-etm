@@ -33,7 +33,7 @@ module ApplicationHelper
       myetm_url: root_url.chomp("/"),
       etengine_url: etengine_url,
       etmodel_url: Settings.etmodel.uri || "http://YOUR_ETMODEL_URL",
-      collections_url: Settings.collections.uri || "http://YOUR_COLLECTIONS_URL",
+      collections_url: Settings.collections_url || "http://YOUR_COLLECTIONS_URL",
       etengine_uid: Doorkeeper::Application.find_by(uri: etengine_url)&.uid || "YOUR_ETEngine_ID"
     ))
   end

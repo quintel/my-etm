@@ -14,7 +14,7 @@ class Version
   }.freeze
 
   LOCAL_URLS = {
-    "collections" => Settings.collections.uri,
+    "collections" => Settings.collections_url,
     "model" => Settings.etmodel.uri,
     "engine" => Settings.etengine.uri
   }.freeze
