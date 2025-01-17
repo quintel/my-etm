@@ -1,6 +1,6 @@
 <%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
   <%= turbo_frame_tag :change_email_form do %>
-    <%= form_for(@user, url: identity_edit_email_path, html: { method: :post }) do |f| %>
+    <%= form_for(@user, url: identity_edit_email_path, html: { method: :post, data: { turbo: false } }) do |f| %>
       <%= render(FormSteps::WrapperComponent.new) do |steps| %>
         <%= render(FormSteps::RowComponent.new(title: t('identity.settings.edit_password.current_password'), hint: t('identity.settings.edit_password.current_password_hint'), label_for: "user_current_password")) do |row| %>
           <div class="relative">
