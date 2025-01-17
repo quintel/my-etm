@@ -100,16 +100,14 @@ module MyEtm
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted
     # Otherwise the configured app scopes are used
-    def engine_client(user, version_tag = Version.default.tag, scopes: [])
-      uri = Version.find_by(tag: version_tag)&.engine_url
-      engine = OAuthApplication.find_by(uri: uri)
+    def engine_client(user, version = Version.default, scopes: [])
+      engine = OAuthApplication.find_by(uri: version.engine_url)
       client_for(user, engine, scopes: scopes)
     end
 
     # Returns a Faraday client for a version of ETModel
-    def model_client(user, version_tag = Version.default.tag)
-      uri = Version.find_by(tag: version_tag)&.model_url
-      model = OAuthApplication.find_by(uri: uri)
+    def model_client(user, version = Version.default.tag)
+      model = OAuthApplication.find_by(uri: version.model_url)
       client_for(user, model)
     end
 

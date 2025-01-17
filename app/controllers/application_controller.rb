@@ -76,8 +76,8 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def engine_client(version_tag)
-    MyEtm::Auth.engine_client(current_user, version_tag)
+  def engine_client(version)
+    MyEtm::Auth.engine_client(current_user, version)
   end
 
   # Internal: Renders a 404 page.

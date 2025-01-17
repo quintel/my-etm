@@ -13,7 +13,7 @@
 <% end %>
 
 <div class="w-min mb-5">
-  <%= render(HovercardWithVersion::Component.new(version: @collection.version))%>
+  <%= render(HovercardWithVersion::Component.new(version: @collection.version.tag))%>
 </div>
 
 <div class="pt-5 border-t border-solid border-gray-200">

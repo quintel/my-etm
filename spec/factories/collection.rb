@@ -6,6 +6,7 @@ FactoryBot.define do
     area_code { 'nl' }
     title { 'My Collection' }
     end_year { 2050 }
+    version { Version.find_by(tag: "latest") }
 
     transient do
       scenarios_count { 2 }

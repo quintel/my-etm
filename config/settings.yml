@@ -1,8 +1,10 @@
-
+# Staff applications – local devlopment
 etmodel:
   uri: http://localhost:3001
 etengine:
   uri: http://localhost:3000
+collections:
+  uri: http://localhost:3005
 
 myetm:
   iss: my-etm

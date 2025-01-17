@@ -1,7 +1,11 @@
 module Api
   module V1
     class SavedScenariosController < BaseController
-      load_and_authorize_resource(class: SavedScenario, only: %i[index show create update destroy])
+      load_and_authorize_resource(class: SavedScenario, only: %i[index show update destroy])
+
+      before_action only: %i[create] do
+        authorize!(:create, SavedScenario)
+      end
 
       # GET /saved_scenarios or /saved_scenarios.json
       def index
@@ -70,17 +74,13 @@ module Api
       def engine_client
         MyEtm::Auth.engine_client(
           current_user,
-          active_version_tag,
+          active_version,
           scopes: doorkeeper_token ? doorkeeper_token.scopes : []
         )
       end
 
-      def active_version_tag
-        if Version.tags.include?(saved_scenario_params[:version].to_s)
-          saved_scenario_params[:version]
-        else
-          Version.default.tag
-        end
+      def active_version
+        Version.find_by(tag: saved_scenario_params[:version]) || Version.default
       end
     end
   end

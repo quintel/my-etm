@@ -21,6 +21,7 @@ class SavedScenario::Create
 
     protect
 
+    saved_scenario.save
     tag_new_version
 
     ServiceResult.success(saved_scenario)
@@ -29,19 +30,30 @@ class SavedScenario::Create
   private
 
   def saved_scenario
-    @saved_scenario ||= SavedScenario.new(
-      saved_scenario_params.merge(user: user)
-    )
+    @saved_scenario ||= SavedScenario.new(saved_scenario_attrs)
   end
 
   def scenario_id
     saved_scenario_params['scenario_id']
   end
 
+  def saved_scenario_attrs
+    attributes = saved_scenario_params.merge(user: user)
+    attributes['version'] = version
+
+    attributes
+  end
+
+  # Stable version tag
+  def version
+    Version.find_by(tag: saved_scenario_params['version']) || Version.default
+  end
+
   def protect
     ApiScenario::SetCompatibility.keep_compatible(http_client, scenario_id)
   end
 
+  # Version history in Etengine
   def tag_new_version
     ApiScenario::VersionTags::Create.call(http_client, scenario_id, '')
   end

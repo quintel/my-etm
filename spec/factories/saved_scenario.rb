@@ -10,7 +10,7 @@ FactoryBot.define do
     end_year { 2050 }
     area_code { 'nl' }
     scenario_id { 648_695 }
-    version { Version.find_by(tag: "latest").tag }
+    version { Version.find_by(tag: "latest") }
 
     after(:create) do |saved_scenario, evaluator|
       if evaluator.user.present?

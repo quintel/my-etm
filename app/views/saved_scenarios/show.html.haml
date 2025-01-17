@@ -1,7 +1,7 @@
 - content_for :menu_title, @saved_scenario.localized_title(I18n.locale)
 = render(partial: "block_right_menu", locals: { saved_scenario: @saved_scenario })
 
-= render(SavedScenarios::Info::Component.new(path: "#{Version.find_by(tag: @saved_scenario.version).model_url}/saved_scenarios/#{@saved_scenario.id}/load", button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
+= render(SavedScenarios::Info::Component.new(path: "#{@saved_scenario.version.model_url}/saved_scenarios/#{@saved_scenario.id}/load", button_title: t('saved_scenario.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
 
 - if flash[:undo_params]
   = render(NoticeBanner::Component.new(path: flash[:undo_params], text: notice_message, button_text: "#{t('undo')}?"))
@@ -10,7 +10,7 @@
   = render(NoticeBanner::TrashComponent.new(text: t('trash.notice', deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)))
 
 .w-min
-  = render(HovercardWithVersion::Component.new(version: @saved_scenario.version))
+  = render(HovercardWithVersion::Component.new(version: @saved_scenario.version.tag))
 
 .flex.gap-5.mt-5.mb-5.pb-5.border-b.border-solid.border-gray-200
   - if @saved_scenario.featured?

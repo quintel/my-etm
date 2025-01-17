@@ -8,7 +8,7 @@ class CreateCollection
   def call
     collection = user.collections.build(
       title: collection_title,
-      version: settings[:version],
+      version: version,
       interpolation: false
     )
 
@@ -31,5 +31,9 @@ class CreateCollection
 
   def scenario_ids
     settings[:saved_scenario_ids].uniq.reject(&:blank?)
+  end
+
+  def version
+    SavedScenario.find(scenario_ids.first).version
   end
 end

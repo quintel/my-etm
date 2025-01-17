@@ -85,8 +85,8 @@ RSpec.describe Collection, type: :model do
   describe 'scenario versions' do
     let(:user) { create(:user) }
 
-    let(:version) { "version" }
-    let(:version_1) { "version_1" }
+    let(:version) { create(:version) }
+    let(:version_1) { create(:version) }
 
     # We don't validate to be able to stub the versions
     let(:scenario1) do
