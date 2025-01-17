@@ -176,6 +176,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       it 'returns the scenario' do
         request
+        user.saved_scenarios.reload
         expect(JSON.parse(response.body)).to eq(user.saved_scenarios.last.as_json)
       end
     end
@@ -235,9 +236,9 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         access_token_header(user, :read)
       end
 
-      it 'returns forbidden' do
+      it 'returns not found' do
         request
-        expect(response).to have_http_status(:forbidden)
+        expect(response).to have_http_status(:not_found)
       end
 
       it 'does not create a saved scenario' do

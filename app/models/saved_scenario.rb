@@ -19,6 +19,7 @@ class SavedScenario < ApplicationRecord
   has_one :featured_scenario, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
   has_many :users, through: :saved_scenario_users
+  belongs_to :version
 
   has_rich_text :description
 
@@ -26,9 +27,6 @@ class SavedScenario < ApplicationRecord
   validates :title,       presence: true
   validates :end_year,    presence: true
   validates :area_code,   presence: true
-  validates :version, presence: true, inclusion: {
-    in: Version.tags, message: "Version should be one of #{Version.tags}"
-  }
 
   serialize :scenario_id_history, coder: YAML, type: Array
 
@@ -73,6 +71,11 @@ class SavedScenario < ApplicationRecord
   def scenario=(x)
     @scenario = x
     self.scenario_id = x.id unless x.nil?
+  end
+
+  def as_json(*)
+    json = super.except(:version_id)
+    json.merge("version" => version.tag)
   end
 
   # TODO: Determine if necessary

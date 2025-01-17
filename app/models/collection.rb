@@ -12,6 +12,7 @@ class Collection < ApplicationRecord
   FILTER_PARAMS = %i[title interpolated plain].freeze
 
   belongs_to :user
+  belongs_to :version
 
   has_many :scenarios,
     class_name: 'CollectionScenario',
@@ -41,6 +42,7 @@ class Collection < ApplicationRecord
       end_year: scenario.end_year,
       title: scenario.title,
       interpolation: true,
+      version: scenario.version,
       saved_scenario_ids: [ scenario.id ]
     }.merge(attrs))
   end

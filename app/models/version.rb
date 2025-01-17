@@ -1,13 +1,14 @@
 class Version < ApplicationRecord
-
   has_many :oauth_applications, dependent: :nullify
+  has_many :saved_scenarios
+  has_many :collections
 
   validates :tag, presence: true, uniqueness: true
   validates :url_prefix, presence: true, unless: -> { tag == "latest" }
 
   URL = "energytransitionmodel.com".freeze
   LOCAL_URLS = {
-    "collections" => Settings.collections_url,
+    "collections" => Settings.collections.uri,
     "model" => Settings.etmodel.uri,
     "engine" => Settings.etengine.uri
   }.freeze
@@ -37,11 +38,12 @@ class Version < ApplicationRecord
 
   # Serialize versions for API responses
   def as_json(*)
-    super.merge(
+    {
+      tag: tag,
       model_url: model_url,
       engine_url: engine_url,
       collections_url: collections_url
-    )
+    }
   end
 
   private

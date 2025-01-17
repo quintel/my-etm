@@ -50,7 +50,6 @@ RSpec.describe "API::Collections", type: :request, api: true do
       {
         collection: {
           title: 'Test Collection',
-          version: '1.0',
           saved_scenario_ids: saved_scenarios.map(&:id)
         }
       }

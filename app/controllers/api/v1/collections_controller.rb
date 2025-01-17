@@ -40,7 +40,7 @@ module Api
       private
 
       def collection_params
-        params.require(:collection).permit(:title, :version, saved_scenario_ids: [])
+        params.require(:collection).permit(:title, saved_scenario_ids: [])
       end
 
       def create_transition_params
