@@ -16,6 +16,7 @@ namespace :data do
     unless File.exist?(model_dump) && File.exist?(engine_dump)
       puts "Error: One or both specified dump files do not exist."
       exit 1
+    end
 
     # Map source tables to destination tables if their names differ
     TABLE_NAME_MAPPING = {
