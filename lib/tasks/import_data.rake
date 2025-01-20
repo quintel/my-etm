@@ -143,7 +143,12 @@ namespace :data do
 
   def map_column_names(stmt, column_mapping)
     column_mapping.each do |source_column, destination_column|
-      stmt.gsub!(/`?#{source_column}`?/, "`#{destination_column}`")
+      if destination_column.nil?
+        # Remove any occurrences of the source column from the INSERT statement
+        stmt.gsub!(/`?#{source_column}`?[^,]*,?/, '')
+      else
+        stmt.gsub!(/`?#{source_column}`?/, "`#{destination_column}`")
+      end
     end
     stmt
   end
