@@ -128,8 +128,10 @@ class SavedScenario < ApplicationRecord
   def version=(version_or_tag)
     if version_or_tag.is_a?(Version)
       self.version_id = version_or_tag.id
+    elsif version_found = Version.find_by(tag: version_or_tag)
+      self.version_id = version_found.id
     else
-      self.version_id = Version.find_by(tag: version_or_tag)&.id
+      self.version_id = Version.default.id
     end
   end
 end

@@ -5,6 +5,7 @@ class Version < ApplicationRecord
 
   validates :tag, presence: true, uniqueness: true
   validates :url_prefix, presence: true, unless: -> { tag == "latest" }
+  validate  :one_default
 
   URL = "energytransitionmodel.com".freeze
   LOCAL_URLS = {
@@ -18,9 +19,9 @@ class Version < ApplicationRecord
     pluck(:tag)
   end
 
-  # Find the default version
+  # Find the default version, or create it
   def self.default
-    find_by(default: true)
+    find_by(default: true) || create(default: true, tag: "latest")
   end
 
   # URL methods for collections, model, and engine
@@ -54,6 +55,12 @@ class Version < ApplicationRecord
       LOCAL_URLS[context]
     else
       "https://#{url_prefix}#{context == 'model' ? '' : "#{context}."}#{URL}"
+    end
+  end
+
+  def one_default
+    if default && Version.where(default: true).count.positive?
+      errors.add(:base, :default, message: "There can only be one default version")
     end
   end
 end
