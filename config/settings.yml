@@ -10,8 +10,6 @@ myetm:
   iss: my-etm
   uri: <%= ENV.fetch('OPENID_ISSUER', 'http://localhost:3002') %>
 
-collections_url: <%= ENV.fetch('COLLECTIONS_URL', 'http://localhost:3005') %>
-
 mailchimp:
   newsletter:
     list_url: <%= ENV.fetch('MAILCHIMP_LIST_URL', nil) %>

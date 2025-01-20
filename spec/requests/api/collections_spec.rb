@@ -5,10 +5,6 @@ RSpec.describe "API::Collections", type: :request, api: true do
   let!(:saved_scenarios) { create_list(:saved_scenario, 2, user: user) }
   let!(:collection) { create(:collection, user: user) }
 
-  before do
-    allow(Settings).to receive(:collections_url).and_return('http://example.com/collections')
-  end
-
   describe 'GET /api/v1/collections' do
     let!(:discarded_collection) { create(:collection, user: user, discarded_at: Time.current) }
 

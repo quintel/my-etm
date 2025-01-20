@@ -5,8 +5,8 @@ module CollectionsHelper
   # Collections.
   #
   # Returns a string.
-  def myc_url(collection)
-    "#{Settings.collections_url}/#{collection.redirect_slug}?" \
+  def collection_url(collection)
+    "#{collection.version.collection_url}/#{collection.redirect_slug}?" \
       "locale=#{I18n.locale}&" \
       "title=#{ERB::Util.url_encode(collection.title)}"
   end
