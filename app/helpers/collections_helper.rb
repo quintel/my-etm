@@ -6,7 +6,7 @@ module CollectionsHelper
   #
   # Returns a string.
   def collection_url(collection)
-    "#{collection.version.collection_url}/#{collection.redirect_slug}?" \
+    "#{collection.version.collections_url}/#{collection.redirect_slug}?" \
       "locale=#{I18n.locale}&" \
       "title=#{ERB::Util.url_encode(collection.title)}"
   end

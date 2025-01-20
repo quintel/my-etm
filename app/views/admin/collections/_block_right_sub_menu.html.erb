@@ -1,6 +1,6 @@
 <% content_for :block_right_sub_menu do %>
   <% if has_collections %>
-    <%= form_with url: list_collections_path,
+    <%= form_with url: list_admin_collections_path,
       method: :get,
       data: { controller: "search-form", search_form_target: "form", turbo_frame: "collections" } do |form|
       %>
