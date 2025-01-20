@@ -16,13 +16,12 @@
 
     = javascript_importmap_tags
   %body
-    - if current_user
-      = render partial: "layouts/sidebar"
-      .p-10.py-5.flex.flex-col.h-full{class: 'ml-[300px]'}
-        = render partial: "layouts/buttons"
-        .text-xl.mb-5.mt-5
-          = t('errors.sorry')
-        .grow
-          .flex.h-full
-            %div{class: 'basis-3/4'}
-              = yield
+    = render partial: "layouts/sidebar"
+    .p-10.py-5.flex.flex-col.h-full{class: 'ml-[300px]'}
+      = render partial: "layouts/buttons"
+      .text-xl.mb-5.mt-5
+        = t('errors.sorry')
+      .grow
+        .flex.h-full
+          %div{class: 'basis-3/4'}
+            = yield
