@@ -19,4 +19,4 @@
     - if current_user
       = render(SidebarItem::ProfileComponent.new(path: identity_profile_path, sign_out_path: destroy_user_session_path,title: current_user.name, icon: 'user-circle', active: controller_name == 'settings', text: 'text-midnight-800'))
     - else
-      redirect_to sign_up_path
+      = render(SidebarItem::LoginComponent.new(path: new_user_session_path, title: t('sidebar.login'), icon: 'user-circle'))
