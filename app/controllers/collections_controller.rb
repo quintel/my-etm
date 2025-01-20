@@ -167,10 +167,10 @@ class CollectionsController < ApplicationController
   end
 
   def ensure_valid_config
-    return if Settings.collections_url
+    return if Settings.collections.uri
 
     redirect_to root_path,
-      notice: 'Missing collections_url setting in config.yml'
+      notice: 'Missing collections.uri setting in config.yml'
   end
 
   def create_collection_params

@@ -89,7 +89,7 @@ class Collection < ApplicationRecord
   #
   # For example:
   #
-  #   redirect_to(myc_url(myc.redirect_slug))
+  #   redirect_to(collection_url(myc.redirect_slug))
   #
   # Returns an array.
   def redirect_slug

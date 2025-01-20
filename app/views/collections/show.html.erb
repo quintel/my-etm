@@ -2,7 +2,7 @@
 <%= render(partial: "collections/show/block_right_menu", locals: { collection: @collection })%>
 
 <%= render(Collections::Info::Component.new(
-    path: myc_url(@collection),
+    path: collection_url(@collection),
     button_title: t('collections.open'),
     collection: @collection,
     time: time_ago_in_words(@collection.created_at))
