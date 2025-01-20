@@ -106,7 +106,7 @@ module MyEtm
     end
 
     # Returns a Faraday client for a version of ETModel
-    def model_client(user, version = Version.default.tag)
+    def model_client(user, version = Version.default)
       model = OAuthApplication.find_by(uri: version.model_url)
       client_for(user, model)
     end
