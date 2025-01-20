@@ -106,15 +106,25 @@ en:
     newsletter_status_row_component:
       subscribed: Subscribed
       not_subscribed: Not subscribed
-      title: E-mail newsletter
+      title:
+        newsletter: E-mail newsletter
+        changelog: Changelog newsletter
       unsubscribe: Unsubscribe
-      not_subscribed_message: |
-        We occasionally publish a newsletter with information about improvements and changes to
-        the ETM. We send roughly four messages a year and you can unsubscribe at any time.
+      not_subscribed_message:
+        newsletter: |
+          We occasionally publish a newsletter with information about improvements and changes to
+          the ETM. We send roughly four messages a year and you can unsubscribe at any time.
+        changelog: |
+          With each release of the model we publish a document containing the
+          technical changes in inputs and queries, and send you a link to download. Recommended for API users.
       subscribe: Subscribe
-      subscribed_message: |
-        You are subscribed to our newsletter. We send roughly four e-mails a year with information
-        about improvements and changes to the model.
+      subscribed_message:
+        newsletter: |
+          You are subscribed to our newsletter. We send roughly four e-mails a year with information
+          about improvements and changes to the model.
+        changelog: |
+          You are subscribed to our changelog. Each release of the model we send you a
+          technical document containing changes in inputs and queries. Recommended for API users.
 
     token_component:
       copied: Copied!

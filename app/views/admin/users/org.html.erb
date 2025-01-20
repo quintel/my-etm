@@ -6,7 +6,7 @@
 </div>
 
 <div class="mt-10 text-midnight-400 text-sm">
-  Current admins
+  <%= "Current admins (#{@admins.count})"%>
 </div>
 <div class="mt-2 border border-gray-200 rounded-md p-5">
   <% @admins.each do |user| %>

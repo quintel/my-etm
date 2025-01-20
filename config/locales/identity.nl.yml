@@ -103,17 +103,28 @@ nl:
         message: Je hebt je uitgeschreven voor onze nieuwsbrief.
 
     newsletter_status_row_component:
-      title: E-mail nieuwsbrief
+      title:
+        newsletter: E-mail nieuwsbrief
+        changelog: Changelog nieuwsbrief
       subscribed: Geabonneerd
       not_subscribed: Niet geabonneerd
       unsubscribe: Uitschrijven
-      not_subscribed_message: |
-        We versturen ongeveer vier keer per jaar een nieuwsbrief met informatie over verbeteringen
-        en wijzigingen aan het ETM. Je kan je op elk moment uitschrijven.
+      not_subscribed_message:
+        newsletter: |
+          We versturen ongeveer vier keer per jaar een nieuwsbrief met informatie over verbeteringen
+          en wijzigingen aan het ETM. Je kan je op elk moment uitschrijven.
+        changelog: |
+          Voor iedere realease van het model maken we een technish document waarin exacte
+          veranderingen in inputs en queries worden uitgelegd. We sturen een link om het
+          document te downloaden wanneer het beschikbaar is. Aangeraden voor API gebruikers.
       subscribe: Inschrijven
-      subscribed_message: |
-        Je bent ingeschreven voor onze nieuwsbrief. We versturen ongeveer vier e-mails per jaar
-        met verbeteringen en wijzigingen aan het model.
+      subscribed_message:
+        newsletter: |
+          Je bent ingeschreven voor onze nieuwsbrief. We versturen ongeveer vier e-mails per jaar
+          met verbeteringen en wijzigingen aan het model.
+        changelog: |
+          Iedere realease van het model ontvang je een link naar een technish document waarin exacte
+          veranderingen in inputs en queries worden uitgelegd. Aangeraden voor API gebruikers.
 
     token_component:
       copied: Gekopieerd!

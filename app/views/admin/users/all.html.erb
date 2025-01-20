@@ -1,5 +1,9 @@
-<%- content_for :menu_title, 'All users' %>
+<%- content_for :menu_title, 'Manage users' %>
 <%= render(partial: "/admin/block_right_menu") %>
+
+<div class="mt-8 mb-2 text-midnight-400 text-sm">
+  <%= "Showing users (#{@users.count})"%>
+</div>
 
 <% @users.each do |user| %>
   <%= render Admin::UserRow::Component.new(
