@@ -147,6 +147,7 @@ nl:
     title: Opgeslagen scenario's
     empty: Je hebt nog geen scenario's.
     search_by_title: Filter op titel
+    open: Open
     confirm_destroy:
       title: Verwijder scenario permanent
       warning_header: Je staat op het punt je scenario permanent te verwijderen

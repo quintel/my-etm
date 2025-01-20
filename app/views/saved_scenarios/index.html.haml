@@ -1,5 +1,5 @@
 - content_for :title, "#{t('saved_scenarios.title')} - #{t('meta.title')}"
-- content_for :menu_title, "t('saved_scenarios.title')
+- content_for :menu_title, t('saved_scenarios.title')
 
 = render(partial: "block_right_with_filters", locals: { has_saved_scenarios: @saved_scenarios.present? })
 

@@ -7,7 +7,7 @@
     <span class="text-sm text-midnight-400"><%= "Last updated #{@time} ago"%></span>
   </div>
   <% if !@saved_scenario.discarded? %>
-    <%= link_to link_to_scenario, class: "button mr-0 ml-auto" do %>
+    <%= link_to link_to_scenario, class: button_classes("mr-0 ml-auto max-h-9", color: :primary) do %>
       <%= @button_title %>
     <% end %>
   <% end %>
