@@ -125,8 +125,8 @@ Rails.application.routes.draw do
 
     resources :saved_scenarios, only: [:index] do
       collection do
-        # get :list
-        # post :list
+        get :list
+        post :list
         post :index
       end
     end

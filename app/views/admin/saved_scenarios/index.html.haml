@@ -1,6 +1,7 @@
 - content_for :title, "All saved scenarios"
 - content_for :menu_title, "All saved scenarios"
 
+= render(partial: "block_right_sub_menu")
 = render(partial: "admin/block_right_menu")
 
 - if @saved_scenarios.present?

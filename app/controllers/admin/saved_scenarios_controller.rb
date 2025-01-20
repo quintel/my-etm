@@ -2,6 +2,7 @@ module Admin
   class SavedScenariosController < ApplicationController
     include AdminController
     include Pagy::Backend
+    include Filterable
 
     # GET /admin/saved_scenarios
     def index
@@ -13,25 +14,27 @@ module Admin
       end
     end
 
-    # TODO:
-    # # Renders a partial of saved_scenarios based on turbo search and filters
-    # #
-    # # GET /saved_scenarios/list
-    # def list
-    #   filtered = filter!(SavedScenario)
-    #     .available
-    #     .includes(:featured_scenario, :users)
+    # Renders a partial of saved_scenarios based on turbo search and filters
+    #
+    # GET /saved_scenarios/list
+    def list
+      filtered = filter!(SavedScenario)
+        .available
+        .includes(:featured_scenario, :users)
 
-    #   @pagy_admin_saved_scenarios, @saved_scenarios = pagy(filtered)
+      @pagy_admin_saved_scenarios, @saved_scenarios = pagy(filtered)
 
-    #   respond_to do |format|
-    #     format.html { render(
-    #       partial: "saved_scenarios",
-    #       locals: { saved_scenarios: @saved_scenarios, pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios }
-    #     ) }
-    #     format.turbo_stream { render(:index) }
-    #   end
-    # end
+      respond_to do |format|
+        format.html { render(
+          partial: "saved_scenarios",
+          locals: {
+            saved_scenarios: @saved_scenarios,
+            pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios
+          }
+        ) }
+        format.turbo_stream { render(:index) }
+      end
+    end
 
     private
 
