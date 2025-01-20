@@ -34,10 +34,10 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
         scenario.save(validate: false)
         create(:featured_scenario, saved_scenario: scenario)
 
-        get '/api/v1/featured_scenarios', as: :json, params: { version:version }
+        get '/api/v1/featured_scenarios', as: :json, params: { version: version.tag }
       end
 
-      it 'returns featured_scenarios that are old' do
+      it 'returns featured_scenarios that are from the version' do
         expect(response).to have_http_status(:ok)
         parsed_response = JSON.parse(response.body)
         expect(parsed_response['featured_scenarios'].size).to eq(1)
@@ -46,7 +46,7 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
           expect(scenario.keys).to contain_exactly(
             'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version', 'end_year', 'author'
           )
-          expect(scenario['version']).to eq(version)
+          expect(scenario['version']).to eq(version.tag)
         end
       end
     end

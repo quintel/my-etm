@@ -19,6 +19,9 @@ class SavedScenario::Create
   def call
     return failure unless saved_scenario.valid?
 
+    # Sometimes we have to explicitly set the user again
+    saved_scenario.user = user
+
     protect
 
     saved_scenario.save

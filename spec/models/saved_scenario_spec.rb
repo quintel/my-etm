@@ -66,4 +66,27 @@ RSpec.describe SavedScenario, type: :model do
       expect(subject.restore_historical(999_999)).to be_nil
     end
   end
+
+  describe 'version=' do
+    let(:version) { create(:version) }
+    let(:saved_scenario) { create(:saved_scenario) }
+
+    context 'with a version object' do
+      it 'sets the version' do
+        expect { saved_scenario.version = version }
+          .to change {
+            saved_scenario.version.tag
+          }.to eq(version.tag)
+      end
+    end
+
+    context 'with a string tag' do
+      it 'sets the version' do
+        expect { saved_scenario.version = version.tag }
+          .to change {
+            saved_scenario.version.tag
+          }.to eq(version.tag)
+      end
+    end
+  end
 end
