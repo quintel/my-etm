@@ -6,10 +6,16 @@
 
 <h3 class="text-midnight-800 mt-5 pt-5 border-t"><%= t('.account') %></h3>
 
-<%= render(Identity::ProfileEmailComponent.new(title: t('activerecord.attributes.user.email'), email: current_user.email, confirmed: current_user.confirmed_at)) %>
+<%= render(Identity::ProfileRowComponent.new(title: t('activerecord.attributes.user.email'))) do |row| %>
+  <%= current_user.email %>
 
-<% if current_user.pending_reconfirmation? %>
-  <%= render(Identity::ProfileEmailComponent.new(title: t('activerecord.attributes.user.unconfirmed_email'), email: current_user.unconfirmed_email, confirmed: false, show_change_button: false)) %>
+  <% if current_user.pending_reconfirmation? %>
+    <%= render(Identity::ProfileEmailComponent.new(title: t('activerecord.attributes.user.unconfirmed_email'), email: current_user.unconfirmed_email, confirmed: false, show_change_button: false)) %>
+  <% end %>
+
+  <% row.with_button do %>
+    <%= link_to "#{t('.change_email')}…", identity_edit_email_path, data: { turbo_frame: :modal }, class: button_classes(color: :default_colored) %>
+  <% end %>
 <% end %>
 
 <%= render(Identity::ProfileRowComponent.new(title: t('activerecord.attributes.user.password'))) do |row| %>

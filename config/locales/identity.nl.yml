@@ -63,6 +63,7 @@ nl:
         account: Account
         change_name: Wijzig naam
         change_password: Wijzig wachtwoord
+        change_email: Wijzig email
         explanation: Wijzig je e-mailadres, wachtwoord of accountinstellingen.
         name_explanation: Deze naam wordt weergegeven bij jouw openbare scenario's.
         password_explanation: |
@@ -225,8 +226,8 @@ nl:
           verwijderen. U wordt om bevestiging gevraagd op de volgende pagina.
         warning_header: Je staat op het punt om jouw account te verwijderen!
         warning: |
-          Al jouw data - waaronder jouw naam en e-mailadres, scenario's en transitiepaden - zullen 
-          worden verwijderd. Als je gedeelde scenario's hebt met andere gebruikers zullen zij niet 
+          Al jouw data - waaronder jouw naam en e-mailadres, scenario's en transitiepaden - zullen
+          worden verwijderd. Als je gedeelde scenario's hebt met andere gebruikers zullen zij niet
           langer toegang hebben tot deze scenario's.
         irreversible: Dit is onomkeerbaar.
         confirm: |
