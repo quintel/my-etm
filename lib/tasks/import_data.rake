@@ -32,7 +32,8 @@ namespace :data do
     COLUMN_NAME_MAPPING = {
       "multi_year_charts" => { "multi_year_chart_id" => "collection_id" },
       "multi_year_chart_saved_scenarios" => { "multi_year_chart_id" => "collection_id" },
-      "multi_year_chart_scenarios" => { "multi_year_chart_id" => "collection_id" }
+      "multi_year_chart_scenarios" => { "multi_year_chart_id" => "collection_id" },
+      "saved_scenarios" => { "description" => nil }
     }
 
     TABLE_INSERT_ORDER = [
