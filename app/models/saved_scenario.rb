@@ -123,4 +123,13 @@ class SavedScenario < ApplicationRecord
 
     saved_scenarios
   end
+
+  # Allow version to be set by either tag or Version object
+  def version=(version_or_tag)
+    if version_or_tag.is_a?(Version)
+      self.version_id = version_or_tag.id
+    else
+      self.version_id = Version.find_by(tag: version_or_tag)&.id
+    end
+  end
 end

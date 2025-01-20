@@ -1,11 +1,7 @@
 module Api
   module V1
     class SavedScenariosController < BaseController
-      load_and_authorize_resource(class: SavedScenario, only: %i[index show update destroy])
-
-      before_action only: %i[create] do
-        authorize!(:create, SavedScenario)
-      end
+      load_and_authorize_resource(class: SavedScenario, only: %i[index create show update destroy])
 
       # GET /saved_scenarios or /saved_scenarios.json
       def index

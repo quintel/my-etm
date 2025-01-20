@@ -33,7 +33,7 @@ module Api
       def featured_scenarios
         if version.present?
           FeaturedScenario.joins(:saved_scenario)
-            .where(saved_scenario: { version: version['version'] })
+            .where(saved_scenario: { version: Version.find_by(tag: version['version']) })
         else
           FeaturedScenario.all
         end
