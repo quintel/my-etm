@@ -1,4 +1,5 @@
 <%- content_for :menu_title, @collection.title %>
+<%- content_for :title, "#{@collection.title} - #{t('collections.title')} - #{t('meta.title')}" %>
 <%= render(partial: "collections/show/block_right_menu", locals: { collection: @collection })%>
 
 <%= render(Collections::Info::Component.new(

@@ -1,4 +1,7 @@
 nl:
+  meta:
+    title: Energietransitiemodel
+
   undo: Ongedaan maken
   more: Meer...
   language: Nederlands
@@ -141,6 +144,7 @@ nl:
         duplicate: Deze persoon is al uitgenodigd voor dit scenario.
 
   saved_scenarios:
+    title: Opgeslagen scenario's
     empty: Je hebt nog geen scenario's.
     search_by_title: Filter op titel
     confirm_destroy:

@@ -28,6 +28,9 @@
 #       enabled: "ON"
 
 en:
+  meta:
+    title: Energy Transition Model
+
   undo: Undo
   more: More...
   language: English
@@ -164,6 +167,7 @@ en:
       documentation</a> for more information.
     title: History
   saved_scenarios:
+    title: Saved scenarios
     empty: You don't have any scenarios.
     search_by_title: Filter by title
     confirm_destroy:
