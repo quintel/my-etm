@@ -277,3 +277,11 @@ en:
     latest_html: |
       This scenario was created in the live version of the ETM
       which includes all the latest monthly updates. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline mt-5 hover:text-midnight-800">Learn more..</a>
+  layouts:
+    welcome_back:
+      title: Welcome to My Scenarios!
+      start: Start exploring
+      description: |
+        Your saved scenarios and profile have a new look. You can still do
+        everything you were used to with your collections and saved scenarios.
+        All account options are still available. Are you ready for the big reveal?
