@@ -125,4 +125,15 @@ class Collection < ApplicationRecord
       errors.add(:scenarios, "must all belong to the collection's version (#{version})")
     end
   end
+
+  # Allow version to be set by either tag or Version object
+  def version=(version_or_tag)
+    if version_or_tag.is_a?(Version)
+      self.version_id = version_or_tag.id
+    elsif version_found = Version.find_by(tag: version_or_tag)
+      self.version_id = version_found.id
+    else
+      self.version_id = Version.default.id
+    end
+  end
 end
