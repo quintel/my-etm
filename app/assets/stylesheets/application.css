@@ -13,5 +13,6 @@
 
 /*
  *= require_self
+ *= require actiontext
  *= require application.tailwind
 */

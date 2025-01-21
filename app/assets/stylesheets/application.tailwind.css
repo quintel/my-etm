@@ -75,6 +75,10 @@
     @apply list-disc;
     @apply pl-5;
   }
+
+  trix-editor {
+    overflow-y: scroll;
+  }
 }
 
 
