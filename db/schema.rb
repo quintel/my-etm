@@ -68,12 +68,13 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_16_141434) do
     t.string "title", null: false
     t.string "area_code"
     t.integer "end_year"
-    t.string "version", default: "latest"
     t.datetime "created_at", null: false
     t.datetime "discarded_at"
     t.boolean "interpolation", default: true
+    t.bigint "version_id"
     t.index ["discarded_at"], name: "index_collections_on_discarded_at"
     t.index ["user_id"], name: "index_collections_on_user_id"
+    t.index ["version_id"], name: "index_collections_on_version_id"
   end
 
   create_table "featured_scenario_users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -171,15 +172,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_16_141434) do
     t.integer "scenario_id", null: false
     t.text "scenario_id_history"
     t.string "title", null: false
-    t.string "version", default: "latest"
     t.string "area_code", null: false
     t.integer "end_year", null: false
     t.boolean "private", default: false
     t.datetime "discarded_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "version_id"
     t.index ["discarded_at"], name: "index_saved_scenarios_on_discarded_at"
     t.index ["scenario_id"], name: "index_saved_scenarios_on_scenario_id"
+    t.index ["version_id"], name: "index_saved_scenarios_on_version_id"
   end
 
   create_table "sessions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -239,6 +241,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_16_141434) do
   add_foreign_key "collection_saved_scenarios", "saved_scenarios"
   add_foreign_key "collection_scenarios", "collections"
   add_foreign_key "collections", "users"
+  add_foreign_key "collections", "versions"
   add_foreign_key "oauth_access_grants", "oauth_applications", column: "application_id"
   add_foreign_key "oauth_access_grants", "users", column: "resource_owner_id"
   add_foreign_key "oauth_access_tokens", "oauth_applications", column: "application_id"
@@ -247,6 +250,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_16_141434) do
   add_foreign_key "oauth_openid_requests", "oauth_access_grants", column: "access_grant_id", on_delete: :cascade
   add_foreign_key "personal_access_tokens", "oauth_access_tokens"
   add_foreign_key "personal_access_tokens", "users"
+  add_foreign_key "saved_scenarios", "versions"
   add_foreign_key "staff_applications", "oauth_applications", column: "application_id"
   add_foreign_key "staff_applications", "users"
 end
