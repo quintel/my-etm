@@ -1,0 +1,9 @@
+<%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
+  <%= heroicon 'cake', options: {class: 'w-5 h-5 mb-5 text-midnight-800'} %>
+
+  <%= t('.description') %>
+
+  <div class="mt-6 pb-2 flex items-center gap-2">
+    <%= modal.close_link(t('.start'), class: button_classes("text-base", color: :success)) %>
+  </div>
+<% end %>

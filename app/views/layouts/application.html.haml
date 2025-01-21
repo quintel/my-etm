@@ -34,3 +34,5 @@
         = render partial: "layouts/block_right"
       = render partial: "layouts/footer"
     = turbo_frame_tag :modal
+    - if @not_logged_in_for_a_while
+      = render partial: 'layouts/welcome_back'
