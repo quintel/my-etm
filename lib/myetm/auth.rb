@@ -76,7 +76,7 @@ module MyEtm
       JWT.encode(payload, key, "RS256", typ: "JWT", kid: key.to_jwk["kid"])
     end
 
-    # TODO: Handle errors better
+    # TODO: Handle errors more verbosely
     # Returns a Faraday client for a user, which will send requests to the specified client app.
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted
