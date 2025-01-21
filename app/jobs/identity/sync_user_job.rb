@@ -7,21 +7,23 @@ require "net/http"
 class Identity::SyncUserJob < ApplicationJob
   queue_as :default
 
-  # TODO: Apply to all stable versions
   def perform(user_id)
     return false unless Settings.etmodel.uri && Settings.etengine.uri
 
     user = User.find(user_id)
 
-    MyEtm::Auth.model_client(user).put(
-      "/api/v1/user",
-      user.to_json(except: %i[admin created_at updated_at])
-    )
+    Version.all.each do |version|
 
-    MyEtm::Auth.engine_client(user).put(
-      "/api/v3/user",
-      user.to_json(except: %i[admin created_at updated_at])
-    )
+      MyEtm::Auth.model_client(user, version).put(
+        "/api/v1/user",
+        user.to_json(except: %i[admin created_at updated_at])
+      )
+
+      MyEtm::Auth.engine_client(user, version).put(
+        "/api/v3/user",
+        user.to_json(except: %i[admin created_at updated_at])
+      )
+    end
 
     true
   end
