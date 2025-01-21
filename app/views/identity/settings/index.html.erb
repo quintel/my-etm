@@ -4,7 +4,7 @@
 
 <%= render(Identity::PageHeaderComponent.new(title: t('.title'), message: t('.explanation'))) %>
 
-<h3 class="text-midnight-800 mt-5 pt-5 border-t"><%= t('.account') %></h3>
+<h3 class="text-midnight-800 mb-5 mt-5 pt-5 border-t"><%= t('.account') %></h3>
 
 <%= render(Identity::ProfileRowComponent.new(title: t('activerecord.attributes.user.email'))) do |row| %>
   <%= current_user.email %>
@@ -14,7 +14,9 @@
   <% end %>
 
   <% row.with_button do %>
-    <%= link_to "#{t('.change_email')}…", identity_edit_email_path, data: { turbo_frame: :modal }, class: button_classes(color: :default_colored) %>
+    <%= link_to identity_edit_email_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2", color: :border) do %>
+      <%= heroicon 'pencil', options: { class: 'w-4 h-4 text-midnight-800' } %>
+    <% end %>
   <% end %>
 <% end %>
 
@@ -27,7 +29,9 @@
   <% end %>
 
   <% row.with_button do %>
-    <%= link_to "#{t('.change_password')}…", identity_edit_password_path, data: { turbo_frame: :modal }, class: button_classes(color: :default_colored) %>
+    <%= link_to identity_edit_password_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2", color: :border) do %>
+      <%= heroicon 'pencil', options: { class: 'w-4 h-4 text-midnight-800' } %>
+    <% end %>
   <% end %>
 <% end %>
 
@@ -43,7 +47,9 @@
   <% end %>
 
   <% row.with_button do %>
-    <%= link_to "#{t('.change_name')}…", identity_edit_name_path, data: { turbo_frame: :modal }, class: button_classes(color: :default_colored) %>
+    <%= link_to identity_edit_name_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2", color: :border) do %>
+      <%= heroicon 'pencil', options: { class: 'w-4 h-4 text-midnight-800' } %>
+    <% end %>
   <% end %>
 <% end %>
 
@@ -100,7 +106,7 @@
   <% end %>
 
   <% row.with_button do %>
-    <%= link_to delete_account_path, class: button_classes('text-sm text-red-600 hover:text-red-700 active:text-red-700 flex'), data: { turbo_frame: :modal } do %>
+    <%= link_to delete_account_path, class: button_classes('text-sm text-red-600 hover:text-red-700 active:text-red-700 flex mb-2'), data: { turbo_frame: :modal } do %>
       <%= heroicon 'trash', options: { class: 'w-5 h-5 mr-2' } %>
       <%= t('devise.registrations.confirm_destroy.title') %>
     <% end %>

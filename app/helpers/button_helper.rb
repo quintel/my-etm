@@ -11,7 +11,8 @@ module ButtonHelper
     warning: %w[button-warning],
     link: %w[button-link],
     default: %w[button-default],
-    default_colored: %w[button-colored]
+    default_colored: %w[button-colored],
+    border: %w[button-border]
   }.freeze
 
   SIZES = {

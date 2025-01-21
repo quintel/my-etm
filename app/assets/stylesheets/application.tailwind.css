@@ -54,6 +54,14 @@
     @apply text-midnight-800;
   }
 
+  .button-border {
+    @apply border;
+    @apply border-midnight-940;
+    @apply text-midnight-800;
+    @apply bg-transparent;
+    @apply hover:bg-midnight-940;
+  }
+
   .logo {
     filter: brightness(0.25);
   }

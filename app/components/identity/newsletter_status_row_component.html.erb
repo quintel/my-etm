@@ -1,6 +1,6 @@
 <%= render(Identity::ProfileRowComponent.new(title: t(".title.#{@audience}"))) do |row| %>
   <% if @subscribed %>
-    <div class="flex items-center gap-1 text-emerald-600">
+    <div class="flex items-center gap-1 text-midnight-980">
       <%= heroicon 'check-circle', options: { class: 'w-5 h-5 mr-2' } %>
       <%= t('.subscribed') %>
     </div>
@@ -15,7 +15,7 @@
       <%= button_to t('.unsubscribe'),
                     identity_update_subscription_path(@audience),
                     params: { subscribed: false },
-                    class: button_classes(color: :default_colored) %>
+                    class: button_classes(color: :border) %>
     <% end %>
   <% else %>
     <div class="flex items-center gap-1">
@@ -32,7 +32,7 @@
       <%= button_to t('.subscribe'),
                     identity_update_subscription_path(@audience),
                     params: { subscribed: true },
-                    class: button_classes(color: :default_colored) %>
+                    class: button_classes(color: :border) %>
     <% end %>
   <% end %>
 <% end %>

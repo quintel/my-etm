@@ -1,15 +1,17 @@
 <%= render(Identity::RowComponent.new(title: @title)) do %>
-  <div>
-    <div><%= content %></div>
+  <div class="mb-5">
+    <div class="flex gap-4">
+      <%= content %>
+
+      <% if button? %>
+        <div class="flex gap-4 text-sm">
+          <%= button %>
+        </div>
+      <% end %>
+    </div>
 
     <% if message? %>
-      <div class="text-midnight-450 mt-2 text-sm"><%= message %></div>
-    <% end %>
-
-    <% if button? %>
-      <div class="mt-4 flex gap-4 text-sm">
-        <%= button %>
-      </div>
+      <div class="text-midnight-450 mb-5 mt-5 text-sm text-readable-width"><%= message %></div>
     <% end %>
   </div>
 <% end %>

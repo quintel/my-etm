@@ -1,4 +1,4 @@
-<div class="inline-flex bg-midnight-300 p-1 rounded-lg gap-1">
+<div class="inline-flex bg-midnight-300 p-1 rounded-lg gap-1 mb-2">
   <% if @private %>
     <%= button_to identity_change_scenario_privacy_path, method: :post, params: { user: { private_scenarios: false } }, form_class: 'flex items-center', class: button_classes('!py-1 inline-flex items-center gap-1', color: :gray) do %>
       <%= heroicon 'eye', options: { class: 'w-5 h-5' } %>
