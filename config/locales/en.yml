@@ -275,3 +275,11 @@ en:
         link_message: "If the button doesn't work, copy and paste the link below into your browser:"
         ignore_message: "If you didn't request this, please ignore this email."
         no_change_message: "Your password won't change until you access the link above and create a new one."
+
+  layouts:
+    welcome_back:
+      title: Welcome to MyETM!
+      start: Start exploring
+      description: |
+        Your saved scenarios have a new look. You can still do everything you were used to with your
+        collections and saved scenarios.
