@@ -22,7 +22,9 @@ class CreateSavedScenarioUser
     return failure unless saved_scenario_user.valid?
     saved_scenario_user.couple_existing_user
 
-    return api_response_invite if invite_failure?
+    email_result = send_invitation_email
+    return email_result if email_result.failure?
+
     return historical_scenarios_result if historical_scenarios_result.failure?
 
     saved_scenario_user.save
@@ -44,32 +46,25 @@ class CreateSavedScenarioUser
     ServiceResult.failure(saved_scenario_user.errors.messages.keys)
   end
 
-  def api_user_params
-    @api_user_params ||= {
-      user_id: saved_scenario_user.user_id,
-      user_email: saved_scenario_user.user_email,
-      role: saved_scenario_user.role
-    }
+  def send_invitation_email
+    invitation_mail_for(saved_scenario_user)
+    ServiceResult.success
+  rescue StandardError => e
+    Rails.logger.error("Failed to send invitation email: #{e.message}")
+    ServiceResult.failure(["email_failed"])
   end
 
-  # Create the user in the engine and send an invite
-  # TODO: send invite from my-etm!!
-  def api_response_invite
-    @api_response_invite ||= ApiScenario::Users::Create.call(
-      http_client,
-      saved_scenario.scenario_id,
-      api_user_params,
+  # Sends an invitation email to the user notifying them they were added to a scenario.
+  def invitation_mail_for(saved_scenario_user)
+    ScenarioInvitationMailer.invite_user(
+      saved_scenario_user.email,
+      invitee_name,
+      User::ROLES[saved_scenario_user.role_id],
       {
-        invite: true,
-        user_name: invitee_name,
         id: saved_scenario.id,
         title: saved_scenario.title
       }
-    )
-  end
-
-  def invite_failure?
-    api_response_invite.failure?
+    ).deliver_now
   end
 
   # Update historical scenarios. If one fails, just move on to the next
@@ -85,5 +80,13 @@ class CreateSavedScenarioUser
 
   def historical_scenarios_result
     @historical_scenarios_result = api_response_historical_scenarios
+  end
+
+  def api_user_params
+    {
+      user_id: saved_scenario_user.user_id,
+      user_email: saved_scenario_user.email,
+      role: saved_scenario_user.role_id
+    }
   end
 end
