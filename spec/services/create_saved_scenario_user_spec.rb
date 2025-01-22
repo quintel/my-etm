@@ -3,119 +3,118 @@
 require 'rails_helper'
 
 describe CreateSavedScenarioUser, type: :service do
-  let(:client) { instance_double(Faraday::Connection) }
+  let(:http_client) { instance_double(Faraday::Connection) }
   let(:user) { FactoryBot.create(:user) }
-  let(:email) { 'hello@me.com' }
-  let(:new_viewer_user_params) { { role_id: 1, user_email: email } }
-  let(:api_result) { ServiceResult.success([ { 'role_id' => 1, 'user_email' => email } ]) }
-  let(:result) { described_class.call(client, saved_scenario, user.name, new_viewer_user_params) }
-  let!(:saved_scenario) do
-    FactoryBot.create(:saved_scenario,
-      user: user,
-      id: 648_695)
-  end
+  let(:saved_scenario) { create(:saved_scenario, id: 123, title: "Test Scenario") }
+  let(:settings) { { role_id: 1, user_email: "user@example.com" } }
+  let(:service) { described_class.new(http_client, saved_scenario, user.name, settings) }
 
-  before do
-    allow(ApiScenario::Users::Create).to receive(:call)
-      .and_return(api_result)
-    # allow(saved_scenario).to receive(:scenario)
-    #   .and_return(ete_scenario_mock)
-  end
+  describe "#call" do
+    context "when the SavedScenarioUser is valid" do
+      let!(:initial_user) { create(:saved_scenario_user, saved_scenario: saved_scenario, role_id: 1) }
 
-  context 'when the API responses are successful and the record is valid' do
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
+      before do
+        allow(ScenarioInvitationMailer).to receive(:invite_user).and_call_original
+        allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
+      end
 
-    it 'is successful' do
-      expect(result).to be_successful
-    end
+      it "returns a successful ServiceResult" do
+        result = service.call
+        expect(result).to be_successful
+        expect(result.value).to be_a(SavedScenarioUser)
+        expect(result.value).to be_persisted
+      end
 
-    describe '#value' do
-      subject { result.value }
-
-      it { is_expected.to be_a(SavedScenarioUser) }
-      it { is_expected.to be_persisted }
-    end
-
-    it 'changes the viewers on the SavedScenario' do
-      expect { result }.to change(
-        saved_scenario.saved_scenario_users, :count
+      it "changes the viewers on the SavedScenario" do
+        expect { service.call }.to change(
+          saved_scenario.saved_scenario_users, :count
         ).from(1).to(2)
-    end
-  end
+      end
 
-  context 'when the record was invalid' do
-    let(:new_viewer_user_params) { { role_id: 1, user_email: 'ppp' } }
-    let(:api_result) { ServiceResult.failure([ 'Invalid email' ]) }
+      it "sends an invitation email" do
+        service.call
+        expect(ScenarioInvitationMailer).to have_received(:invite_user).with(
+          "user@example.com",
+          "John Doe",
+          User::ROLES[1],
+          { id: 123, title: "Test Scenario" }
+        )
+      end
 
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
 
-    it 'is not successful' do
-      expect(result).not_to be_successful
-    end
+      it "updates historical scenarios" do
+        allow(saved_scenario).to receive(:scenario_id_history).and_return([101, 102])
+        allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
 
-    it 'returns the scenario error messages' do
-      expect(result.errors).to eq([ :user_email ])
-    end
-  end
+        service.call
 
-  context 'when the new user was already invited' do
-    before do
-      SavedScenarioUser.create!(role_id: 2, user_email: email, saved_scenario: saved_scenario)
-    end
-
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 101, instance_of(Hash))
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 102, instance_of(Hash))
+      end
     end
 
-    it 'is not successful' do
-      expect(result).not_to be_successful
+    context "when the SavedScenarioUser is invalid" do
+      before do
+        allow_any_instance_of(SavedScenarioUser).to receive(:valid?).and_return(false)
+        allow_any_instance_of(SavedScenarioUser).to receive_message_chain(:errors, :messages, :keys).and_return([:email])
+      end
+
+      it "returns a failure ServiceResult" do
+        result = service.call
+        expect(result).not_to be_successful
+        expect(result.errors).to eq([:email])
+      end
     end
 
-    it 'returns the scenario error messages' do
-      expect(result.errors).to eq([ 'duplicate' ])
-    end
-  end
+    context 'when the API response is unsuccessful' do
+      let(:api_result) { ServiceResult.failure([ 'Nope' ]) }
 
-  context 'when the API response is unsuccessful' do
-    let(:api_result) { ServiceResult.failure([ 'Nope' ]) }
+      it 'returns a ServiceResult' do
+        expect(api_result).to be_a(ServiceResult)
+      end
 
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
+      it 'is not successful' do
+        expect(api_result).not_to be_successful
+      end
 
-    it 'is not successful' do
-      expect(result).not_to be_successful
-    end
-
-    it 'returns the scenario error messages' do
-      expect(result.errors).to eq([ 'Nope' ])
-    end
-  end
-
-  context 'when there is a found linked user' do
-    let(:existing_user) { create(:user) }
-    let(:new_viewer_user_params) { { role_id: 1, user_email: existing_user.email } }
-
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
+      it 'returns the scenario error messages' do
+        expect(api_result.errors).to eq([ 'Nope' ])
+      end
     end
 
-    it 'is successful' do
-      expect(result).to be_successful
+    context 'when the SavedScenarioUser already exists' do
+      before do
+        create(:saved_scenario_user, :with_email, saved_scenario: saved_scenario, role_id: 1)
+      end
+
+      it 'returns a failure ServiceResult with "duplicate" error' do
+        result = service.call
+        expect(result).not_to be_successful
+        expect(result.errors).to eq(["duplicate"])
+      end
     end
 
-    it 'changes the viewers on the SavedScenario' do
-      expect { result }.to change(
-        saved_scenario.saved_scenario_users, :count
-      ).from(1).to(2)
-    end
+    context 'when there is a found linked user' do
+      let(:existing_user) { create(:user) }
+      let(:settings) { { role_id: 1, user_email: existing_user.email } }
 
-    it 'sets the linked user on the SavedScenarioUser' do
-      expect(result.value.user_id).to eq(existing_user.id)
+      let!(:initial_user) { create(:saved_scenario_user, saved_scenario: saved_scenario, role_id: 1) }
+
+      it 'is successful' do
+        result = service.call
+        expect(result).to be_successful
+      end
+
+      it 'changes the viewers on the SavedScenario' do
+        expect { service.call }.to change(
+          saved_scenario.saved_scenario_users, :count
+        ).from(1).to(2)
+      end
+
+      it 'sets the linked user on the SavedScenarioUser' do
+        result = service.call
+        expect(result.value.user_id).to eq(existing_user.id)
+      end
     end
   end
 end
