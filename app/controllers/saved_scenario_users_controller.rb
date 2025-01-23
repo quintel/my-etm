@@ -58,8 +58,8 @@ class SavedScenarioUsersController < ApplicationController
       end
     else
       flash[:alert] =
-        t("saved_scenario_users.errors.#{result.errors.first}") ||
-        "#{t('saved_scenario_users.errors.create')} #{t('saved_scenario_users.errors.general')}"
+        t("saved_scenario_users.errors.#{result.errors.first}", default:
+        "#{t('saved_scenario_users.errors.create')} #{t('saved_scenario_users.errors.general')}")
 
       @saved_scenario_user = SavedScenarioUser.new(scenario_user_params)
       render(:new, status: :unprocessable_entity)
