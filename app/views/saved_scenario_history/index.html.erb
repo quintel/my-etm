@@ -17,7 +17,9 @@
         tag: "scenario_#{historical_version.scenario_id}",
         update_path: saved_scenario_update_history_path(
             id: @saved_scenario.id, scenario_id: historical_version.scenario_id
-        )
+        ),
+        owner: @saved_scenario.owner?(current_user),
+        collaborator: @saved_scenario.collaborator?(current_user)
     )) %>
  <% end %>
 </div>

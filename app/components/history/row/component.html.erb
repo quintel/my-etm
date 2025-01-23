@@ -1,7 +1,10 @@
-<turbo-frame id="<%=@tag%>>"
+<turbo-frame id="<%=@tag%>">
+  <%= form_for(@historical_version, url: @update_path, html: { method: :put }) do |f| %>
 <%# TODO: lets do the edit with stimulus (show form) and destroy with turbo (call service, remove frame) %>
-<%# <%= form_for(@historical_version, url: @update_path, html: { method: :put, class: '' }) do |f|%> %>
-  <div class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md">
+  <div
+    class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md"
+    data-controller="toggle-form"
+    >
     <%# GRID COL 1 %>
     <div class="flex">
       <span class="
@@ -11,7 +14,7 @@
         w-8
         mr-5
         pt-1
-        my-auto
+        mt-1
         text-center
         text-midnight-200"
       >
@@ -27,33 +30,48 @@
 
     <%# GRID COL 2/3 %>
     <div class="text-midnight-400 col-span-2 text-sm mt-3">
-      <%= form_for(@historical_version, url: @update_path, html: { method: :put }) do |f| %>
-        <div class="">
+        <div  data-toggle-form-target="content">
           <%= description %>
         </div>
-        <div class="hidden">
-          <%= f.text_area :description, required: true, placeholder: '...' %>
+        <div data-toggle-form-target="editcontent" class="hidden">
+          <%= f.text_area :description, required: true, placeholder: '...', class: 'resize-none w-full h-[200px]' %>
         </div>
+    </div>
+
+    <%# GRID COL 4 %>
+    <div class="flex mt-2 text-midnight-400" data-toggle-form-target="controls">
+      <% if @collaborator %>
+        <span class="mr-0 ml-auto p-2 pl-6">
+          <%= render(Hovercard::Component.new(path: '', text: 'edit text')) do %>
+            <div class="transition text-sm hover:text-midnight-800 hover:cursor-pointer" data-action="click->toggle-form#show">
+              <%= helpers.heroicon 'pencil', options: { class: 'w-5 h-5' } %>
+            </div>
+          <% end %>
+        </span>
+      <% end %>
+      <% if @owner %>
+        <span class="mr-0 ml-2 p-2 pl-6">
+          <%= render(Hovercard::Component.new(path: '', text: 'restore')) do %>
+            <%# TODO: implement restore! %>
+            <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800 hover:cursor-pointer" do%>
+              <%= helpers.heroicon 'arrow-uturn-left', options: { class: 'w-5 h-5' } %>
+            <% end %>
+          <% end %>
+        </span>
       <% end %>
     </div>
 
     <%# GRID COL 4 %>
-    <div class="flex mt-2 text-midnight-400">
-      <%# TODO: add if statements in order to only show edit for collabs and restore for owners %>
+    <div class="hidden flex mt-2 text-midnight-400" data-toggle-form-target="editcontrols">
       <span class="mr-0 ml-auto p-2 pl-6">
-        <%= render(Hovercard::Component.new(path: '', text: 'edit text')) do %>
-          <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800" do%>
-            <%= helpers.heroicon 'pencil', options: { class: 'w-5 h-5' } %>
-          <% end %>
-        <% end %>
+        <%= f.submit t('.update'), class: button_classes(color: :success) %>
       </span>
-      <span class="mr-0 ml-2 p-2 pl-6">
-        <%= render(Hovercard::Component.new(path: '', text: 'restore')) do %>
-          <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800" do%>
-            <%= helpers.heroicon 'arrow-uturn-left', options: { class: 'w-5 h-5' } %>
-          <% end %>
-        <% end %>
+      <span class="mr-0 ml-2 p-2 pt-3">
+        <span class="<%= button_classes('py-2') %>" data-action="click->toggle-form#hide">
+          <%= t('.cancel') %>
+        </span>
       </span>
     </div>
   </div>
+  <% end %>
 </turbo-frame>
