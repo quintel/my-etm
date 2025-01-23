@@ -9,7 +9,6 @@ class ApplicationController < ActionController::Base
   before_action :store_user_location!, if: :storable_location?
   before_action :set_active_version_tag
 
-  before_action :welcome_back
   WELCOME_BACK_DATE = 3.seconds.ago
 
   helper_method :active_version_tag
