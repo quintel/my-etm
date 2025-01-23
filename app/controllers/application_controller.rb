@@ -156,7 +156,11 @@ class ApplicationController < ActionController::Base
   # show it again
   def welcome_back
     return unless current_user
-    return if current_user.last_sign_in_at > WELCOME_BACK_DATE
+
+    if current_user.last_sign_in_at.present? && current_user.last_sign_in_at > WELCOME_BACK_DATE
+      return
+    end
+
     return if session[:welcome_back].present? && !session[:welcome_back]
 
     @not_logged_in_for_a_while = true
