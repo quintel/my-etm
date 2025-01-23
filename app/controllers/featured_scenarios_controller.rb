@@ -6,7 +6,7 @@ class FeaturedScenariosController < ApplicationController
   before_action :set_featured_scenario, only: %i[show update confirm_destroy destroy]
 
   def create
-    # should take owner id instead of owner!
+    # TODO: Should take owner id instead of owner!
     @featured_scenario = FeaturedScenario.new(
       featured_scenario_params.merge(
         { saved_scenario: saved_scenario, owner: owner }
