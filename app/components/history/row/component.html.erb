@@ -1,5 +1,4 @@
-<turbo-frame id="<%=@tag%>">
-  <%= form_for(@historical_version, url: @update_path, html: { method: :put }) do |f| %>
+<%= form_for(@historical_version, url: @update_path, html: { method: :put }) do |f| %>
 <%# TODO: lets do the edit with stimulus (show form) and destroy with turbo (call service, remove frame) %>
   <div
     class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md"
@@ -73,5 +72,4 @@
       </span>
     </div>
   </div>
-  <% end %>
-</turbo-frame>
+<% end %>

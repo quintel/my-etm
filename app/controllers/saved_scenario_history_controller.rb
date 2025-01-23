@@ -41,12 +41,19 @@ class SavedScenarioHistoryController < ApplicationController
     )
 
     if result.successful?
+      puts params
+      historical_version = SavedScenarioHistoryPresenter.present(
+        @saved_scenario, { params[:scenario_id] => result.value }
+      ).first
+
       respond_to do |format|
-        format.json { render json: result.value }
+        format.turbo_stream do
+          render turbo_stream: [ turbo_update_component(historical_version) ]
+        end
       end
     else
       respond_to do |format|
-        format.json { render json: result.errors }
+        format.turbo_stream { render json: result.errors }
       end
     end
   end
@@ -57,7 +64,7 @@ class SavedScenarioHistoryController < ApplicationController
   private
 
   def update_params
-    params.permit(:description)
+    params.require(:saved_scenario_history).permit(:description)
   end
 
   # We pass this around all of the time or we do it with js?
@@ -78,5 +85,27 @@ class SavedScenarioHistoryController < ApplicationController
     saved_scenario.collaborator?(current_user) ||
       saved_scenario.owner?(current_user) ||
       current_user&.admin?
+  end
+
+  # The component for a scenario history row
+  def history_component(historical_version)
+    History::Row::Component.new(
+      historical_version: historical_version,
+      tag: "scenario_#{historical_version.scenario_id}",
+      update_path: saved_scenario_update_history_path(
+        id: @saved_scenario.id,
+        scenario_id: historical_version.scenario_id
+      ),
+      owner: @saved_scenario.owner?(current_user),
+      collaborator: @saved_scenario.collaborator?(current_user)
+    )
+  end
+
+  # Updates the turbo frame with the given tag with a new one
+  def turbo_update_component(historical_version)
+    turbo_stream.update(
+      "scenario_#{historical_version.scenario_id}",
+      history_component(historical_version)
+    )
   end
 end
