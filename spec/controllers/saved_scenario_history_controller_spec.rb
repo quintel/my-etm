@@ -10,7 +10,15 @@ describe SavedScenarioHistoryController, vcr: true do
   let(:client) { Faraday.new(url: 'http://et.engine') }
 
   before do
-    allow(ApiScenario::VersionTags::Update).to receive(:call).and_return(ServiceResult.success)
+    allow(ApiScenario::VersionTags::Update).to receive(:call).and_return(
+      ServiceResult.success(
+        {
+          'user_id' => user.id,
+          'description' => 'my last version',
+          'last_updated_at' => 2.days.ago.to_json
+        }
+      )
+    )
     allow(ApiScenario::VersionTags::FetchAll).to receive(:call).and_return(ServiceResult.success(
       {
         "123" => {
@@ -44,10 +52,10 @@ describe SavedScenarioHistoryController, vcr: true do
 
     describe 'PUT update' do
       before do
-        put :update, format: :json, params: {
+        put :update, format: :turbo_stream, params: {
           saved_scenario_id: saved_scenario.id,
-          scenario_id: 123,
-          description: 'my update'
+          scenario_id: saved_scenario.scenario_id,
+          saved_scenario_history: { description: 'my update' }
         }
       end
 
