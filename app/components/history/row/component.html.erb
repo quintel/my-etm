@@ -26,13 +26,16 @@
     </div>
 
     <%# GRID COL 2/3 %>
-    <span class="text-midnight-400 col-span-2 text-sm mt-3">
-      <% if @historical_version.description.presence %>
-        <%= @historical_version.description %>
-      <% else %>
-        <%= t('history.empty_message') %>
+    <div class="text-midnight-400 col-span-2 text-sm mt-3">
+      <%= form_for(@historical_version, url: @update_path, html: { method: :put }) do |f| %>
+        <div class="">
+          <%= description %>
+        </div>
+        <div class="hidden">
+          <%= f.text_area :description, required: true, placeholder: '...' %>
+        </div>
       <% end %>
-    </span>
+    </div>
 
     <%# GRID COL 4 %>
     <div class="flex mt-2 text-midnight-400">
