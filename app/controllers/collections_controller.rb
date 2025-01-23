@@ -9,6 +9,7 @@ class CollectionsController < ApplicationController
 
   before_action :require_user, only: %i[index create new_transition create_transition]
   before_action :ensure_valid_config
+  before_action :welcome_back
 
   before_action only: %i[discard undiscard confirm_destroy] do
     authorize!(:destroy, @collection)
