@@ -1,4 +1,4 @@
-<turbo-frame id=<%=@tag%>>
+<turbo-frame id="<%=@tag%>>"
 <%# TODO: lets do the edit with stimulus (show form) and destroy with turbo (call service, remove frame) %>
 <%# <%= form_for(@historical_version, url: @update_path, html: { method: :put, class: '' }) do |f|%> %>
   <div class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md">
@@ -43,14 +43,14 @@
       <span class="mr-0 ml-auto p-2 pl-6">
         <%= render(Hovercard::Component.new(path: '', text: 'edit text')) do %>
           <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800" do%>
-            <%= heroicon 'pencil', options: { class: 'w-5 h-5' } %>
+            <%= helpers.heroicon 'pencil', options: { class: 'w-5 h-5' } %>
           <% end %>
         <% end %>
       </span>
       <span class="mr-0 ml-2 p-2 pl-6">
         <%= render(Hovercard::Component.new(path: '', text: 'restore')) do %>
           <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800" do%>
-            <%= heroicon 'arrow-uturn-left', options: { class: 'w-5 h-5' } %>
+            <%= helpers.heroicon 'arrow-uturn-left', options: { class: 'w-5 h-5' } %>
           <% end %>
         <% end %>
       </span>
