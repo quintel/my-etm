@@ -12,7 +12,7 @@
 
 <div class="border border-gray-200 rounded-md p-2 pt-5 mt-2">
  <% @history.each do |historical_version| %>
-  <turbo-frame id="<%=@tag%>">
+  <turbo-frame id="<%="scenario_#{historical_version.scenario_id}"%>">
     <%= render(History::Row::Component.new(
         historical_version: historical_version,
         tag: "scenario_#{historical_version.scenario_id}",
