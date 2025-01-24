@@ -24,8 +24,7 @@ namespace :data do
       "multi_year_chart_saved_scenarios" => "collection_saved_scenarios",
       "multi_year_chart_scenarios" => "collection_scenarios",
       "tmp_users_for_export" => "users",
-      "tmp_oauth_access_grants_for_export" => "oauth_access_grants",
-      "tmp_saved_scenarios_for_export" => "saved_scenarios",
+      "tmp_oauth_access_grants_for_export" => "oauth_access_grants"
     }
 
     # Map source columns to destination columns for specific tables
@@ -33,7 +32,7 @@ namespace :data do
       "multi_year_charts" => { "multi_year_chart_id" => "collection_id" },
       "multi_year_chart_saved_scenarios" => { "multi_year_chart_id" => "collection_id" },
       "multi_year_chart_scenarios" => { "multi_year_chart_id" => "collection_id" },
-      "saved_scenarios" => { "description" => nil }
+      "saved_scenarios" => { "description" => "tmp_description" }
     }
 
     TABLE_INSERT_ORDER = [

@@ -27,7 +27,8 @@ module CreateStaffApplication
     app.attributes = app_config.to_model_attributes.merge(
       owner_id: user.id,
       uri: parsed_uri.to_s,
-      redirect_uri: redirect_uri.to_s
+      redirect_uri: redirect_uri.to_s,
+      version_id: Version.default.id
     )
 
     # Save the application and handle failures
