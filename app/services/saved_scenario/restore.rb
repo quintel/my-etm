@@ -19,7 +19,7 @@ class SavedScenario::Restore
     saved_scenario.tap do |ss|
       discarded_scenarios = ss.restore_historical(scenario_id)
 
-      return ServiceResult.success(saved_scenario) unless discarded_scenarios
+      return ServiceResult.success(saved_scenario) if discarded_scenarios.empty?
       return failure unless ss.valid?
 
       discarded_scenarios.each { |id| unprotect(id) }

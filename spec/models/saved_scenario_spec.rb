@@ -63,7 +63,7 @@ RSpec.describe SavedScenario, type: :model do
     end
 
     it 'does nothing when the scenario was not in the history' do
-      expect(subject.restore_historical(999_999)).to be_nil
+      expect(subject.restore_historical(999_999)).to be_empty
     end
   end
 
