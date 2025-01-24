@@ -166,11 +166,17 @@ en:
       <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
       documentation</a> for more information.
     title: History
+    error: Something went wrong updating the history of your scenario
   history:
     row:
       component:
         update: 'Update'
         cancel: 'Cancel'
+        restore: 'Restore'
+        edit_description: |
+          Edit the description of this saved version. Save your notes on what you have changed.
+        restore_description: |
+          Restore the saved scenario to this version. This action is irreversible.
   saved_scenarios:
     title: Saved scenarios
     empty: You don't have any scenarios.

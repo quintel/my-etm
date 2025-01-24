@@ -18,7 +18,7 @@ module SavedScenario::History
   # Public: Restores the scenario id to the given historical scenario
   # Returns the discarded scenarios from the history
   def restore_historical(scenario_id)
-    return unless scenario_id && contains?(scenario_id)
+    return [] unless scenario_id && contains?(scenario_id)
 
     discard_no = scenario_id_history.index(scenario_id)
     discarded = scenario_id_history[discard_no + 1...]

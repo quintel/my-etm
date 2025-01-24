@@ -1,5 +1,4 @@
 <%= form_for(@historical_version, url: @update_path, html: { method: :put }) do |f| %>
-<%# TODO: lets do the edit with stimulus (show form) and destroy with turbo (call service, remove frame) %>
   <div
     class="grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md"
     data-controller="toggle-form"
@@ -41,20 +40,19 @@
     <div class="flex mt-2 text-midnight-400" data-toggle-form-target="controls">
       <% if @collaborator %>
         <span class="mr-0 ml-auto p-2 pl-6">
-          <%= render(Hovercard::Component.new(path: '', text: 'edit text')) do %>
-            <div class="transition text-sm hover:text-midnight-800 hover:cursor-pointer" data-action="click->toggle-form#show">
+          <%= render(Hovercard::Component.new(path: '', text: t('.edit_description'))) do %>
+            <div class="transition text-sm hover:text-midnight-800 hover:cursor-pointer" data-action="click->toggle-form#showEdit">
               <%= helpers.heroicon 'pencil', options: { class: 'w-5 h-5' } %>
             </div>
           <% end %>
         </span>
       <% end %>
-      <% if @owner %>
+      <% if @owner && @restorable %>
         <span class="mr-0 ml-2 p-2 pl-6">
-          <%= render(Hovercard::Component.new(path: '', text: 'restore')) do %>
-            <%# TODO: implement restore! %>
-            <%= link_to @update_path, class: "transition text-sm hover:text-midnight-800 hover:cursor-pointer" do%>
+          <%= render(Hovercard::Component.new(path: '', text: t('.restore_description'))) do %>
+            <div class="transition text-sm hover:text-midnight-800 hover:cursor-pointer" data-action="click->toggle-form#showRestore">
               <%= helpers.heroicon 'arrow-uturn-left', options: { class: 'w-5 h-5' } %>
-            <% end %>
+            </div>
           <% end %>
         </span>
       <% end %>
@@ -66,7 +64,21 @@
         <%= f.submit t('.update'), class: button_classes(color: :success) %>
       </span>
       <span class="mr-0 ml-2 p-2 pt-3">
-        <span class="<%= button_classes('py-2') %>" data-action="click->toggle-form#hide">
+        <span class="<%= button_classes('py-2') %>" data-action="click->toggle-form#hideEditEdit">
+          <%= t('.cancel') %>
+        </span>
+      </span>
+    </div>
+
+    <%# GRID COL 4 %>
+    <div class="hidden flex mt-2 text-midnight-400" data-toggle-form-target="restorecontrols">
+      <span class="mr-0 ml-auto p-2 pl-6">
+        <%= link_to @restore_path, method: :put, data: { 'turbo-method': :put }, class: button_classes(color: :warning) do%>
+          <%= t('.restore') %>
+        <% end %>
+      </span>
+      <span class="mr-0 ml-2 p-2">
+        <span class="<%= button_classes() %>" data-action="click->toggle-form#hideRestore">
           <%= t('.cancel') %>
         </span>
       </span>

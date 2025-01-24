@@ -36,6 +36,7 @@
   .button-warning {
     @apply bg-red-600;
     @apply text-midnight-200;
+    @apply hover:bg-midnight-950;
   }
 
   .button-primary {
