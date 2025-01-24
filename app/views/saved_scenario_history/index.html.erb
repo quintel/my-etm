@@ -19,8 +19,12 @@
         update_path: saved_scenario_update_history_path(
             id: @saved_scenario.id, scenario_id: historical_version.scenario_id
         ),
+        restore_path: saved_scenario_restore_history_path(
+            id: @saved_scenario.id, scenario_id: historical_version.scenario_id
+        ),
         owner: @saved_scenario.owner?(current_user),
-        collaborator: @saved_scenario.collaborator?(current_user)
+        collaborator: @saved_scenario.collaborator?(current_user),
+        restorable: @saved_scenario.scenario_id != historical_version.scenario_id
     )) %>
   </turbo-frame>
  <% end %>

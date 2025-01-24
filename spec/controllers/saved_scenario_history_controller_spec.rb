@@ -63,5 +63,26 @@ describe SavedScenarioHistoryController, vcr: true do
         expect(response).to be_ok
       end
     end
+
+    describe 'PUT restore' do
+      before do
+        allow(ApiScenario::SetCompatibility).to receive(:call).and_return(
+          ServiceResult.success)
+
+        put :restore, format: :turbo_stream, params: {
+          saved_scenario_id: saved_scenario.id,
+          scenario_id: 111
+        }
+      end
+
+      it 'is succesful' do
+        expect(response).to be_ok
+      end
+
+      it 'restores the scenario' do
+        saved_scenario.reload
+        expect(saved_scenario.scenario_id).to eq(111)
+      end
+    end
   end
 end

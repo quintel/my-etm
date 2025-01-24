@@ -3,12 +3,14 @@ module History::Row
     include Turbo::FramesHelper
     include ButtonHelper
 
-    def initialize(historical_version:, tag:, update_path:, owner: false, collaborator: false)
+    def initialize(historical_version:, tag:, update_path:, restore_path:, owner: false, collaborator: false, restorable: true)
       @historical_version = historical_version
       @tag = tag
       @update_path = update_path
+      @restore_path = restore_path
       @owner = owner
       @collaborator = collaborator
+      @restorable = restorable
     end
 
     def description

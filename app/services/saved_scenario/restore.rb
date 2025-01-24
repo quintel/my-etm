@@ -33,8 +33,6 @@ class SavedScenario::Restore
 
   private
 
-  # TODO: remove version tags!
-
   def unprotect(scenario_id)
     ApiScenario::SetCompatibility.dont_keep_compatible(http_client, scenario_id)
   end

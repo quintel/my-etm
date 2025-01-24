@@ -31,7 +31,6 @@ class SavedScenarioHistoryController < ApplicationController
     end
   end
 
-  # TODO: make this HTML / turbo
   # PUT /saved_scenarios/:id/history/:scenario_id
   def update
     result = ApiScenario::VersionTags::Update.call(
@@ -41,7 +40,6 @@ class SavedScenarioHistoryController < ApplicationController
     )
 
     if result.successful?
-      puts params
       historical_version = SavedScenarioHistoryPresenter.present(
         @saved_scenario, { params[:scenario_id] => result.value }
       ).first
@@ -52,14 +50,43 @@ class SavedScenarioHistoryController < ApplicationController
         end
       end
     else
+      flash[:alert] = "#{t('saved_scenario_history.error')}"
+
       respond_to do |format|
-        format.turbo_stream { render json: result.errors }
+        format.turbo_stream do
+          render turbo_stream: turbo_alert
+        end
       end
     end
   end
 
-  # TODO: check if restore is better here or on SavedScenario
-  # Here might be easier to remove with turbo from frame/view
+  # Restore a saved scenario to a previous version
+  def restore
+    # Save them now, because after the restore service they will be deleted
+    old_history_ids = discarded_scenarios
+
+    result = SavedScenario::Restore.call(
+      engine_client(@saved_scenario.version),
+      @saved_scenario,
+      params[:scenario_id].to_i
+    )
+
+    if result.successful?
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_remove_components(old_history_ids)
+        end
+      end
+    else
+      flash[:alert] = "#{t('saved_scenario_history.error')}"
+
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_alert
+        end
+      end
+    end
+  end
 
   private
 
@@ -67,15 +94,17 @@ class SavedScenarioHistoryController < ApplicationController
     params.require(:saved_scenario_history).permit(:description)
   end
 
-  # We pass this around all of the time or we do it with js?
-  def history_params
-    params.permit(:user_name, :description)
-  end
-
   def assign_saved_scenario
     @saved_scenario = SavedScenario.find(params[:saved_scenario_id])
   rescue ActiveRecord::RecordNotFound
     render_not_found
+  end
+
+  def discarded_scenarios
+    scenarios = @saved_scenario.all_scenario_ids
+    discard_no = scenarios.index(params[:scenario_id].to_i)
+
+    scenarios[discard_no + 1...]
   end
 
   # This determines whether the SavedScenario is editable by the current_user
@@ -96,8 +125,13 @@ class SavedScenarioHistoryController < ApplicationController
         id: @saved_scenario.id,
         scenario_id: historical_version.scenario_id
       ),
+      restore_path: saved_scenario_restore_history_path(
+        id: @saved_scenario.id,
+        scenario_id: historical_version.scenario_id
+      ),
       owner: @saved_scenario.owner?(current_user),
-      collaborator: @saved_scenario.collaborator?(current_user)
+      collaborator: @saved_scenario.collaborator?(current_user),
+      restorable: @saved_scenario.scenario_id != historical_version.scenario_id
     )
   end
 
@@ -107,5 +141,11 @@ class SavedScenarioHistoryController < ApplicationController
       "scenario_#{historical_version.scenario_id}",
       history_component(historical_version)
     )
+  end
+
+  def turbo_remove_components(old_history_ids)
+    old_history_ids.map do |scenario_id|
+      turbo_stream.remove("scenario_#{scenario_id}")
+    end
   end
 end
