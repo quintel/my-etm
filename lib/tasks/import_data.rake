@@ -16,22 +16,22 @@ namespace :data do
       exit 1
     end
 
-    if File.exist?(model_dump)
-      puts "Model dump exists: #{model_dump}"
-    else
-      puts "Model dump does not exist: #{model_dump}"
-    end
+    # if File.exist?(model_dump)
+    #   puts "Model dump exists: #{model_dump}"
+    # else
+    #   puts "Model dump does not exist: #{model_dump}"
+    # end
 
-    if File.exist?(engine_dump)
-      puts "Engine dump exists: #{engine_dump}"
-    else
-      puts "Engine dump does not exist: #{engine_dump}"
-    end
+    # if File.exist?(engine_dump)
+    #   puts "Engine dump exists: #{engine_dump}"
+    # else
+    #   puts "Engine dump does not exist: #{engine_dump}"
+    # end
 
-    unless File.exist?(model_dump) && File.exist?(engine_dump)
-      puts "Error: One or both specified dump files do not exist."
-      exit 1
-    end
+    # unless File.exist?(model_dump) && File.exist?(engine_dump)
+    #   puts "Error: One or both specified dump files do not exist."
+    #   exit 1
+    # end
 
     # Map source tables to destination tables if their names differ
     TABLE_NAME_MAPPING = {
