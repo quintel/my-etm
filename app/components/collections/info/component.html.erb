@@ -1,7 +1,7 @@
 <div class="flex">
   <div class="flex flex-col">
     <div>
-      <span><%= @t("areas.#{Collection.area_code}")%></span>
+      <span><%= t("areas.#{@collection.area_code}")%></span>
       <span><%= @collection.end_year%></span>
     </div>
     <span class="text-sm text-midnight-400"><%= "Last updated #{@time} ago"%></span>
