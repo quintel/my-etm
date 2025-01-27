@@ -4,8 +4,8 @@ namespace :data do
     require 'fileutils'
 
     # Get the paths to the dumps from task arguments
-    model_dump = ENV['MODEL_DUMP']
-    engine_dump = ENV['ENGINE_DUMP']
+    model_dump = File.expand_path(ENV['MODEL_DUMP'])
+    engine_dump = File.expand_path(ENV['ENGINE_DUMP'])
 
     puts "MODEL_DUMP: #{model_dump}"
     puts "ENGINE_DUMP: #{engine_dump}"
@@ -16,22 +16,22 @@ namespace :data do
       exit 1
     end
 
-    if File.exist?(Rails.root.join(model_dump))
+    if File.exist?(model_dump)
       puts "Model dump exists: #{model_dump}"
     else
       puts "Model dump does not exist: #{model_dump}"
     end
 
-    if File.exist?(Rails.root.join(engine_dump))
+    if File.exist?(engine_dump)
       puts "Engine dump exists: #{engine_dump}"
     else
       puts "Engine dump does not exist: #{engine_dump}"
     end
 
-    unless File.exist?(Rails.root.join(model_dump)) && File.exist?(Rails.root.join(engine_dump))
-      puts "Error: One or both specified dump files do not exist."
-      exit 1
-    end
+    # unless File.exist?(model_dump) && File.exist?(engine_dump)
+    #   puts "Error: One or both specified dump files do not exist."
+    #   exit 1
+    # end
 
     # Map source tables to destination tables if their names differ
     TABLE_NAME_MAPPING = {
@@ -87,13 +87,13 @@ namespace :data do
   end
 
   def decompress_dump(dump_file)
-    return unless File.exist?(Rails.root.join(dump_file))
+    return unless File.exist?(dump_file)
     puts "Decompressing #{dump_file}..."
     `xz -d #{dump_file}`
   end
 
   def load_and_map_sql_data(sql_file, table_mapping, column_mapping)
-    return unless File.exist?(Rails.root.join(sql_file))
+    return unless File.exist?(sql_file)
 
     puts "Loading and mapping #{sql_file}..."
 
@@ -101,7 +101,7 @@ namespace :data do
     table_statements = Hash.new { |h, k| h[k] = [] }
 
     # Read and split statements
-    File.read(Rails.root.join(sql_file)).split(/;\s*\n/).each_with_index do |chunk, i|
+    File.read(sql_file).split(/;\s*\n/).each_with_index do |chunk, i|
       chunk.strip!
       next if chunk.empty?
 
@@ -168,10 +168,10 @@ namespace :data do
   end
 
   def load_sql_file(sql_file)
-    return unless File.exist?(Rails.root.join(sql_file))
+    return unless File.exist?(sql_file)
 
     puts "Loading #{sql_file}..."
-    File.read(Rails.root.join(sql_file)).split(/;\s*\n/).each_with_index do |stmt, i|
+    File.read(sql_file).split(/;\s*\n/).each_with_index do |stmt, i|
       stmt.strip!
       next if stmt.empty?
 
@@ -201,7 +201,7 @@ namespace :data do
 
   def cleanup_files(files)
     files.each do |file|
-      FileUtils.rm(file) if File.exist?(Rails.root.join(file))
+      FileUtils.rm(file) if File.exist?(file)
     end
   end
 end
