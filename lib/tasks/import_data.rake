@@ -4,8 +4,8 @@ namespace :data do
     require 'fileutils'
 
     # Get the paths to the dumps from task arguments
-    model_dump = File.expand_path(ENV['MODEL_DUMP'])
-    engine_dump = File.expand_path(ENV['ENGINE_DUMP'])
+    model_dump = Rails.root.join(ENV['MODEL_DUMP']).to_s
+    engine_dump = Rails.root.join(ENV['ENGINE_DUMP']).to_s
 
     puts "MODEL_DUMP: #{model_dump}"
     puts "ENGINE_DUMP: #{engine_dump}"
