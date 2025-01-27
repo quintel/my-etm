@@ -1,4 +1,5 @@
 <% content_for(:page_title, t('.title')) %>
+<% content_for(:title, t('.title')) %>
 <% content_for(:header) do %>
   <%= render(Login::HeaderComponent.new(
     title: t('.title'),
