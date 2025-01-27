@@ -7,10 +7,25 @@ namespace :data do
     model_dump = ENV['MODEL_DUMP']
     engine_dump = ENV['ENGINE_DUMP']
 
+    puts "MODEL_DUMP: #{model_dump}"
+    puts "ENGINE_DUMP: #{engine_dump}"
+
     if model_dump.nil? || engine_dump.nil?
       puts "Error: Please specify both MODEL_DUMP and ENGINE_DUMP file paths."
       puts "Example: MODEL_DUMP=/path/to/model.sql.xz ENGINE_DUMP=/path/to/engine.sql.xz rake data:import"
       exit 1
+    end
+
+    if File.exist?(model_dump)
+      puts "Model dump exists: #{model_dump}"
+    else
+      puts "Model dump does not exist: #{model_dump}"
+    end
+
+    if File.exist?(engine_dump)
+      puts "Engine dump exists: #{engine_dump}"
+    else
+      puts "Engine dump does not exist: #{engine_dump}"
     end
 
     unless File.exist?(model_dump) && File.exist?(engine_dump)
