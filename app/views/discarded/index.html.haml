@@ -1,6 +1,5 @@
 - content_for :title, t('trash.title')
 - content_for :menu_title, t('trash.title')
-- content_for :block_right, "FILTERS"
 
 - if notice_message
   = render(NoticeBanner::Component.new(text: notice_message))
