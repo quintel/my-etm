@@ -51,16 +51,18 @@ class Collection < ApplicationRecord
   #
   # Returns a collection of filtered Colllections
   def self.filter(filters)
-    # TODO: this is horrible
-    inter, plain = filters["interpolated"] == "1", filters["plain"] == "1"
-
     coll = order(created_at: :desc)
 
     coll = coll.by_title(filters["title"]) if filters["title"].present?
 
-    if inter ^ plain
-      coll = coll.interpolated if inter
-      coll = coll.plain if plain
+    inter = filters["interpolated"] == "1"
+    plain = filters["plain"] == "1"
+
+    if inter || plain
+      interpolation_values = []
+      interpolation_values << true if inter
+      interpolation_values << false if plain
+      coll = coll.where(interpolation: interpolation_values)
     end
 
     coll

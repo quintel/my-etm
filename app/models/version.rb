@@ -10,8 +10,8 @@ class Version < ApplicationRecord
   URL = "energytransitionmodel.com".freeze
   LOCAL_URLS = {
     "collections" => Settings.collections.uri,
-    "model" => Settings.etmodel.uri,
-    "engine" => Settings.etengine.uri
+    "model"       => Settings.etmodel.uri,
+    "engine"      => Settings.etengine.uri
   }.freeze
 
   # Fetch all version tags
@@ -19,7 +19,7 @@ class Version < ApplicationRecord
     pluck(:tag)
   end
 
-  # Find the default version, or create it
+  # Find or create the default version
   def self.default
     find_by(default: true) || create(default: true, tag: "latest")
   end
@@ -49,12 +49,17 @@ class Version < ApplicationRecord
 
   private
 
-  # Build the URL for the given context and tag
+  # Build the URL for the given contextand tag, using "-" for collections.
   def build_url(context)
-    if Rails.env.development?
-      LOCAL_URLS[context]
+    return LOCAL_URLS[context] if Rails.env.development?
+
+    case context
+    when "collections"
+      "https://#{url_prefix}-collections.#{URL}"
+    when "model"
+      "https://#{url_prefix}#{URL}"
     else
-      "https://#{url_prefix}#{context == 'model' ? '' : "#{context}."}#{URL}"
+      "https://#{url_prefix}#{context}.#{URL}"
     end
   end
 
