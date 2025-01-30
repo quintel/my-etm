@@ -55,11 +55,9 @@ class Version < ApplicationRecord
 
     case context
     when "collections"
-      "https://#{url_prefix}-collections.#{URL}"
-    when "model"
-      "https://#{url_prefix}#{URL}"
+      "https://#{url_prefix.chomp('.')}-collections.#{URL}"
     else
-      "https://#{url_prefix}#{context}.#{URL}"
+      "https://#{url_prefix}#{context == 'model' ? '' : "#{context}."}#{URL}"
     end
   end
 
