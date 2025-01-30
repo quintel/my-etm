@@ -125,7 +125,7 @@ RSpec.describe "/saved_scenarios", type: :request do
 
     it "redirects to the trash can" do
       delete saved_scenario_url(user_scenario)
-      expect(response).to redirect_to(discarded_url)
+      expect(response).to redirect_to(discarded_index_url)
     end
   end
 
