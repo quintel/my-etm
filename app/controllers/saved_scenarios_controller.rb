@@ -106,7 +106,7 @@ class SavedScenariosController < ApplicationController
   def destroy
     @saved_scenario.destroy
     flash.notice = t("scenario.trash.deleted_flash")
-    redirect_to discarded_path
+    redirect_to discarded_index_path
   end
 
   # Makes a scenario public.
