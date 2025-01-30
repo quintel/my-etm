@@ -26,7 +26,7 @@ module Identity
       scopes = @client.scopes
 
       oauth_token = Doorkeeper::AccessToken.find_by(token: @provided_pat)
-      return render_pat_error('Invalid PAT') unless oauth_token
+      return render_pat_error('Invalid or expired PAT') unless oauth_token
 
       pat = PersonalAccessToken.not_expired.find_by(oauth_access_token_id: oauth_token.id)
       return render_pat_error('Invalid or expired PAT') unless pat
