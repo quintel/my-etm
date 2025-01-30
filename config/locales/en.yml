@@ -182,6 +182,7 @@ en:
     empty: You don't have any scenarios.
     search_by_title: Filter by title
     open: Open
+    last_updated: Last updated
     confirm_destroy:
       title: Permanently deleting scenario
       warning_header: You are permanently deleting your scenario
