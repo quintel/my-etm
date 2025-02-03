@@ -4,7 +4,7 @@
     <div class="flex flex-col">
       <span><%= @saved_scenario.title %></span>
       <div class="text-sm text-midnight-400">
-        <span><%= @saved_scenario.area_code %></span>
+        <span><%= t("areas.#{@saved_scenario.area_code}") %></span>
         <span><%= @saved_scenario.end_year %></span>
       </div>
     </div>

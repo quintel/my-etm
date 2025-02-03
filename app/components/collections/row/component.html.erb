@@ -7,7 +7,7 @@
       <span><%= @collection.title %></span>
       <div class="text-sm text-midnight-400">
         <% if @collection.interpolated? %>
-          <span><%= @collection.area_code %></span>
+          <span><%= t("areas.#{@collection.area_code}") %></span>
           <span><%= @collection.end_year %></span>
         <% else %>
           <span>
