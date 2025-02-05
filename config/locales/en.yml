@@ -79,6 +79,11 @@ en:
     discarded: Trash
     profile: My profile
     admin: Admin
+    login: Login
+  footer:
+    terms: Terms
+    privacy: Privacy
+    contact_us: Contact Us
   scenario_bar:
     info: Info
     history: History
@@ -286,3 +291,5 @@ en:
         link_message: "If the button doesn't work, copy and paste the link below into your browser:"
         ignore_message: "If you didn't request this, please ignore this email."
         no_change_message: "Your password won't change until you access the link above and create a new one."
+  last_updated: Last updated
+  ago: ago
