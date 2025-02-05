@@ -15,6 +15,7 @@
       <%= button_to t('.unsubscribe'),
                     identity_update_subscription_path(@audience),
                     params: { subscribed: false },
+                    method: :patch,
                     class: button_classes(color: :border) %>
     <% end %>
   <% else %>
@@ -32,6 +33,7 @@
       <%= button_to t('.subscribe'),
                     identity_update_subscription_path(@audience),
                     params: { subscribed: true },
+                    method: :patch,
                     class: button_classes(color: :border) %>
     <% end %>
   <% end %>
