@@ -45,7 +45,7 @@
 <% if saved_scenario.owner?(current_user)%>
   <%= render(Hovercard::Component.new(
     path: '',
-    text: t("scenario_bar.discarded.description.#{saved_scenario.discarded?}")
+    text: t("scenario_bar.discarded.description.#{saved_scenario.discarded?}", deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)
   )) do %>
     <%= render(SavedScenarios::Publish::Component.new(
       path_on: undiscard_saved_scenario_path(saved_scenario),
