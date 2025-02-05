@@ -79,6 +79,11 @@ en:
     discarded: Trash
     profile: My profile
     admin: Admin
+    login: Login
+  footer:
+    terms: Terms
+    privacy: Privacy
+    contact_us: Contact Us
   scenario_bar:
     info: Info
     history: History
@@ -288,3 +293,5 @@ en:
         no_change_message: "Your password won't change until you access the link above and create a new one."
     search_by_name: Search by name
     all: Showing all users (%{count})
+  last_updated: Last updated
+  ago: ago
