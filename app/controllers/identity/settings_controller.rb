@@ -33,11 +33,10 @@ module Identity
     def update_email
       update_params = params.require(:user).permit(:current_password, :email)
 
-      # Fetch a new record so that we're not updating the current user in place.
       @user = User.find(current_user.id)
 
       if @user.update_with_password(update_params)
-        bypass_sign_in(current_user)
+        bypass_sign_in(@user)
 
         redirect_to(
           identity_profile_path,

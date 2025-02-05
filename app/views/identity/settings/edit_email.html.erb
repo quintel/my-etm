@@ -1,3 +1,13 @@
+<% if @user.errors.any? %>
+  <div class="alert alert-danger">
+    <h4><%= t('identity.settings.update_email.errors_heading') %></h4>
+    <ul>
+      <% @user.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
 <%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
   <%= turbo_frame_tag :change_email_form do %>
     <%= form_for(@user, url: identity_edit_email_path, html: { method: :post, data: { turbo: false } }) do |f| %>
