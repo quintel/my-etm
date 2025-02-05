@@ -13,25 +13,23 @@ module Identity
 
     def update
       @subscribed = ActiveModel::Type::Boolean.new.cast(params[:subscribed])
+      service = @subscribed ? CreateSubscription : DeleteSubscription
 
-      service = if @subscribed
-        CreateSubscription
-      else
-        DeleteSubscription
-      end
+      result = service.new.call(user: current_user, audience: @audience)
 
-      service.new.call(user: current_user, audience: @audience).either(
-        lambda do |_|
-          respond_to do |format|
-            format.turbo_stream
-            format.html { redirect_to(identity_profile_path) }
-          end
-        end,
-        lambda do |error|
-          Sentry.capture_exception(error)
-          redirect_to(identity_profile_path)
+      if result.success?
+        respond_to do |format|
+          format.turbo_stream { render turbo_stream: turbo_stream.replace(@audience, partial: "identity/newsletter_status_row", locals: { audience: @audience }) }
+          format.html { redirect_to identity_profile_path, notice: "Subscription updated." }
         end
-      )
+      else
+        Rails.logger.error "Subscription failed: #{result.error}"
+        Sentry.capture_exception(result.error)
+        respond_to do |format|
+          format.turbo_stream { render turbo_stream: turbo_stream.append("flash-messages", partial: "shared/error", locals: { message: "Subscription update failed." }) }
+          format.html { redirect_to identity_profile_path, alert: "Subscription update failed." }
+        end
+      end
     end
 
     private

@@ -1,9 +1,11 @@
 class CreateSubscription
+  include Service
+
   def call(user:, audience:)
     MyEtm::Mailchimp.subscribe(user.email, audience, merge_fields: user_mailchimp_data(user))
-    Success.new
+    ServiceResult.success
   rescue StandardError => e
-    Failure.new(e)
+    ServiceResult.failure(e)
   end
 
   private
