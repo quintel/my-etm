@@ -1,297 +1,273 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
+---
 en:
-  meta:
-    title: Energy Transition Model
-
-  undo: Undo
-  more: More...
-  language: English
-  continue_working: "Back to work"
-
-  errors:
-    sorry: Oops! We're sorry
-
-  time:
-    formats:
-      short: "%-d %b %H:%M"
-      long: "%A %-d %B, %Y at %H:%M"
-      time: "%H:%M"
-      only_second: "%S"
-      date: "%A %-d %B, %Y"
-  date:
-    formats:
-      short: "%-d %b"
-      long: "%A %-d %B, %Y"
-      date: "%A %-d %B, %Y"
-  helpers:
-    label:
-      create_personal_access_token_params:
-        name: Token name
-        expires_in: Expiration
-        permissions: Permissions
   activerecord:
     attributes:
       user:
+        current_password: Current password
         email: E-mail address
+        name: Your name
         password: Password
         password_confirmation: Re-enter password
-        current_password: Current password
         unconfirmed_email: New e-mail address
-        name: Your name
-  scenario_invitation_mailer:
-    invite_user:
-      subject: 'Invitation: ETM scenario'
-    roles:
-      scenario_viewer: viewer
-      scenario_collaborator: collaborator
-      scenario_owner: owner
-  sidebar:
-    saved_scenarios: Scenarios
-    collections: Collections
-    discarded: Trash
-    profile: My profile
-    admin: Admin
-    login: Login
-  footer:
-    terms: Terms
-    privacy: Privacy
-    contact_us: Contact Us
-  scenario_bar:
-    info: Info
-    history: History
-    manage_access: Manage access
-    edit:
-      title: Edit
-      description: Edit the title and description of this scenario
-    discarded:
-      true: Restore
-      false: Discard
-      description:
-        true: Restore from the trash bin
-        false: Move to trash. After %{deleted_after} days it will be permanently destroyed.
-    private:
-      true: Private
-      false: Public
-      description:
-        true: Only people with access can view or copy this scenario
-        false: |
-          Anyone can view or copy this scenario, but only people with access can make changes
-    featured:
-      true: Featured
-      false: Make this featured
-      description:
-        true: This scenario has been featured on a home page. Edit settings here.
-        false: Feature this scenario on the home page
-    destroy:
-      title: Delete permanently
-      description: Permanently delete this scenario.
-  scenario:
-    succesful_update: Your scenario was succesfully updated
-    title: Title
-    save: Save
-    private: This scenario has been made private by the owner
-    discard_changes: Discard changes
-    no_description: This scenario has no description.
-    create_description: Click here to create one.
-  saved_scenario_users:
-      manage_description:
-        Here you can manage who has access to your scenario and in which manner.
-        Click the 'Invite others' button to give someone access to your scenario,
-        or use the table above to manage users that are already coupled. <br/><br/>
-        See the
-        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/" target=\"_blank\">
-        documentation</a> for more information.
-      invite: 'Invite others'
-      send_invite: Send invite
-      name: 'Name'
-      role: 'Role'
-      you: 'you'
-      unknown: 'Unknown user'
-      nameless: 'Nameless user'
-      roles:
-        scenario_owner: 'Owner'
-        scenario_collaborator: 'Collaborator'
-        scenario_viewer: 'Viewer'
-        pending: 'Pending'
-      new:
-        title: 'Give someone access to your scenario'
-        new_email_hint:
-          If no existing user can be found for the given email address we will send an email
-          inviting this person to create an account for the ETM.
-        email: 'Email address'
-        role: Role
-        role_hint: Pick the type of access you want to grant.
-      confirm_destroy:
-        irreversible: This action is irreversible
-        warning: "You are about to revoke %{role} access."
-        confirm: 'Confirm'
-        cancel: 'Cancel'
-        not_possible: 'You can not revoke your own access.'
-        button: 'Revoke access'
-      errors:
-        create: Something went wrong while trying create the invite!
-        base: Please enter an email address.
-        user_email: The e-mail address you entered was invalid.
-        update: Something went wrong while trying to update this role!
-        destroy: Something went wrong while trying to remove the user from the scenario!
-        general: Please try again later. If you keep getting this error, please contact us.
-        duplicate: This person is already invited to join the scenario.
-  saved_scenario_history:
-    description: |
-      Here you can see the history of your saved scenario. A description can be added to each historical version.
-      When you are owner of this scenario, you can reset the scenario to an older stage. See the
-      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
-      documentation</a> for more information.
-    title: History
-    error: Something went wrong updating the history of your scenario
-  history:
-    row:
-      component:
-        update: 'Update'
-        cancel: 'Cancel'
-        restore: 'Restore'
-        edit_description: |
-          Edit the description of this saved version. Save your notes on what you have changed.
-        restore_description: |
-          Restore the saved scenario to this version. This action is irreversible.
-  saved_scenarios:
-    title: Saved scenarios
-    empty: You don't have any scenarios.
-    search_by_title: Filter by title
-    open: Open
-    confirm_destroy:
-      title: Permanently deleting scenario
-      warning_header: You are permanently deleting your scenario
-      warning: |
-        Deleting this scenario will remove all data including history,
-        any grants for access, title and description.
-      irreversible: This action is irreversible
-      submit: Delete this scenario
-  featured_scenarios:
-    confirm_destroy:
-      title: Unfeaturing scenario
-      warning_header: You are removing all featured settings
-      warning: |
-        Unfeaturing this scenario will remove the localised title and
-        description, and remove the scenario from the homepage.
-        The title and dscription will default back to their
-        original settings from before the featuring.
-      irreversible: This action is irreversible
-      submit: Confirm unfeaturing
-
-  trash:
-    title: Trash bin
-    notice: Scenarios in the trash will be automatically deleted after %{deleted_after} days.
-    discarded_flash: Your scenario was put in the trash
-    undiscarded_flash: Your scenario was restored
-    deleted_flash: Your scenario has been permanently deleted
-    empty:
-      title:
-        There are no items in the trash
-      description:
-        Deleted items are sent to the trash where you can choose to permanently
-        delete or restore them. Trashed scenarios are automatically removed after %{deleted_after}
-        days.
-  flash:
-    need_login: Please log in again
-  version:
-    latest: |
-      This scenario was created in the live version of the ETM
-      which includes all the latest monthly updates. Learn more..
+  ago: ago
   collections:
-    title: Collections
-    no_title: Untitled collection
-    failure: Something went wrong!
     all: View all collections
-    open: Open collection
+    block_right:
+      compose_collection:
+        description: Create a new collection from your saved scenarios
+        title: New scenario collection
+      create_transition:
+        description: |
+          Pick one of your 2050 scenarios to interpolate into scenarios
+          for 2030 and 2040
+        title: New transition path
+    confirm_destroy:
+      irreversible: This action is irreversible
+      submit: Delete this collection
+      title: Permanently deleting collection
+      warning: 'Deleting will remove all references to this collection.
+
+        '
+      warning_header: You are permanently deleting your collection
     contains: This collection contains the following scenarios
-    search_by_title: Filter by title
+    failure: Something went wrong!
     filter:
-      transition: Transition paths
       plain: Scenario collections
+      transition: Transition paths
+    get_started: |
+      With Collections you are able to compare the outcomes of different scenarios
+      you created. You can either create a new collection from your own scenarios,
+      or create a transition path from one of your scenarios. We will create
+      interpolated scenarios for intermediate years for you.
     interpolated:
       description: This collection contains a transition path from now, until 2050
       long_description: |
         This collection consists of an interpolated 2050 scenario. Explore the possible transition
         paths to a scenario for 2050 and discover the actions and consequences for aspired
         goals in 2030 and 2040.
-    block_right:
-      compose_collection:
-        title: New scenario collection
-        description: Create a new collection from your saved scenarios
-      create_transition:
-        title: New transition path
-        description: |
-          Pick one of your 2050 scenarios to interpolate into scenarios
-          for 2030 and 2040
     new:
-      title: Create a new collection
-      no_scenarios: You don't have any scenarios saved to add to a collection
       form:
+        cancel: Cancel
         default_title: My new collection
         scenario_ids: Included scenarios (max 6)
-        cancel: Cancel
+      no_scenarios: You don't have any scenarios saved to add to a collection
+      title: Create a new collection
     new_transition:
-      title: Create a new transition path
       description: |
         Explore the possible transition paths to a scenario for 2050 and discover
         the actions and consequences for aspired goals in 2030 and 2040.
         Start by selecting one of your saved 2050 scenarios from your scenarios.
       no_scenarios: You don't have any scenarios saved to start from.
       start: Start
-    confirm_destroy:
-      title: Permanently deleting collection
-      warning_header: You are permanently deleting your collection
-      warning: |
-        Deleting will remove all references to this collection.
-      irreversible: This action is irreversible
-      submit: Delete this collection
+      title: Create a new transition path
+    no_title: Untitled collection
+    open: Open collection
+    search_by_title: Filter by title
+    title: Collections
     try_now: Create your first collection
-    get_started: |
-      With Collections you are able to compare the outcomes of different scenarios
-      you created. You can either create a new collection from your own scenarios,
-      or create a transition path from one of your scenarios. We will create
-      interpolated scenarios for intermediate years for you.
+  continue_working: Back to work
+  date:
+    formats:
+      date: "%A %-d %B, %Y"
+      long: "%A %-d %B, %Y"
+      short: "%-d %b"
+  errors:
+    sorry: Oops! We're sorry
+  featured_scenarios:
+    confirm_destroy:
+      irreversible: This action is irreversible
+      submit: Confirm unfeaturing
+      title: Unfeaturing scenario
+      warning: |
+        Unfeaturing this scenario will remove the localised title and
+        description, and remove the scenario from the homepage.
+        The title and dscription will default back to their
+        original settings from before the featuring.
+      warning_header: You are removing all featured settings
+  flash:
+    need_login: Please log in again
+  footer:
+    contact_us: Contact Us
+    privacy: Privacy
+    terms: Terms
+  helpers:
+    label:
+      create_personal_access_token_params:
+        expires_in: Expiration
+        name: Token name
+        permissions: Permissions
+  history:
+    row:
+      component:
+        cancel: Cancel
+        edit_description: 'Edit the description of this saved version. Save your notes
+          on what you have changed.
+
+          '
+        restore: Restore
+        restore_description: 'Restore the saved scenario to this version. This action
+          is irreversible.
+
+          '
+        update: Update
+  language: English
+  last_updated: Last updated
+  meta:
+    title: Energy Transition Model
+  more: More...
+  saved_scenario_history:
+    description: |
+      Here you can see the history of your saved scenario. A description can be added to each historical version.
+      When you are owner of this scenario, you can reset the scenario to an older stage. See the
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
+      documentation</a> for more information.
+    error: Something went wrong updating the history of your scenario
+    title: History
+  saved_scenario_users:
+    confirm_destroy:
+      button: Revoke access
+      cancel: Cancel
+      confirm: Confirm
+      irreversible: This action is irreversible
+      not_possible: You can not revoke your own access.
+      warning: You are about to revoke %{role} access.
+    errors:
+      base: Please enter an email address.
+      create: Something went wrong while trying create the invite!
+      destroy: Something went wrong while trying to remove the user from the scenario!
+      duplicate: This person is already invited to join the scenario.
+      general: Please try again later. If you keep getting this error, please contact
+        us.
+      update: Something went wrong while trying to update this role!
+      user_email: The e-mail address you entered was invalid.
+    invite: Invite others
+    manage_description: Here you can manage who has access to your scenario and in
+      which manner. Click the 'Invite others' button to give someone access to your
+      scenario, or use the table above to manage users that are already coupled. <br/><br/>
+      See the <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/"
+      target=\"_blank\"> documentation</a> for more information.
+    name: Name
+    nameless: Nameless user
+    new:
+      email: Email address
+      new_email_hint: If no existing user can be found for the given email address
+        we will send an email inviting this person to create an account for the ETM.
+      role: Role
+      role_hint: Pick the type of access you want to grant.
+      title: Give someone access to your scenario
+    role: Role
+    roles:
+      pending: Pending
+      scenario_collaborator: Collaborator
+      scenario_owner: Owner
+      scenario_viewer: Viewer
+    send_invite: Send invite
+    unknown: Unknown user
+    you: you
+  saved_scenarios:
+    confirm_destroy:
+      irreversible: This action is irreversible
+      submit: Delete this scenario
+      title: Permanently deleting scenario
+      warning: |
+        Deleting this scenario will remove all data including history,
+        any grants for access, title and description.
+      warning_header: You are permanently deleting your scenario
+    empty: You don't have any scenarios.
+    open: Open
+    search_by_title: Filter by title
+    title: Saved scenarios
+  scenario:
+    create_description: Click here to create one.
+    discard_changes: Discard changes
+    no_description: This scenario has no description.
+    private: This scenario has been made private by the owner
+    save: Save
+    succesful_update: Your scenario was succesfully updated
+    title: Title
+  scenario_bar:
+    destroy:
+      description: Permanently delete this scenario.
+      title: Delete permanently
+    discarded:
+      description:
+        'false': Move to trash. After %{deleted_after} days it will be permanently
+          destroyed.
+        'true': Restore from the trash bin
+      'false': Discard
+      'true': Restore
+    edit:
+      description: Edit the title and description of this scenario
+      title: Edit
+    featured:
+      description:
+        'false': Feature this scenario on the home page
+        'true': This scenario has been featured on a home page. Edit settings here.
+      'false': Make this featured
+      'true': Featured
+    history: History
+    info: Info
+    manage_access: Manage access
+    private:
+      description:
+        'false': 'Anyone can view or copy this scenario, but only people with access
+          can make changes
+
+          '
+        'true': Only people with access can view or copy this scenario
+      'false': Public
+      'true': Private
+  scenario_invitation_mailer:
+    invite_user:
+      subject: 'Invitation: ETM scenario'
+    roles:
+      scenario_collaborator: collaborator
+      scenario_owner: owner
+      scenario_viewer: viewer
+  sidebar:
+    admin: Admin
+    collections: Collections
+    discarded: Trash
+    login: Login
+    profile: My profile
+    saved_scenarios: Scenarios
+  time:
+    formats:
+      date: "%A %-d %B, %Y"
+      long: "%A %-d %B, %Y at %H:%M"
+      only_second: "%S"
+      short: "%-d %b %H:%M"
+      time: "%H:%M"
+  trash:
+    deleted_flash: Your scenario has been permanently deleted
+    discarded_flash: Your scenario was put in the trash
+    empty:
+      description: Deleted items are sent to the trash where you can choose to permanently
+        delete or restore them. Trashed scenarios are automatically removed after
+        %{deleted_after} days.
+      title: There are no items in the trash
+    notice: Scenarios in the trash will be automatically deleted after %{deleted_after}
+      days.
+    title: Trash bin
+    undiscarded_flash: Your scenario was restored
+  undo: Undo
   user:
     forgot_password:
-      mail:
-        subject: "Reset Your Password"
       body:
-        header: "Password Reset Request"
-        message: "Someone has requested a link to change your password. You can do this through the link below."
-        button_text: "Change My Password"
-        link_message: "If the button doesn't work, copy and paste the link below into your browser:"
-        ignore_message: "If you didn't request this, please ignore this email."
-        no_change_message: "Your password won't change until you access the link above and create a new one."
+        button_text: Change My Password
+        header: Password Reset Request
+        ignore_message: If you didn't request this, please ignore this email.
+        link_message: 'If the button doesn''t work, copy and paste the link below
+          into your browser:'
+        message: Someone has requested a link to change your password. You can do
+          this through the link below.
+        no_change_message: Your password won't change until you access the link above
+          and create a new one.
+      mail:
+        subject: Reset Your Password
     search_by_name: Search by name
     all: Showing all users (%{count})
-  last_updated: Last updated
-  ago: ago
+  version:
+    latest: |
+      This scenario was created in the live version of the ETM
+      which includes all the latest monthly updates. Learn more..
