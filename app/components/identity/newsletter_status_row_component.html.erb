@@ -1,42 +1,40 @@
-<%= turbo_frame_tag @audience do %>
-  <%= render(Identity::ProfileRowComponent.new(title: t(".title.#{@audience}"))) do |row| %>
-    <% if @subscribed %>
-      <div class="flex items-center gap-1 text-midnight-980">
-        <%= heroicon 'check-circle', options: { class: 'w-5 h-5 mr-2' } %>
-        <%= t('.subscribed') %>
-      </div>
+<%= render(Identity::ProfileRowComponent.new(title: t(".title.#{@audience}"))) do |row| %>
+  <% if @subscribed %>
+    <div class="flex items-center gap-1 text-midnight-980">
+      <%= heroicon 'check-circle', options: { class: 'w-5 h-5 mr-2' } %>
+      <%= t('.subscribed') %>
+    </div>
 
-      <% row.with_message do %>
-        <p>
-          <%= t(".subscribed_message.#{@audience}") %>
-        </p>
-      <% end %>
+    <% row.with_message do %>
+      <p>
+        <%= t(".subscribed_message.#{@audience}") %>
+      </p>
+    <% end %>
 
-      <% row.with_button do %>
-        <%= button_to t('.unsubscribe'),
-                      identity_update_subscription_path(@audience),
-                      params: { subscribed: false },
-                      method: :patch,
-                      class: button_classes(color: :border) %>
-      <% end %>
-    <% else %>
-      <div class="flex items-center gap-1">
-        <%= t('.not_subscribed') %>
-      </div>
+    <% row.with_button do %>
+      <%= button_to t('.unsubscribe'),
+                    identity_update_subscription_path(@audience),
+                    params: { subscribed: false },
+                    method: :patch,
+                    class: button_classes(color: :border) %>
+    <% end %>
+  <% else %>
+    <div class="flex items-center gap-1">
+      <%= t('.not_subscribed') %>
+    </div>
 
-      <% row.with_message do %>
-        <p>
-          <%= t(".not_subscribed_message.#{@audience}") %>
-        </p>
-      <% end %>
+    <% row.with_message do %>
+      <p>
+        <%= t(".not_subscribed_message.#{@audience}") %>
+      </p>
+    <% end %>
 
-      <% row.with_button do %>
-        <%= button_to t('.subscribe'),
-                      identity_update_subscription_path(@audience),
-                      params: { subscribed: true },
-                      method: :patch,
-                      class: button_classes(color: :border) %>
-      <% end %>
+    <% row.with_button do %>
+      <%= button_to t('.subscribe'),
+                    identity_update_subscription_path(@audience),
+                    params: { subscribed: true },
+                    method: :patch,
+                    class: button_classes(color: :border) %>
     <% end %>
   <% end %>
 <% end %>
