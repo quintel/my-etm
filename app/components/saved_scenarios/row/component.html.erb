@@ -12,7 +12,9 @@
       </div>
     </div>
   </div>
-  <span class="text-midnight-400 mx-auto text-sm mt-3"> Last updated <%= time_ago_in_words(@saved_scenario.updated_at) %> ago </span>
+  <span class="text-midnight-400 mx-auto text-sm mt-3">
+    <%= t('last_updated') %> <%= time_ago_in_words(@saved_scenario.updated_at) %> <%= t('ago') %>
+  </span>
   <div class="ml-auto mr-0 mt-3 text-midnight-400">
     <% if @saved_scenario.private %>
       <%= render(Hovercard::Component.new(path: '', text: t('scenario.private'))) do %>

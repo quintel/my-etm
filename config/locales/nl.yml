@@ -63,6 +63,11 @@ nl:
     discarded: Prullenbak
     profile: Mijn profiel
     admin: Admin
+    login: Login
+  footer:
+    terms: Termen
+    privacy: Vertrouwelijkheid
+    contact_us: Contact Opnemen
   scenario_bar:
     info: Info
     history: Geschiedenis
@@ -262,3 +267,41 @@ nl:
       gemaakt met elkaar vergelijken. Je kunt een nieuwe collectie maken van je
       eigen scenario's. Ook kun je een transitiepad maken met één van je scenario's,
       waarmee geïnterpoleerde scenario's voor de tussenliggende jaren worden gemaakt.
+  datetime:
+    distance_in_words:
+      half_a_minute: "een halve minuut"
+      less_than_x_seconds:
+        one: "minder dan een seconde"
+        other: "minder dan %{count} seconden"
+      x_seconds:
+        one: "1 seconde"
+        other: "%{count} seconden"
+      less_than_x_minutes:
+        one: "minder dan een minuut"
+        other: "minder dan %{count} minuten"
+      x_minutes:
+        one: "1 minuut"
+        other: "%{count} minuten"
+      about_x_hours:
+        one: "ongeveer 1 uur"
+        other: "ongeveer %{count} uur"
+      x_days:
+        one: "1 dag"
+        other: "%{count} dagen"
+      about_x_months:
+        one: "ongeveer 1 maand"
+        other: "ongeveer %{count} maanden"
+      x_months:
+        one: "1 maand"
+        other: "%{count} maanden"
+      about_x_years:
+        one: "ongeveer 1 jaar"
+        other: "ongeveer %{count} jaar"
+      over_x_years:
+        one: "meer dan 1 jaar"
+        other: "meer dan %{count} jaar"
+      almost_x_years:
+        one: "bijna 1 jaar"
+        other: "bijna %{count} jaar"
+  last_updated: Laatst bijgewerkt
+  ago: geleden
