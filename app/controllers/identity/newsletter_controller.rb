@@ -17,7 +17,7 @@ module Identity
 
       result = service.new.call(user: current_user, audience: @audience)
 
-      if result.success?
+      if result.successful?
         respond_to do |format|
           format.turbo_stream { render turbo_stream: turbo_stream.replace(@audience, partial: "identity/newsletter_status_row", locals: { audience: @audience }) }
           format.html { redirect_to identity_profile_path, notice: "Subscription updated." }
