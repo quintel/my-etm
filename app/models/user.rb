@@ -36,6 +36,7 @@ class User < ApplicationRecord
   has_one :featured_scenario_user
 
   validates :name, presence: true, length: { maximum: 191 }
+  validates :email, presence: true, uniqueness: true
 
   after_create :couple_saved_scenario_users
 
