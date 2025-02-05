@@ -7,9 +7,8 @@
 
 <h3 class="text-midnight-800 mb-5 mt-5 pt-5 border-t"><%= t('.account') %></h3>
 
-<%= render(Identity::ProfileRowComponent.new(title: t('activerecord.attributes.user.email'))) do |row| %>
-  <%= current_user.email %>
-
+<%= render(Identity::ProfileRowComponent.new(title: "")) do |row| %>
+  <%= render(Identity::ProfileEmailComponent.new(title: t('activerecord.attributes.user.email'), email: current_user.email, confirmed: true, show_change_button: false)) %>
   <% if current_user.pending_reconfirmation? %>
     <%= render(Identity::ProfileEmailComponent.new(title: t('activerecord.attributes.user.unconfirmed_email'), email: current_user.unconfirmed_email, confirmed: false, show_change_button: false)) %>
   <% end %>
