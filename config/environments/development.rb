@@ -65,7 +65,7 @@ Rails.application.configure do
   config.assets.quiet = true
 
   # Raises error for missing translations.
-  config.i18n.raise_on_missing_translations = true
+  # config.i18n.raise_on_missing_translations = true
   # Don't use fallback translations in development - this way we can spot missing locales more easily.
   config.i18n.fallbacks = false
 
