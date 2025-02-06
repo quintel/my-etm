@@ -44,6 +44,13 @@ module Admin
     # Instant confirmation for our users that struggle with their spam
     def confirm
       @user.confirm
+
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.remove("confirm_button_#{@user.id}")
+        end
+        format.html { redirect_to request.referer, notice: "User confirmed!" }
+      end
     end
 
     def edit; end
