@@ -1,0 +1,14 @@
+<%= turbo_frame_tag "users" do %>
+  <%= render(PagyComponent.new(pagy_objects: pagy_admin_users)) do %>
+    <div id="users_list">
+    <% users.each do |user| %>
+      <%= render(Admin::UserRow::Component.new(
+        user: user,
+        path: admin_edit_user_path(user),
+        confirm_path: admin_confirm_user_path(user),
+        confirmed: user.confirmed?
+      )) %>
+    <% end %>
+    </div>
+  <% end %>
+<% end %>

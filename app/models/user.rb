@@ -27,6 +27,11 @@ class User < ApplicationRecord
     dependent: :delete_all,
     as: :owner
 
+  FILTER_PARAMS = %i[name].freeze
+
+  scope :by_name, ->(name) { where("name LIKE ?", "%#{name}%") }
+
+
   has_many :staff_applications, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
   has_many :saved_scenarios, through: :saved_scenario_users
@@ -73,5 +78,16 @@ class User < ApplicationRecord
     id = token["sub"]
     raise "Token does not contain user information" unless id.present?
     User.find_or_create_by!(id: id)
+  end
+
+  # Public: Used to filter users.
+  #
+  # Returns a collection of filtered users
+  def self.filter(filters)
+    user = order(name: :asc)
+
+    user = user.by_name(filters["name"]) if filters["name"].present?
+
+    user
   end
 end

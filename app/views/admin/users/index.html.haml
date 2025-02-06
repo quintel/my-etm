@@ -1,0 +1,10 @@
+- content_for :title, "Manage users"
+- content_for :menu_title, "Manage users"
+= render(partial: "block_right_sub_menu")
+= render(partial: "admin/block_right_menu")
+
+
+.mt-8.mb-2.text-midnight-400.text-sm
+  = "Showing users (#{@users.count})"
+
+= render(partial: "users", locals: { pagy_admin_users: @pagy_admin_users, users: @users })

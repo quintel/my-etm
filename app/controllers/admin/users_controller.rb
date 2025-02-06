@@ -1,6 +1,8 @@
 module Admin
   class UsersController < ApplicationController
     include AdminController
+    include Pagy::Backend
+    include Filterable
 
     before_action :set_user, only: %i[confirm update edit]
 
@@ -10,8 +12,33 @@ module Admin
     end
 
     # All users
-    def all
-      @users = User.all.includes(:saved_scenarios) # , :collections)
+    def index
+      @pagy_admin_users, @users = pagy_countless(admin_all_users)
+
+      respond_to do |format|
+        format.html
+        format.turbo_stream
+      end
+    end
+
+    # Renders a partial of users based on turbo search and filters
+    #
+    # GET /users/list
+    def list
+      filtered = filter!(User)
+
+      @pagy_admin_users, @users = pagy(filtered)
+
+      respond_to do |format|
+        format.html { render(
+          partial: "users",
+          locals: {
+            users: @users,
+            pagy_admin_users: @pagy_admin_users
+          }
+        ) }
+        format.turbo_stream { render(:index) }
+      end
     end
 
     # Instant confirmation for our users that struggle with their spam
@@ -73,6 +100,10 @@ module Admin
           confirmed: @user.confirmed?
         )
       )
+    end
+
+    def admin_all_users
+      User.all.includes(:saved_scenarios)
     end
   end
 end
