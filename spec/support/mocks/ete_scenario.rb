@@ -11,7 +11,6 @@ def ete_scenario_mock
   allow(mock).to receive(:area_code).and_return('nl')
   allow(mock).to receive(:created_at) { Time.now.utc }
   allow(mock).to receive(:updated_at) { Time.now.utc }
-  allow(mock).to receive(:loadable?).and_return(true)
   allow(mock).to receive(:coupled?).and_return(false)
   allow(mock).to receive(:active_couplings).and_return([])
   allow(mock).to receive(:inactive_couplings).and_return([])
