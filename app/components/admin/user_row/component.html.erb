@@ -40,10 +40,10 @@
     <% end %>
 
     <% unless @confirmed %>
-      <%= link_to @confirm_path, class: button_classes("mr-0 ml-auto", color: :primary), method: :put, data: { 'turbo-method': :put } do %>
+      <%= link_to @confirm_path, id: "confirm_button_#{@user.id}", class: button_classes("mr-0 ml-auto", color: :primary), method: :put, data: { 'turbo-method': :put } do %>
         <%= heroicon 'exclamation-triangle', options: { class: 'w-4 h-4' } %>
         <%= t('admin.user.confirm') %>
-       <% end %>
+      <% end %>
     <% end %>
   </div>
 <% end %>
