@@ -6,6 +6,7 @@ en:
       scenarios: All scenarios
       collections: All collections
       applications: Local ETM & applications
+      featured_users: Featured Scenario User
     users:
       edit:
         title: Edit user
