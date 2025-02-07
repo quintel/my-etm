@@ -29,6 +29,12 @@
     icon: 'computer-desktop',
     active: controller_name == 'staff_applications')
   )%>
+  <%= render(SavedScenarios::NavItem::Component.new(
+    path: new_admin_featured_scenario_user_path,
+    title: "Featured Scenario Users",
+    icon: "some-icon", # TODO
+    active: controller_name == "featured_scenario_users"
+  )) %>
 
   <% if content_for?(:block_right_sub_menu)%>
     <div class="border-l lg:border-l-0 lg:border-t flex flex-col border-solid border-gray-200 pr-5 lg:pr-0 lg:mt-10 lg:pt-10">
