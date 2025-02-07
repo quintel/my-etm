@@ -1,0 +1,35 @@
+<%- content_for :menu_title, 'New Featured Scenario User' %>
+<%- content_for :title, 'New Featured Scenario User' %>
+<%= render(partial: "/admin/block_right_menu") %>
+
+<%= form_with(model: @featured_scenario_user, url: admin_featured_scenario_users_path, local: true) do |form| %>
+  <% if @featured_scenario_user.errors.any? %>
+    <div class="errors">
+      <h2><%= pluralize(@featured_scenario_user.errors.count, "error") %>:</h2>
+      <ul>
+        <% @featured_scenario_user.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-4"> # TODO find somewhere to copy the spacing style of - maybe the profile page??
+    <div class="field">
+      <%= form.label :name %>
+      <%= form.text_field :name, required: false %>
+    </div>
+
+    <div class="field"> # TODO: update with the user filter logic from that other branch
+      <%= form.label :user_id, 'User (optional)' %>
+      <%= form.collection_select :user_id,
+          User.all, :id, :email,
+          include_blank: "Select a user (optional)" %>
+    </div>
+
+    <div class="actions">
+      <%= form.submit "Create Featured Scenario User",
+        class: "bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %> # TODO: Match Quintel colour
+    </div>
+  </div>
+<% end %>
