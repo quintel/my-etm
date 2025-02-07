@@ -124,6 +124,8 @@ Rails.application.routes.draw do
     get 'applications', to: 'staff_applications#index'
     put 'applications', to: 'staff_applications#update'
 
+    resources :featured_scenario_users, only: [:new, :create]
+
     resources :saved_scenarios, only: [:index] do
       collection do
         get :list
