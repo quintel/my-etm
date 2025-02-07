@@ -6,6 +6,7 @@ nl:
       scenarios: Alle scenario's
       collections: All collectoess
       applications: ETM lokaal & applicaties
+      featured_users: Aanbevolen scenariogebruiker
     users:
       edit:
         title: Wijzig gebruiker

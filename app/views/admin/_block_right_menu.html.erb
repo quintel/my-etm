@@ -31,8 +31,8 @@
   )%>
   <%= render(SavedScenarios::NavItem::Component.new(
     path: new_admin_featured_scenario_user_path,
-    title: "Featured Scenario Users",
-    icon: "some-icon", # TODO
+    title: t('admin.bar.featured_users'),
+    icon: "user-plus",
     active: controller_name == "featured_scenario_users"
   )) %>
 
