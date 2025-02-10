@@ -4,7 +4,9 @@
       <span><%= t("areas.#{@saved_scenario.area_code}")%></span>
       <span><%= @saved_scenario.end_year%></span>
     </div>
-    <span class="text-sm text-midnight-400"><%= "Last updated #{@time} ago"%></span>
+    <span class="text-sm text-midnight-400">
+      <%= "#{t('last_updated')} #{@time} #{t('ago')}" %>
+    </span>
   </div>
   <% if !@saved_scenario.discarded? %>
     <%= link_to link_to_scenario, class: button_classes("mr-0 ml-auto max-h-9", color: :primary) do %>
