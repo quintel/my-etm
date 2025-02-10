@@ -1,4 +1,4 @@
-<%= turbo_frame_tag @audience do %>
+<%= turbo_frame_tag @audience.to_s do %>
   <%= render(Identity::ProfileRowComponent.new(title: t(".title.#{@audience}"))) do |row| %>
     <% if @subscribed %>
       <div class="flex items-center gap-1 text-midnight-980">
