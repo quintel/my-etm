@@ -1,4 +1,4 @@
-<turbo-stream action="replace" target="<%= @audience %>">
+<turbo-stream action="replace" target="<%= @audience.to_s %>">
   <template>
     <%= render(Identity::NewsletterStatusRowComponent.new(subscribed: @subscribed, audience: @audience)) %>
   </template>
