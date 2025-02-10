@@ -69,8 +69,7 @@ module Users
         saved_scenarios: current_user.saved_scenarios.count,
         personal_access_tokens: current_user.personal_access_tokens.not_expired.count,
         oauth_applications: current_user.oauth_applications.count,
-        collections: 0
-        # collections: current_user.collections.count # TODO: Re-Implement
+        collections: current_user.collections.count
       }
     end
   end
