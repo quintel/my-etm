@@ -56,6 +56,7 @@ nl:
         ignore_message: "Als je deze aanvraag niet hebt gedaan, kun je deze e-mail negeren."
         no_change_message: "Je wachtwoord wordt niet gewijzigd totdat je de bovenstaande link opent en een nieuw wachtwoord aanmaakt."
     search_by_name: Zoeken op naam
+    all: Alle gebruikers weergeven (%{count})
   sidebar:
     saved_scenarios: Scenario's
     collections: Collecties

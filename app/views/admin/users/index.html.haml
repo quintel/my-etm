@@ -5,6 +5,6 @@
 
 
 .mt-8.mb-2.text-midnight-400.text-sm
-  = "Showing users (#{@users.count})"
+  = t("user.all", count: User.count)
 
 = render(partial: "users", locals: { pagy_admin_users: @pagy_admin_users, users: @users })

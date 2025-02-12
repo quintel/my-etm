@@ -84,10 +84,8 @@ class User < ApplicationRecord
   #
   # Returns a collection of filtered users
   def self.filter(filters)
-    user = order(name: :asc)
-
+    user = order(confirmation_sent_at: :desc)
     user = user.by_name(filters["name"]) if filters["name"].present?
-
     user
   end
 end
