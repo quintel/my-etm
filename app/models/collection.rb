@@ -49,7 +49,7 @@ class Collection < ApplicationRecord
 
   # Public: Used to filter collections.
   #
-  # Returns a collection of filtered Colllections
+  # Returns a collection of filtered Collections
   def self.filter(filters)
     coll = order(created_at: :desc)
 

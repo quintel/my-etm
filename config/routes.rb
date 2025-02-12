@@ -116,13 +116,20 @@ Rails.application.routes.draw do
   namespace :admin do
     get '/', to: redirect('/admin/org')
     get 'org',              to: 'users#org'
-    get 'users',            to: 'users#all'
     get 'user/:user_id',         to: 'users#edit',    as: :edit_user
     put 'user/:user_id',         to: 'users#update',  as: :update_user
     put 'user/:user_id/confirm', to: 'users#confirm', as: :confirm_user
 
     get 'applications', to: 'staff_applications#index'
     put 'applications', to: 'staff_applications#update'
+
+    resources :users, only: [:index] do
+      collection do
+        get :list
+        post :list
+        post :index
+      end
+    end
 
     resources :saved_scenarios, only: [:index] do
       collection do

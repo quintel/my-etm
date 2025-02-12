@@ -286,3 +286,5 @@ en:
         link_message: "If the button doesn't work, copy and paste the link below into your browser:"
         ignore_message: "If you didn't request this, please ignore this email."
         no_change_message: "Your password won't change until you access the link above and create a new one."
+    search_by_name: Search by name
+    all: Showing all users (%{count})

@@ -1,0 +1,16 @@
+<%= turbo_stream.append "users_list" do %>
+  <div id="users_list">
+    <% @users.each do |user| %>
+      <%= render(Admin::UserRow::Component.new(
+        user: user,
+        path: admin_edit_user_path(user),
+        confirm_path: admin_confirm_user_path(user),
+        confirmed: user.confirmed?
+      )) %>
+    <% end %>
+  </div>
+<% end %>
+
+<%= turbo_stream.update "next_url" do %>
+  <%= render(MorePagy::Component.new(pagy: @pagy_admin_users)) %>
+<% end %>
