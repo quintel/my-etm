@@ -8,9 +8,6 @@ module SavedScenarioUser::UserRow
     option :destroyable, default: proc { true }
     option :confirmed, default: proc { true }
 
-    # TODO: Investigate below comment?
-    # thing for rendering action
-
     def css_classes
       @confirmed ? "" : "!text-midnight-450"
     end
