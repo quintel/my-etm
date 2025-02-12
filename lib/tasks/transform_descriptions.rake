@@ -4,9 +4,8 @@ namespace :data do
     SavedScenario.find_each do |scenario|
       next if scenario.tmp_description.blank?
 
-      # Assign Action Text description:
-      scenario.description = scenario.tmp_description
-      scenario.save!
+      # Update directly without changing updated_at:
+      scenario.update_columns(description: scenario.tmp_description)
     end
   end
 end
