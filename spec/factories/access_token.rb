@@ -17,4 +17,9 @@ FactoryBot.define do
   factory :access_token_delete, parent: :access_token do
     scopes { 'public scenarios:read scenarios:delete' }
   end
+
+  factory :access_token_expired, parent: :access_token do
+    scopes { 'public scenarios:read' }
+    expires_in { 0 }
+  end
 end

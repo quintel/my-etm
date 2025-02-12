@@ -5,7 +5,6 @@ module Identity
     extend ActiveSupport::Concern
 
     included do
-      # layout 'identity'
       before_action :authenticate_user!
       before_action :set_back_url
     end

@@ -32,6 +32,7 @@ Rails.application.routes.draw do
 
     get 'subscription/:audience', to: 'newsletter#edit', as: :edit_subscription
     patch 'subscription/:audience', to: 'newsletter#update', as: :update_subscription
+    post 'access_tokens/exchange', to: 'access_tokens#exchange', as: :exchange_token
 
     resources :tokens, only: [:index, :new, :create, :destroy], as: :tokens
     resources :access_tokens, only: [:create], as: :access_tokens
