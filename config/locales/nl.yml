@@ -9,7 +9,6 @@ nl:
         password: Wachtwoord
         password_confirmation: Voer wachtwoord nogmaals in
         unconfirmed_email: Nieuw e-mailadres
-  ago: geleden
   collections:
     all: Bekijk alle collecties
     block_right:
@@ -25,9 +24,7 @@ nl:
       irreversible: Deze handeling is onomkeerbaar
       submit: Verwijder deze collectie
       title: Collectie permanent verwijderen
-      warning: 'Alle verwijzingen naar de collectie worden verwijderd.
-
-        '
+      warning: Alle verwijzingen naar de collectie worden verwijderd.
       warning_header: Je verwijdert je collectie permanent
     contains: Deze collecties bevat de volgende scenario's
     failure: Er ging iets mis!
@@ -149,7 +146,7 @@ nl:
           '
         update: Update
   language: Nederlands
-  last_updated: Laatst bijgewerkt
+  last_updated: Laatst bijgewerkt %{when} geleden
   meta:
     title: Energietransitiemodel
   more: Meer...
