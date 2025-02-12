@@ -9,7 +9,6 @@ en:
         password: Password
         password_confirmation: Re-enter password
         unconfirmed_email: New e-mail address
-  ago: ago
   collections:
     all: View all collections
     block_right:
@@ -25,9 +24,7 @@ en:
       irreversible: This action is irreversible
       submit: Delete this collection
       title: Permanently deleting collection
-      warning: 'Deleting will remove all references to this collection.
-
-        '
+      warning: Deleting will remove all references to this collection.
       warning_header: You are permanently deleting your collection
     contains: This collection contains the following scenarios
     failure: Something went wrong!
@@ -111,7 +108,7 @@ en:
           '
         update: Update
   language: English
-  last_updated: Last updated
+  last_updated: "Last updated %{when} ago"
   meta:
     title: Energy Transition Model
   more: More...
