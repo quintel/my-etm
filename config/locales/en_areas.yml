@@ -778,7 +778,6 @@ en:
     warmerwijk: Warmerwijk
     KZ_Almaty: Almaty
     VUNH5_efate: Efate
-    unknown: Unknown area
   country_select:
     # Only add translations for areas where the name in the country selection
     # drop-down (on the front page) needs to differ from the translation
