@@ -2,7 +2,7 @@
   <div class="flex flex-col">
     <div>
     <span>
-      <%= @collection.area_code.present? ? t("areas.#{@collection.area_code}") : t("areas.unknown") %>
+      <%= @collection.area_code.present? ? t("areas.#{@collection.area_code}") : ""%>
     </span>
       <span><%= @collection.end_year%></span>
     </div>
