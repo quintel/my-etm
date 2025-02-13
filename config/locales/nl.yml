@@ -9,17 +9,138 @@ nl:
         password: Wachtwoord
         password_confirmation: Voer wachtwoord nogmaals in
         unconfirmed_email: Nieuw e-mailadres
-  collections:
-    all: Bekijk alle collecties
-    block_right:
-      compose_collection:
-        description: Maak een collectie van je opgeslagen scenario's
-        title: Nieuwe collectie
-      create_transition:
-        description: |
-          Kies een 2050 scenario om te interpoleren naar scenario's voor
-          2030 en 2040
-        title: Nieuw transitiepad
+        name: Jouw naam
+  scenario_invitation_mailer:
+    invite_user:
+      subject: 'Uitnodiging: ETM scenario'
+    roles:
+      scenario_viewer: gast
+      scenario_collaborator: bewerker
+      scenario_owner: eigenaar
+  user:
+    forgot_password:
+      mail:
+        subject: "Reset Je Wachtwoord"
+      body:
+        header: "Wachtwoord Reset Aanvraag"
+        message: "Iemand heeft gevraagd om een link om je wachtwoord te wijzigen. Je kunt dit doen via de onderstaande link."
+        button_text: "Wijzig Mijn Wachtwoord"
+        link_message: "Als de knop niet werkt, kopieer en plak de onderstaande link in je browser:"
+        ignore_message: "Als je deze aanvraag niet hebt gedaan, kun je deze e-mail negeren."
+        no_change_message: "Je wachtwoord wordt niet gewijzigd totdat je de bovenstaande link opent en een nieuw wachtwoord aanmaakt."
+    search_by_name: Zoeken op naam
+    all: Alle gebruikers weergeven (%{count})
+  sidebar:
+    saved_scenarios: Scenario's
+    collections: Collecties
+    discarded: Prullenbak
+    profile: Mijn profiel
+    admin: Admin
+  scenario_bar:
+    info: Info
+    history: Geschiedenis
+    manage_access: Beheer toegang
+    edit:
+      title: Pas aan
+      description: Pas titel en beschrijving aan van dit scenario
+    discarded:
+      true: Herstel
+      false: Verwijder
+      description:
+        true: Herstel van prullenbak
+        false: Verplaats naar prullenbak. Na %{deleted_after} dagen wordt deze permanent verwijderd.
+    private:
+      true: Privé
+      false: Openbaar
+      description:
+        true: Alleen mensen met toegang kunnen dit scenario bekijken of kopieëren
+        false: |
+          Iedereen kan dit scenario bekijken of kopieëren, maar alleen mensen met toegang kunnen veranderingen doen
+    featured:
+      true: Uitgelicht
+      false: Maak uitgelicht
+      description:
+        true: Dit scenario staat uitgelicht op de startpagina. Bewerk instellingen hier.
+        false: Maak dit scenario uitgelicht op de startpagina.
+    destroy:
+      title: Permanent verwijderen
+      description: Verwijder dit scenario permanent.
+  scenario:
+    succesful_update: Je scenario is succesvol bijgewerkt
+    title: Titel
+    save: Opslaan
+    private: Dit scenario is privé gemaakt door de eigenaar
+    discard_changes: Verwijder wijzigingen
+    no_description: Dit scenario heeft geen beschrijving.
+    create_description: Klik hier om er één aan te maken.
+  saved_scenario_users:
+      manage_description:
+        Hier kun je beheren wie toegang heeft tot jouw scenario en op welke manier.
+        Klik op 'Anderen uitnodigen' om iemand toegang te geven tot jouw scenario of
+        gebruik bovenstaande tabel om gekoppelde gebruikers te beheren.<br/><br/>
+        Zie de
+        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-access-management/" target=\"_blank\">
+        documentatie</a> voor meer informatie.
+      invite: 'Anderen uitnodigen'
+      send_invite: Stuur uitnodiging
+      name: 'Naam'
+      role: 'Rol'
+      you: 'jij'
+      unknown: 'Onbekende gebruiker'
+      nameless: 'Naamloze gebruiker'
+      roles:
+        scenario_owner: 'Eigenaar'
+        scenario_collaborator: 'Bewerker'
+        scenario_viewer: 'Gast'
+        pending: 'In afwachting'
+      new:
+        title: 'Geef iemand toegang to jouw scenario'
+        new_email_hint:
+          Als er geen bestaande gebruiker wordt gevonden voor het opgegeven e-mailadres,
+          wordt er een e-mail gestuurd op deze persoon uit te nodigen een aacount aan
+          te amken voor het ETM.
+        email: 'E-mailadres'
+        role: Rol
+        role_hint: Kies het type toegang dat je wilt verlenen.
+      confirm_destroy:
+        irreversible: Deze handeling is onomkeerbaar
+        warning: "Je staat op het punt om de toegang %{role} in te trekken."
+        confirm: 'Bevestig'
+        cancel: 'Annuleer'
+        not_possible: 'Je kan niet je eigen toegang intrekken.'
+        button: 'Toegang intrekken'
+      errors:
+        create: Er ging iets mis bij het maken van de uitnodiging!
+        base: Geef een e-mailadres op
+        user_email: Het ingevoerde e-mailadres is ongeldig.
+        update: Er ging iets mis in het bijwerken van deze rol!
+        destroy: Er ging iets mis bij het verwijderen van de gebruiker van het scenario!
+        general: Probeer het later nog eens. Neem contact met ons op als je deze foutmelding blijft krijgen.
+        duplicate: Deze persoon is al uitgenodigd voor dit scenario.
+  saved_scenario_history:
+    description: |
+      Here you can see the history of your saved scenario. A description can be added to each historical version.
+      When you are owner of this scenario, you can reset the scenario to an older stage. See the
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-version-history" target=\"_blank\">
+      documentation</a> for more information.
+    title: History
+    error: Something went wrong updating the history of your scenario
+  history:
+    row:
+      component:
+        update: 'Update'
+        cancel: 'Cancel'
+        restore: 'Restore'
+        edit_description: |
+          Edit the description of this saved version. Save your notes on what you have changed.
+        restore_description: |
+          Restore the saved scenario to this version. This action is irreversible.
+    empty_message: Geen beschrijving
+  saved_scenarios:
+    title: Opgeslagen scenario's
+    empty: Je hebt nog geen scenario's.
+    search_by_title: Filter op titel
+    open: Open
     confirm_destroy:
       irreversible: Deze handeling is onomkeerbaar
       submit: Verwijder deze collectie
