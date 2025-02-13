@@ -1,9 +1,23 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+require 'active_record/fixtures'
+
+Dir[Rails.root.join("db/seed", "*.{yml,csv}").to_s].each do |file|
+  Fixtures.create_fixtures("db/seed", File.basename(file, '.*'))
+end
+
+password  = SecureRandom.base58(8)
+email     =    "seeded_admin@localdevelopment.com"
+
+User.create!(
+  name:     'Seeded Admin',
+  admin:    true,
+  password: password,
+  email:    email
+)
+
+puts <<~MSG
+  +------------------------------------------------------------------------------+
+  |         Created admin user 'Seeded Admin' with password: #{password}         |
+  |           and email: #{email}.                                               |
+  | Please change this password if you're deploying to a production environment! |
+  +------------------------------------------------------------------------------+
+MSG
