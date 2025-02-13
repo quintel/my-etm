@@ -122,7 +122,7 @@ en:
         Click the 'Invite others' button to give someone access to your scenario,
         or use the table above to manage users that are already coupled. <br/><br/>
         See the
-        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/" target=\"_blank\">
+        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-manage-access/" target=\"_blank\">
         documentation</a> for more information.
       invite: 'Invite others'
       send_invite: Send invite
@@ -163,7 +163,7 @@ en:
     description: |
       Here you can see the history of your saved scenario. A description can be added to each historical version.
       When you are owner of this scenario, you can reset the scenario to an older stage. See the
-      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-version-history" target=\"_blank\">
       documentation</a> for more information.
     title: History
     error: Something went wrong updating the history of your scenario
@@ -177,6 +177,7 @@ en:
           Edit the description of this saved version. Save your notes on what you have changed.
         restore_description: |
           Restore the saved scenario to this version. This action is irreversible.
+    empty_message: No description
   saved_scenarios:
     title: Saved scenarios
     empty: You don't have any scenarios.
