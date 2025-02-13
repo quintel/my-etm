@@ -106,7 +106,7 @@ nl:
         Klik op 'Anderen uitnodigen' om iemand toegang te geven tot jouw scenario of
         gebruik bovenstaande tabel om gekoppelde gebruikers te beheren.<br/><br/>
         Zie de
-        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/" target=\"_blank\">
+        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-access-management/" target=\"_blank\">
         documentatie</a> voor meer informatie.
       invite: 'Anderen uitnodigen'
       send_invite: Stuur uitnodiging
@@ -148,7 +148,7 @@ nl:
     description: |
       Here you can see the history of your saved scenario. A description can be added to each historical version.
       When you are owner of this scenario, you can reset the scenario to an older stage. See the
-      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-version-history" target=\"_blank\">
       documentation</a> for more information.
     title: History
     error: Something went wrong updating the history of your scenario
@@ -162,6 +162,7 @@ nl:
           Edit the description of this saved version. Save your notes on what you have changed.
         restore_description: |
           Restore the saved scenario to this version. This action is irreversible.
+    empty_message: Geen beschrijving
   saved_scenarios:
     title: Opgeslagen scenario's
     empty: Je hebt nog geen scenario's.
