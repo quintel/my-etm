@@ -4,6 +4,7 @@ FactoryBot.define do
   factory :access_token, class: 'Doorkeeper::AccessToken' do
     scopes { 'public' }
     sequence(:resource_owner_id) { |n| n }
+    expires_in { "never" }
   end
 
   factory :access_token_read, parent: :access_token do
