@@ -3,6 +3,8 @@ module Api
     class SavedScenariosController < BaseController
       load_and_authorize_resource(class: SavedScenario, only: %i[index create show update destroy])
 
+      check_authorization
+
       # GET /saved_scenarios or /saved_scenarios.json
       def index
         saved_scenarios = current_user

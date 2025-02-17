@@ -1,7 +1,6 @@
 module Api
   module V1
     class FeaturedScenariosController < BaseController
-      skip_before_action :authenticate_request!, only: [:index, :show]
       before_action :set_featured_scenario, only: [:show]
 
 

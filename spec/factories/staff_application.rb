@@ -12,7 +12,7 @@ FactoryBot.define do
     end
   end
 
-  factory :oauth_application, class: 'Doorkeeper::Application' do
+  factory :oauth_application, class: 'OAuthApplication' do
     name { 'Default App' }
     uid { SecureRandom.hex(8) }
     secret { SecureRandom.hex(16) }
@@ -21,5 +21,6 @@ FactoryBot.define do
     confidential { true }
     uri { 'https://example.com' }
     owner { association(:user) }
+    version { Version.default }
   end
 end
