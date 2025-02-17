@@ -140,7 +140,7 @@ RSpec.describe CreatePersonalAccessToken do
 
   context 'when there is a single collision with the token' do
     before do
-      allow(Doorkeeper::OAuth::Helpers::UniqueToken).to receive(:generate)
+      allow(Doorkeeper::JWT).to receive(:generate)
         .and_invoke(->(*) { 'token_abc' }, ->(*) { 'token_abc' }, ->(*) { 'token_123' })
 
       user.access_tokens.create!({})
@@ -155,7 +155,7 @@ RSpec.describe CreatePersonalAccessToken do
 
   context 'when there is a repeated collision with the token' do
     before do
-      allow(Doorkeeper::OAuth::Helpers::UniqueToken).to receive(:generate).and_return('token_abc')
+      allow(Doorkeeper::JWT).to receive(:generate).and_return('token_abc')
 
       user.access_tokens.create!({})
     end

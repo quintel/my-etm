@@ -37,6 +37,7 @@ module Api
 
       private
 
+      # TODO: check if we can remove this custom decoding and just use the doorkeeper_token instead
       def decoded_token
         return @decoded_token if defined?(@decoded_token)
 
