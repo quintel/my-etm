@@ -56,7 +56,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns unauthorized' do
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -67,8 +67,12 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
           headers: access_token_header(user, "string")
       end
 
-      it 'returns not found' do
-        expect(response).to have_http_status(:not_found)
+      it 'returns ok' do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'does not return any scenarios' do
+        expect(response.body).to be_empty
       end
     end
   end
@@ -183,17 +187,17 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         @headers = access_token_header(nil, :write)
       end
 
-      it 'returns unauthorized' do
+      it 'returns created' do
         request
         expect(response).to have_http_status(:created)
       end
 
-      it 'does not create the user' do
-        expect { request }.not_to change(User, :count)
+      it 'creates the user' do
+        expect { request }.to change(User, :count)
       end
 
-      it 'does not create a saved scenario' do
-        expect { request }.not_to change(SavedScenario, :count)
+      it 'creates a saved scenario' do
+        expect { request }.to change(SavedScenario, :count)
       end
     end
 

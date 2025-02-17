@@ -99,6 +99,10 @@ module Api
           TrackPersonalAccessTokenUse.perform_later(doorkeeper_token.id, Time.now.utc)
         end
       end
+
+      def require_user
+        render_not_found(errors: ['User not identified']) unless current_user
+      end
     end
   end
 end
