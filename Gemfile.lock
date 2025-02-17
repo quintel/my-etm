@@ -125,6 +125,8 @@ GEM
       activerecord (>= 4.2, < 8)
     doorkeeper (5.7.1)
       railties (>= 5)
+    doorkeeper-jwt (0.4.2)
+      jwt (>= 2.1)
     doorkeeper-openid_connect (1.8.9)
       doorkeeper (>= 5.5, < 5.8)
       jwt (>= 2.5)
@@ -497,6 +499,7 @@ DEPENDENCIES
   debug
   devise (~> 4.7)
   discard
+  doorkeeper-jwt
   doorkeeper-openid_connect (~> 1.8.7)
   dry-initializer
   dry-monads

@@ -1,4 +1,9 @@
 module Identity
+  # Why do we have this?
+  # On login an accesstoken is sent to the client
+  # Refresh tokens can be retrieved from a HTTP POST to /oauth/token ,
+  # it is the same endpoint as login, but this time we are using “refresh_token”
+  # as the value for grant_type, and is sending the value of refresh token instead of login credentials.
   class AccessTokensController < ApplicationController
     skip_before_action :verify_authenticity_token
 

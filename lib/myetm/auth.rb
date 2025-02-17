@@ -2,6 +2,7 @@
 
 module MyEtm
   # Contains useful methods for authentication.
+  # TODO: go over this file!
   module Auth
     module_function
 
@@ -11,8 +12,7 @@ module MyEtm
     # Fetches or generates a new signing key
     def signing_key_content
       if ENV["OPENID_SIGNING_KEY"].present?
-        raw_key = ENV["OPENID_SIGNING_KEY"]
-        return reformat_flat_key(raw_key)
+        reformat_flat_key(ENV["OPENID_SIGNING_KEY"])
       else
         key_path = Rails.root.join("tmp/openid.key")
         if key_path.exist?
