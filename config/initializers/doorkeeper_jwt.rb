@@ -11,8 +11,9 @@ Doorkeeper::JWT.configure do
     {
       iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
       iat: Time.now.to_i,
-      aud: opts[:application][:uid],
-      exp: 30.minutes.from_now.to_i,
+      aud: opts[:application][:uri],
+      # Matches access_token default from doorkeeper init
+      exp: 2.hours.from_now.to_i,
       scopes: opts[:application][:scopes],
 
       # @see JWT reserved claims - https://tools.ietf.org/html/draft-jones-json-web-token-07#page-7

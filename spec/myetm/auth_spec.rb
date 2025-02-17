@@ -11,10 +11,10 @@ RSpec.describe MyEtm::Auth do
       )
     end
 
-    let(:token) { described_class.user_jwt(user, scopes: scopes, client_id: client_id) }
+    let(:token) { described_class.user_jwt(user, scopes: scopes, client_uri: client_uri) }
     let(:user) { create(:user) }
     let(:scopes) { %w[read write] }
-    let(:client_id) { 'test-client-id' }
+    let(:client_uri) { 'https://example.com' }
 
     let(:payload) { decoded_jwt[0] }
     let(:header) { decoded_jwt[1] }
@@ -40,7 +40,7 @@ RSpec.describe MyEtm::Auth do
     end
 
     it 'includes the audience in the JWT payload' do
-      expect(payload['aud']).to eq(client_id)
+      expect(payload['aud']).to eq(client_uri)
     end
 
     it 'includes the expiration time in the JWT payload' do
@@ -61,8 +61,8 @@ RSpec.describe MyEtm::Auth do
       expect(header['kid']).to eq(described_class.signing_key.to_jwk['kid'])
     end
 
-    context 'when client_id is not provided' do
-      let(:client_id) { nil }
+    context 'when client_uri is not provided' do
+      let(:client_uri) { nil }
 
       it 'does not include an audience in the JWT payload' do
         expect(payload['aud']).to eq(nil)

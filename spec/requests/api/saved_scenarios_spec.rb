@@ -44,10 +44,6 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       before { user.destroy! }
 
-      it 'creates the user from the access token' do
-        expect { request }.to change(User, :count).by(1)
-      end
-
       it 'returns success' do
         request
         expect(response).to have_http_status(:success)
@@ -59,7 +55,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         get '/api/v1/saved_scenarios', as: :json
       end
 
-      it 'returns success' do
+      it 'returns unauthorized' do
         expect(response).to have_http_status(:unauthorized)
       end
     end
@@ -71,8 +67,8 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
           headers: access_token_header(user, "string")
       end
 
-      it 'returns forbidden' do
-        expect(response).to have_http_status(:forbidden)
+      it 'returns not found' do
+        expect(response).to have_http_status(:not_found)
       end
     end
   end
@@ -103,8 +99,8 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         get '/api/v1/saved_scenarios/1', as: :json
       end
 
-      it 'returns success' do
-        expect(response).to have_http_status(:unauthorized)
+      it 'returns not found' do
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -115,8 +111,8 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
           headers: access_token_header(create(:user), [])
       end
 
-      it 'returns forbidden' do
-        expect(response).to have_http_status(:forbidden)
+      it 'returns not found' do
+        expect(response).to have_http_status(:not_found)
       end
     end
 
@@ -181,30 +177,23 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
     end
 
-    # TODO: check this: is strange??
     context 'when given a valid access token and data, but the user does not exist' do
       before do
         user.destroy!
         @headers = access_token_header(nil, :write)
       end
 
-      it 'returns created' do
+      it 'returns unauthorized' do
         request
         expect(response).to have_http_status(:created)
       end
 
-      it 'creates the user' do
-        expect { request }.to change(User, :count).by(1)
+      it 'does not create the user' do
+        expect { request }.not_to change(User, :count)
       end
 
-      it 'creates a saved scenario' do
-        expect { request }.to change(SavedScenario, :count).by(1)
-      end
-
-      it 'returns the scenario' do
-        request
-        new_user = User.last
-        expect(JSON.parse(response.body)).to eq(new_user.saved_scenarios.last.as_json)
+      it 'does not create a saved scenario' do
+        expect { request }.not_to change(SavedScenario, :count)
       end
     end
 

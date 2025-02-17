@@ -61,10 +61,10 @@ module MyEtm
     end
 
     # Creates a new JWT for the given user, authorizing requests to the provided client.
-    def user_jwt(user = nil, scopes: [], client_id: nil)
+    def user_jwt(user = nil, scopes: [], client_uri: nil)
       payload = {
         iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
-        aud: client_id,
+        aud: client_uri,
         exp: 5.minutes.from_now.to_i,
         iat: Time.now.to_i,
         scopes: scopes,
@@ -76,7 +76,6 @@ module MyEtm
       JWT.encode(payload, key, "RS256", typ: "JWT", kid: key.to_jwk["kid"])
     end
 
-    # TODO: Handle errors more verbosely
     # Returns a Faraday client for a user, which will send requests to the specified client app.
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted
@@ -88,7 +87,7 @@ module MyEtm
         conn.request(
           :authorization,
           "Bearer",
-          -> { user_jwt(user, scopes: scopes, client_id: client_app.uid) }
+          -> { user_jwt(user, scopes: scopes, client_uri: client_app.uri) }
         )
         conn.request(:json)
         conn.response(:json)
