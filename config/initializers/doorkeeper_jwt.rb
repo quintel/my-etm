@@ -7,14 +7,22 @@ Doorkeeper::JWT.configure do
   #     { token: "RANDOM-TOKEN" }
   token_payload do |opts|
     user = User.find(opts[:resource_owner_id])
+    audience = if opts[:application].present?
+      opts[:application][:uri]
+    else
+      Version.all.map(&:engine_url)
+    end
+
+    scopes = opts[:application].present? ? opts[:application][:scopes] : opts[:scopes]
 
     {
       iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
       iat: Time.now.to_i,
-      aud: opts[:application][:uri],
+      aud: audience,
+
       # Matches access_token default from doorkeeper init
       exp: 2.hours.from_now.to_i,
-      scopes: opts[:application][:scopes],
+      scopes: scopes,
 
       # @see JWT reserved claims - https://tools.ietf.org/html/draft-jones-json-web-token-07#page-7
       jti: SecureRandom.uuid,

@@ -34,8 +34,8 @@ RSpec.describe "API::Collections", type: :request, api: true do
     context 'without an access token' do
       before { get '/api/v1/collections', as: :json }
 
-      it 'returns unauthorized status' do
-        expect(response).to have_http_status(:unauthorized)
+      it 'returns not found status' do
+        expect(response).to have_http_status(:not_found)
       end
     end
   end

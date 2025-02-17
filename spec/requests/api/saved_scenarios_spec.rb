@@ -72,7 +72,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'does not return any scenarios' do
-        expect(response.body).to be_empty
+        expect(JSON.parse(response.body)).to be_empty
       end
     end
   end
