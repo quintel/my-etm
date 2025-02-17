@@ -34,6 +34,7 @@ gem "sentry-ruby"
 gem 'cancancan', '~> 3.0'
 gem 'devise', '~> 4.7'
 gem 'doorkeeper-openid_connect', '~> 1.8.7'
+gem 'doorkeeper-jwt'
 gem 'faraday'
 gem 'jwt'
 gem 'json-jwt'

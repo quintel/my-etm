@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_01_24_135352) do
+ActiveRecord::Schema[7.2].define(version: 2025_02_13_134056) do
   create_table "action_text_rich_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "body", size: :long
@@ -110,7 +110,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_24_135352) do
   create_table "oauth_access_tokens", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "resource_owner_id"
     t.bigint "application_id"
-    t.string "token", null: false
+    t.text "token", null: false
     t.string "refresh_token"
     t.integer "expires_in"
     t.string "scopes"
@@ -120,7 +120,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_01_24_135352) do
     t.index ["application_id"], name: "index_oauth_access_tokens_on_application_id"
     t.index ["refresh_token"], name: "index_oauth_access_tokens_on_refresh_token", unique: true
     t.index ["resource_owner_id"], name: "index_oauth_access_tokens_on_resource_owner_id"
-    t.index ["token"], name: "index_oauth_access_tokens_on_token", unique: true
   end
 
   create_table "oauth_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|

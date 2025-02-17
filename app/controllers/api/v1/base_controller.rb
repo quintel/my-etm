@@ -3,16 +3,18 @@ module Api
     class BaseController < ActionController::API
       include ActionController::MimeResponds
 
-      before_action :authenticate_request!
+      after_action :track_token_use
 
       rescue_from ActionController::ParameterMissing do |e|
-        render json: { errors: [ e.message ] }, status: :bad_request
+        render status: 400, json: { errors: ["param is missing or the value is empty: #{e.param}"] }
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
-        render json: {
-          errors: [ "No such #{e.model.underscore.humanize.downcase}: #{e.id}" ]
-        }, status: :not_found
+        if e.model
+          render_not_found(errors: ["#{e.model.underscore.humanize} not found"])
+        else
+          render_not_found
+        end
       end
 
       rescue_from ActiveModel::RangeError do
@@ -53,9 +55,9 @@ module Api
         return @current_user if defined?(@current_user)
 
         if decoded_token
-          @current_user = find_user_from_token
+          @current_user = User.find(decoded_token[:sub])
         elsif doorkeeper_token
-          @current_user = find_user_from_session
+          @current_user = User.find(doorkeeper_token.resource_owner_id)
         end
       end
 
@@ -66,23 +68,12 @@ module Api
               TokenAbility.new(decoded_token, current_user)
             elsif doorkeeper_token
               TokenAbility.new(doorkeeper_token, current_user)
+            else
+              GuestAbility.new
             end
           else
             GuestAbility.new
           end
-        end
-      end
-
-      def authenticate_request!
-        if doorkeeper_token
-          doorkeeper_authorize!
-          @current_user = User.find(doorkeeper_token.resource_owner_id)
-        elsif decoded_token
-          unless current_user
-            render json: { errors: [ "Unauthorized" ] }, status: :unauthorized
-          end
-        else
-          render json: { errors: [ "Authentication required" ] }, status: :unauthorized
         end
       end
 
@@ -104,33 +95,9 @@ module Api
       end
 
       def track_token_use
-        if response.status == 200 && decoded_token && decoded_token.application_id.nil?
-          TrackPersonalAccessTokenUse.perform_later(decoded_token.id, Time.now.utc)
+        if response.status == 200 && doorkeeper_token && doorkeeper_token.application_id.nil?
+          TrackPersonalAccessTokenUse.perform_later(doorkeeper_token.id, Time.now.utc)
         end
-      end
-
-      def require_user
-        return if current_user
-
-        redirect_to new_user_session_path
-        false
-      end
-
-      def find_user_from_token
-        return unless decoded_token
-        user_data = decoded_token[:user]
-        User.find_or_create_by(id: decoded_token[:sub]) do |user|
-          user.assign_attributes(user_data)
-        end
-      end
-
-      def find_user_from_session
-        user = User.find_or_create_by(id: doorkeeper_token.resource_owner_id) if doorkeeper_token
-        user
-      rescue ActiveRecord::RecordNotFound
-        reset_session
-        redirect_to root_path
-        nil
       end
     end
   end
