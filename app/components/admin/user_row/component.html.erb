@@ -1,4 +1,4 @@
-<%= link_to @path, id: "user_#{@user.id}", class:"grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md hover:bg-midnight-600 #{css_classes}", data: { turbo_frame: 'modal' } do %>
+<%= link_to @path, id: "user_#{@user.id}", class:"grid grid-cols-4 gap-5 w-full transition mt-5 p-2 pr-4 rounded-md hover:bg-midnight-600 #{css_classes}", data: { turbo_frame: 'modal' } do %>
   <%# GRID COL 1 %>
   <div class="flex flex-col">
     <span><%= @user.name %></span>
@@ -40,10 +40,15 @@
     <% end %>
 
     <% unless @confirmed %>
-      <%= link_to @confirm_path, id: "confirm_button_#{@user.id}", class: button_classes("mr-0 ml-auto", color: :primary), method: :put, data: { 'turbo-method': :put } do %>
-        <%= heroicon 'exclamation-triangle', options: { class: 'w-4 h-4' } %>
-        <%= t('admin.user.confirm') %>
-      <% end %>
+      <span class="mr-0 ml-auto"><%= heroicon 'exclamation-circle', options: { class: 'w-4 h-4' } %></span>
     <% end %>
+
   </div>
+<% end %>
+
+<% unless @confirmed %>
+  <%= link_to @confirm_path, id: "confirm_button_#{@user.id}", class: button_classes("ml-2 flex w-fit block", color: :border), method: :put, data: { 'turbo-method': :put } do %>
+    <%= heroicon 'exclamation-triangle', options: { class: 'w-4 h-4 mt-1 mr-2' } %>
+    <%= "#{t('admin.users.confirm')} #{@user.name}" %>
+  <% end %>
 <% end %>

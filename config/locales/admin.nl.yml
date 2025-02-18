@@ -8,6 +8,7 @@ nl:
       applications: ETM lokaal & applicaties
       featured_users: Uitgelichte gebruikers
     users:
+      confirm: Bevestig
       edit:
         title: Wijzig gebruiker
         name: Naam

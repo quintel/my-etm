@@ -8,6 +8,7 @@ en:
       applications: Local ETM & applications
       featured_users: Featured users
     users:
+      confirm: Confirm
       edit:
         title: Edit user
         name: Name
