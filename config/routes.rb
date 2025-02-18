@@ -131,7 +131,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :featured_scenario_users, only: [:new, :create]
+    resources :featured_scenario_users
 
     resources :saved_scenarios, only: [:index] do
       collection do

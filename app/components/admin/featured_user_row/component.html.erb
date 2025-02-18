@@ -1,0 +1,36 @@
+<%= link_to @path, id: "user_#{@user.id}", class:"grid grid-cols-4 gap-5 w-full transition mb-5 p-2 pr-4 rounded-md hover:bg-midnight-600 #{css_classes}", data: { turbo_frame: 'modal' } do %>
+  <%# GRID COL 1 %>
+  <div class="flex flex-col mt-2">
+    <span><%= @user.user_name %></span>
+  </div>
+
+  <%# GRID COL 2 %>
+  <span class="flex text-midnight-400 text-sm">
+    <% if @user.user %>
+      <span class="my-auto mr-2"><%= heroicon 'link', options: { class: 'w-5 h-5' } %></span>
+      <div class="flex flex-col">
+        <span>
+          <%= @user.user.name %>
+        </span>
+        <div class="text-sm text-midnight-400">
+          <span><%= @user.user.email %></span>
+        </div>
+      </div>
+    <% end %>
+  </span>
+
+  <%# GRID COL 3 %>
+  <span class="text-midnight-400 text-sm mt-3">
+    <%= @user.featured_scenarios.count %>
+    Featured saved scenarios
+    <%# PLACE FOR COLLECTIONS %>
+    <%# <%= @user.collections.count %>
+    <%# Collections %>
+  </span>
+
+  <%# GRID COL 4 %>
+  <div class="flex text-midnight-400">
+    <span class="my-auto mr-0 ml-auto"><%= heroicon 'pencil', options: { class: 'w-5 h-5' } %></span>
+    <%# PLACE FOR DESTROY %>
+  </div>
+<% end %>
