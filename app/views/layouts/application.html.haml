@@ -31,7 +31,6 @@
             = render(ToastComponent.new(type: :alert, message: alert))
         %div.height-0.overflow-y-auto.pr-5{class: 'basis-full lg:basis-3/4'}
           = yield
-        - unless request.path == '/discarded'
-          = render partial: "layouts/block_right"
+        = render partial: "layouts/block_right"
       = render partial: "layouts/footer"
     = turbo_frame_tag :modal
