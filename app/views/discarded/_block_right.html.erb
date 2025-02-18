@@ -1,0 +1,10 @@
+<% content_for :block_right do %>
+  <div class="flex flex-col">
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: discarded_index_path,
+      title: t('trash.all'),
+      icon: 'wallet',
+      active: controller_name == 'discarded')
+    )%>
+  </div>
+<% end %>

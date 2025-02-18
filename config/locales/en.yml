@@ -108,7 +108,7 @@ en:
           '
         update: Update
   language: English
-  last_updated: "Last updated %{when} ago"
+  last_updated: Last updated %{when} ago
   meta:
     title: Energy Transition Model
   more: More...
@@ -247,6 +247,7 @@ en:
       days.
     title: Trash bin
     undiscarded_flash: Your scenario was restored
+    all: All items in trash
   undo: Undo
   user:
     forgot_password:

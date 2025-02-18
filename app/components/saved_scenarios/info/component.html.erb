@@ -5,7 +5,7 @@
       <span><%= @saved_scenario.end_year%></span>
     </div>
     <span class="text-sm text-midnight-400">
-      <%= "#{t('last_updated')} #{@time} #{t('ago')}" %>
+      <%= t('last_updated', when: @time) %>
     </span>
   </div>
   <% if !@saved_scenario.discarded? %>
