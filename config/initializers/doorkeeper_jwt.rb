@@ -46,13 +46,11 @@ Doorkeeper::JWT.configure do
 
   # Set the signing secret. This would be shared with any other applications
   # that should be able to verify the authenticity of the token. Defaults to "secret".
-  # TODO-NS: recheck if it shoudl be ENV['OPENID_SIGNING_KEY']
   secret_key MyEtm::Auth.signing_key_content
 
   # If you want to use RS* algorithms specify the path to the RSA key to use for
   # signing. If you specify a `secret_key_path` it will be used instead of
   # `secret_key`.
-  # TODO-NS: recheck
   # secret_key_path Rails.root.join('tmp/openid.key')
 
   # Specify cryptographic signing algorithm type (https://github.com/progrium/ruby-jwt). Defaults to
