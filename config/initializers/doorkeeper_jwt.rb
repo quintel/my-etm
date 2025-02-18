@@ -9,9 +9,11 @@ Doorkeeper::JWT.configure do
     user = User.find(opts[:resource_owner_id])
 
     audience = if opts[:application].present?
-      opts[:application][:uri]
+      # Token is valid for all audiences within this version
+      opts[:application].version.urls.join(" ")
     else
-      Version.all.map(&:engine_url)
+      # For Personal Access Tokens all engines are a valid audience
+      Version.all.map(&:engine_url).join(" ")
     end
 
     scopes = opts[:application].present? ? opts[:application][:scopes] : opts[:scopes]

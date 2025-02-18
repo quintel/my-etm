@@ -25,6 +25,7 @@
           AppConfig.new(
             key: "etengine",
             name: "Engine (Local)",
+            version: Version.local,
             scopes: "openid email profile roles public scenarios:read scenarios:write scenarios:delete",
             uri: "http://localhost:3000",
             redirect_path: "/auth/identity/callback",
@@ -47,6 +48,7 @@
           AppConfig.new(
             key: "etmodel",
             name: "Model (Local)",
+            version: Version.local,
             scopes: "openid email profile roles public scenarios:read scenarios:write scenarios:delete",
             uri: "http://localhost:3001",
             redirect_path: "/auth/identity/callback",
@@ -71,6 +73,7 @@
           AppConfig.new(
             key: "collections",
             name: "Collections (Local)",
+            version: Version.local,
             scopes: "openid email profile public scenarios:read scenarios:write",
             uri: "http://localhost:3005",
             redirect_path: "/api/auth/callback/identity",

@@ -31,33 +31,13 @@ module Api
         end
       end
 
-      rescue_from MyEtm::Auth::DecodeError do
-        render json: { errors: [ "Invalid or expired token" ] }, status: :unauthorized
-      end
-
       private
-
-      # TODO: check if we can remove this custom decoding and just use the doorkeeper_token instead
-      def decoded_token
-        return @decoded_token if defined?(@decoded_token)
-
-        auth_header = request.headers["Authorization"]
-        token = auth_header&.split(" ")&.last
-        return nil unless token
-
-        @decoded_token = MyEtm::Auth.decode(token)
-      rescue MyEtm::Auth::DecodeError, MyEtm::Auth::TokenExchangeError => e
-        Rails.logger.debug("Token decoding failed: #{e.message}")
-        nil
-      end
 
       # Fetch the user based on the decoded token or session.
       def current_user
         return @current_user if defined?(@current_user)
 
-        if decoded_token
-          @current_user = User.find(decoded_token[:sub])
-        elsif doorkeeper_token
+        if doorkeeper_token
           @current_user = User.find(doorkeeper_token.resource_owner_id)
         end
       end
@@ -65,13 +45,7 @@ module Api
       def current_ability
         @current_ability ||= begin
           if current_user
-            if decoded_token
-              TokenAbility.new(decoded_token, current_user)
-            elsif doorkeeper_token
-              TokenAbility.new(doorkeeper_token, current_user)
-            else
-              GuestAbility.new
-            end
+            TokenAbility.new(doorkeeper_token, current_user)
           else
             GuestAbility.new
           end

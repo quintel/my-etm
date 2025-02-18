@@ -28,7 +28,7 @@ module CreateStaffApplication
       owner_id: user.id,
       uri: parsed_uri.to_s,
       redirect_uri: redirect_uri.to_s,
-      version_id: Version.default.id
+      version_id: Version.local.id
     )
 
     # Save the application and handle failures
