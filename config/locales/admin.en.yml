@@ -6,7 +6,7 @@ en:
       scenarios: All scenarios
       collections: All collections
       applications: Local ETM & applications
-      featured_users: Featured Scenario User
+      featured_users: Featured users
     users:
       edit:
         title: Edit user
@@ -24,3 +24,18 @@ en:
     add_admin: |
       If you wish to add an admin, please go to the users panel and
       edit them from there.
+    featured_scenario_users:
+      edit:
+        title: Edit featured user
+        name: Set displayed name
+        or: or choose to...
+        user: Couple existing user
+        submit: Save
+      new:
+        title: Create featured user
+        name: Set displayed name
+        or: or choose to...
+        user: Couple existing user
+        submit: Save
+      intro: Create and edit featured users to couple to featured scenarios
+      add: Create featured user

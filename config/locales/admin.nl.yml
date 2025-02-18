@@ -6,7 +6,7 @@ nl:
       scenarios: Alle scenario's
       collections: All collectoess
       applications: ETM lokaal & applicaties
-      featured_users: Aanbevolen scenariogebruiker
+      featured_users: Uitgelichte gebruikers
     users:
       edit:
         title: Wijzig gebruiker
@@ -23,3 +23,20 @@ nl:
       te controleren en je lokale ETM configureren via het ETM lokaal & applicaties.
     add_admin: |
       Ga naar Gebruikers om een admin toe te voegen.
+    featured_scenario_users:
+      edit:
+        title: Pas uitgelichte gebruiker aan
+        name: Kies een display naam
+        or: of kies om...
+        user: Ook aan een gebruiker te koppelen
+        submit: Opslaan
+      edit:
+        title: Maak nieuwe uitgelichte gebruiker
+        name: Kies een display naam
+        or: of kies om...
+        user: Ook aan een gebruiker te koppelen
+        submit: Opslaan
+      intro: |
+        Maak nieuwe uitgelichte gebruikers aan of pas deze aan. Deze gebruikers worden
+        gekoppeld aan uitgelichte scenarios.
+      add: Nieuwe uitgelichte gebruiker

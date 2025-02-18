@@ -1,0 +1,23 @@
+<%- content_for :menu_title, 'Featured Users' %>
+<%- content_for :title, 'Featured Users' %>
+<%= render(partial: "/admin/block_right_menu") %>
+
+<div class="text-midnight-450">
+  <%= t('admin.featured_scenario_users.intro') %>
+</div>
+
+<div class="mt-10 text-midnight-400 text-sm">
+  <%= "Featured users (#{@featured_scenario_users.count})"%>
+</div>
+<div class="mt-2 border border-gray-200 rounded-md p-5">
+  <% @featured_scenario_users.each do |user| %>
+    <%= render Admin::FeaturedUserRow::Component.new(
+      user: user,
+      path: edit_admin_featured_scenario_user_path(user),
+    )%>
+  <% end %>
+</div>
+
+<div class="flex mt-5">
+  <%= link_to "+ #{t('admin.featured_scenario_users.add')}", new_admin_featured_scenario_user_path, data: { turbo_frame: :modal }, class: button_classes("ml-auto mr-0", color: :primary) %>
+</div>

@@ -1,6 +1,6 @@
 <%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
   <%= turbo_frame_tag :update_featured_scenario_user_form do %>
-    <%= form_for(@featured_scenario_user, url: admin_featured_scenario_users_path, html: { method: :post }) do |f| %>
+    <%= form_for(@featured_scenario_user, url: admin_featured_scenario_user_path, html: { method: :put }) do |f| %>
       <%= render(FormSteps::WrapperComponent.new) do |steps| %>
         <%= render(FormSteps::RowComponent.new(title: t('.name'), label_for: "featured_scenario_user_name")) do |row| %>
           <%= f.text_field :name, value: @featured_scenario_user.name, required: true, autofocus: true, autocomplete: 'name', class: "field" %>
