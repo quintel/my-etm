@@ -14,7 +14,7 @@
   <% end %>
 
   <% row.with_button do %>
-    <%= link_to identity_edit_email_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2", color: :border) do %>
+    <%= link_to identity_edit_email_path, data: { turbo_frame: :modal }, class: button_classes("my-auto !px-2 h-8", color: :border) do %>
       <%= heroicon 'pencil', options: { class: 'w-4 h-4 text-midnight-800' } %>
     <% end %>
   <% end %>
@@ -29,7 +29,7 @@
   <% end %>
 
   <% row.with_button do %>
-    <%= link_to identity_edit_password_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2", color: :border) do %>
+    <%= link_to identity_edit_password_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2 h-8", color: :border) do %>
       <%= heroicon 'pencil', options: { class: 'w-4 h-4 text-midnight-800' } %>
     <% end %>
   <% end %>
@@ -47,7 +47,7 @@
   <% end %>
 
   <% row.with_button do %>
-    <%= link_to identity_edit_name_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2", color: :border) do %>
+    <%= link_to identity_edit_name_path, data: { turbo_frame: :modal }, class: button_classes("-mt-0.5 !px-2 h-8", color: :border) do %>
       <%= heroicon 'pencil', options: { class: 'w-4 h-4 text-midnight-800' } %>
     <% end %>
   <% end %>
