@@ -15,7 +15,7 @@ Doorkeeper::JWT.configure do
     end
 
     scopes = opts[:application].present? ? opts[:application][:scopes] : opts[:scopes]
-    extras = opts[:expires_in].present? ? { exp: opts[:expires_in] } : {}
+    extras = opts[:expires_in].present? ? { exp: opts[:expires_in] + Time.now.to_i } : {}
 
     {
       iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
