@@ -4,7 +4,10 @@
       <%= initials_for(first_owner) %>
     </span>
     <div class="flex flex-col">
-      <span><%= @collection.title %></span>
+      <div>
+        <span><%= @collection.title %></span>
+        <span class="text-midnight-400">  #<%= @collection.version.tag %></span>
+      </div>
       <div class="text-sm text-midnight-400">
         <% if @collection.interpolated? %>
           <span><%= t("areas.#{@collection.area_code}") %></span>
@@ -21,7 +24,6 @@
           </span>
         <% end %>
       </div>
-      <span class="text-midnight-400">  #<%= @collection.version.tag %></span>
     </div>
   </div>
   <span class="text-midnight-400 mx-auto text-sm mt-3">
