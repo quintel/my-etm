@@ -32,9 +32,8 @@
             run_command: "bundle exec rails server -p %<port>s",
             config_path: "config/settings.local.yml",
             config_content: <<~YAML,
-              idp_url: %<myetm_url>s
-
               identity:
+                issuer: %<myetm_url>s
                 client_id: %<uid>s
                 client_secret: %<secret>s
                 client_uri: %<uri>s
@@ -55,11 +54,10 @@
             run_command: "bundle exec rails server -p %<port>s",
             config_path: "config/settings.local.yml",
             config_content: <<~YAML,
-              idp_url: %<myetm_url>s
               ete_url: %<etengine_url>s
-              ete_id: %<etengine_uid>s
 
               identity:
+                issuer: %<myetm_url>s
                 client_id: %<uid>s
                 client_secret: %<secret>s
                 client_uri: %<uri>s
@@ -94,7 +92,6 @@
               AUTH_CLIENT_ID=%<uid>s
               AUTH_CLIENT_SECRET=%<secret>s
               ETENGINE_CLIENT_ID=%<etengine_uid>s
-
             ENV
           )
         end
