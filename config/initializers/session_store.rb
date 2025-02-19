@@ -1,1 +1,3 @@
-Rails.application.config.session_store(:cookie_store, key: '_myetm')
+# frozen_string_literal: true
+
+Etm::Application.config.session_store :active_record_store, key: "_myetm"
