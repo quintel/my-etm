@@ -4,7 +4,7 @@ class Version < ApplicationRecord
   has_many :collections
 
   validates :tag, presence: true, uniqueness: true
-  validates :url_prefix, presence: true, unless: -> { tag == "latest" }
+  validates :url_prefix, presence: true, unless: -> { tag == "latest" || tag == "local" }
   validate  :one_default
 
   URL = "energytransitionmodel.com".freeze
@@ -21,13 +21,16 @@ class Version < ApplicationRecord
 
   # Find or create the default version
   def self.default
+    return local if Rails.env.development?
     find_by(default: true) || create(default: true, tag: "latest")
   end
 
   # Find or create the local version
   def self.local
     if Rails.env.development?
-      find_by(tag: "local") || create!(tag: "local", url_prefix: 'local')
+      version = find_by(tag: "local") || create!(tag: "local")
+      version.update!(default: true) unless version.default?
+      version
     else
       Version.default
     end
@@ -75,6 +78,8 @@ class Version < ApplicationRecord
   end
 
   def one_default
+    return if Rails.env.development? && tag == "local"
+
     if default && Version.where(default: true).count.positive?
       errors.add(:base, :default, message: "There can only be one default version")
     end

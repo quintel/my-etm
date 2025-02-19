@@ -28,7 +28,7 @@ RSpec.describe MyEtm::Auth do
     end
 
     it 'returns a JWT for the given user' do
-      expect(payload['user']).to eq(user.as_json(only: %i[admin id]))
+      expect(payload['user']).to eq(user.as_json(only: %i[admin id name]))
     end
 
     it 'includes the scopes in the JWT payload' do

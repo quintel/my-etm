@@ -73,6 +73,7 @@ module Identity
       privacy_params = params.require(:user).permit(:private_scenarios)
 
       current_user.update(privacy_params)
+      Identity::SyncUserJob.perform_now(current_user.id)
 
       respond_to do |format|
         format.turbo_stream

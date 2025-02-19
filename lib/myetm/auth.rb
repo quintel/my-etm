@@ -66,7 +66,7 @@ module MyEtm
         iat: Time.now.to_i,
         scopes: scopes,
         sub: user.id,
-        user: user.as_json(only: %i[id admin])
+        user: user.as_json(only: %i[id admin name])
       }
 
       key = signing_key
@@ -79,13 +79,10 @@ module MyEtm
     # Otherwise the configured app scopes are used
     def client_for(user, client_app, scopes: [])
       scopes = scopes.empty? ? client_app.scopes : scopes
+      token = user_jwt(user, scopes: scopes, client_uri: client_app.uri)
 
       Faraday.new(client_app.uri) do |conn|
-        conn.request(
-          :authorization,
-          "Bearer",
-          -> { user_jwt(user, scopes: scopes, client_uri: client_app.uri) }
-        )
+        conn.headers['Authorization'] = "Bearer #{token}"
         conn.request(:json)
         conn.response(:json)
         conn.response(:raise_error)
@@ -97,14 +94,18 @@ module MyEtm
     # If scopes are specified (e.g. from an access token) these scopes are granted
     # Otherwise the configured app scopes are used
     def engine_client(user, version = Version.default, scopes: [])
-      engine = OAuthApplication.find_by(uri: version.engine_url)
-      client_for(user, engine, scopes: scopes)
+      @engine_clients ||= {}
+      @engine_clients[version.id] ||= client_for(user, find_oauth_application(version.engine_url), scopes: scopes)
     end
 
     # Returns a Faraday client for a version of ETModel
     def model_client(user, version = Version.default)
-      model = OAuthApplication.find_by(uri: version.model_url)
-      client_for(user, model)
+      @model_clients ||= {}
+      @model_clients[version.id] ||= client_for(user, find_oauth_application(version.model_url))
+    end
+
+    def find_oauth_application(url)
+      OAuthApplication.find_by("uri LIKE ?", "#{url}%")
     end
   end
 end
