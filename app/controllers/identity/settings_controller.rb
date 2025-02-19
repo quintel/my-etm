@@ -73,7 +73,11 @@ module Identity
       privacy_params = params.require(:user).permit(:private_scenarios)
 
       current_user.update(privacy_params)
-      Identity::SyncUserJob.perform_now(current_user.id)
+      UpdatePrivateScenarios.call_with_user(
+        MyEtm::Auth.engine_client(current_user),
+        current_user,
+        privacy_params[:private_scenarios]
+      )
 
       respond_to do |format|
         format.turbo_stream
