@@ -1,7 +1,14 @@
 module Api
   module V1
     class CollectionsController < BaseController
-      load_and_authorize_resource(class: Collection, only: %i[index show create destroy])
+      check_authorization
+
+      load_and_authorize_resource(class: Collection, only: %i[index show destroy update])
+
+      before_action only: %i[create] do
+        # Only check that the user can create, don't load resource as association is not yet made.
+        authorize!(:create, Collection)
+      end
 
       # GET /api/v1/collections
       def index
@@ -19,13 +26,24 @@ module Api
 
       # POST /api/v1/collections
       def create
-        result = CreateCollection.call(current_user, collection_params)
+        Api::CreateCollection.new.call(
+          user: current_user,
+          params: collection_params.to_h.symbolize_keys
+        ).either(
+          ->(collection)   { render json: collection, status: :created },
+          ->(errors) { render json: errors, status: :unprocessable_entity }
+        )
+      end
 
-        if result.successful?
-          render json: result.value.as_json, status: :created
-        else
-          render json: { errors: result.errors }, status: :unprocessable_entity
-        end
+      # PUT /api/v1/collection/:id
+      def update
+        Api::UpdateCollection.new.call(
+          collection: @collection,
+          params: collection_params.to_h.symbolize_keys
+        ).either(
+          ->(collection)   { render json: collection, status: :ok },
+          ->(errors) { render json: errors, status: :unprocessable_entity }
+        )
       end
 
       # DELETE /api/v1/collections/:id
@@ -40,11 +58,8 @@ module Api
       private
 
       def collection_params
-        params.require(:collection).permit(:title, saved_scenario_ids: [])
-      end
-
-      def create_transition_params
-        params.require(:collection).permit(saved_scenario_ids: [])
+        params.require(:collection)
+          .permit(:title, :area_code, :end_year, :version, saved_scenario_ids: [], scenario_ids: [])
       end
     end
   end
