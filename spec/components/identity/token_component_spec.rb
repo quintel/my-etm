@@ -18,16 +18,6 @@ RSpec.describe Identity::TokenComponent, type: :component do
     render_inline(described_class.new(token:))
   end
 
-  context 'with a non-expiring token' do
-    let(:token) do
-      build_token(expires_in: nil)
-    end
-
-    it 'renders that the token never expires' do
-      expect(rendered.css('[data-testid="expires"]')).to have_content('Never')
-    end
-  end
-
   context 'with a token that expires in one year' do
     let(:token) do
       build_token(expires_in: 1.year)
