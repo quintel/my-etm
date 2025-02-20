@@ -83,7 +83,14 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :collections, only: %i[index show create update destroy]
-      resources :saved_scenarios, only: %i[index show create update destroy]
+      resources :saved_scenarios, only: %i[index show create update destroy] do
+        resources :users, only: %i[index create], controller: 'saved_scenario_users' do
+          collection do
+            put :update
+            delete :destroy
+          end
+        end
+      end
       resources :featured_scenarios, only: %i[index show]
       resources :versions, only: [:index]
     end
