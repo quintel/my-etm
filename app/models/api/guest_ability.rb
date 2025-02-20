@@ -6,9 +6,7 @@ module Api
     include CanCan::Ability
 
     def initialize
-      can :create, SavedScenario
       can :read,   SavedScenario, private: false
-      can :update, SavedScenario, private: false
     end
   end
 end

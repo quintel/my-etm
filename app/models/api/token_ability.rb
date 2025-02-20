@@ -9,7 +9,6 @@ module Api
       scopes = extract_scopes(token)
 
       can :read, SavedScenario, private: false
-      can :read, Collection, private: false
 
       # scenarios:read
       # --------------
@@ -20,7 +19,8 @@ module Api
         id: SavedScenarioUser.where(user_id: user.id, role_id: User::Roles.index_of(:scenario_viewer)..).pluck(:saved_scenario_id)
 
       can :read, Collection,
-        id: Collection.where(user_id: user.id)
+        id: Collection.where(user_id: user.id).pluck(:id)
+
       # scenarios:write
       # ---------------
 
@@ -28,15 +28,6 @@ module Api
 
       can :create, SavedScenario
       can :create, Collection
-
-      # Unowned public scenario/collection
-      can :update, SavedScenario, private: false
-      cannot(:update, SavedScenario, private: false,
-        id: SavedScenarioUser.pluck(:saved_scenario_id))
-
-      can :update, Collection, private: false
-      cannot(:update, Collection, private: false,
-        id: Collection.where(user_id: user.id).pluck(:id))
 
       # Self-owned scenario.
       can :update, SavedScenario,
