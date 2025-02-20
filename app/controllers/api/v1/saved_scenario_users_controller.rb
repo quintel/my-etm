@@ -3,9 +3,14 @@
 module Api
   module V1
     class SavedScenarioUsersController < BaseController
+      check_authorization
 
-      before_action :find_and_authorize_saved_scenario
-      before_action { verify_scopes!(%w[scenarios:delete]) }
+      load_and_authorize_resource :saved_scenario
+
+      before_action only: %i[index] do
+        # For privacy reasons we dont share the emails of all attached users
+        authorize!(:update, SavedScenario)
+      end
 
       def index
         render json: @saved_scenario.saved_scenario_users
@@ -109,13 +114,12 @@ module Api
         errors[user_label] = message
       end
 
-      def find_and_authorize_saved_scenario
-        @saved_scenario = \
-          if current_user.admin?
-            SavedScenario.find(permitted_params[:saved_scenario_id])
-          else
-            current_user.saved_scenarios.find(permitted_params[:saved_scenario_id])
-          end
+      def engine_client
+        MyEtm::Auth.engine_client(
+          current_user,
+          @saved_scenario.version,
+          scopes: doorkeeper_token ? doorkeeper_token.scopes : []
+        )
       end
     end
   end
