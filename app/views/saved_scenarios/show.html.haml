@@ -2,7 +2,7 @@
 - content_for :title, "#{@saved_scenario.localized_title(I18n.locale)} - #{t('saved_scenarios.title')} - #{t('meta.title')}"
 = render(partial: "block_right_menu", locals: { saved_scenario: @saved_scenario })
 
-= render(SavedScenarios::Info::Component.new(path: "#{@saved_scenario.version.model_url}/saved_scenarios/#{@saved_scenario.id}/load", button_title: t('saved_scenarios.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at)))
+= render(SavedScenarios::Info::Component.new(path: "#{@saved_scenario.version.model_url}/saved_scenarios/#{@saved_scenario.id}/load", button_title: t('saved_scenarios.open'), saved_scenario: @saved_scenario, time: time_ago_in_words(@saved_scenario.updated_at), with_user: current_user.present?))
 
 - if flash[:undo_params]
   = render(NoticeBanner::Component.new(path: flash[:undo_params], text: notice_message, button_text: "#{t('undo')}?"))
