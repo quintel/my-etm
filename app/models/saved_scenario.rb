@@ -78,7 +78,6 @@ class SavedScenario < ApplicationRecord
     json.merge("version" => version.tag)
   end
 
-
   def days_until_last_update
     (Time.current - updated_at) / 60 / 60 / 24
   end
