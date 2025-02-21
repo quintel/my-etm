@@ -57,6 +57,11 @@ en:
       no_scenarios: You don't have any scenarios saved to start from.
       start: Start
       title: Create a new transition path
+    new_collection:
+      description: |
+        Create a new collection from your saved scenarios. A collection is a
+        group of scenarios, whereas a transition path is a single scenario that
+        is interpolated to intermediate years.
     no_title: Untitled collection
     open: Open collection
     search_by_title: Filter by title
@@ -116,7 +121,7 @@ en:
     description: |
       Here you can see the history of your saved scenario. A description can be added to each historical version.
       When you are owner of this scenario, you can reset the scenario to an older stage. See the
-      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-history" target=\"_blank\">
       documentation</a> for more information.
     error: Something went wrong updating the history of your scenario
     title: History
@@ -141,7 +146,7 @@ en:
     manage_description: Here you can manage who has access to your scenario and in
       which manner. Click the 'Invite others' button to give someone access to your
       scenario, or use the table above to manage users that are already coupled. <br/><br/>
-      See the <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/"
+      See the <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-manage-access"
       target=\"_blank\"> documentation</a> for more information.
     name: Name
     nameless: Nameless user
@@ -174,6 +179,9 @@ en:
     open: Open
     search_by_title: Filter by title
     title: Saved scenarios
+    owners: Owners
+    collaborators: Collaborators
+    viewers: Viewers
   scenario:
     create_description: Click here to create one.
     discard_changes: Discard changes
@@ -266,6 +274,6 @@ en:
     search_by_name: Search by name
     all: Showing all users (%{count})
   version:
-    latest: |
+    latest_html: |
       This scenario was created in the live version of the ETM
-      which includes all the latest monthly updates. Learn more..
+      which includes all the latest monthly updates. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline hover:text-midnight-800">Learn more..</a>

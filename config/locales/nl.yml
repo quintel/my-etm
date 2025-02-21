@@ -58,6 +58,11 @@ nl:
       no_scenarios: Je hebt geen opgeslagen scenario's om mee te beginnen.
       start: Start
       title: Maak nieuwe transitiepad
+    new_collection:
+      description: |
+        Maak een nieuwe collectie van je opgeslagen scenario's. Een collectie is een
+        groep scenario's, terwijl een transitiepad een enkel scenario is dat wordt
+        geïnterpoleerd naar tussenliggende jaren.
     no_title: Collectie zonder titel
     open: Open collectie
     search_by_title: Filter op titel
@@ -122,9 +127,9 @@ nl:
   flash:
     need_login: Log opnieuw in
   footer:
-    contact_us: Contact Opnemen
+    contact_us: Contact
     privacy: Vertrouwelijkheid
-    terms: Termen
+    terms: Voorwaarden
   helpers:
     label:
       create_personal_access_token_params:
@@ -152,11 +157,11 @@ nl:
   more: Meer...
   saved_scenario_history:
     description: |
-      Here you can see the history of your saved scenario. A description can be added to each historical version.
-      When you are owner of this scenario, you can reset the scenario to an older stage. See the
-      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
-      documentation</a> for more information.
-    error: Something went wrong updating the history of your scenario
+      Hier kun je de geschiedenis van je opgeslagen scenario bekijken. Aan elke historische versie kan een beschrijving worden toegevoegd.
+      Wanneer je de eigenaar van dit scenario bent, kun je het scenario terugzetten naar een oudere versie. Zie de
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target="_blank">
+      documentatie</a> voor meer informatie.
+    error: Er ging iets mis bij het bijwerken van de geschiedenis van je scenario
     title: History
   saved_scenario_users:
     confirm_destroy:
@@ -214,6 +219,9 @@ nl:
     open: Open
     search_by_title: Filter op titel
     title: Opgeslagen scenario's
+    viewers: Gasts
+    owners: Eigenaars
+    collaborators: Bewerkers
   scenario:
     create_description: Klik hier om er één aan te maken.
     discard_changes: Verwijder wijzigingen
@@ -288,6 +296,7 @@ nl:
       dagen.
     title: Prullenbak
     undiscarded_flash: Je scenario is hersteld
+    all: Alle items in de prullenbak
   undo: Ongedaan maken
   user:
     forgot_password:
@@ -306,7 +315,7 @@ nl:
         subject: Reset Je Wachtwoord
     search_by_name: Zoeken op naam
     all: Alle gebruikers weergeven (%{count})
-  version:
+  version_html:
     latest: |
       Dit scenario is gemaakt in de live versie van het ETM die de nieuwste, maandelijkse
-      updates bevat. Meer informatie...
+      updates bevat. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline hover:text-midnight-800">Meer informatie...</a>
