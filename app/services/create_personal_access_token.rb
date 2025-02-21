@@ -31,13 +31,11 @@ class CreatePersonalAccessToken
 
     validates :name, presence: true
     validates :permissions, inclusion: { in: SCOPES.keys }
-    validates :expires_in,
-      numericality: { greater_than: 0, unless: :never_expires? },
-      inclusion: { in: %w[never], message: :invalid, if: :never_expires? }
+    validates :expires_in, numericality: { greater_than: 0 }
 
     def to_oauth_token_params
       {
-        expires_in: never_expires? ? nil : expires_in.to_i.days,
+        expires_in: expires_in.to_i.days,
         scopes:
       }
     end
@@ -52,10 +50,6 @@ class CreatePersonalAccessToken
         email_scope ? "email" : nil,
         profile_scope ? "profile" : nil
       ].compact.join(" ")
-    end
-
-    def never_expires?
-      expires_in == "never"
     end
   end
 

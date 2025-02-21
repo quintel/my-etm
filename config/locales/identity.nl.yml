@@ -193,10 +193,8 @@ nl:
             hint: |
               Dit token kan jouw profielinformatie lezen, waaronder jouw naam.
       expiration_options:
-        never: Nooit
         n_days: "%{n} days"
         one_year: Één jaar
-        never_message: Dit token vervalt nooit!
         expires_at_message: Dit token zal vervallen op %{date}.
 
   doorkeeper:

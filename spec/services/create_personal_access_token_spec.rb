@@ -77,18 +77,6 @@ RSpec.describe CreatePersonalAccessToken do
     end
   end
 
-  context 'with no expiry date' do
-    let(:action) do
-      described_class.call(user:, params: { name: 'API access', expires_in: 'never' })
-    end
-
-    include_examples 'creating a personal access token'
-
-    it 'sets no expiry date' do
-      expect(action.value!.oauth_access_token.expires_in).to be_nil
-    end
-  end
-
   context 'with scopes that are not valid' do
     let(:action) do
       described_class.call(user:, params: { name: 'API access', permissions: 'invalid' })
@@ -231,24 +219,6 @@ RSpec.describe CreatePersonalAccessToken do
 
       it 'has has an error on expires_in' do
         expect(params.errors[:expires_in]).to include('is not a number')
-      end
-    end
-
-    context 'when given expires_in="never"' do
-      let(:attributes) do
-        super().merge(expires_in: 'never')
-      end
-
-      it 'has no error on expires_in' do
-        expect(params.errors[:expires_in]).to be_empty
-      end
-
-      it 'coerces the value to nil' do
-        expect(params.expires_in).to eq('never')
-      end
-
-      it 'sets OAuth expires_at to nil' do
-        expect(params.to_oauth_token_params[:expires_in]).to eq(nil)
       end
     end
 

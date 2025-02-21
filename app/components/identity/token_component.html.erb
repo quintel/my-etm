@@ -84,8 +84,6 @@
         <span class="text-gray-500 font-normal text-sm ml-2">
           (<%= t('time_from_now', time: time_ago_in_words(@access_token.expires_at)) %>)
         </span>
-      <% else %>
-        <%= t('identity.tokens.expiration_options.never') %>
       <% end %>
     </div>
   <% end %>
@@ -97,8 +95,6 @@
         <span class="text-gray-500 font-normal text-sm ml-2">
           (<%= t('time_ago', time: time_ago_in_words(@token.last_used_at)) %>)
         </span>
-      <% else %>
-        <%= t('identity.tokens.expiration_options.never') %>
       <% end %>
     </div>
   <% end %>

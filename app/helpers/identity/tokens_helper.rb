@@ -9,12 +9,7 @@ module Identity
           token_expiration_option("n_days", 30),
           token_expiration_option("n_days", 60),
           token_expiration_option("n_days", 90),
-          token_expiration_option("one_year", 365),
-          [
-            t("identity.tokens.expiration_options.never"),
-            "never",
-            { "data-message" => t("identity.tokens.expiration_options.never_message") }
-          ]
+          token_expiration_option("one_year", 365)
         ],
         value
       )
