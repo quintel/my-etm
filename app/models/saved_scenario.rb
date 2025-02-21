@@ -78,6 +78,12 @@ class SavedScenario < ApplicationRecord
     json.merge("version" => version.tag)
   end
 
+  def private?
+    return private if private
+
+    owner = owners.first&.user
+    owner&.private_scenarios || false
+  end
 
   def days_until_last_update
     (Time.current - updated_at) / 60 / 60 / 24
