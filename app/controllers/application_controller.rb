@@ -9,7 +9,7 @@ class ApplicationController < ActionController::Base
   before_action :store_user_location!, if: :storable_location?
   before_action :set_active_version_tag
 
-  WELCOME_BACK_DATE = 3.seconds.ago
+  WELCOME_BACK_DATE = Date.new(2025, 2, 21)
 
   helper_method :active_version_tag
 
@@ -157,12 +157,13 @@ class ApplicationController < ActionController::Base
   def welcome_back
     return unless current_user
 
-    if current_user.last_sign_in_at.present? && current_user.last_sign_in_at > WELCOME_BACK_DATE
+    if current_user.last_sign_in_at.present? && current_user.last_sign_in_at < WELCOME_BACK_DATE
       return
     end
 
-    return if session[:welcome_back].present? && !session[:welcome_back]
+    return if session[:welcome_back]
 
+    session[:welcome_back] = true
     @not_logged_in_for_a_while = true
   end
 end
