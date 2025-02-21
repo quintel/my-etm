@@ -179,9 +179,9 @@ en:
     open: Open
     search_by_title: Filter by title
     title: Saved scenarios
-    viewer: Viewer
-    owner: Owner
-    collaborator: Collaborator
+    owners: Owners
+    collaborators: Collaborators
+    viewers: Viewers
   scenario:
     create_description: Click here to create one.
     discard_changes: Discard changes
@@ -274,6 +274,6 @@ en:
     search_by_name: Search by name
     all: Showing all users (%{count})
   version:
-    latest: |
+    latest_html: |
       This scenario was created in the live version of the ETM
       which includes all the latest monthly updates. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline hover:text-midnight-800">Learn more..</a>
