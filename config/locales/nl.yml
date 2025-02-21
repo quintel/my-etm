@@ -288,6 +288,7 @@ nl:
       dagen.
     title: Prullenbak
     undiscarded_flash: Je scenario is hersteld
+    all: Alles in de prullenbak
   undo: Ongedaan maken
   user:
     forgot_password:
@@ -310,3 +311,12 @@ nl:
     latest: |
       Dit scenario is gemaakt in de live versie van het ETM die de nieuwste, maandelijkse
       updates bevat. Meer informatie...
+  layouts:
+    welcome_back:
+      title: Welkom bij Mijn Scenarios
+      start: Start met ontdekken
+      description: |
+        Je opgeslagen scenarios en profiel hebben een nieuwe look. Je kunt
+        nog steeds alles doen wat je gewend was met je collecties en scenarios.
+        Alle account opties zijn zoals vanouds beschikbaar. Ben je klaar om het
+        nieuwe jasje van jouw scenarios te bekijken?

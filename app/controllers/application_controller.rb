@@ -9,6 +9,8 @@ class ApplicationController < ActionController::Base
   before_action :store_user_location!, if: :storable_location?
   before_action :set_active_version_tag
 
+  WELCOME_BACK_DATE = Date.new(2025, 2, 21)
+
   helper_method :active_version_tag
 
   rescue_from CanCan::AccessDenied do |_exception|
@@ -147,5 +149,21 @@ class ApplicationController < ActionController::Base
     return unless Version.tags.include?(params[:active_version].to_s)
 
     session[:active_version_tag] = params[:active_version]
+  end
+
+  # Decides whether to show the welcome back message
+  # If the message has been shown, set a session var to make sure we don't
+  # show it again
+  def welcome_back
+    return unless current_user
+
+    if current_user.last_sign_in_at.present? && current_user.last_sign_in_at < WELCOME_BACK_DATE
+      return
+    end
+
+    return if session[:welcome_back]
+
+    session[:welcome_back] = true
+    @not_logged_in_for_a_while = true
   end
 end

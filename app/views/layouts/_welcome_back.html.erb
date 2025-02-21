@@ -1,0 +1,10 @@
+<%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
+  <div class="flex">
+    <%= heroicon 'cursor-arrow-rays', options: {class: 'w-10 h-10 mb-5 mx-auto text-midnight-800'} %>
+  </div>
+  <%= t('.description') %>
+
+  <div class="mt-6 pb-2 flex items-center gap-2">
+    <%= modal.close_link(t('.start'), class: button_classes("text-base", color: :success)) %>
+  </div>
+<% end %>
