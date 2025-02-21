@@ -57,6 +57,11 @@ en:
       no_scenarios: You don't have any scenarios saved to start from.
       start: Start
       title: Create a new transition path
+    new_collection:
+      description: |
+        Create a new collection from your saved scenarios. A collection is a
+        group of scenarios, whereas a transition path is a single scenario that
+        is interpolated to intermediate years.
     no_title: Untitled collection
     open: Open collection
     search_by_title: Filter by title

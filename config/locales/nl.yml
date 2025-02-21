@@ -58,6 +58,11 @@ nl:
       no_scenarios: Je hebt geen opgeslagen scenario's om mee te beginnen.
       start: Start
       title: Maak nieuwe transitiepad
+    new_collection:
+      description: |
+        Maak een nieuwe collectie van je opgeslagen scenario's. Een collectie is een
+        groep scenario's, terwijl een transitiepad een enkel scenario is dat wordt
+        geïnterpoleerd naar tussenliggende jaren.
     no_title: Collectie zonder titel
     open: Open collectie
     search_by_title: Filter op titel
