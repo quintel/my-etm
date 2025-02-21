@@ -37,9 +37,13 @@
     }
     .logo {
       display: inline-block;
-      background-color: #4e98e4;
       padding: 10px;
       border-radius: 5px;
+    }
+    .logo img {
+      display: block;
+      max-width: 100%;
+      height: auto;
     }
   </style>
 </head>
@@ -48,12 +52,12 @@
     <p>Hello!</p>
 
     <p>
-      <%= @inviter_name %> has just invited you to collaborate on the scenario "<%= @saved_scenario_title %>" of the Energy Transition Model as <%=t("scenario_invitation_mailer.roles.#{@new_role}")%>.
+      <%= @inviter_name %> has just invited you to collaborate on the scenario "<%= @saved_scenario_title %>" of the Energy Transition Model as a <%=t("scenario_invitation_mailer.roles.#{@new_role}")%>.
     </p>
 
     <p>
       If you already have an account with
-      <a href="<%= Settings.etmodel_uri %>">https://energytransitionmodel.com/</a>,
+      <a href="<%= Settings.etmodel_uri %>">https://energytransitionmodel.com</a>,
       follow <a href="<%= @saved_scenario_link %>">this link</a> to view the scenario and start collaborating!
     </p>
 
@@ -68,7 +72,9 @@
 
     <div class="logo-container">
       <a class="logo" href="<%= Settings.etmodel_uri %>">
-        <%=email_inline_image_tag("header/logo-round.svg", style: "width: 50px; height: auto")%>
+        <%= email_inline_image_tag("header/logo-round.svg",
+            style: "width: 50px; height: auto; display: inline-block;",
+            alt: "ETM Logo") %>
       </a>
     </div>
   </div>

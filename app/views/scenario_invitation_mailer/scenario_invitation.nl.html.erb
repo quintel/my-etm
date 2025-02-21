@@ -37,9 +37,13 @@
     }
     .logo {
       display: inline-block;
-      background-color: #4e98e4;
       padding: 10px;
       border-radius: 5px;
+    }
+    .logo img {
+      display: block;
+      max-width: 100%;
+      height: auto;
     }
   </style>
 </head>
@@ -53,7 +57,7 @@
 
     <p>
       Als je al een account hebt bij
-      <a href="<%= Settings.etmodel_uri %>">https://energytransitionmodel.com/</a>,
+      <a href="<%= Settings.etmodel_uri %>">https://energytransitionmodel.com</a>,
       volg dan <a href="<%= @saved_scenario_link %>">deze link</a> om het scenario te bekijken en begin met samenwerken!
     </p>
 
@@ -68,7 +72,9 @@
 
     <div class="logo-container">
       <a class="logo" href="<%= Settings.etmodel_uri %>">
-        <%=email_inline_image_tag("header/logo-round.svg", style: "width: 50px; height: auto")%>
+        <%= email_inline_image_tag("header/logo-round.svg",
+            style: "width: 50px; height: auto; display: inline-block;",
+            alt: "ETM Logo") %>
       </a>
     </div>
   </div>
