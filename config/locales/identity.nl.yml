@@ -1,8 +1,8 @@
 ---
 nl:
   select_language: Taal
-  time_from_now: '%{time} from now'
-  time_ago: '%{time} ago'
+  time_from_now: '%{time} van nu'
+  time_ago: '%{time} geleden'
 
   identity:
     cancel: Annuleren
@@ -66,10 +66,11 @@ nl:
         change_email: Wijzig email
         explanation: Wijzig je e-mailadres, wachtwoord of accountinstellingen.
         name_explanation: Deze naam wordt weergegeven bij jouw openbare scenario's.
-        password_explanation: |
+        password_explanation_html: |
           Dit wachtwoord wordt gebruikt om in te loggen. Deel dit wachtwoord nooit met iemand anders:
           als een andere applicatie toegang nodig heeft tot data van jouw account, maak dan een
           persoonlijk toegangstoken aan.
+          <a href="%{tokens_path}">maak een persoonlijk toegangstoken aan</a>.
         profile: Profiel
         settings: Settings
         title: Jouw profiel
@@ -142,6 +143,7 @@ nl:
         tot jouw account of wijzigingen te maken.
       token: Token
       token_shown_briefly: Het volledige token wordt slechts kortstondig getoond!
+      revoke: Intrekken
 
     tokens:
       empty_state:
@@ -193,25 +195,25 @@ nl:
             hint: |
               Dit token kan jouw profielinformatie lezen, waaronder jouw naam.
       expiration_options:
-        n_days: "%{n} days"
+        n_days: "%{n} dagen"
         one_year: Één jaar
         expires_at_message: Dit token zal vervallen op %{date}.
 
   doorkeeper:
     authorizations:
       buttons:
-        authorize: Authorise
-        deny: Deny
+        authorize: Autoriseren
+        deny: Weigeren
       error:
-        title: An error has occurred
+        title: Er is een fout opgetreden
       new:
-        title: Authorisation required
-        prompt: Authorise %{client_name} to use your account?
-        able_to: This application will be able to
+        title: Autorisatie vereist
+        prompt: Autoriseer %{client_name} om je account te gebruiken?
+        able_to: Deze applicatie zal in staat zijn om
       show:
-        title: Authorisation code
+        title: Autorisatiecode
       form_post:
-        title: Submit this form
+        title: Verstuur dit formulier
     flash:
       authorized_applications:
         destroy:
@@ -264,3 +266,28 @@ nl:
             zero: Geen persoonlijke toegangstokens
             one: Één persoonlijk toegangstoken
             other: '%{count} persoonlijke toegangstokens'
+  date:
+    formats:
+      date: "%-d %B %Y"
+    day_names:
+      - zondag
+      - maandag
+      - dinsdag
+      - woensdag
+      - donderdag
+      - vrijdag
+      - zaterdag
+    month_names:
+      - ~  # Leave this empty because months are 1-indexed
+      - januari
+      - februari
+      - maart
+      - april
+      - mei
+      - juni
+      - juli
+      - augustus
+      - september
+      - oktober
+      - november
+      - december
