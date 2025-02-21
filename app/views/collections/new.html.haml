@@ -2,6 +2,9 @@
 - content_for :menu_title, t('collections.new.title')
 = render(partial: "block_right_menu")
 
+.text-readable-width.text-midnight-400.mb-10
+  = t('collections.new_collection.description')
+
 = form_for(@collection, url: create_collections_path, html: { method: :post, class: 'flex flex-col h-full', data: { controller: 'collections' } }) do |f|
   = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5', placeholder: t('collections.new.form.default_title')
