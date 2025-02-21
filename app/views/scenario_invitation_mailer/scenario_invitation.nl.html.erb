@@ -3,43 +3,74 @@
 <head>
   <title>Uitnodigingsemail</title>
   <style>
-    p {font-family: Arial, sans-serif; color: #333;}
-    p a {color: #007BFF; text-decoration: none;}
-    p.light {
+    body {
+      font-family: Arial, sans-serif;
+      color: #333;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .email-container {
+      max-width: 600px;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin: auto;
+    }
+    p {
+      margin: 15px 0;
+      line-height: 1.5;
+    }
+    a {
+      color: #007BFF;
+      text-decoration: none;
+    }
+    .light {
       color: #777;
       font-size: 14px;
-      margin-bottom: 30px;
+      margin-top: 20px;
     }
-
-    .box-around-image {
+    .logo-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .logo {
+      display: inline-block;
       background-color: #4e98e4;
-      padding: 10px 10px 5px;
-      border-radius: 3px;
-      display: block;
-      width: 200px
+      padding: 10px;
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-<p>Hallo!</p>
+  <div class="email-container">
+    <p>Hallo!</p>
 
-<p>
-  <%= @inviter_name %> heeft je zojuist uitgenodigd om samen te werken aan het scenario "<%= @saved_scenario_title %>" van het Energietransitiemodel als <%=t("scenario_invitation_mailer.roles.#{@new_role}")%>.
-</p>
-<p>
-  Als je al een account hebt bij <a href="<%= Settings.etmodel_uri %>">https://energytransitionmodel.com/</a>, volg dan <a href="<%= @saved_scenario_link %>">deze link om het scenario te bekijken</a> en begin met samenwerken!
-</p>
+    <p>
+      <%= @inviter_name %> heeft je zojuist uitgenodigd om samen te werken aan het scenario "<%= @saved_scenario_title %>" van het Energietransitiemodel als <%=t("scenario_invitation_mailer.roles.#{@new_role}")%>.
+    </p>
 
-<p>
-  Als je nog geen account hebt, klik dan <a href="<%= new_user_registration_url %>">hier om je aan te melden</a>.
-</p>
+    <p>
+      Als je al een account hebt bij
+      <a href="<%= Settings.etmodel_uri %>">https://energytransitionmodel.com/</a>,
+      volg dan <a href="<%= @saved_scenario_link %>">deze link</a> om het scenario te bekijken en begin met samenwerken!
+    </p>
 
-<p class="light">
-  Als je deze uitnodiging niet verwachtte, negeer dan deze e-mail.
-</p>
-<a class="box-around-image" href="<%= Settings.etmodel_uri %>">
-  <%=email_inline_image_tag("header/logo-round.svg", style: "width: 50px; height: auto")%>
-</a>
+    <p>
+      Als je nog geen account hebt, klik dan
+      <a href="<%= new_user_registration_url %>">hier om je aan te melden</a>.
+    </p>
 
+    <p class="light">
+      Als je deze uitnodiging niet verwachtte, negeer dan deze e-mail.
+    </p>
+
+    <div class="logo-container">
+      <a class="logo" href="<%= Settings.etmodel_uri %>">
+        <%=email_inline_image_tag("header/logo-round.svg", style: "width: 50px; height: auto")%>
+      </a>
+    </div>
+  </div>
 </body>
 </html>

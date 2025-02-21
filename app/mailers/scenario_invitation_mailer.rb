@@ -18,6 +18,6 @@ class ScenarioInvitationMailer < ApplicationMailer
   private
 
   def saved_scenario_link(saved_scenario_id)
-    "#{Settings.etmodel_uri}/saved_scenarios/#{saved_scenario_id}"
+    "#{Settings.myetm_uri}/saved_scenarios/#{saved_scenario_id}"
   end
 end
