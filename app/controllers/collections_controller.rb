@@ -74,8 +74,10 @@ class CollectionsController < ApplicationController
   #
   # POST /collections/create_transition
   def create_transition
+    version = Version.find_by(tag: create_transition_params[:version]) || Version.default
+
     result = CreateInterpolatedCollection.call(
-      engine_client(Version.find_by(tag: create_transition_params[:version])),
+      engine_client(version),
       current_user.saved_scenarios.find(create_transition_params[:saved_scenario_ids]),
       current_user
     )

@@ -34,7 +34,7 @@ module ApplicationHelper
       etengine_url: etengine_url,
       etmodel_url: Settings.etmodel.uri || "http://YOUR_ETMODEL_URL",
       collections_url: Settings.collections.uri || "http://YOUR_COLLECTIONS_URL",
-      etengine_uid: Doorkeeper::Application.find_by(uri: etengine_url)&.uid || "YOUR_ETEngine_ID"
+      nextauth_secret: SecureRandom.hex(32)
     ))
   end
 
