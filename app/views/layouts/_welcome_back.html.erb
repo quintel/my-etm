@@ -1,6 +1,7 @@
 <%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
-  <%= heroicon 'cake', options: {class: 'w-5 h-5 mb-5 text-midnight-800'} %>
-
+  <div class="flex">
+    <%= heroicon 'cursor-arrow-rays', options: {class: 'w-10 h-10 mb-5 mx-auto text-midnight-800'} %>
+  </div>
   <%= t('.description') %>
 
   <div class="mt-6 pb-2 flex items-center gap-2">
