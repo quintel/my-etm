@@ -313,4 +313,4 @@ nl:
   version:
     latest: |
       Dit scenario is gemaakt in de live versie van het ETM die de nieuwste, maandelijkse
-      updates bevat. Meer informatie...
+      updates bevat. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline hover:text-midnight-800">Meer informatie...</a>
