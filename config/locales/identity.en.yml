@@ -142,7 +142,7 @@ en:
         account.
       token: Token
       token_shown_briefly: The full token will only be shown briefly!
-
+      revoke: Revoke
     token_mailer:
       created_token:
         subject: You created a new token
@@ -274,3 +274,6 @@ en:
             zero: No personal access tokens
             one: One personal access token
             other: '%{count} personal access tokens'
+  date:
+    formats:
+      date: "%B %-d, %Y"

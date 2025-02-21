@@ -122,9 +122,9 @@ nl:
   flash:
     need_login: Log opnieuw in
   footer:
-    contact_us: Contact Opnemen
+    contact_us: Contact
     privacy: Vertrouwelijkheid
-    terms: Termen
+    terms: Voorwaarden
   helpers:
     label:
       create_personal_access_token_params:
@@ -214,6 +214,9 @@ nl:
     open: Open
     search_by_title: Filter op titel
     title: Opgeslagen scenario's
+    viewer: Gast
+    owner: Eigenaar
+    collaborator: Bewerker
   scenario:
     create_description: Klik hier om er één aan te maken.
     discard_changes: Verwijder wijzigingen
@@ -288,6 +291,7 @@ nl:
       dagen.
     title: Prullenbak
     undiscarded_flash: Je scenario is hersteld
+    all: Alle items in de prullenbak
   undo: Ongedaan maken
   user:
     forgot_password:
