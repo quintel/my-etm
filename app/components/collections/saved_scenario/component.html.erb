@@ -10,7 +10,7 @@
     </div>
   </div>
   <div class="ml-auto mr-0 mt-3 text-midnight-400">
-    <% if @saved_scenario.private %>
+    <% if @saved_scenario.private? %>
       <%= render(Hovercard::Component.new(path: '', text: t('scenario.private'))) do %>
         <span><%= heroicon 'eye-slash', options: { class: 'w-4 h-4' } %></span>
       <% end %>
