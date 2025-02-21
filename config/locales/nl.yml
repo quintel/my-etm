@@ -157,11 +157,11 @@ nl:
   more: Meer...
   saved_scenario_history:
     description: |
-      Here you can see the history of your saved scenario. A description can be added to each historical version.
-      When you are owner of this scenario, you can reset the scenario to an older stage. See the
-      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target=\"_blank\">
-      documentation</a> for more information.
-    error: Something went wrong updating the history of your scenario
+      Hier kun je de geschiedenis van je opgeslagen scenario bekijken. Aan elke historische versie kan een beschrijving worden toegevoegd.
+      Wanneer je de eigenaar van dit scenario bent, kun je het scenario terugzetten naar een oudere versie. Zie de
+      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-version-history" target="_blank">
+      documentatie</a> voor meer informatie.
+    error: Er ging iets mis bij het bijwerken van de geschiedenis van je scenario
     title: History
   saved_scenario_users:
     confirm_destroy:
