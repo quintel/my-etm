@@ -19,7 +19,15 @@ module Identity
 
       if result.successful?
         respond_to do |format|
-          format.turbo_stream { render turbo_stream: turbo_stream.replace(@audience.to_s, partial: "identity/newsletter_status_row", locals: { audience: @audience }) }
+          format.turbo_stream {
+            render turbo_stream: turbo_stream.replace(
+              @audience.to_s,
+              Identity::NewsletterStatusRowComponent.new(
+                subscribed: @subscribed,
+                audience: @audience
+              ).render_in(view_context)
+            )
+          }
           format.html { redirect_to identity_profile_path, notice: "Subscription updated." }
         end
       else
