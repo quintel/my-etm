@@ -46,6 +46,10 @@ class Version < ApplicationRecord
     build_url("engine")
   end
 
+  def titleize
+    tag.titleize
+  end
+
   # Serialize versions for API responses
   def as_json(*)
     {
