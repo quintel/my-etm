@@ -22,7 +22,7 @@ blocks:
             - 'docker tag my-etm:latest quintel/my-etm:latest'
             - 'docker push quintel/my-etm:latest'
             - echo $SSH_FINGERPRINT >> ~/.ssh/known_hosts
-            - ssh -i ~/.ssh/id_deploy "${SSH_USER}@${SSH_HOST}" -p $SSH_PORT "cd /var/www/etmodel && ./deploy.sh"
+            - ssh -i ~/.ssh/id_deploy "${SSH_USER}@${SSH_HOST}" -p $SSH_PORT "cd /var/www/my-etm && ./deploy.sh"
       secrets:
         - name: Docker Hub credentials
         - name: Production SSH settings
