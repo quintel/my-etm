@@ -276,4 +276,4 @@ en:
   version:
     latest_html: |
       This scenario was created in the live version of the ETM
-      which includes all the latest monthly updates. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline hover:text-midnight-800">Learn more..</a>
+      which includes all the latest monthly updates. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline mt-5 hover:text-midnight-800">Learn more..</a>
