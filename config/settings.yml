@@ -1,4 +1,4 @@
-# Staff applications – local devlopment
+# Staff applications – local development
 etmodel:
   uri: http://localhost:3001
 etengine:

@@ -1,0 +1,7 @@
+
+etmodel:
+  uri: https://beta.energytransitionmodel.com
+etengine:
+  uri: https://beta.engine.energytransitionmodel.com
+collections:
+  uri: https://myc-beta.energytransitionmodel.com
