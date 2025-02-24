@@ -36,23 +36,15 @@ module Api
       # Fetch the user based on the decoded token or session.
       def current_user
         return @current_user if defined?(@current_user)
-
-        # Manually extract the token from the header
         token_str = request.authorization&.split(" ")&.last
-
-        Rails.logger.info "Extracted Token: #{token_str}"
 
         return nil unless token_str
 
-        # Manually find the access token
-        # token = Doorkeeper::AccessToken.find_by(token: token_str)
         token = Doorkeeper::AccessToken.where("token LIKE ?", "#{token_str[0, 100]}%").first
 
         if token
-          Rails.logger.info "Found Token in DB: #{token.token}"
           @current_user = User.find(token.resource_owner_id)
         else
-          Rails.logger.info "Token NOT found in DB"
           @current_user = nil
         end
       end
