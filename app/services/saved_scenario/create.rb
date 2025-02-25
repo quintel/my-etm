@@ -37,13 +37,15 @@ class SavedScenario::Create
   end
 
   def scenario_id
-    saved_scenario_params['scenario_id']
+    saved_scenario.scenario_id
   end
 
   def saved_scenario_attrs
-    attributes = saved_scenario_params.merge(user: user)
+    attributes = saved_scenario_params.merge(
+      user: user,
+      private: user.private_scenarios
+    )
     attributes['version'] = version
-    attributes['private'] = user.private_scenarios if user.respond_to?(:private_scenarios)
 
     attributes
   end
