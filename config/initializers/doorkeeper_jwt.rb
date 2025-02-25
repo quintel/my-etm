@@ -28,7 +28,7 @@ Doorkeeper::JWT.configure do
       # @see JWT reserved claims - https://tools.ietf.org/html/draft-jones-json-web-token-07#page-7
       jti: SecureRandom.uuid,
       sub: user.id,
-      user: user.as_json(only: %i[id admin email])
+      user: user.as_json(only: %i[id admin email name])
     }.merge(extras)
   end
 
