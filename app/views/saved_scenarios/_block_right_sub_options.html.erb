@@ -1,77 +1,75 @@
-<turbo-frame id="saved-scenario-options-<%= saved_scenario.id %>">
+<%= render(Hovercard::Component.new(
+    path: '',
+    text: t("scenario_bar.private.description.#{saved_scenario.private}")
+  )) do %>
+  <%= render(SavedScenarios::Publish::Component.new(
+    path_on: publish_saved_scenario_path(saved_scenario),
+    path_off: unpublish_saved_scenario_path(saved_scenario),
+    status: saved_scenario.private,
+    title: t("scenario_bar.private.#{saved_scenario.private}"),
+    icon_on:'eye-slash',
+    icon_off: 'eye',
+    available: saved_scenario.collaborator?(current_user) && !saved_scenario.discarded?
+  ))%>
+<% end %>
+<% if current_user&.admin? && !saved_scenario.discarded? %>
+  <%= render(Hovercard::Component.new(
+    path: '',
+    text: t("scenario_bar.featured.description.#{saved_scenario.featured?}")
+  )) do %>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: saved_scenario_feature_path(saved_scenario),
+      title: t("scenario_bar.featured.#{saved_scenario.featured?}"),
+      icon: saved_scenario.featured? ? 'star' : 'sparkles',
+      active: controller_name == 'featured_scenarios',
+      static: true)
+    )%>
+  <% end %>
+<% end %>
+<% if
+  !(current_user&.admin? && saved_scenario.featured?) &&
+  (saved_scenario.collaborator?(current_user) && !saved_scenario.discarded?)%>
   <%= render(Hovercard::Component.new(
       path: '',
-      text: t("scenario_bar.private.description.#{saved_scenario.private}")
+      text: t("scenario_bar.edit.description")
     )) do %>
-    <%= render(SavedScenarios::Publish::Component.new(
-      path_on: publish_saved_scenario_path(saved_scenario),
-      path_off: unpublish_saved_scenario_path(saved_scenario),
-      status: saved_scenario.private,
-      title: t("scenario_bar.private.#{saved_scenario.private}"),
-      icon_on:'eye-slash',
-      icon_off: 'eye',
-      available: saved_scenario.collaborator?(current_user) && !saved_scenario.discarded?
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: edit_saved_scenario_path(saved_scenario),
+      title: t("scenario_bar.edit.title"),
+      icon: 'pencil',
+      static: true,
+      active: action_name == 'edit',
+      data: { turbo: false }
     ))%>
   <% end %>
-  <% if current_user&.admin? && !saved_scenario.discarded? %>
-    <%= render(Hovercard::Component.new(
-      path: '',
-      text: t("scenario_bar.featured.description.#{saved_scenario.featured?}")
-    )) do %>
-      <%= render(SavedScenarios::NavItem::Component.new(
-        path: saved_scenario_feature_path(saved_scenario),
-        title: t("scenario_bar.featured.#{saved_scenario.featured?}"),
-        icon: saved_scenario.featured? ? 'star' : 'sparkles',
-        active: controller_name == 'featured_scenarios',
-        static: true)
-      )%>
-    <% end %>
+<% end %>
+<% if saved_scenario.owner?(current_user)%>
+  <%= render(Hovercard::Component.new(
+    path: '',
+    text: t("scenario_bar.discarded.description.#{saved_scenario.discarded?}", deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)
+  )) do %>
+    <%= render(SavedScenarios::Publish::Component.new(
+      path_on: undiscard_saved_scenario_path(saved_scenario),
+      path_off: discard_saved_scenario_path(saved_scenario),
+      status: saved_scenario.discarded?,
+      title: t("scenario_bar.discarded.#{saved_scenario.discarded?}"),
+      icon_on: 'arrow-uturn-up',
+      icon_off: 'trash',
+      available: saved_scenario.collaborator?(current_user)
+    ))%>
   <% end %>
-  <% if
-    !(current_user&.admin? && saved_scenario.featured?) &&
-    (saved_scenario.collaborator?(current_user) && !saved_scenario.discarded?)%>
-    <%= render(Hovercard::Component.new(
-        path: '',
-        text: t("scenario_bar.edit.description")
-      )) do %>
-      <%= render(SavedScenarios::NavItem::Component.new(
-        path: edit_saved_scenario_path(saved_scenario),
-        title: t("scenario_bar.edit.title"),
-        icon: 'pencil',
-        static: true,
-        active: action_name == 'edit',
-        data: { turbo: false }
-      ))%>
-    <% end %>
+<% end %>
+<% if saved_scenario.owner?(current_user) && saved_scenario.discarded? %>
+  <%= render(Hovercard::Component.new(
+    path: '',
+    text: t("scenario_bar.destroy.description")
+  )) do %>
+    <%= render(SavedScenarios::NavItem::Component.new(
+      path: confirm_destroy_saved_scenario_path(saved_scenario),
+      title: t("scenario_bar.destroy.title"),
+      icon: 'x-mark',
+      static: true,
+      data: { turbo_frame: 'modal' }
+    ))%>
   <% end %>
-  <% if saved_scenario.owner?(current_user)%>
-    <%= render(Hovercard::Component.new(
-      path: '',
-      text: t("scenario_bar.discarded.description.#{saved_scenario.discarded?}", deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)
-    )) do %>
-      <%= render(SavedScenarios::Publish::Component.new(
-        path_on: undiscard_saved_scenario_path(saved_scenario),
-        path_off: discard_saved_scenario_path(saved_scenario),
-        status: saved_scenario.discarded?,
-        title: t("scenario_bar.discarded.#{saved_scenario.discarded?}"),
-        icon_on: 'arrow-uturn-up',
-        icon_off: 'trash',
-        available: saved_scenario.collaborator?(current_user)
-      ))%>
-    <% end %>
-  <% end %>
-  <% if saved_scenario.owner?(current_user) && saved_scenario.discarded? %>
-    <%= render(Hovercard::Component.new(
-      path: '',
-      text: t("scenario_bar.destroy.description")
-    )) do %>
-      <%= render(SavedScenarios::NavItem::Component.new(
-        path: confirm_destroy_saved_scenario_path(saved_scenario),
-        title: t("scenario_bar.destroy.title"),
-        icon: 'x-mark',
-        static: true,
-        data: { turbo_frame: 'modal' }
-      ))%>
-    <% end %>
-  <% end %>
-</turbo-frame>
+<% end %>
