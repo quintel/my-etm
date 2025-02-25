@@ -90,7 +90,7 @@ class FeaturedScenario < ApplicationRecord
     super.merge(
       version: version.tag,
       end_year: end_year,
-      author: owner&.user&.name || "No author"
+      author: owner&.user_name || "No author"
     )
   end
 end
