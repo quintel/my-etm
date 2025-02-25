@@ -157,7 +157,7 @@ class ApplicationController < ActionController::Base
   def welcome_back
     return unless current_user
 
-    if current_user.last_sign_in_at.present? && current_user.last_sign_in_at < WELCOME_BACK_DATE
+    if current_user.last_sign_in_at.present? && current_user.last_sign_in_at > WELCOME_BACK_DATE
       return
     end
 
