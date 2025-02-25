@@ -72,10 +72,10 @@ class Version < ApplicationRecord
 
     case context
     when "collections"
-      "https://#{url_prefix.to_s.chomp('.')}-collections.#{URL}"
+      "https://#{url_prefix.to_s.sub('.', '-')}collections.#{URL}"
     else
       # Convert nil to empty string and ensure proper dot formatting
-      prefix = url_prefix.to_s.presence ? "#{url_prefix.to_s.chomp('.')}." : ""
+      prefix = url_prefix.to_s.presence ? url_prefix : ""
       "https://#{prefix}#{context == 'model' ? '' : "#{context}."}#{URL}"
     end
   end
