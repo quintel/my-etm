@@ -23,7 +23,8 @@ class PassthruController < ApplicationController
       [
         URI.parse(version.model_url).host,
         URI.parse(version.engine_url).host,
-        URI.parse(version.collections_url).host
+        URI.parse(version.collections_url).host,
+        "myc.energytransitionmodel.com"             # TODO: remove this once we have a proper redirect
       ]
     end.compact.uniq
   end
