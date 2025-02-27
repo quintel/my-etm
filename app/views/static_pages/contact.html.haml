@@ -6,7 +6,7 @@
 .text-midnight-450.mb-10= t('contact.contact.description')
 
 = form_for(@message, url: send_message_path, html: { method: :post, class: 'flex flex-wrap' }) do |f|
-  = invisible_captcha :country
+  = invisible_captcha :country, timestamp_enabled: true
 
   .grow.pr-5{class: 'basis-3/4'}
     = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.message'))) do |row|
