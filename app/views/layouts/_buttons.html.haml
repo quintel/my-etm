@@ -1,5 +1,8 @@
 .flex.py-5
   .flex.basis-full{class: 'lg:basis-3/4'}
+    = render(BackButton::Component.new)
     - if cookies[:etm_last_visited_page].present?
-      .bg-gray-100.p-2.px-5.mr-0.ml-auto.rounded-md
-        = link_to t('continue_working'), back_to_etm_path, class: 'continue-button'
+      .mr-5.ml-auto
+        = button_to back_to_etm_path, class: button_classes('flex', color: :gray) do
+          = t('continue_working')
+          = heroicon 'arrow-right', options: {class: 'w-5 h-5 my-auto ml-2'}

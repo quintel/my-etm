@@ -4,6 +4,8 @@ module Admin
     include Pagy::Backend
     include Filterable
 
+    before_action :remember_page, only: %i[index]
+
     # GET /admin/saved_scenarios
     def index
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy_countless(admin_saved_scenarios)

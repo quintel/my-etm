@@ -5,6 +5,7 @@ module Admin
     include Filterable
 
     before_action :set_user, only: %i[confirm update edit]
+    before_action :remember_page, only: %i[index org]
 
     # All admins of the organisation
     def org

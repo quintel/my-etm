@@ -7,6 +7,8 @@ module Admin
   class StaffApplicationsController < ApplicationController
     include AdminController
 
+    before_action :remember_page, only: %i[index]
+
     def index
       @staff_applications = MyEtm::StaffApplications.all
     end

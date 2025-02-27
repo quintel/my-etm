@@ -3,6 +3,7 @@
 # Controller that fetches and updates the scenario versions underlying a saved scenario
 class SavedScenarioHistoryController < ApplicationController
   before_action :assign_saved_scenario
+  before_action :remember_page, only: :index
 
   before_action only: %i[index update] do
     authorize!(:update, @saved_scenario)

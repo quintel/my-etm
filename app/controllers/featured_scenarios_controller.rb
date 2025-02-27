@@ -3,6 +3,7 @@
 # Allows featuring and unfeaturing saved scenarios.
 class FeaturedScenariosController < ApplicationController
   before_action :ensure_admin
+  before_action :remember_page, only: :show
   before_action :set_featured_scenario, only: %i[show update confirm_destroy destroy]
 
   def create

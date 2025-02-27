@@ -166,4 +166,11 @@ class ApplicationController < ActionController::Base
     session[:welcome_back] = true
     @not_logged_in_for_a_while = true
   end
+
+  def remember_page
+    session[:previous_pages] ||= []
+    session[:previous_pages] << url_for(params.to_unsafe_h) if request.get?
+    # Go back max 6 pages
+    session[:previous_pages] = session[:previous_pages].last(6)
+  end
 end

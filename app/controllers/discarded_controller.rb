@@ -1,6 +1,7 @@
 class DiscardedController < ApplicationController
   include Pagy::Backend
   before_action :require_user
+  before_action :remember_page
 
   def index
     discarded_resources = (

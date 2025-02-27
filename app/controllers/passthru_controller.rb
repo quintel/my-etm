@@ -9,6 +9,14 @@ class PassthruController < ApplicationController
     end
   end
 
+  # Back within the application
+  def back
+    if session[:previous_pages].present? && session[:previous_pages].size > 2
+      session[:previous_pages].pop
+      redirect_to session[:previous_pages].pop
+    end
+  end
+
   private
 
   def valid_redirect_url?(url)

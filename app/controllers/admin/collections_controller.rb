@@ -4,6 +4,8 @@ module Admin
     include Pagy::Backend
     include Filterable
 
+    before_action :remember_page, only: %i[index]
+
     def index
       # Include Pagy to paginate @collections or any other resource
       @pagy_collections, @collections = pagy_countless(

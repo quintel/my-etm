@@ -7,6 +7,7 @@ class SavedScenariosController < ApplicationController
 
   before_action :require_user, only: %i[index]
   before_action :welcome_back
+  before_action :remember_page, only: %i[index show edit]
 
   before_action only: %i[publish unpublish] do
     authorize!(:update, @saved_scenario)

@@ -5,6 +5,7 @@
 class SavedScenarioUsersController < ApplicationController
   before_action :assign_saved_scenario
   before_action :assign_saved_scenario_user, only: %i[update confirm_destroy destroy show]
+  before_action :remember_page, only: :index
 
   # Owners are the only ones with destroy rights.
   before_action do
