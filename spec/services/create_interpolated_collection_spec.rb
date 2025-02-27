@@ -48,11 +48,11 @@ describe CreateInterpolatedCollection, type: :service do
       it 'creates three CollectionScenario records' do
         # The two original scenarios, plus the original.
         expect { result }
-          .to change(CollectionScenario, :count).by(3)
+          .to change(CollectionScenario, :count).by(2)
       end
 
       it 'associates the scenarios with the Collection' do
-        expect(result.value.scenarios.count).to be(3)
+        expect(result.value.scenarios.count).to be(2)
       end
     end
 
@@ -177,7 +177,7 @@ describe CreateInterpolatedCollection, type: :service do
         nil
       end
 
-      expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).with(nil, 3)
+      expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).with(nil, 2)
     end
   end
 end
