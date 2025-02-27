@@ -6,7 +6,7 @@
 class CreateInterpolatedCollection
   include Service
 
-  DEFAULT_YEARS = [2023, 2030, 2040].freeze
+  DEFAULT_YEARS = [2030, 2040].freeze
 
   # Public: Creates a new collection and interpolated scenarios.
   #
@@ -21,7 +21,7 @@ class CreateInterpolatedCollection
     @http_client = http_client
     @saved_scenario = saved_scenario
     @user = user
-    @years = (years + [@saved_scenario.end_year]).uniq
+    @years = (years).uniq
   end
 
   # Internal: Creats interpolated scenarios for the chosen years, and the
