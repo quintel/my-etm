@@ -96,13 +96,13 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :collections do
+  resources :collections, only: %i[index show new destroy] do
     collection do
       get :list
       post :list
       get :new_transition
       post :create_transition
-      post :create, as: :create
+      post :create_collection, as: :create
       post :index
     end
 

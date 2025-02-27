@@ -7,7 +7,7 @@ class CollectionsController < ApplicationController
   load_resource only: %i[discard undiscard new_transition create_transition confirm_destroy]
   load_and_authorize_resource only: %i[show new destroy]
 
-  before_action :require_user, only: %i[index create new_transition create_transition]
+  before_action :require_user, only: %i[index create_collection new_transition create_transition]
   before_action :ensure_valid_config
   before_action :welcome_back
 
@@ -94,7 +94,7 @@ class CollectionsController < ApplicationController
     end
   end
 
-  def create
+  def create_collection
     collection = current_user.collections.build(
       title: collection_title,
       version: create_collection_params[:version],
