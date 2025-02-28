@@ -94,7 +94,11 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns the saved scenario' do
-        expect(JSON.parse(response.body)).to eq(saved_scenario.as_json)
+        expect(JSON.parse(response.body)).to eq(saved_scenario.as_json.deep_transform_keys(&:to_s).merge(
+          "saved_scenario_users" => saved_scenario.saved_scenario_users.map do |user|
+            user.as_json.deep_transform_keys(&:to_s).merge("role" => user.role.to_s)
+          end
+        ))
       end
     end
 
