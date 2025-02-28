@@ -5,6 +5,7 @@ module Api
 
       before_action :require_user, only: :index
       load_and_authorize_resource(class: SavedScenario, only: %i[index create show update destroy])
+      before_action :load_saved_scenario, only: :show
 
       # GET /saved_scenarios or /saved_scenarios.json
       def index
@@ -17,15 +18,12 @@ module Api
           render json: saved_scenarios
       end
 
+      # GET /saved_scenarios/:id
       def show
-        saved_scenario = current_user
-          .saved_scenarios
-          .includes(:saved_scenario_users, :users)
-          .find(params.require(:id))
-
-        render json: saved_scenario.as_json.merge(
-          "saved_scenario_users" => saved_scenario.saved_scenario_users.as_json
-        )
+        render json: @saved_scenario.as_json(
+          only: %i[id scenario_id title area_code end_year private version],
+          methods: [:saved_scenario_users]
+        ).merge("saved_scenario_users" => formatted_saved_scenario_users)
       end
 
       # POST api/v1/saved_scenarios
@@ -68,6 +66,32 @@ module Api
       end
 
       private
+
+      # Load scenario with access control
+      def load_saved_scenario
+        @saved_scenario = SavedScenario.includes(:saved_scenario_users, :users).find_by(id: params[:id])
+
+        if @saved_scenario.nil?
+          render json: { error: "Scenario not found" }, status: :not_found
+        elsif !user_has_access?
+          render json: { error: "Unauthorized" }, status: :unauthorized
+        end
+      end
+
+      # Check if user can access the scenario
+      def user_has_access?
+        return true if !@saved_scenario.private?
+        return false unless current_user
+
+        @saved_scenario.users.include?(current_user)
+      end
+
+      # Format saved_scenario_users output
+      def formatted_saved_scenario_users
+        @saved_scenario.saved_scenario_users.map do |ssu|
+          { "user_id" => ssu.user_id, "role" => ssu.role }
+        end
+      end
 
       # Only allow a list of trusted parameters through.
       def saved_scenario_params
