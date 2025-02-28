@@ -15,7 +15,7 @@ module CreateStaffApplication
     parsed_uri = parse_and_normalize_uri(uri || staff_app.application&.uri || app_config.uri)
 
     # Check if an application with this URI already exists
-    app = Doorkeeper::Application.find_by(uri: parsed_uri.to_s) ||
+    app = OAuthApplication.find_by(uri: parsed_uri.to_s) ||
           staff_app.application ||
           user.oauth_applications.new
 
