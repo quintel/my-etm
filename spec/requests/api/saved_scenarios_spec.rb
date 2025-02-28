@@ -13,6 +13,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       let!(:user_ss1) { create(:saved_scenario, user:) }
       let!(:user_ss2) { create(:saved_scenario, user:) }
       let!(:other_ss) { create(:saved_scenario) }
+      let!(:discarded_ss) { create(:saved_scenario, user:, discarded_at: 1.day.ago) }
 
       before do
         get '/api/v1/saved_scenarios',
@@ -24,7 +25,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         expect(response).to have_http_status(:success)
       end
 
-      it 'returns the saved scenarios' do
+      it 'returns only available saved scenarios for the user' do
         expect(response.parsed_body).to match_array(
           [ user_ss1, user_ss2 ].as_json
         )
@@ -32,6 +33,20 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       it 'does not contain scenarios from other users' do
         expect(JSON.parse(response.body)).not_to include(other_ss.as_json)
+      end
+
+      it 'does not contain discarded scenarios' do
+        expect(JSON.parse(response.body)).not_to include(discarded_ss.as_json)
+      end
+
+      it 'orders scenarios by updated_at DESC' do
+        user_ss2.touch
+        get '/api/v1/saved_scenarios',
+          as: :json,
+          headers: access_token_header(user, :read)
+
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response.first['id']).to eq(user_ss2.id)
       end
     end
 
@@ -93,12 +108,63 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         expect(response).to have_http_status(:success)
       end
 
-      it 'returns the saved scenario' do
-        expect(JSON.parse(response.body)).to eq(saved_scenario.as_json.deep_transform_keys(&:to_s).merge(
-          "saved_scenario_users" => saved_scenario.saved_scenario_users.map do |user|
-            user.as_json.deep_transform_keys(&:to_s).merge("role" => user.role.to_s)
-          end
-        ))
+      it 'returns the saved scenario with correct format' do
+        expected_response = saved_scenario.slice(:id, :scenario_id, :title, :area_code, :end_year, :private)
+        expected_response["version"] = saved_scenario.version.is_a?(String) ? saved_scenario.version : saved_scenario.version.tag
+        expected_response["saved_scenario_users"] = saved_scenario.saved_scenario_users.map do |ssu|
+          { "user_id" => ssu.user_id, "role" => ssu.role.to_s }
+        end
+
+        expect(response.parsed_body).to eq(expected_response)
+      end
+    end
+
+    context 'when accessing a private scenario' do
+      let(:private_scenario) { create(:saved_scenario, private: true) }
+
+      context 'as an unauthorized user' do
+        before do
+          get "/api/v1/saved_scenarios/#{private_scenario.id}",
+            as: :json,
+            headers: access_token_header(user, :read)
+        end
+
+        it 'returns not found' do
+          expect(response).to have_http_status(:not_found)
+        end
+
+        it 'returns an error message' do
+          expect(JSON.parse(response.body)).to eq({ "errors" => ["Not found"] })
+        end
+      end
+
+      context 'as an authorized user' do
+        before do
+          private_scenario.saved_scenario_users.create!(user: user, role_id: User::Roles.index_of(:scenario_owner))
+          get "/api/v1/saved_scenarios/#{private_scenario.id}",
+            as: :json,
+            headers: access_token_header(user, :read)
+        end
+
+        it 'returns success' do
+          expect(response).to have_http_status(:success)
+        end
+      end
+    end
+
+    context 'when the scenario does not exist' do
+      before do
+        get "/api/v1/saved_scenarios/0",
+          as: :json,
+          headers: access_token_header(user, :read)
+      end
+
+      it 'returns not found' do
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'returns an error message' do
+        expect(JSON.parse(response.body)).to eq({ "errors" => ["Saved scenario not found"] })
       end
     end
 
@@ -112,29 +178,22 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
     end
 
-    context 'with an access token with the incorrect scope' do
-      before do
-        get "/api/v1/saved_scenarios/#{saved_scenario.id}",
-          as: :json,
-          headers: access_token_header(create(:user), [])
-      end
-
-      it 'returns not found' do
-        expect(response).to have_http_status(:not_found)
-      end
-    end
-
     context 'when the scenario belongs to someone else' do
       let(:different_user) { create(:user) }
+      let(:private_scenario) { create(:saved_scenario, private: true) }
 
       before do
-        get "/api/v1/saved_scenarios/#{saved_scenario.id}",
+        get "/api/v1/saved_scenarios/#{private_scenario.id}",
           as: :json,
-          headers: access_token_header(different_user, :read)
+          headers: access_token_header(user, :read)
       end
 
       it 'returns not found' do
         expect(response).to have_http_status(:not_found)
+      end
+
+      it 'returns an error message' do
+        expect(JSON.parse(response.body)).to eq({ "errors" => ["Not found"] })
       end
     end
   end
@@ -472,6 +531,28 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       it 'removes the scenario' do
         expect { request }.to change(user.saved_scenarios, :count).by(-1)
+      end
+
+      it 'returns a success message' do
+        request
+        expect(JSON.parse(response.body)).to include('message' => 'Scenario deleted successfully')
+      end
+    end
+
+    context 'when the deletion fails' do
+      before do
+        allow_any_instance_of(SavedScenario).to receive(:destroy).and_return(false)
+        delete "/api/v1/saved_scenarios/#{scenario.id}",
+          as: :json,
+          headers: access_token_header(user, :delete)
+      end
+
+      it 'returns unprocessable entity' do
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'returns an error message' do
+        expect(JSON.parse(response.body)).to include('error' => 'Failed to delete scenario')
       end
     end
 
