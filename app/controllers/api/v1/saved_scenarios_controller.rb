@@ -18,7 +18,14 @@ module Api
       end
 
       def show
-        render json: current_user.saved_scenarios.find(params.require(:id))
+        saved_scenario = current_user
+          .saved_scenarios
+          .includes(:saved_scenario_users, :users)
+          .find(params.require(:id))
+
+        render json: saved_scenario.as_json.merge(
+          "saved_scenario_users" => saved_scenario.saved_scenario_users.as_json
+        )
       end
 
       # POST api/v1/saved_scenarios
