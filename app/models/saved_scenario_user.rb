@@ -16,7 +16,7 @@ class SavedScenarioUser < ApplicationRecord
   def as_json(*)
     params = super
 
-    params[:role] = User::Roles.name_for(role_id)
+    params["role"] = User::Roles.name_for(role_id).to_s
     params.except(:role_id)
   end
 
