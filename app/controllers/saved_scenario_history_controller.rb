@@ -72,14 +72,27 @@ class SavedScenarioHistoryController < ApplicationController
     )
 
     if result.successful?
+      version_tags_result = ApiScenario::VersionTags::FetchAll.call(
+        engine_client(@saved_scenario.version),
+        @saved_scenario
+      )
+      if version_tags_result.successful?
+        @history = SavedScenarioHistoryPresenter.present(@saved_scenario, version_tags_result.value)
+      else
+        @history = []
+      end
+
       respond_to do |format|
         format.turbo_stream do
-          render turbo_stream: turbo_remove_components(old_history_ids)
+          render turbo_stream: turbo_stream.replace(
+            "history_list",
+            partial: "saved_scenario_history/history_list",
+            locals: { history: @history, saved_scenario: @saved_scenario }
+          )
         end
       end
     else
       flash[:alert] = "#{t('saved_scenario_history.error')}"
-
       respond_to do |format|
         format.turbo_stream do
           render turbo_stream: turbo_alert
@@ -141,11 +154,5 @@ class SavedScenarioHistoryController < ApplicationController
       "scenario_#{historical_version.scenario_id}",
       history_component(historical_version)
     )
-  end
-
-  def turbo_remove_components(old_history_ids)
-    old_history_ids.map do |scenario_id|
-      turbo_stream.remove("scenario_#{scenario_id}")
-    end
   end
 end
