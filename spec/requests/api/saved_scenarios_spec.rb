@@ -108,14 +108,16 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         expect(response).to have_http_status(:success)
       end
 
-      it 'returns the saved scenario with correct format' do
-        expected_response = saved_scenario.slice(:id, :scenario_id, :title, :area_code, :end_year, :private)
-        expected_response["version"] = saved_scenario.version.is_a?(String) ? saved_scenario.version : saved_scenario.version.tag
-        expected_response["saved_scenario_users"] = saved_scenario.saved_scenario_users.map do |ssu|
+      it 'contains the history' do
+        expect(response.parsed_body).to include({ "scenario_id_history" => [] })
+      end
+
+      it 'contains the users' do
+        users = saved_scenario.saved_scenario_users.map do |ssu|
           { "user_id" => ssu.user_id, "role" => ssu.role.to_s }
         end
 
-        expect(response.parsed_body).to eq(expected_response)
+        expect(response.parsed_body).to include({ "saved_scenario_users" => users })
       end
     end
 

@@ -19,10 +19,7 @@ module Api
 
       # GET /saved_scenarios/:id
       def show
-        render json: @saved_scenario.as_json(
-          only: %i[id scenario_id title area_code end_year private version],
-          methods: [:saved_scenario_users]
-        ).merge("saved_scenario_users" => formatted_saved_scenario_users)
+        render json: @saved_scenario
       end
 
       # POST api/v1/saved_scenarios
@@ -65,21 +62,6 @@ module Api
       end
 
       private
-
-      # Check if user can access the scenario
-      def user_has_access?
-        return true if !@saved_scenario.private?
-        return false unless current_user
-
-        @saved_scenario.users.include?(current_user)
-      end
-
-      # Format saved_scenario_users output
-      def formatted_saved_scenario_users
-        @saved_scenario.saved_scenario_users.map do |ssu|
-          { "user_id" => ssu.user_id, "role" => ssu.role }
-        end
-      end
 
       # Only allow a list of trusted parameters through.
       def saved_scenario_params
