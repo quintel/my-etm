@@ -4,59 +4,60 @@
   class="
     toast
     backdrop-blur-sm
-    bg-gray-900/[.85]
+    bg-midnight-940/[.85]
     bottom-4
     duration-500
     max-w-sm
     fixed
     flex
-    pl-6
-    pr-10
-    py-4
+    flex-col
+    pl-5
+    pb-5
     right-4
     rounded-md
-    text-gray-200
+    shadow-md
+    text-midnight-800
     transition
     z-[9999]
   "
 >
-  <% if @type == :alert %>
-    <%= heroicon 'exclamation-triangle', options: {class: 'w-6 h-6 mr-2'}  %>
-  <% else %>
-    <%= heroicon 'exclamation-circle', options: {class: 'w-6 h-6 mr-2'} %>
-  <% end %>
-  <div>
-    <% if @title %>
-      <div class="text-base text-gray-200 font-medium">
-        <%= @title %>
-      </div>
-      <div class="text-sm text-gray-350">
-        <%= @message %>
-      </div>
+  <button
+    aria-label="Close"
+    data-action="click->toast#close"
+    class="
+      pt-1
+      pr-1
+      ml-auto
+      mr-0
+      right-1
+      rounded
+      text-midnight-300
+      top-1
+      transition
+      hover:text-midnight-800
+    "
+  >
+    <%= heroicon 'x-mark', options: {class: 'w-5 h-5'} %>
+  </button>
+  <div class="flex pr-7">
+    <% if @type == :alert %>
+      <%= heroicon 'exclamation-triangle', options: {class: 'w-6 h-6 mr-2'}  %>
     <% else %>
-      <div class="text-sm text-gray-200 font-medium mt-0.5">
-        <%= @message %>
-      </div>
+      <%= heroicon 'exclamation-circle', options: {class: 'w-6 h-6 mr-2'} %>
     <% end %>
-    <button
-      aria-label="Close"
-      data-action="click->toast#close"
-      class="
-        absolute
-        hiadden
-        p-0.5
-        right-1
-        rounded
-        text-gray-350
-        top-1
-        transition
-        hover:bg-gray-600
-        hover:text-gray-200
-        active:bg-gray-700
-        active:text-gray-300
-      "
-    >
-      <%= heroicon 'x-circle', options: {class: 'w-8 h-8 mr-2'} %>
-    </button>
+    <div>
+      <% if @title %>
+        <div class="text-base text-midnight-450">
+          <%= @title %>
+        </div>
+        <div class="text-sm text-midnight-800">
+          <%= @message %>
+        </div>
+      <% else %>
+        <div class="text-sm text-midnight-800 mt-0.5">
+          <%= @message %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
