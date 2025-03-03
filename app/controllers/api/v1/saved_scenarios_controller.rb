@@ -5,7 +5,6 @@ module Api
 
       before_action :require_user, only: :index
       load_and_authorize_resource(class: SavedScenario, only: %i[index create show update destroy])
-      before_action :load_saved_scenario, only: :show
 
       # GET /saved_scenarios or /saved_scenarios.json
       def index
@@ -66,17 +65,6 @@ module Api
       end
 
       private
-
-      # Load scenario with access control
-      def load_saved_scenario
-        @saved_scenario = SavedScenario.includes(:saved_scenario_users, :users).find_by(id: params[:id])
-
-        if @saved_scenario.nil?
-          render json: { error: "Scenario not found" }, status: :not_found
-        elsif !user_has_access?
-          render json: { error: "Unauthorized" }, status: :unauthorized
-        end
-      end
 
       # Check if user can access the scenario
       def user_has_access?
