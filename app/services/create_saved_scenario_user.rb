@@ -63,7 +63,8 @@ class CreateSavedScenarioUser
       {
         id: saved_scenario.id,
         title: saved_scenario.title
-      }
+      },
+      name: saved_scenario_user.name
     ).deliver_now
   end
 

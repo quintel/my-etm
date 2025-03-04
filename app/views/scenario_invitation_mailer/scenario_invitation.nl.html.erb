@@ -5,78 +5,130 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      color: #333;
-      background-color: #f9f9f9;
+      color: #462c34;
+      background-color: #fdfdfd;
       margin: 0;
       padding: 20px;
     }
-    .email-container {
+    .container {
       max-width: 600px;
-      background: #ffffff;
-      padding: 20px;
+      margin: 0 auto;
+      background-color: #fbf7f6;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin: auto;
+      padding: 40px;
     }
-    p {
-      margin: 15px 0;
-      line-height: 1.5;
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 300;
+      color: #462c34;
+    }
+    .header p {
+      font-size: 16px;
+      color: rgb(125, 118, 115);
+    }
+    .btn-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #4e7be4;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: all 0.5s ease;
+    }
+    .btn:hover {
+      background-color: #89a9ec;
+    }
+
+    .btn-2 {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #fdece0;
+      color: #462c34;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: all 0.5s ease;
+    }
+    .btn-2:hover {
+      background-color: rgb(125, 118, 115);
+      color: #fbf7f6;
     }
     a {
-      color: #007BFF;
+      color: #4e7be4;
       text-decoration: none;
     }
     .light {
-      color: #777;
+      color: #aba8a7;
       font-size: 14px;
-      margin-top: 20px;
+      margin-top: 3rem;
+      text-align: center;
     }
     .logo-container {
-      text-align: center;
-      margin: 20px 0;
+      height: 50px;
+      display: flex;
+      color: #462c34;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      margin-bottom: 2rem;
+    }
+    .logo-container h2 {
+      font-weight: 300;
+      font-size: 16px;
     }
     .logo {
-      display: inline-block;
-      padding: 10px;
-      border-radius: 5px;
+      height: 33px;
+      filter: brightness(0.25);
     }
-    .logo img {
-      display: block;
-      max-width: 100%;
-      height: auto;
+    .dark {
+      color: #462c34;
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
-  <div class="email-container">
-    <p>Hallo!</p>
-
-    <p>
-      <%= @inviter_name %> heeft je zojuist uitgenodigd om samen te werken aan het scenario "<%= @saved_scenario_title %>" van het Energietransitiemodel als <%=t("scenario_invitation_mailer.roles.#{@new_role}")%>.
-    </p>
-
-    <p>
-      Als je al een account hebt bij
-      <a href="<%= Settings.etmodel_uri %>">https://energytransitionmodel.com</a>,
-      volg dan <a href="<%= @saved_scenario_link %>">deze link</a> om het scenario te bekijken en begin met samenwerken!
-    </p>
-
-    <p>
-      Als je nog geen account hebt, klik dan
+  <div class="container">
+    <div class="header">
+      <div class="logo-container">
+        <%= email_inline_image_tag("header/logo-round.svg",
+            class: "logo",
+            alt: "ETM Logo") %>
+        <h2><%=I18n.t('meta.title')%></h2>
+      </div>
+      <% if @name.blank? %>
+        <h1>Hallo!</h1>
+      <% else %>
+       <h1>Hallo <%= @name %>!</h1>
+      <% end %>
+      <p>
+        <%= @inviter_name %> heeft je zojuist uitgenodigd om samen te werken aan het scenario <span class="dark"><%= @saved_scenario_title %></span> van het Energietransitiemodel als <span class="dark"><%=t("scenario_invitation_mailer.roles.#{@new_role}")%></span>.
+      </p>
+    </div>
+    <div class="btn-container">
+      <a href="<%= @saved_scenario_link %>" class="btn">Begin met samenwerken</a>
+    </div>
+    <% if @name.blank? %>
+      <p class="light">
+        Als je nog geen account hebt, klik dan
       <a href="<%= new_user_registration_url %>">hier om je aan te melden</a>.
-    </p>
+      </p>
+      <div class="btn-container">
+        <a href="<%= new_user_registration_url %>" class="btn-2">Account aanmaken</a>
+      </div>
+    <% end %>
 
     <p class="light">
       Als je deze uitnodiging niet verwachtte, negeer dan deze e-mail.
     </p>
-
-    <div class="logo-container">
-      <a class="logo" href="<%= Settings.etmodel_uri %>">
-        <%= email_inline_image_tag("header/logo-round.svg",
-            style: "width: 50px; height: auto; display: inline-block;",
-            alt: "ETM Logo") %>
-      </a>
-    </div>
   </div>
 </body>
 </html>

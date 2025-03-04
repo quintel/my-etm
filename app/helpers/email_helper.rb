@@ -4,10 +4,9 @@ module EmailHelper
 
     unless attachment
       image_path = Rails.root.join("app/assets/images/#{image}")
-      attachment = attachments.inline[image] = File.read(image_path)
+      attachments.inline[image] = File.read(image_path)
     end
 
-    image_url = attachment.include?('@') ? "cid:#{attachment.split('@').first}" : "cid:#{attachment}"
-    image_tag(image_url, **options)
+    image_tag(attachments[image].url, **options)
   end
 end

@@ -1,11 +1,12 @@
 class ScenarioInvitationMailer < ApplicationMailer
   helper(EmailHelper)
 
-  def invite_user(email, inviter_name, new_role, saved_scenario_details)
+  def invite_user(email, inviter_name, new_role, saved_scenario_details, name: '')
     @inviter_name = inviter_name
     @saved_scenario_link = saved_scenario_link(saved_scenario_details[:id])
     @saved_scenario_title = saved_scenario_details[:title]
     @new_role = new_role
+    @name = name
 
     mail(
       to: email,
