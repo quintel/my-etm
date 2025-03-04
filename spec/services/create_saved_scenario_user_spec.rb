@@ -37,7 +37,8 @@ describe CreateSavedScenarioUser, type: :service do
           "user@example.com",
           "John Doe",
           User::ROLES[1],
-          { id: 123, title: "Test Scenario" }
+          { id: 123, title: "Test Scenario" },
+          name: nil
         )
       end
 
