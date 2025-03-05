@@ -168,32 +168,32 @@ class SavedScenariosController < ApplicationController
 
   private
 
-    def user_saved_scenarios
-      current_user
-        .saved_scenarios
-        .available
-        .includes(:featured_scenario, :users)
-        .order("updated_at DESC")
-    end
+  def user_saved_scenarios
+    current_user
+      .saved_scenarios
+      .available
+      .includes(:featured_scenario, :users)
+      .order("updated_at DESC")
+  end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_saved_scenario
-      @saved_scenario = SavedScenario.find(params[:id])
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_saved_scenario
+    @saved_scenario = SavedScenario.find(params[:id])
+  end
 
-    # Only allow a list of trusted parameters through.
-    def saved_scenario_params
-      params.require(:saved_scenario).permit(
-        :scenario_id, :scenario_id_history, :title,
-        :description, :area_code, :end_year, :private,
-        :created_at, :updated_at, :discarded_at
-      )
-    end
+  # Only allow a list of trusted parameters through.
+  def saved_scenario_params
+    params.require(:saved_scenario).permit(
+      :scenario_id, :scenario_id_history, :title,
+      :description, :area_code, :end_year, :private,
+      :created_at, :updated_at, :discarded_at
+    )
+  end
 
-    # Only allow a list of trusted parameters through.
-    def saved_scenario_update_params
-      params.require(:saved_scenario).permit(
-        :title, :description
-      )
-    end
+  # Only allow a list of trusted parameters through.
+  def saved_scenario_update_params
+    params.require(:saved_scenario).permit(
+      :title, :description
+    )
+  end
 end

@@ -5,7 +5,7 @@ class CollectionsController < ApplicationController
   include Filterable
 
   load_resource only: %i[discard undiscard new_transition create_transition confirm_destroy]
-  load_and_authorize_resource only: %i[show new destroy]
+  load_and_authorize_resource only: %i[show new destroy update]
 
   before_action :require_user, only: %i[index create_collection new_transition create_transition]
   before_action :ensure_valid_config
@@ -51,6 +51,14 @@ class CollectionsController < ApplicationController
 
     respond_to do |format|
       format.html { render layout: 'application' }
+    end
+  end
+
+  def update
+    if @collection.update(update_collection_params)
+      render json: { success: true }
+    else
+      render json: { success: false, errors: @collection.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
@@ -174,6 +182,10 @@ class CollectionsController < ApplicationController
 
     redirect_to root_path,
       notice: 'Missing collections.uri setting in config.yml'
+  end
+
+  def update_collection_params
+    params.require(:collection).permit(:title)
   end
 
   def create_collection_params
