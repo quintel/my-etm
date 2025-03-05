@@ -1,9 +1,9 @@
 <%- content_for :menu_title do %>
-  <span contenteditable="true"
-        class="relative hover:underline hover:decoration-gray-400 hover:decoration-1 focus:outline-none"
+  <span contenteditable="<%= can?(:update, @collection) %>"
+        class="relative <%= 'hover:underline hover:decoration-gray-400 hover:decoration-1 focus:outline-none' if can?(:update, @collection) %>"
         data-controller="editable-title"
         data-editable-title-url-value="<%= collection_path(@collection) %>"
-        data-action="blur->editable-title#update keydown.enter->editable-title#update">
+        data-action="<%= 'blur->editable-title#update keydown.enter->editable-title#update' if can?(:update, @collection) %>">
     <%= @collection.title %>
   </span>
 <% end %>
