@@ -71,6 +71,7 @@ class CollectionsController < ApplicationController
   end
 
   def show
+    @editable = @collection.user == current_user
     respond_to do |format|
       format.html { render layout: 'application' }
     end
