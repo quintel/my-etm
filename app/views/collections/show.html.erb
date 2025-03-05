@@ -1,4 +1,12 @@
-<%- content_for :menu_title, @collection.title %>
+<%- content_for :menu_title do %>
+  <span contenteditable="true"
+        class="relative hover:underline hover:decoration-gray-400 hover:decoration-1 focus:outline-none"
+        data-controller="editable-title"
+        data-editable-title-url-value="<%= collection_path(@collection) %>"
+        data-action="blur->editable-title#update keydown.enter->editable-title#update">
+    <%= @collection.title %>
+  </span>
+<% end %>
 <%- content_for :title, "#{@collection.title} - #{t('collections.title')} - #{t('meta.title')}" %>
 <%= render(partial: "collections/show/block_right_menu", locals: { collection: @collection })%>
 

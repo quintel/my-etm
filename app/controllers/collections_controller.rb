@@ -54,6 +54,16 @@ class CollectionsController < ApplicationController
     end
   end
 
+  def update
+    @collection = Collection.find(params[:id])
+
+    if @collection.update(create_collection_params)
+      render json: { success: true }
+    else
+      render json: { success: false, errors: @collection.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   # Create a new collection from an interpolation of a saved scenario
   #
   # GET /collections/new_transition
