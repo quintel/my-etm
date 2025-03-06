@@ -66,7 +66,7 @@ module MyEtm
         iat: Time.now.to_i,
         scopes: scopes,
         sub: user.id,
-        user: user.as_json(only: %i[id admin name])
+        user: user.as_json(only: %i[id admin email name])
       }
 
       key = signing_key
