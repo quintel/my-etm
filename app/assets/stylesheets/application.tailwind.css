@@ -19,7 +19,7 @@
   }
 
   .text-readable-width {
-    width: 60rem;
+    max-width: 60rem;
   }
 
   .button {
@@ -61,6 +61,7 @@
     @apply text-midnight-800;
     @apply bg-transparent;
     @apply hover:bg-midnight-940;
+    @apply hover:text-midnight-800;
   }
 
   .logo {

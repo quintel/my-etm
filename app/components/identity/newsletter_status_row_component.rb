@@ -3,6 +3,7 @@
 module Identity
   class NewsletterStatusRowComponent < ApplicationComponent
     include ButtonHelper
+    include Turbo::FramesHelper
 
     def initialize(subscribed:, audience:)
       @subscribed = subscribed
