@@ -9,169 +9,23 @@ en:
         password: Password
         password_confirmation: Re-enter password
         unconfirmed_email: New e-mail address
-        name: Your name
-  scenario_invitation_mailer:
-    invite_user:
-      subject: 'Invitation: ETM scenario'
-    roles:
-      scenario_viewer: viewer
-      scenario_collaborator: collaborator
-      scenario_owner: owner
-  sidebar:
-    saved_scenarios: Scenarios
-    collections: Collections
-    discarded: Trash
-    profile: My profile
-    admin: Admin
-  scenario_bar:
-    info: Info
-    history: History
-    manage_access: Manage access
-    edit:
-      title: Edit
-      description: Edit the title and description of this scenario
-    discarded:
-      true: Restore
-      false: Discard
-      description:
-        true: Restore from the trash bin
-        false: Move to trash. After %{deleted_after} days it will be permanently destroyed.
-    private:
-      true: Private
-      false: Public
-      description:
-        true: Only people with access can view or copy this scenario
-        false: |
-          Anyone can view or copy this scenario, but only people with access can make changes
-    featured:
-      true: Featured
-      false: Make this featured
-      description:
-        true: This scenario has been featured on a home page. Edit settings here.
-        false: Feature this scenario on the home page
-    destroy:
-      title: Delete permanently
-      description: Permanently delete this scenario.
-  scenario:
-    succesful_update: Your scenario was succesfully updated
-    title: Title
-    save: Save
-    private: This scenario has been made private by the owner
-    discard_changes: Discard changes
-    no_description: This scenario has no description.
-    create_description: Click here to create one.
-  saved_scenario_users:
-      manage_description:
-        Here you can manage who has access to your scenario and in which manner.
-        Click the 'Invite others' button to give someone access to your scenario,
-        or use the table above to manage users that are already coupled. <br/><br/>
-        See the
-        <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-manage-access/" target=\"_blank\">
-        documentation</a> for more information.
-      invite: 'Invite others'
-      send_invite: Send invite
-      name: 'Name'
-      role: 'Role'
-      you: 'you'
-      unknown: 'Unknown user'
-      nameless: 'Nameless user'
-      roles:
-        scenario_owner: 'Owner'
-        scenario_collaborator: 'Collaborator'
-        scenario_viewer: 'Viewer'
-        pending: 'Pending'
-      new:
-        title: 'Give someone access to your scenario'
-        new_email_hint:
-          If no existing user can be found for the given email address we will send an email
-          inviting this person to create an account for the ETM.
-        email: 'Email address'
-        role: Role
-        role_hint: Pick the type of access you want to grant.
-      confirm_destroy:
-        irreversible: This action is irreversible
-        warning: "You are about to revoke %{role} access."
-        confirm: 'Confirm'
-        cancel: 'Cancel'
-        not_possible: 'You can not revoke your own access.'
-        button: 'Revoke access'
-      errors:
-        create: Something went wrong while trying create the invite!
-        base: Please enter an email address.
-        user_email: The e-mail address you entered was invalid.
-        update: Something went wrong while trying to update this role!
-        destroy: Something went wrong while trying to remove the user from the scenario!
-        general: Please try again later. If you keep getting this error, please contact us.
-        duplicate: This person is already invited to join the scenario.
-  saved_scenario_history:
-    description: |
-      Here you can see the history of your saved scenario. A description can be added to each historical version.
-      When you are owner of this scenario, you can reset the scenario to an older stage. See the
-      <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-version-history" target=\"_blank\">
-      documentation</a> for more information.
-    title: History
-    error: Something went wrong updating the history of your scenario
-  history:
-    row:
-      component:
-        update: 'Update'
-        cancel: 'Cancel'
-        restore: 'Restore'
-        edit_description: |
-          Edit the description of this saved version. Save your notes on what you have changed.
-        restore_description: |
-          Restore the saved scenario to this version. This action is irreversible.
-    empty_message: No description
-  saved_scenarios:
-    title: Saved scenarios
-    empty: You don't have any scenarios.
-    search_by_title: Filter by title
-    open: Open
-    confirm_destroy:
-      title: Permanently deleting scenario
-      warning_header: You are permanently deleting your scenario
-      warning: |
-        Deleting this scenario will remove all data including history,
-        any grants for access, title and description.
-      irreversible: This action is irreversible
-      submit: Delete this scenario
-  featured_scenarios:
-    confirm_destroy:
-      title: Unfeaturing scenario
-      warning_header: You are removing all featured settings
-      warning: |
-        Unfeaturing this scenario will remove the localised title and
-        description, and remove the scenario from the homepage.
-        The title and dscription will default back to their
-        original settings from before the featuring.
-      irreversible: This action is irreversible
-      submit: Confirm unfeaturing
-
-  trash:
-    title: Trash bin
-    notice: Scenarios in the trash will be automatically deleted after %{deleted_after} days.
-    discarded_flash: Your scenario was put in the trash
-    undiscarded_flash: Your scenario was restored
-    deleted_flash: Your scenario has been permanently deleted
-    empty:
-      title:
-        There are no items in the trash
-      description:
-        Deleted items are sent to the trash where you can choose to permanently
-        delete or restore them. Trashed scenarios are automatically removed after %{deleted_after}
-        days.
-  flash:
-    need_login: Please log in again
-  version:
-    latest: |
-      This scenario was created in the live version of the ETM
-      which includes all the latest monthly updates. Learn more..
   collections:
-    title: Collections
-    no_title: Untitled collection
-    failure: Something went wrong!
     all: View all collections
-    open: Open collection
+    block_right:
+      compose_collection:
+        description: Create a new collection from your saved scenarios
+        title: New scenario collection
+      create_transition:
+        description: |
+          Pick one of your 2050 scenarios to interpolate into scenarios
+          for 2030 and 2040
+        title: New transition path
+    confirm_destroy:
+      irreversible: This action is irreversible
+      submit: Delete this collection
+      title: Permanently deleting collection
+      warning: Deleting will remove all references to this collection.
+      warning_header: You are permanently deleting your collection
     contains: This collection contains the following scenarios
     failure: Something went wrong!
     filter:
