@@ -17,7 +17,7 @@ describe SavedScenario::Update, type: :service do
       '/api/v3/scenarios/2', scenario: { set_preset_roles: true }
     )
     allow(client).to receive(:post).with(
-      '/api/v3/scenarios/2/version', { :description => "" }
+      '/api/v3/scenarios/2/version', { description: "" }
     )
   end
 

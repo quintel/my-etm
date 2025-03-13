@@ -12,7 +12,7 @@ describe SavedScenario::Restore, type: :service do
       :saved_scenario,
       user: user,
       id: 648_695,
-      scenario_id_history: [123, 1234, 12_345]
+      scenario_id_history: [ 123, 1234, 12_345 ]
     )
   end
 

@@ -31,10 +31,12 @@ module Identity
           format.html { redirect_to identity_profile_path, notice: "Subscription updated." }
         end
       else
-        Rails.logger.error "Subscription failed: #{result.error}"
+        Rails.logger.error("Subscription failed: #{result.error}")
         Sentry.capture_exception(result.error)
         respond_to do |format|
-          format.turbo_stream { render turbo_stream: turbo_stream.append("flash-messages", partial: "shared/error", locals: { message: "Subscription update failed." }) }
+          format.turbo_stream {
+ render turbo_stream: turbo_stream.append("flash-messages", partial: "shared/error",
+   locals: { message: "Subscription update failed." }) }
           format.html { redirect_to identity_profile_path, alert: "Subscription update failed." }
         end
       end
@@ -52,7 +54,7 @@ module Identity
       @audience = params[:audience]
 
       if @audience.is_a?(Hash)
-        @audience = @audience[:audience] || @audience['audience']
+        @audience = @audience[:audience] || @audience["audience"]
       end
 
       @audience = @audience&.to_sym

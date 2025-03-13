@@ -2,7 +2,8 @@ require 'rails_helper'
 
 describe ApiScenario::VersionTags::FetchAll, type: :service do
   let(:result) { described_class.call(client, saved_scenario) }
-  let(:saved_scenario) { create(:saved_scenario, scenario_id: 123, scenario_id_history: [111, 122])}
+  let(:saved_scenario) {
+ create(:saved_scenario, scenario_id: 123, scenario_id_history: [ 111, 122 ]) }
 
   let(:response_data) do
     {

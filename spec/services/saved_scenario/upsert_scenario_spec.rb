@@ -8,9 +8,9 @@ describe SavedScenario::UpsertScenario, type: :service do
   let(:result) { described_class.call(client, saved_scenario, 10) }
   let(:old_id) { 648_695 }
   let!(:saved_scenario) do
-    FactoryBot.create :saved_scenario,
-                      user: user,
-                      id: old_id
+    FactoryBot.create(:saved_scenario,
+      user: user,
+      id: old_id)
   end
 
   before do
@@ -24,7 +24,7 @@ describe SavedScenario::UpsertScenario, type: :service do
       '/api/v3/scenarios/10', scenario: { set_preset_roles: true }
     )
     allow(client).to receive(:post).with(
-      '/api/v3/scenarios/10/version', { :description => "" }
+      '/api/v3/scenarios/10/version', { description: "" }
     )
   end
 
@@ -40,7 +40,7 @@ describe SavedScenario::UpsertScenario, type: :service do
     describe '#value' do
       subject { result.value }
 
-      it { is_expected.to be_a SavedScenario }
+      it { is_expected.to be_a(SavedScenario) }
       it 'contains a new scenario' do
         expect(subject.scenario_id).not_to eq(old_id)
       end
@@ -58,7 +58,7 @@ describe SavedScenario::UpsertScenario, type: :service do
       expect { result }.to(
         change(saved_scenario, :scenario_id_history)
           .from([])
-          .to([648_695])
+          .to([ 648_695 ])
       )
     end
   end

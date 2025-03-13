@@ -53,7 +53,7 @@ describe ApiScenario::SetCompatibility, type: :service do
     before do
       allow(client).to receive(:put).with(
         '/api/v3/scenarios/1', scenario: { keep_compatible: false }
-      ).and_raise(stub_faraday_422(['Oops!']))
+      ).and_raise(stub_faraday_422([ 'Oops!' ]))
     end
 
     it 'returns a failure result' do
@@ -69,7 +69,7 @@ describe ApiScenario::SetCompatibility, type: :service do
     end
 
     it 'includes the errors on the result' do
-      expect(described_class.call(client, 1, false).errors).to eq(['Oops!'])
+      expect(described_class.call(client, 1, false).errors).to eq([ 'Oops!' ])
     end
   end
 end

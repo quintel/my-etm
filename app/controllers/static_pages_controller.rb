@@ -2,7 +2,7 @@ class StaticPagesController < ApplicationController
   before_action :require_feedback_email, only: [ :send_message ]
 
   invisible_captcha(
-    only: [:send_message],
+    only: [ :send_message ],
     honeypot: :country,
     on_spam: :send_feedback_spam
   )

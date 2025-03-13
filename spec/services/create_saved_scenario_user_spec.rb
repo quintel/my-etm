@@ -44,7 +44,7 @@ describe CreateSavedScenarioUser, type: :service do
 
 
       it "updates historical scenarios" do
-        allow(saved_scenario).to receive(:scenario_id_history).and_return([101, 102])
+        allow(saved_scenario).to receive(:scenario_id_history).and_return([ 101, 102 ])
         allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
 
         service.call
@@ -57,13 +57,14 @@ describe CreateSavedScenarioUser, type: :service do
     context "when the SavedScenarioUser is invalid" do
       before do
         allow_any_instance_of(SavedScenarioUser).to receive(:valid?).and_return(false)
-        allow_any_instance_of(SavedScenarioUser).to receive_message_chain(:errors, :messages, :keys).and_return([:email])
+        allow_any_instance_of(SavedScenarioUser).to receive_message_chain(:errors, :messages,
+          :keys).and_return([ :email ])
       end
 
       it "returns a failure ServiceResult" do
         result = service.call
         expect(result).not_to be_successful
-        expect(result.errors).to eq([:email])
+        expect(result.errors).to eq([ :email ])
       end
     end
 
@@ -91,7 +92,7 @@ describe CreateSavedScenarioUser, type: :service do
       it 'returns a failure ServiceResult with "duplicate" error' do
         result = service.call
         expect(result).not_to be_successful
-        expect(result.errors).to eq(["duplicate"])
+        expect(result.errors).to eq([ "duplicate" ])
       end
     end
 

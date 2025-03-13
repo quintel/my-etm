@@ -1,7 +1,7 @@
 
 module Admin
   class FeaturedScenarioUsersController < ApplicationController
-    before_action :set_featured_scenario_user, only: [:update, :edit]
+    before_action :set_featured_scenario_user, only: [ :update, :edit ]
 
     def index
       @featured_scenario_users = FeaturedScenarioUser.all

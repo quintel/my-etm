@@ -15,7 +15,7 @@ class Collection < ApplicationRecord
   belongs_to :version
 
   has_many :scenarios,
-    class_name: 'CollectionScenario',
+    class_name: "CollectionScenario",
     dependent: :delete_all
 
   has_many :collection_saved_scenarios, dependent: :destroy
@@ -95,7 +95,7 @@ class Collection < ApplicationRecord
   #
   # Returns an array.
   def redirect_slug
-    latest_scenario_ids.join(',')
+    latest_scenario_ids.join(",")
   end
 
   # Public: MYC doesn't have an update at, but we need it for sorting the items
@@ -108,21 +108,22 @@ class Collection < ApplicationRecord
     options[:except] ||= %i[area_code end_year user_id]
 
     super(options).merge(
-      'discarded' => discarded_at.present?,
-      'owner' => user.as_json(only: %i[id name]),
-      'scenario_ids' => latest_scenario_ids.sort
+      "discarded" => discarded_at.present?,
+      "owner" => user.as_json(only: %i[id name]),
+      "scenario_ids" => latest_scenario_ids.sort
     )
   end
 
   def validate_scenarios
     if scenarios.size + saved_scenarios.size > 6
-      errors.add(:scenarios, 'exceeds maximum of 6 scenarios')
+      errors.add(:scenarios, "exceeds maximum of 6 scenarios")
     end
   end
 
   def validate_scenario_versions
     # Ensure all scenarios match the collection's version
-    invalid_scenarios = saved_scenarios.reject { |saved_scenario| saved_scenario.version == version }
+    invalid_scenarios = saved_scenarios.reject { |saved_scenario|
+ saved_scenario.version == version }
     if invalid_scenarios.any?
       errors.add(:scenarios, "must all belong to the collection's version (#{version})")
     end

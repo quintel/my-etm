@@ -24,7 +24,7 @@ describe CreateInterpolatedCollection, type: :service do
   # --
 
   context 'when creating scenarios for 2030, 2040' do
-    let(:years) { [2030, 2040] }
+    let(:years) { [ 2030, 2040 ] }
 
     context 'when the interpolation is successful' do
       before do
@@ -58,7 +58,7 @@ describe CreateInterpolatedCollection, type: :service do
 
     context 'when ETEngine returns an error for 2030, but not 2040' do
       before do
-        stub_failed_interpolation(2030, ["That didn't work."])
+        stub_failed_interpolation(2030, [ "That didn't work." ])
         # 2040 and 2050 requests are never made.
       end
 
@@ -80,7 +80,7 @@ describe CreateInterpolatedCollection, type: :service do
       end
 
       it 'includes the errors on the Result' do
-        expect(result.errors).to eq(["That didn't work."])
+        expect(result.errors).to eq([ "That didn't work." ])
       end
 
       it 'does not create a Collection record' do
@@ -95,7 +95,7 @@ describe CreateInterpolatedCollection, type: :service do
     context 'when ETEngine succeeds for 2030 but not 2040' do
       before do
         stub_successful_interpolation(2030, 2)
-        stub_failed_interpolation(2040, ["That didn't work."])
+        stub_failed_interpolation(2040, [ "That didn't work." ])
 
         allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible).with(nil, 2)
       end
@@ -116,7 +116,7 @@ describe CreateInterpolatedCollection, type: :service do
 
     context 'when ETEngine returns an error for 2030 and 2040' do
       before do
-        stub_failed_interpolation(2030, ["That didn't work."])
+        stub_failed_interpolation(2030, [ "That didn't work." ])
         # 2040 and 2050 requests are never made.
       end
 
@@ -131,7 +131,7 @@ describe CreateInterpolatedCollection, type: :service do
       end
 
       it 'includes the errors on the Result' do
-        expect(result.errors).to eq(["That didn't work."])
+        expect(result.errors).to eq([ "That didn't work." ])
       end
 
       it 'does not create a Collection record' do
@@ -147,7 +147,7 @@ describe CreateInterpolatedCollection, type: :service do
   # Sanity check that invalid records raise exceptions.
   context 'when given an invalid user, creating a 2030 scenario' do
     let(:user) { User.new }
-    let(:years) { [2030] }
+    let(:years) { [ 2030 ] }
 
     before do
       stub_successful_interpolation(2030, 2)

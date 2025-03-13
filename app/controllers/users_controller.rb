@@ -56,7 +56,7 @@ class UsersController < ApplicationController
   end
 
   def user_attributes
-    attributes = [:email, :name]
+    attributes = [ :email, :name ]
     attributes << :admin if current_user&.admin?
     params.require(:user).permit(*attributes)
   end

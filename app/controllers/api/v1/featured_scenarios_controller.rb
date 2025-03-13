@@ -1,7 +1,7 @@
 module Api
   module V1
     class FeaturedScenariosController < BaseController
-      before_action :set_featured_scenario, only: [:show]
+      before_action :set_featured_scenario, only: [ :show ]
 
 
       # GET /api/v1/featured_scenarios
@@ -22,7 +22,7 @@ module Api
       def set_featured_scenario
         @featured_scenario = FeaturedScenario.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'FeaturedScenario not found' }, status: :not_found
+        render json: { error: "FeaturedScenario not found" }, status: :not_found
       end
 
       def version
@@ -32,7 +32,7 @@ module Api
       def featured_scenarios
         if version.present?
           FeaturedScenario.joins(:saved_scenario)
-            .where(saved_scenario: { version: Version.find_by(tag: version['version']) })
+            .where(saved_scenario: { version: Version.find_by(tag: version["version"]) })
         else
           FeaturedScenario.all
         end

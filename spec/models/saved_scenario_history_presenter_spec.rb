@@ -26,7 +26,8 @@ describe SavedScenarioHistoryPresenter do
   end
 
   let(:user) { create(:user) }
-  let(:saved_scenario) { create(:saved_scenario, scenario_id: 123, scenario_id_history: [111, 122]) }
+  let(:saved_scenario) {
+ create(:saved_scenario, scenario_id: 123, scenario_id_history: [ 111, 122 ]) }
 
   it 'returns SavedScenarioHistory objects' do
     expect(subject.first).to be_a(SavedScenarioHistory)

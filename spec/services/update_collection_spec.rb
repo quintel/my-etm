@@ -16,8 +16,8 @@ describe UpdateCollection, type: :service do
       title: 'My Updated Title',
       area_code: 'nl',
       end_year: 2050,
-      scenario_ids: [101, 102],
-      saved_scenario_ids: [17, 18]
+      scenario_ids: [ 101, 102 ],
+      saved_scenario_ids: [ 17, 18 ]
     }
   end
 
@@ -47,13 +47,13 @@ describe UpdateCollection, type: :service do
     it 'updates the scenario_ids on the collection' do
       expect { result }.to change { collection.scenarios.count }.from(3).to(2)
       updated_ids = result.value.scenarios.pluck(:scenario_id)
-      expect(updated_ids).to match_array([101, 102])
+      expect(updated_ids).to match_array([ 101, 102 ])
     end
 
     it 'updates the saved_scenario_ids on the collection' do
       expect { result }.to change { collection.collection_saved_scenarios.count }.from(1).to(2)
       updated_ids = result.value.collection_saved_scenarios.pluck(:saved_scenario_id)
-      expect(updated_ids).to match_array([17, 18])
+      expect(updated_ids).to match_array([ 17, 18 ])
     end
   end
 
@@ -61,8 +61,8 @@ describe UpdateCollection, type: :service do
     let(:settings) do
       {
         title: '',
-        scenario_ids: [-1, 0],
-        saved_scenario_ids: [201]
+        scenario_ids: [ -1, 0 ],
+        saved_scenario_ids: [ 201 ]
       }
     end
 

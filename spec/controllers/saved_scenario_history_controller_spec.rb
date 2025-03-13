@@ -6,7 +6,8 @@ describe SavedScenarioHistoryController, vcr: true do
   render_views
 
   let(:user) { create(:user) }
-  let(:saved_scenario) { create(:saved_scenario, user: user, scenario_id: 123, scenario_id_history: [111, 122]) }
+  let(:saved_scenario) {
+ create(:saved_scenario, user: user, scenario_id: 123, scenario_id_history: [ 111, 122 ]) }
   let(:client) { Faraday.new(url: 'http://et.engine') }
 
   before do

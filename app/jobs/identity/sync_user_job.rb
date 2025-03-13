@@ -23,7 +23,8 @@ class Identity::SyncUserJob < ApplicationJob
   private
 
   def sync_user(user, version, service)
-    client = service == :model ? MyEtm::Auth.model_client(user, version) : MyEtm::Auth.engine_client(user, version)
+    client = service == :model ? MyEtm::Auth.model_client(user,
+      version) : MyEtm::Auth.engine_client(user, version)
     endpoint = service == :model ? "/api/v1/user" : "/api/v3/user"
     payload = user.as_json(except: %i[admin created_at updated_at])
     payload[:id] = user.id if service == :engine

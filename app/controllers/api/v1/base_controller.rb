@@ -6,12 +6,13 @@ module Api
       after_action :track_token_use
 
       rescue_from ActionController::ParameterMissing do |e|
-        render status: 400, json: { errors: ["param is missing or the value is empty: #{e.param}"] }
+        render status: 400,
+          json: { errors: [ "param is missing or the value is empty: #{e.param}" ] }
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
         if e.model
-          render_not_found(errors: ["#{e.model.underscore.humanize} not found"])
+          render_not_found(errors: [ "#{e.model.underscore.humanize} not found" ])
         else
           render_not_found
         end
@@ -76,7 +77,7 @@ module Api
       end
 
       def require_user
-        render_not_found(errors: ['User not identified']) unless current_user
+        render_not_found(errors: [ "User not identified" ]) unless current_user
       end
     end
   end

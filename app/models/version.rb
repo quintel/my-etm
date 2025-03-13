@@ -27,7 +27,7 @@ class Version < ApplicationRecord
   # Find or create the local version
   def self.local
     if Rails.env.development?
-      find_by(tag: "local") || create!(tag: "local", url_prefix: 'local')
+      find_by(tag: "local") || create!(tag: "local", url_prefix: "local")
     else
       Version.default
     end

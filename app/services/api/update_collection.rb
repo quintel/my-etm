@@ -57,7 +57,8 @@ module Api
       delete_ids   = existing_ids - saved_scenario_ids
 
       collection.multi_year_chart_saved_scenarios.delete_by(saved_scenario_id: delete_ids)
-      new_ids.each { |id| collection.multi_year_chart_saved_scenarios.create!({ saved_scenario_id: id }) }
+      new_ids.each { |id|
+ collection.multi_year_chart_saved_scenarios.create!({ saved_scenario_id: id }) }
     end
   end
 end

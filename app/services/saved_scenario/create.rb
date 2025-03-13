@@ -45,14 +45,14 @@ class SavedScenario::Create
       user: user,
       private: user.private_scenarios
     )
-    attributes['version'] = version
+    attributes["version"] = version
 
     attributes
   end
 
   # Stable version tag
   def version
-    Version.find_by(tag: saved_scenario_params['version']) || Version.default
+    Version.find_by(tag: saved_scenario_params["version"]) || Version.default
   end
 
   def protect
@@ -61,7 +61,7 @@ class SavedScenario::Create
 
   # Version history in Etengine
   def tag_new_version
-    ApiScenario::VersionTags::Create.call(http_client, scenario_id, '')
+    ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")
   end
 
   def failure

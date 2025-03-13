@@ -11,7 +11,7 @@ describe SavedScenario::Create, type: :service do
       '/api/v3/scenarios/1', scenario: { keep_compatible: true }
     )
     allow(client).to receive(:post).with(
-      '/api/v3/scenarios/1/version', { :description => "" }
+      '/api/v3/scenarios/1/version', { description: "" }
     )
   end
 

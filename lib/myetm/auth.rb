@@ -38,14 +38,14 @@ module MyEtm
       stripped_key = raw_key.strip
 
       unless stripped_key.include?("-----BEGIN RSA PRIVATE KEY-----") &&
-             stripped_key.include?("-----END RSA PRIVATE KEY-----")
+          stripped_key.include?("-----END RSA PRIVATE KEY-----")
         raise "Invalid RSA key format"
       end
 
       # Extract key content
       key_content = stripped_key.gsub("-----BEGIN RSA PRIVATE KEY-----", "")
-                                .gsub("-----END RSA PRIVATE KEY-----", "")
-                                .gsub(/\s+/, "")
+        .gsub("-----END RSA PRIVATE KEY-----", "")
+        .gsub(/\s+/, "")
       formatted_body = key_content.scan(/.{1,64}/).join("\n")
 
       # Reassemble the key in proper PEM format

@@ -11,10 +11,10 @@ class CreateSubscription
   private
 
   def user_mailchimp_data(user)
-    first_name, *last_name = user.name.to_s.split(' ', 2)
+    first_name, *last_name = user.name.to_s.split(" ", 2)
     {
       FNAME: first_name.presence || "Unknown",
-      LNAME: last_name.join(' ').presence || ""
+      LNAME: last_name.join(" ").presence || ""
     }
   end
 end

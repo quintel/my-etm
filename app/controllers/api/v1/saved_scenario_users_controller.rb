@@ -69,7 +69,7 @@ module Api
       private
 
       def permitted_params
-        params.permit(:saved_scenario_id, saved_scenario_users: [%i[id role user_id user_email]])
+        params.permit(:saved_scenario_id, saved_scenario_users: [ %i[id role user_id user_email] ])
       end
 
       # TODO: Improve method

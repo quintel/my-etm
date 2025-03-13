@@ -21,12 +21,12 @@ class SavedScenarioHistoryController < ApplicationController
       @history = SavedScenarioHistoryPresenter.present(@saved_scenario, version_tags_result.value)
 
       respond_to do |format|
-        format.html { render 'index' }
+        format.html { render "index" }
       end
     else
       @history = {}
       respond_to do |format|
-        format.html { render 'index' }
+        format.html { render "index" }
       end
     end
   end

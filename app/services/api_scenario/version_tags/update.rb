@@ -17,7 +17,7 @@ class ApiScenario::VersionTags::Update
       ).body
     )
   rescue Faraday::ResourceNotFound
-    ServiceResult.failure('Scenario tag not found')
+    ServiceResult.failure("Scenario tag not found")
   rescue Faraday::UnprocessableEntityError => e
     ServiceResult.failure_from_unprocessable_entity(e)
   rescue Faraday::Error => e

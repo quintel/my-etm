@@ -16,8 +16,8 @@ module CreateStaffApplication
 
     # Check if an application with this URI already exists
     app = OAuthApplication.find_by(uri: parsed_uri.to_s) ||
-          staff_app.application ||
-          user.oauth_applications.new
+      staff_app.application ||
+      user.oauth_applications.new
 
     # Build redirect URI
     redirect_uri = parsed_uri.dup

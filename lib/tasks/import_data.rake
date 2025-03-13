@@ -1,11 +1,11 @@
 namespace :data do
   desc "Import data from Model and Engine dumps with table mapping"
   task import: :environment do
-    require 'fileutils'
+    require "fileutils"
 
     # Get the paths to the dumps from task arguments
-    model_dump = ENV['MODEL_DUMP']
-    engine_dump = ENV['ENGINE_DUMP']
+    model_dump = ENV["MODEL_DUMP"]
+    engine_dump = ENV["ENGINE_DUMP"]
 
     puts "MODEL_DUMP: #{model_dump}"
     puts "ENGINE_DUMP: #{engine_dump}"
@@ -68,8 +68,8 @@ namespace :data do
     decompress_dump(model_dump)
     decompress_dump(engine_dump)
 
-    model_sql = model_dump.sub('.xz', '')
-    engine_sql = engine_dump.sub('.xz', '')
+    model_sql = model_dump.sub(".xz", "")
+    engine_sql = engine_dump.sub(".xz", "")
 
     # Reset database: drop, create, and migrate to ensure schema matches our destination application
     reset_database
@@ -81,7 +81,7 @@ namespace :data do
     load_and_map_sql_data(model_sql, TABLE_NAME_MAPPING, COLUMN_NAME_MAPPING)
 
     # Cleanup decompressed files
-    cleanup_files([model_sql, engine_sql])
+    cleanup_files([ model_sql, engine_sql ])
 
     puts "Data import completed successfully!"
   end
@@ -109,10 +109,10 @@ namespace :data do
       lines = chunk.split("\n").reject do |line|
         # Skip irrelevant comment or directive lines
         line.strip.start_with?("--") ||
-        line.strip.start_with?("LOCK TABLES") ||
-        line.strip.start_with?("UNLOCK TABLES") ||
-        line.strip.start_with?("/*!") ||
-        line.strip.include?("Dumping data for table")
+          line.strip.start_with?("LOCK TABLES") ||
+          line.strip.start_with?("UNLOCK TABLES") ||
+          line.strip.start_with?("/*!") ||
+          line.strip.include?("Dumping data for table")
       end
 
       # Reassemble the chunk after filtering lines
@@ -159,7 +159,7 @@ namespace :data do
     column_mapping.each do |source_column, destination_column|
       if destination_column.nil?
         # Remove any occurrences of the source column from the INSERT statement
-        stmt.gsub!(/`?#{source_column}`?[^,]*,?/, '')
+        stmt.gsub!(/`?#{source_column}`?[^,]*,?/, "")
       else
         stmt.gsub!(/`?#{source_column}`?/, "`#{destination_column}`")
       end

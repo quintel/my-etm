@@ -50,7 +50,7 @@ class CollectionsController < ApplicationController
     @scenarios = current_user.saved_scenarios.available.order(updated_at: :desc)
 
     respond_to do |format|
-      format.html { render layout: 'application' }
+      format.html { render layout: "application" }
     end
   end
 
@@ -64,7 +64,7 @@ class CollectionsController < ApplicationController
 
   def show
     respond_to do |format|
-      format.html { render layout: 'application' }
+      format.html { render layout: "application" }
     end
   end
 
@@ -86,7 +86,7 @@ class CollectionsController < ApplicationController
     if result.successful?
       redirect_to collection_path(result.value)
     else
-      flash[:alert] = result.errors.join(', ')
+      flash[:alert] = result.errors.join(", ")
       @collection = new_transition_collection
       @saved_scenarios = elegible_scenarios
 
@@ -109,13 +109,13 @@ class CollectionsController < ApplicationController
       collection.save
       redirect_to collection_path(collection)
     else
-      flash[:alert] = t('collections.failure')
+      flash[:alert] = t("collections.failure")
       redirect_to collections_path
     end
   end
 
   def confirm_destroy
-    render :confirm_destroy, layout: 'application'
+    render :confirm_destroy, layout: "application"
   end
 
   # Removes a Collection record.
@@ -138,8 +138,8 @@ class CollectionsController < ApplicationController
       @collection.discarded_at = Time.zone.now
       @collection.save(touch: false)
 
-      flash.notice = t('trash.discarded_flash')
-      flash[:undo_params] = [undiscard_collection_path(@collection), { method: :put }]
+      flash.notice = t("trash.discarded_flash")
+      flash[:undo_params] = [ undiscard_collection_path(@collection), { method: :put } ]
     end
 
     redirect_back(fallback_location: collections_path)
@@ -153,8 +153,8 @@ class CollectionsController < ApplicationController
       @collection.discarded_at = nil
       @collection.save(touch: false)
 
-      flash.notice = t('trash.undiscarded_flash')
-      flash[:undo_params] = [discard_collection_path(@collection), { method: :put }]
+      flash.notice = t("trash.undiscarded_flash")
+      flash[:undo_params] = [ discard_collection_path(@collection), { method: :put } ]
     end
 
     redirect_back(fallback_location: discarded_path)
@@ -173,7 +173,7 @@ class CollectionsController < ApplicationController
     return if Settings.collections.uri
 
     redirect_to root_path,
-      notice: 'Missing collections.uri setting in config.yml'
+      notice: "Missing collections.uri setting in config.yml"
   end
 
   def create_collection_params
@@ -198,6 +198,6 @@ class CollectionsController < ApplicationController
 
   def collection_title
     title = create_collection_params[:title]
-    title.empty? ? t('collections.no_title') : title
+    title.empty? ? t("collections.no_title") : title
   end
 end

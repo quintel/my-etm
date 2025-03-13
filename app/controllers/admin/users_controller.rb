@@ -82,7 +82,7 @@ module Admin
     end
 
     def user_params
-      attributes = [:name, :email, :password]
+      attributes = [ :name, :email, :password ]
       attributes << :admin if current_user&.admin?
       params.require(:user).permit(*attributes)
     end
