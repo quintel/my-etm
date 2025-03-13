@@ -15,8 +15,10 @@ class PersonalAccessToken < ApplicationRecord
       .includes(:oauth_access_token)
       .where(oauth_access_tokens: { revoked_at: nil })
 
-    relation
-      .where("#{Doorkeeper::AccessToken.expiration_time_sql} > ?", Time.now.utc)
+    expiration_time_sql = Doorkeeper::AccessToken.expiration_time_sql
+    sanitized_condition = ActiveRecord::Base.send(:sanitize_sql_array, [ "#{expiration_time_sql} > ?", Time.now.utc ])
+
+    relation.where(sanitized_condition)
       .or(relation.where(oauth_access_tokens: { expires_in: nil }))
   end
 end

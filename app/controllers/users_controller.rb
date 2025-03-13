@@ -56,8 +56,11 @@ class UsersController < ApplicationController
   end
 
   def user_attributes
-    attributes = [ :email, :name ]
-    attributes << :admin if current_user&.admin?
-    params.require(:user).permit(*attributes)
+    permitted = [ :name, :email, :password ]
+    params.require(:user).permit(*permitted).tap do |safe_params|
+      if current_user&.admin? && current_user != @user && params[:user].key?(:admin)
+        safe_params[:admin] = params[:user][:admin]
+      end
+    end
   end
 end

@@ -2,8 +2,8 @@ class PassthruController < ApplicationController
   def last
     last_page = cookies[:etm_last_visited_page]
 
-    if last_page && valid_redirect_url?(last_page)
-      redirect_to last_page, allow_other_host: true
+    if last_page && valid_subdomain_redirect?(last_page)
+      redirect_to last_page
     else
       redirect_to root_path
     end
@@ -11,9 +11,16 @@ class PassthruController < ApplicationController
 
   private
 
-  def valid_redirect_url?(url)
+  def valid_subdomain_redirect?(url)
     uri = URI.parse(url)
-    uri.host.blank? || trusted_hosts.include?(uri.host)
+
+    return false unless uri.scheme&.match?(/\Ahttps?\z/)
+
+    return true if Rails.env.development? && uri.host == "localhost"
+
+    return false unless uri.host&.end_with?("energytransitionmodel.com")
+
+    true
   rescue URI::InvalidURIError
     false
   end
