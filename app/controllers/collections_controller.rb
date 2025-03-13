@@ -56,9 +56,9 @@ class CollectionsController < ApplicationController
 
   def update
     if @collection.update(update_collection_params)
-      render json: { success: true }
+      render json: @collection
     else
-      render json: { success: false, errors: @collection.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: @collection.errors.full_messages }, status: :unprocessable_entity
     end
   end
 

@@ -255,13 +255,13 @@ describe CollectionsController do
       end
 
       it 'updates the title of the collection' do
-        expect(collection.reload.title).to eq('New title')
+        expect(collection.reload.title).to eq(new_title)
       end
 
-      it 'returns a success JSON response' do
+      it 'returns the updated collection as JSON' do
         expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
-        expect(json_response['success']).to be true
+        expect(json_response['title']).to eq(new_title)
       end
     end
 
@@ -277,7 +277,6 @@ describe CollectionsController do
       it 'returns an error JSON response' do
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['success']).to be false
         expect(json_response['errors']).to include("Title can't be blank")
       end
     end
