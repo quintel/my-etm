@@ -238,4 +238,63 @@ describe CollectionsController do
       end
     end
   end
+
+  describe 'PUT update' do
+    let(:user) { create(:user) }
+    let(:other_user) { create(:user) }
+    let(:collection) { create(:collection, title: 'Old title', user: user) }
+    let(:new_title) { 'New title' }
+
+    before do
+      sign_in user
+    end
+
+    context 'with a valid title' do
+      before do
+        put :update, params: { id: collection.id, collection: { title: new_title } }, format: :json
+      end
+
+      it 'updates the title of the collection' do
+        expect(collection.reload.title).to eq(new_title)
+      end
+
+      it 'returns the updated collection as JSON' do
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+        expect(json_response['title']).to eq(new_title)
+      end
+    end
+
+    context 'with an invalid title' do
+      before do
+        put :update, params: { id: collection.id, collection: { title: '' } }, format: :json
+      end
+
+      it 'does not update the title of the collection' do
+        expect(collection.reload.title).to eq('Old title')
+      end
+
+      it 'returns an error JSON response' do
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+        expect(json_response['errors']).to include("Title can't be blank")
+      end
+    end
+
+    context 'when the user does not own the collection or have update permissions' do
+      before do
+        sign_out user
+        sign_in other_user
+        put :update, params: { id: collection.id, collection: { title: new_title } }, format: :json
+      end
+
+      it 'does not update the title of the collection' do
+        expect(collection.reload.title).to eq('Old title')
+      end
+
+      it 'cannot find the unowned collection' do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
 end
