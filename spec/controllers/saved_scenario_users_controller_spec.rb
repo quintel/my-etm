@@ -277,9 +277,10 @@ describe SavedScenarioUsersController do
         }
       })
 
-      expect(
-        saved_scenario.saved_scenario_users.where(role_id: User::Roles.index_of(:scenario_owner)).count
-      ).to be(1)
+      role_id = User::Roles.index_of(:scenario_owner)
+      owner_count = saved_scenario.saved_scenario_users.where(role_id: role_id).count
+
+      expect(owner_count).to be(1)
     end
   end
 

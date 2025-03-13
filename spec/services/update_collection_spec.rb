@@ -38,20 +38,32 @@ describe UpdateCollection, type: :service do
       expect(result).to be_successful
     end
 
-    it 'updates the collection attributes' do
+    it 'updates the title' do
       expect(result.value.title).to eq('My Updated Title')
+    end
+
+    it 'updates the area_code' do
       expect(result.value.area_code).to eq('nl')
+    end
+
+    it 'updates the end_year' do
       expect(result.value.end_year).to eq(2050)
     end
 
     it 'updates the scenario_ids on the collection' do
       expect { result }.to change { collection.scenarios.count }.from(3).to(2)
+    end
+
+    it 'sets the updated ids' do
       updated_ids = result.value.scenarios.pluck(:scenario_id)
       expect(updated_ids).to match_array([ 101, 102 ])
     end
 
     it 'updates the saved_scenario_ids on the collection' do
       expect { result }.to change { collection.collection_saved_scenarios.count }.from(1).to(2)
+    end
+
+    it 'sets the updated saved_scenario_ids' do
       updated_ids = result.value.collection_saved_scenarios.pluck(:saved_scenario_id)
       expect(updated_ids).to match_array([ 17, 18 ])
     end
@@ -74,8 +86,11 @@ describe UpdateCollection, type: :service do
       expect(result).not_to be_successful
     end
 
-    it 'does not change the collection' do
+    it 'does not change the collection title to nothing' do
       expect(collection.reload.title).not_to eq('')
+    end
+
+    it 'does not change the collection scenarios' do
       expect(collection.scenarios.pluck(:scenario_id)).to include(999)
     end
   end

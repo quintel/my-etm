@@ -8,21 +8,30 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
 
   describe 'GET /api/v1/featured_scenarios' do
     context 'without specifying a version' do
-      before do
-        get '/api/v1/featured_scenarios', as: :json
+      before { get '/api/v1/featured_scenarios', as: :json }
+
+      it 'returns a successful response' do
+        expect(response).to have_http_status(:ok)
       end
 
-      it 'returns all featured_scenarios' do
-        expect(response).to have_http_status(:ok)
+      it 'returns all featured scenarios with expected structure' do
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response['featured_scenarios'].size).to eq(3)
 
-        parsed_response['featured_scenarios'].each do |scenario|
-          expect(scenario.keys).to contain_exactly(
-            'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version', 'end_year', 'author'
-          )
-          expect(scenario['version']).to eq('latest')
+        aggregate_failures do
+          expect(parsed_response['featured_scenarios'].size).to eq(3)
+          parsed_response['featured_scenarios'].each do |scenario|
+            expect(scenario.keys).to contain_exactly(
+              'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en',
+              'title_nl', 'version', 'end_year', 'author'
+            )
+          end
         end
+      end
+
+      it 'ensures all returned scenarios have the latest version' do
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response['featured_scenarios'].all? { |s|
+ s['version'] == 'latest' }).to be(true)
       end
     end
 
@@ -37,17 +46,28 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
         get '/api/v1/featured_scenarios', as: :json, params: { version: version.tag }
       end
 
-      it 'returns featured_scenarios that are from the version' do
+      it 'returns a successful response' do
         expect(response).to have_http_status(:ok)
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response['featured_scenarios'].size).to eq(1)
+      end
 
-        parsed_response['featured_scenarios'].each do |scenario|
-          expect(scenario.keys).to contain_exactly(
-            'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version', 'end_year', 'author'
-          )
-          expect(scenario['version']).to eq(version.tag)
+      it 'returns only featured scenarios from the specified version' do
+        parsed_response = JSON.parse(response.body)
+
+        aggregate_failures do
+          expect(parsed_response['featured_scenarios'].size).to eq(1)
+          parsed_response['featured_scenarios'].each do |scenario|
+            expect(scenario.keys).to contain_exactly(
+              'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en',
+              'title_nl', 'version', 'end_year', 'author'
+            )
+          end
         end
+      end
+
+      it 'ensures the returned scenario has the correct version' do
+        parsed_response = JSON.parse(response.body)
+        expect(parsed_response['featured_scenarios'].all? { |s|
+ s['version'] == version.tag }).to be(true)
       end
     end
   end
@@ -56,29 +76,40 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
     context 'when the record exists' do
       before { get "/api/v1/featured_scenarios/#{featured_scenario_id}" }
 
-      it 'returns the featured_scenario' do
+      it 'returns a successful response' do
         expect(response).to have_http_status(:ok)
+      end
+
+      it 'returns the expected featured scenario details' do
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response.keys).to contain_exactly(
-          'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version', 'end_year', 'author'
-        )
-        expect(parsed_response['id']).to eq(featured_scenario_id)
-        expect(parsed_response['version']).to eq('latest')
+
+        aggregate_failures do
+          expect(parsed_response.keys).to contain_exactly(
+            'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en',
+            'title_nl', 'version', 'end_year', 'author'
+          )
+          expect(parsed_response['id']).to eq(featured_scenario_id)
+          expect(parsed_response['version']).to eq('latest')
+        end
       end
     end
 
     context 'when the record does not exist' do
       let(:featured_scenario_id) { 0 }
-      before do
-        get "/api/v1/featured_scenarios/#{featured_scenario_id}", as: :json
+
+      before { get "/api/v1/featured_scenarios/#{featured_scenario_id}", as: :json }
+
+      it 'returns a not found response' do
+        expect(response).to have_http_status(:not_found)
       end
 
-      it 'returns a not found message' do
-        expect(response).to have_http_status(:not_found)
+      it 'returns a proper error message' do
         parsed_response = JSON.parse(response.body)
 
-        expect(parsed_response.keys).to contain_exactly('error')
-        expect(parsed_response['error']).to eq('FeaturedScenario not found')
+        aggregate_failures do
+          expect(parsed_response.keys).to contain_exactly('error')
+          expect(parsed_response['error']).to eq('FeaturedScenario not found')
+        end
       end
     end
   end

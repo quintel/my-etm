@@ -46,21 +46,10 @@ class SavedScenarioUsersController < ApplicationController
     if result.successful?
       @saved_scenario_user = result.value
       @saved_scenario.reload
-
-      flash.notice = "#{@saved_scenario_user.email} was succesfully added"
-
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: [
-            turbo_remove_modal, turbo_append_user, turbo_notice
-          ]
-        end
-      end
+      flash.notice = "#{@saved_scenario_user.email} was successfully added"
+      respond_with_turbo([ turbo_remove_modal, turbo_append_user, turbo_notice ])
     else
-      flash[:alert] =
-        t("saved_scenario_users.errors.#{result.errors.first}", default:
-        "#{t('saved_scenario_users.errors.create')} #{t('saved_scenario_users.errors.general')}")
-
+      flash[:alert] = render_failure_message("create", result.errors.first)
       @saved_scenario_user = SavedScenarioUser.new(scenario_user_params)
       render(:new, status: :unprocessable_entity)
     end
@@ -81,23 +70,10 @@ class SavedScenarioUsersController < ApplicationController
     )
 
     if result.successful?
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.update(@saved_scenario_user, user_component)
-        end
-      end
+      respond_with_turbo(turbo_stream.update(@saved_scenario_user, user_component))
     else
-      flash[:alert] = t("saved_scenario_users.errors.#{result.errors.first}") ||
-        "#{t('saved_scenario_users.errors.update')} #{t('saved_scenario_users.errors.general')}"
-
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: [
-            turbo_alert,
-            turbo_stream.update(@saved_scenario_user, user_component)
-          ]
-        end
-      end
+      flash[:alert] = render_failure_message("update", result.errors.first)
+      respond_with_turbo([ turbo_alert, turbo_stream.update(@saved_scenario_user, user_component) ])
     end
   end
 
@@ -121,26 +97,15 @@ class SavedScenarioUsersController < ApplicationController
 
     if result.successful?
       @saved_scenario.reload
-      flash.notice = "Access was succesfully revoked"
-
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: [
-            turbo_remove_modal,
-            turbo_stream.remove("saved_scenario_user_#{@saved_scenario_user.id}"),
-            turbo_notice
-          ]
-        end
-      end
+      flash.notice = "Access was successfully revoked"
+      respond_with_turbo([
+        turbo_remove_modal,
+        turbo_stream.remove("saved_scenario_user_#{@saved_scenario_user.id}"),
+        turbo_notice
+      ])
     else
-      flash[:alert] =
-"#{t('saved_scenario_users.errors.destroy')} #{t('saved_scenario_users.errors.general')}"
-
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_alert
-        end
-      end
+      flash[:alert] = render_failure_message("destroy")
+      respond_with_turbo(turbo_alert)
     end
   end
 
@@ -171,6 +136,23 @@ class SavedScenarioUsersController < ApplicationController
     redirect_to saved_scenario_users_path, notice: "Something went wrong"
   end
 
+  # Renders a turbo stream response with the given stream(s).
+  def respond_with_turbo(response_stream)
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: response_stream }
+    end
+  end
+
+  # Constructs a failure message for a given action and optional error key.
+  def render_failure_message(action, error_key = nil)
+    if error_key.present?
+      t("saved_scenario_users.errors.#{error_key}") ||
+        "#{t("saved_scenario_users.errors.#{action}")} #{t('saved_scenario_users.errors.general')}"
+    else
+      "#{t("saved_scenario_users.errors.#{action}")} #{t('saved_scenario_users.errors.general')}"
+    end
+  end
+
   def turbo_append_user
     turbo_stream.append(
       "saved_scenario_users_table",
@@ -190,5 +172,13 @@ class SavedScenarioUsersController < ApplicationController
 
   def turbo_remove_modal
     turbo_stream.update(:modal, "")
+  end
+
+  def turbo_notice
+    turbo_stream.update(:notice, html: flash.notice)
+  end
+
+  def turbo_alert
+    turbo_stream.update(:alert, html: flash[:alert])
   end
 end

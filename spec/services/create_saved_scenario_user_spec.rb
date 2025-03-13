@@ -18,20 +18,21 @@ describe CreateSavedScenarioUser, type: :service do
         allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
       end
 
-      it "returns a successful ServiceResult" do
+      it "returns a successful ServiceResult with a persisted SavedScenarioUser" do
         result = service.call
-        expect(result).to be_successful
-        expect(result.value).to be_a(SavedScenarioUser)
-        expect(result.value).to be_persisted
+
+        aggregate_failures do
+          expect(result).to be_successful
+          expect(result.value).to be_a(SavedScenarioUser)
+          expect(result.value).to be_persisted
+        end
       end
 
-      it "changes the viewers on the SavedScenario" do
-        expect { service.call }.to change(
-          saved_scenario.saved_scenario_users, :count
-        ).from(1).to(2)
+      it "increments the count of viewers on the SavedScenario" do
+        expect { service.call }.to change(saved_scenario.saved_scenario_users, :count).from(1).to(2)
       end
 
-      it "sends an invitation email" do
+      it "sends an invitation email with correct parameters" do
         service.call
         expect(ScenarioInvitationMailer).to have_received(:invite_user).with(
           "user@example.com",
@@ -42,15 +43,20 @@ describe CreateSavedScenarioUser, type: :service do
         )
       end
 
+      context "when updating historical scenarios" do
+        before do
+          allow(saved_scenario).to receive(:scenario_id_history).and_return([ 101, 102 ])
+          allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
+        end
 
-      it "updates historical scenarios" do
-        allow(saved_scenario).to receive(:scenario_id_history).and_return([ 101, 102 ])
-        allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
+        it "calls the API for each historical scenario" do
+          service.call
 
-        service.call
-
-        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 101, instance_of(Hash))
-        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 102, instance_of(Hash))
+          aggregate_failures do
+            expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 101, instance_of(Hash))
+            expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 102, instance_of(Hash))
+          end
+        end
       end
     end
 
@@ -61,59 +67,56 @@ describe CreateSavedScenarioUser, type: :service do
           :keys).and_return([ :email ])
       end
 
-      it "returns a failure ServiceResult" do
+      it "returns a failure ServiceResult with errors" do
         result = service.call
-        expect(result).not_to be_successful
-        expect(result.errors).to eq([ :email ])
+
+        aggregate_failures do
+          expect(result).not_to be_successful
+          expect(result.errors).to eq([ :email ])
+        end
       end
     end
 
-    context 'when the API response is unsuccessful' do
-      let(:api_result) { ServiceResult.failure([ 'Nope' ]) }
+    context "when the API response is unsuccessful" do
+      let(:api_result) { ServiceResult.failure([ "Nope" ]) }
 
-      it 'returns a ServiceResult' do
-        expect(api_result).to be_a(ServiceResult)
-      end
-
-      it 'is not successful' do
-        expect(api_result).not_to be_successful
-      end
-
-      it 'returns the scenario error messages' do
-        expect(api_result.errors).to eq([ 'Nope' ])
+      it "returns an unsuccessful ServiceResult with errors" do
+        aggregate_failures do
+          expect(api_result).to be_a(ServiceResult)
+          expect(api_result).not_to be_successful
+          expect(api_result.errors).to eq([ "Nope" ])
+        end
       end
     end
 
-    context 'when the SavedScenarioUser already exists' do
-      before do
-        create(:saved_scenario_user, :with_email, saved_scenario: saved_scenario, role_id: 1)
-      end
+    context "when the SavedScenarioUser already exists" do
+      before { create(:saved_scenario_user, :with_email, saved_scenario: saved_scenario, role_id: 1) }
 
-      it 'returns a failure ServiceResult with "duplicate" error' do
+      it "returns a failure ServiceResult with 'duplicate' error" do
         result = service.call
-        expect(result).not_to be_successful
-        expect(result.errors).to eq([ "duplicate" ])
+
+        aggregate_failures do
+          expect(result).not_to be_successful
+          expect(result.errors).to eq([ "duplicate" ])
+        end
       end
     end
 
-    context 'when there is a found linked user' do
+    context "when there is a found linked user" do
       let(:existing_user) { create(:user) }
       let(:settings) { { role_id: 1, user_email: existing_user.email } }
-
       let!(:initial_user) { create(:saved_scenario_user, saved_scenario: saved_scenario, role_id: 1) }
 
-      it 'is successful' do
+      it "is successful" do
         result = service.call
         expect(result).to be_successful
       end
 
-      it 'changes the viewers on the SavedScenario' do
-        expect { service.call }.to change(
-          saved_scenario.saved_scenario_users, :count
-        ).from(1).to(2)
+      it "increments the count of viewers on the SavedScenario" do
+        expect { service.call }.to change(saved_scenario.saved_scenario_users, :count).from(1).to(2)
       end
 
-      it 'sets the linked user on the SavedScenarioUser' do
+      it "sets the linked user on the SavedScenarioUser" do
         result = service.call
         expect(result.value.user_id).to eq(existing_user.id)
       end

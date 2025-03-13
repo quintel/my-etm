@@ -9,8 +9,10 @@ RSpec.describe Identity::SidebarItemComponent, type: :component do
     end
 
     it 'renders the title and explanation' do
-      expect(rendered).to have_text('Hello')
-      expect(rendered).to have_text('Hello Person')
+      aggregate_failures do
+        expect(rendered).to have_text('Hello')
+        expect(rendered).to have_text('Hello Person')
+      end
     end
 
     it 'has active item classes' do
@@ -26,8 +28,10 @@ RSpec.describe Identity::SidebarItemComponent, type: :component do
     end
 
     it 'renders the title and explanation' do
-      expect(rendered).to have_text('Hello')
-      expect(rendered).to have_text('Hello Person')
+      aggregate_failures do
+        expect(rendered).to have_text('Hello')
+        expect(rendered).to have_text('Hello Person')
+      end
     end
 
     it 'has active item classes' do

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/BlockLength
 namespace :identity do
   task scheduled: %i[trim_tokens notify_expiring_tokens]
 
@@ -40,3 +41,4 @@ namespace :identity do
     end
   end
 end
+# rubocop:enable Metrics/BlockLength

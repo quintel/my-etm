@@ -17,7 +17,9 @@ module SavedScenarioUser::UserRow
     end
 
     def disabled_classes
-      @destroyable ? "text-sm hover:cursor-pointer" : "text-sm bg-none bg-midnight-300 border-midnight-300"
+      @destroyable ?
+        "text-sm hover:cursor-pointer" :
+        "text-sm bg-none bg-midnight-300 border-midnight-300"
     end
 
     def destroy_classes

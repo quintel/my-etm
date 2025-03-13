@@ -12,53 +12,72 @@ module Identity
     end
 
     def update
-      @subscribed = ActiveModel::Type::Boolean.new.cast(params[:subscribed])
-      service = @subscribed ? CreateSubscription : DeleteSubscription
-
-      result = service.new.call(user: current_user, audience: @audience)
+      @subscribed = cast_subscription_param
+      result = subscription_service.new.call(user: current_user, audience: @audience)
 
       if result.successful?
-        respond_to do |format|
-          format.turbo_stream {
-            render turbo_stream: turbo_stream.replace(
-              @audience.to_s,
-              Identity::NewsletterStatusRowComponent.new(
-                subscribed: @subscribed,
-                audience: @audience
-              ).render_in(view_context)
-            )
-          }
-          format.html { redirect_to identity_profile_path, notice: "Subscription updated." }
-        end
+        handle_subscription_success
       else
-        Rails.logger.error("Subscription failed: #{result.error}")
-        Sentry.capture_exception(result.error)
-        respond_to do |format|
-          format.turbo_stream {
- render turbo_stream: turbo_stream.append("flash-messages", partial: "shared/error",
-   locals: { message: "Subscription update failed." }) }
-          format.html { redirect_to identity_profile_path, alert: "Subscription update failed." }
-        end
+        handle_subscription_failure(result.error)
       end
     end
 
     private
 
-    # Ensure Mailchimp is configured for the selected audience
+    # Converts the "subscribed" param to a boolean.
+    def cast_subscription_param
+      ActiveModel::Type::Boolean.new.cast(params[:subscribed])
+    end
+
+    # Chooses the correct service based on the subscription state.
+    def subscription_service
+      @subscribed ? CreateSubscription : DeleteSubscription
+    end
+
+    # Handles a successful subscription update.
+    def handle_subscription_success
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            @audience.to_s,
+            Identity::NewsletterStatusRowComponent.new(
+              subscribed: @subscribed,
+              audience: @audience
+            ).render_in(view_context)
+          )
+        end
+        format.html { redirect_to identity_profile_path, notice: "Subscription updated." }
+      end
+    end
+
+    # Handles a failed subscription update.
+    def handle_subscription_failure(error)
+      Rails.logger.error("Subscription failed: #{error}")
+      Sentry.capture_exception(error)
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.append(
+            "flash-messages",
+            partial: "shared/error",
+            locals: { message: "Subscription update failed." }
+          )
+        end
+        format.html { redirect_to identity_profile_path, alert: "Subscription update failed." }
+      end
+    end
+
+    # Ensures Mailchimp is configured.
     def require_mailchimp_configured
       redirect_to(identity_profile_path) unless MyEtm::Mailchimp.enabled?
     end
 
-    # Determine which audience is being handled
+    # Determines and validates the audience.
     def set_audience
       @audience = params[:audience]
-
       if @audience.is_a?(Hash)
         @audience = @audience[:audience] || @audience["audience"]
       end
-
       @audience = @audience&.to_sym
-
       unless %i[newsletter changelog].include?(@audience)
         redirect_to identity_profile_path, alert: "Invalid audience specified."
       end

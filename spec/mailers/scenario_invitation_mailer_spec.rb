@@ -8,9 +8,15 @@ RSpec.describe ScenarioInvitationMailer, type: :mailer do
   context 'when inviting an existing user' do
     let(:mail) { described_class.invite_user(email, name, :scenario_collaborator, saved_scenario) }
 
-    it 'renders the headers' do
+    it 'renders the subject' do
       expect(mail.subject).to eq('Invitation: ETM scenario Some saved scenario')
+    end
+
+    it 'send to the right email' do
       expect(mail.to).to eq([ email ])
+    end
+
+    it 'uses the correct mailer sender' do
       expect(mail.from).to eq(Mail::Field.parse("From: #{Settings.mailer.from}").addresses)
     end
 

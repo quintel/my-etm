@@ -48,8 +48,10 @@ RSpec.describe Identity::TokenComponent, type: :component do
     end
 
     it 'does not render the full token' do
-      expect(rendered).not_to have_css('input[value="etm_1234567890"]')
-      expect(rendered).to have_css('.font-mono', text: 'etm_12345...')
+      aggregate_failures do
+        expect(rendered).not_to have_css('input[value="etm_1234567890"]')
+        expect(rendered).to have_css('.font-mono', text: 'etm_12345...')
+      end
     end
 
     it 'does not render the clipboard button' do
