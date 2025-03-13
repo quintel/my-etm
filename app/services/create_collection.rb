@@ -26,7 +26,7 @@ class CreateCollection
   private
 
   def collection_title
-    settings[:title].presence || I18n.t('collections.no_title')
+    settings[:title].presence || I18n.t("collections.no_title")
   end
 
   def scenario_ids

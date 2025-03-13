@@ -51,7 +51,7 @@ class CreateSavedScenarioUser
     ServiceResult.success
   rescue StandardError => e
     Rails.logger.error("Failed to send invitation email: #{e.message}")
-    ServiceResult.failure(["email_failed"])
+    ServiceResult.failure([ "email_failed" ])
   end
 
   # Sends an invitation email to the user notifying them they were added to a scenario.

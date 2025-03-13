@@ -56,15 +56,18 @@
         border-b
       "
       >
-      <%= render(SelectLocale::ItemComponent.new(
+      <% en_locale_component = SelectLocale::ItemComponent.new(
         selected: I18n.locale == :en,
-        href: url_for(params.permit!.merge(locale: 'en'))
-      ).with_content('English')) %>
+        href: url_for(params.permit(:locale).merge(locale: 'en'))
+      ).with_content('English') %>
 
-      <%= render(SelectLocale::ItemComponent.new(
+      <% nl_locale_component = SelectLocale::ItemComponent.new(
         selected: I18n.locale == :nl,
-        href: url_for(params.permit!.merge(locale: 'nl'))
-      ).with_content('Nederlands')) %>
+        href: url_for(params.permit(:locale).merge(locale: 'nl'))
+      ).with_content('Nederlands') %>
+
+      <%= render en_locale_component %>
+      <%= render nl_locale_component %>
     </div>
   </div>
 </div>

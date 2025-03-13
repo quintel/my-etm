@@ -22,5 +22,5 @@ rescue Faraday::UnprocessableEntityError => e
   ServiceResult.failure_from_unprocessable_entity(e)
 rescue Faraday::Error => e
   Sentry.capture_exception(e)
-  ServiceResult.failure('Failed to interpolate scenario')
+  ServiceResult.failure("Failed to interpolate scenario")
 end

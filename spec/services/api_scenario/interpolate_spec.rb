@@ -87,7 +87,7 @@ describe ApiScenario::Interpolate, type: :service do
 
   context 'when the interpolation fails' do
     before do
-      stub_error_response(client, ["That didn't work."])
+      stub_error_response(client, [ "That didn't work." ])
     end
 
     it 'returns a ServiceResult' do
@@ -99,7 +99,7 @@ describe ApiScenario::Interpolate, type: :service do
     end
 
     it 'includes the errors on the Result' do
-      expect(result.errors).to eq(["That didn't work."])
+      expect(result.errors).to eq([ "That didn't work." ])
     end
   end
 end

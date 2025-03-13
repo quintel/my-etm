@@ -6,7 +6,7 @@
 class CreateInterpolatedCollection
   include Service
 
-  DEFAULT_YEARS = [2030, 2040].freeze
+  DEFAULT_YEARS = [ 2030, 2040 ].freeze
 
   # Public: Creates a new collection and interpolated scenarios.
   #
@@ -54,7 +54,7 @@ class CreateInterpolatedCollection
     collection = Collection.new_from_saved_scenario(@saved_scenario, user: @user)
 
     scenarios.each do |sresult|
-      collection.scenarios.build(scenario_id: sresult.value['id'])
+      collection.scenarios.build(scenario_id: sresult.value["id"])
     end
 
     Collection.transaction { collection.save! }
@@ -91,7 +91,7 @@ class CreateInterpolatedCollection
     scenarios.each do |sresult|
       next unless sresult.successful?
 
-      ApiScenario::SetCompatibility.dont_keep_compatible(@http_client, sresult.value['id'])
+      ApiScenario::SetCompatibility.dont_keep_compatible(@http_client, sresult.value["id"])
     end
   end
 end

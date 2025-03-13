@@ -56,7 +56,7 @@ class SavedScenario::UpsertScenario
   end
 
   def tag_new_version
-    ApiScenario::VersionTags::Create.call(http_client, scenario_id, '')
+    ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")
   end
 
   def failure
