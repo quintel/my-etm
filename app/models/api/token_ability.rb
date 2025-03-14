@@ -8,6 +8,11 @@ module Api
     def initialize(token, user)
       scopes = extract_scopes(token)
 
+      if user&.admin?
+        can :manage, :all
+       return
+      end
+
       can :read, SavedScenario, private: false
 
       # scenarios:read
