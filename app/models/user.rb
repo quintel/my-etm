@@ -44,6 +44,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
 
   after_create :couple_saved_scenario_users
+  after_create :sync_user
 
   def valid_password?(password)
     return true if super
@@ -87,5 +88,9 @@ class User < ApplicationRecord
     user = order(confirmation_sent_at: :desc)
     user = user.by_name(filters["name"]) if filters["name"].present?
     user
+  end
+
+  def sync_user
+    Identity::SyncUserJob.perform_later(id)
   end
 end
