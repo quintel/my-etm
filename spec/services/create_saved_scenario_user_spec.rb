@@ -85,6 +85,7 @@ describe CreateSavedScenarioUser, type: :service do
 
     context 'when the SavedScenarioUser already exists' do
       before do
+        allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
         create(:saved_scenario_user, :with_email, saved_scenario: saved_scenario, role_id: 1)
       end
 
@@ -96,6 +97,10 @@ describe CreateSavedScenarioUser, type: :service do
     end
 
     context 'when there is a found linked user' do
+      before do
+        allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
+      end
+
       let(:existing_user) { create(:user) }
       let(:settings) { { role_id: 1, user_email: existing_user.email } }
 

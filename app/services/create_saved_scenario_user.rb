@@ -22,6 +22,8 @@ class CreateSavedScenarioUser
     return failure unless saved_scenario_user.valid?
     saved_scenario_user.couple_existing_user
 
+    return current_scenario_result if current_scenario_result.failure?
+
     email_result = send_invitation_email
     return email_result if email_result.failure?
 
@@ -68,6 +70,12 @@ class CreateSavedScenarioUser
     ).deliver_now
   end
 
+  def current_scenario_result
+    @current_scenario_result ||= ApiScenario::Users::Create.call(
+      http_client, saved_scenario.scenario_id, api_user_params
+    )
+  end
+
   # Update historical scenarios. If one fails, just move on to the next
   def api_response_historical_scenarios
     saved_scenario.scenario_id_history.each do |scenario_id|
@@ -80,14 +88,14 @@ class CreateSavedScenarioUser
   end
 
   def historical_scenarios_result
-    @historical_scenarios_result = api_response_historical_scenarios
+    @historical_scenarios_result ||= api_response_historical_scenarios
   end
 
   def api_user_params
     {
       user_id: saved_scenario_user.user_id,
       user_email: saved_scenario_user.email,
-      role: saved_scenario_user.role_id
+      role: User::ROLES[saved_scenario_user.role_id]
     }
   end
 end
