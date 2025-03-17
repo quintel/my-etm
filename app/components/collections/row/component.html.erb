@@ -6,9 +6,7 @@
     <div class="flex flex-col">
       <div>
         <span><%= @collection.title %></span>
-      </div>
-      <div
-        <span class="text-midnight-400"> #<%= @collection.version.tag %></span>
+        <span class="text-midnight-400">  #<%= @collection.version.tag %></span>
       </div>
       <div class="text-sm text-midnight-400">
         <% if @collection.interpolated? %>
