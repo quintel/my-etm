@@ -11,14 +11,14 @@ class ApiScenario::VersionTags::FetchAll
   def call
     ServiceResult.success(
       @http_client.get(
-        '/api/v3/scenarios/versions',
+        "/api/v3/scenarios/versions",
         { scenarios: @scenario_ids }
       ).body
     )
   rescue Faraday::ResourceNotFound
-    ServiceResult.failure('Scenario not found')
+    ServiceResult.failure("Scenario not found")
   rescue Faraday::Error => e
     Sentry.capture_exception(e)
-    ServiceResult.failure('Failed to fetch scenario versions')
+    ServiceResult.failure("Failed to fetch scenario versions")
   end
 end

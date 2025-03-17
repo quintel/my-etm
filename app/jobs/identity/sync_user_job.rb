@@ -23,7 +23,8 @@ class Identity::SyncUserJob < ApplicationJob
   private
 
   def sync_user(user, version, service)
-    client = service == :model ? MyEtm::Auth.model_client(user, version) : MyEtm::Auth.engine_client(user, version)
+    client = service == :model ? MyEtm::Auth.model_client(user,
+      version) : MyEtm::Auth.engine_client(user, version)
     endpoint = service == :model ? "/api/v1/user" : "/api/v3/user"
     payload = user.as_json(except: %i[admin created_at updated_at])
     payload[:id] = user.id if service == :engine
@@ -42,8 +43,31 @@ class Identity::SyncUserJob < ApplicationJob
   end
 
   def handle_request_errors(error, service)
+    log_error_details(error, service)
+    log_error_response(error)
+    log_error_backtrace(error)
+  end
+
+  def log_error_details(error, service)
     Rails.logger.error("#{error.class} (#{service.capitalize}): #{error.message}")
-    Rails.logger.error("Response: #{error.response.inspect}") if error.respond_to?(:response) && error.response
-    Rails.logger.error(error.backtrace.join("\n")) if error.is_a?(StandardError)
+  end
+
+  def log_error_response(error)
+    return unless error.respond_to?(:response) && error.response
+
+    begin
+      Rails.logger.error("Response: #{error.response.inspect}")
+    rescue NoMethodError
+      Rails.logger.error(
+        "Error object lacks a response attribute: #{error.class} - " \
+        "#{error.message}"
+      )
+    end
+  end
+
+  def log_error_backtrace(error)
+    return unless error.is_a?(StandardError)
+
+    Rails.logger.error(error.backtrace.join("\n"))
   end
 end

@@ -40,8 +40,8 @@ module Admin
 
     def admin_saved_scenarios
       SavedScenario.available
-      .includes(:featured_scenario, :users)
-      .order(updated_at: :desc)
+        .includes(:featured_scenario, :users)
+        .order(updated_at: :desc)
     end
   end
 end

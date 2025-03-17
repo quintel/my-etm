@@ -48,7 +48,7 @@ RSpec.describe Api::UpdateCollection do
 
   context 'with all-new scenario IDs' do
     let(:params) do
-      { scenario_ids: [1000, 2000, 3000] }
+      { scenario_ids: [ 1000, 2000, 3000 ] }
     end
 
     it 'returns a success' do
@@ -60,7 +60,7 @@ RSpec.describe Api::UpdateCollection do
     end
 
     it 'updates the scenario_ids' do
-      expect(result.value!.reload.scenarios.map(&:scenario_id).sort).to eq([1000, 2000, 3000])
+      expect(result.value!.reload.scenarios.map(&:scenario_id).sort).to eq([ 1000, 2000, 3000 ])
     end
   end
 
@@ -68,7 +68,7 @@ RSpec.describe Api::UpdateCollection do
     let(:original_scenario_ids) { collection.scenarios.pluck(:scenario_id) }
 
     let(:params) do
-      { scenario_ids: original_scenario_ids + [original_scenario_ids.last + 1] }
+      { scenario_ids: original_scenario_ids + [ original_scenario_ids.last + 1 ] }
     end
 
     it 'returns a success' do
@@ -81,7 +81,7 @@ RSpec.describe Api::UpdateCollection do
 
     it 'updates the scenario_ids' do
       expect(result.value!.scenarios.map(&:scenario_id).sort).to eq(
-        original_scenario_ids + [original_scenario_ids.last + 1]
+        original_scenario_ids + [ original_scenario_ids.last + 1 ]
       )
     end
   end
@@ -102,17 +102,17 @@ RSpec.describe Api::UpdateCollection do
 
     it 'returns the errors' do
       expect(result.failure).to eq({
-        title: ['must be filled'],
-        area_code: ['must be filled'],
-        end_year: ['must be an integer'],
-        scenario_ids: ['must be filled']
+        title: [ 'must be filled' ],
+        area_code: [ 'must be filled' ],
+        end_year: [ 'must be an integer' ],
+        scenario_ids: [ 'must be filled' ]
       })
     end
   end
 
   context 'with non-numeric scenario IDs' do
     let(:params) do
-      super().merge(scenario_ids: [nil, 'nope', -1])
+      super().merge(scenario_ids: [ nil, 'nope', -1 ])
     end
 
     it 'returns a failure' do
@@ -122,9 +122,9 @@ RSpec.describe Api::UpdateCollection do
     it 'returns the errors' do
       expect(result.failure).to eq({
         scenario_ids: {
-          0 => ['must be an integer'],
-          1 => ['must be an integer'],
-          2 => ['must be greater than 0']
+          0 => [ 'must be an integer' ],
+          1 => [ 'must be an integer' ],
+          2 => [ 'must be greater than 0' ]
         }
       })
     end
@@ -141,14 +141,14 @@ RSpec.describe Api::UpdateCollection do
 
     it 'returns the errors' do
       expect(result.failure).to eq({
-        scenario_ids: ['size cannot be greater than 100']
+        scenario_ids: [ 'size cannot be greater than 100' ]
       })
     end
   end
 
   context 'with valid params, but duplicate scenario IDs' do
     let(:params) do
-      super().merge(scenario_ids: [10, 10, 20])
+      super().merge(scenario_ids: [ 10, 10, 20 ])
     end
 
     it 'returns a success' do
@@ -160,7 +160,7 @@ RSpec.describe Api::UpdateCollection do
     end
 
     it 'creates the scenarios for the transition path, ignoring duplicates' do
-      expect(result.value!.scenarios.map(&:scenario_id).sort).to eq([10, 20])
+      expect(result.value!.scenarios.map(&:scenario_id).sort).to eq([ 10, 20 ])
     end
   end
 end

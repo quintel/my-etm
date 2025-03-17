@@ -74,7 +74,7 @@ class SavedScenario < ApplicationRecord
   end
 
   def as_json(*)
-    json = super(except: ["version_id", "tmp_description"])
+    json = super(except: [ "version_id", "tmp_description" ])
     json.merge(
       "version" => version.tag,
       "saved_scenario_users" => saved_scenario_users.map { |u| u.as_json(only: %i[user_id role]) }

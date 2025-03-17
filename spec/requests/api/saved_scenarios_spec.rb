@@ -136,13 +136,14 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         end
 
         it 'returns an error message' do
-          expect(JSON.parse(response.body)).to eq({ "errors" => ["Not found"] })
+          expect(JSON.parse(response.body)).to eq({ "errors" => [ "Not found" ] })
         end
       end
 
       context 'as an authorized user' do
         before do
-          private_scenario.saved_scenario_users.create!(user: user, role_id: User::Roles.index_of(:scenario_owner))
+          private_scenario.saved_scenario_users.create!(user: user,
+            role_id: User::Roles.index_of(:scenario_owner))
           get "/api/v1/saved_scenarios/#{private_scenario.id}",
             as: :json,
             headers: access_token_header(user, :read)
@@ -166,7 +167,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns an error message' do
-        expect(JSON.parse(response.body)).to eq({ "errors" => ["Saved scenario not found"] })
+        expect(JSON.parse(response.body)).to eq({ "errors" => [ "Saved scenario not found" ] })
       end
     end
 
@@ -195,7 +196,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns an error message' do
-        expect(JSON.parse(response.body)).to eq({ "errors" => ["Not found"] })
+        expect(JSON.parse(response.body)).to eq({ "errors" => [ "Not found" ] })
       end
     end
   end

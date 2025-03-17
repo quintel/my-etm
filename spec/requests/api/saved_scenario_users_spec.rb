@@ -6,7 +6,8 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
   # When we find the time and energy to setup the SSUsersAPI correctly
 
   let(:user) { create(:user) }
-  let(:api_result) { ServiceResult.success([{ 'role_id' => 1, 'user_email' => 'test@test.com' }]) }
+  let(:api_result) {
+ ServiceResult.success([ { 'role_id' => 1, 'user_email' => 'test@test.com' } ]) }
   let!(:saved_scenario) { create(:saved_scenario, user: user) }
   let(:client) { Faraday.new(url: 'http://et.engine') }
 
@@ -84,23 +85,26 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
 
       it 'adds the given users to the scenario' do
         expect(JSON.parse(response.body)).to include(
-          a_hash_including('user_id' => nil, 'user_email' => 'viewer@test.com', 'role' => 'scenario_viewer'),
-          a_hash_including('user_id' => nil, 'user_email' => 'collaborator@test.com', 'role' => 'scenario_collaborator'),
-          a_hash_including('user_id' => nil, 'user_email' => 'owner@test.com', 'role' => 'scenario_owner')
+          a_hash_including('user_id' => nil, 'user_email' => 'viewer@test.com',
+            'role' => 'scenario_viewer'),
+          a_hash_including('user_id' => nil, 'user_email' => 'collaborator@test.com',
+            'role' => 'scenario_collaborator'),
+          a_hash_including('user_id' => nil, 'user_email' => 'owner@test.com',
+            'role' => 'scenario_owner')
         )
       end
     end
 
     context 'with malformed user params' do
       let(:api_result) do
-        ServiceResult.failure(['role_id is invalid'])
+        ServiceResult.failure([ 'role_id is invalid' ])
       end
 
       before do
         post "/api/v1/saved_scenarios/#{saved_scenario.id}/users", as: :json,
           headers: access_token_header(user, :delete),
           params: {
-            saved_scenario_users: [{ user_email: 'viewer@test.com' }]
+            saved_scenario_users: [ { user_email: 'viewer@test.com' } ]
           }
       end
 
@@ -110,7 +114,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
 
       it 'returns an error' do
         expect(JSON.parse(response.body)['errors']).to eq(
-          { 'viewer@test.com' => ['role_id'] }
+          { 'viewer@test.com' => [ 'role_id' ] }
         )
       end
     end
@@ -122,7 +126,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
           params: {
             saved_scenario_users: [
               { user_email: 'viewer@test.com', role: 'scenario_viewer' },
-              { user_email: 'viewer@test.com', role: 'scenario_collaborator' },
+              { user_email: 'viewer@test.com', role: 'scenario_collaborator' }
             ]
           }
       end
@@ -133,7 +137,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
 
       it 'returns an error' do
         expect(JSON.parse(response.body)['errors']).to eq(
-          { "viewer@test.com" => ["duplicate"] }
+          { "viewer@test.com" => [ "duplicate" ] }
         )
       end
     end
@@ -166,7 +170,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
           params: {
             saved_scenario_users: [
               { user_id: user_2.id, role: 'scenario_owner' },
-              { user_id: user_3.id, role: 'scenario_viewer' },
+              { user_id: user_3.id, role: 'scenario_viewer' }
             ]
           }
       end
@@ -190,7 +194,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
           headers: access_token_header(user, :delete),
           params: {
             saved_scenario_users: [
-              { user_id: user_2.id, role: 'scenario_collaborator' },
+              { user_id: user_2.id, role: 'scenario_collaborator' }
             ]
           }
       end
@@ -216,7 +220,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
         put "/api/v1/saved_scenarios/#{saved_scenario.id}/users", as: :json,
           headers: access_token_header(user, :delete),
           params: {
-            saved_scenario_users: [{ user_id: user_2.id }]
+            saved_scenario_users: [ { user_id: user_2.id } ]
           }
       end
 
@@ -250,7 +254,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
         delete "/api/v1/saved_scenarios/#{saved_scenario.id}/users", as: :json,
           headers: access_token_header(user, :delete),
           params: {
-            saved_scenario_users: [{ user_id: user_2.id }, { user_id: user_3.id }]
+            saved_scenario_users: [ { user_id: user_2.id }, { user_id: user_3.id } ]
           }
       end
 
@@ -274,7 +278,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
         delete "/api/v1/saved_scenarios/#{saved_scenario.id}/users", as: :json,
           headers: access_token_header(user, :delete),
           params: {
-            saved_scenario_users: [{ user_id: 999 }]
+            saved_scenario_users: [ { user_id: 999 } ]
           }
       end
 

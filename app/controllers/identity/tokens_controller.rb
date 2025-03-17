@@ -18,9 +18,11 @@ module Identity
     end
 
     def create
+      permitted_params = params.require(:create_personal_access_token_params).permit(:name, :expires_at)
+
       result = CreatePersonalAccessToken.call(
         user: current_user,
-        params: params[:create_personal_access_token_params].permit!
+        params: permitted_params
       )
 
       if result.failure?

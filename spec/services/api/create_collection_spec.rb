@@ -11,7 +11,7 @@ RSpec.describe Api::CreateCollection do
       title: 'My collection',
       area_code: 'nl2019',
       end_year: 2050,
-      scenario_ids: [10, 20],
+      scenario_ids: [ 10, 20 ],
       version: Version.default.tag
     }
   end
@@ -30,7 +30,7 @@ RSpec.describe Api::CreateCollection do
     end
 
     it 'creates the scenarios for the collection' do
-      expect(result.value!.scenarios.map(&:scenario_id)).to eq([10, 20])
+      expect(result.value!.scenarios.map(&:scenario_id)).to eq([ 10, 20 ])
     end
   end
 
@@ -45,9 +45,9 @@ RSpec.describe Api::CreateCollection do
 
     it 'returns the errors' do
       expect(result.failure).to eq({
-        title: ['is missing'],
-        scenario_ids: ['at least one scenario_id or saved_scenario_id should be present'],
-        version: ["is missing"]
+        title: [ 'is missing' ],
+        scenario_ids: [ 'at least one scenario_id or saved_scenario_id should be present' ],
+        version: [ "is missing" ]
       })
     end
   end
@@ -63,14 +63,14 @@ RSpec.describe Api::CreateCollection do
 
     it 'returns the errors' do
       expect(result.failure).to eq({
-        scenario_ids: ['must be filled']
+        scenario_ids: [ 'must be filled' ]
       })
     end
   end
 
   context 'with non-numeric scenario IDs' do
     let(:params) do
-      super().merge(scenario_ids: [nil, 'nope', -1])
+      super().merge(scenario_ids: [ nil, 'nope', -1 ])
     end
 
     it 'returns a failure' do
@@ -80,9 +80,9 @@ RSpec.describe Api::CreateCollection do
     it 'returns the errors' do
       expect(result.failure).to eq({
         scenario_ids: {
-          0 => ['must be an integer'],
-          1 => ['must be an integer'],
-          2 => ['must be greater than 0']
+          0 => [ 'must be an integer' ],
+          1 => [ 'must be an integer' ],
+          2 => [ 'must be greater than 0' ]
         }
       })
     end
@@ -99,14 +99,14 @@ RSpec.describe Api::CreateCollection do
 
     it 'returns the errors' do
       expect(result.failure).to eq({
-        scenario_ids: ['size cannot be greater than 100']
+        scenario_ids: [ 'size cannot be greater than 100' ]
       })
     end
   end
 
   context 'with valid params, but duplicate scenario IDs' do
     let(:params) do
-      super().merge(scenario_ids: [10, 10, 20])
+      super().merge(scenario_ids: [ 10, 10, 20 ])
     end
 
     it 'returns a success' do
@@ -118,7 +118,7 @@ RSpec.describe Api::CreateCollection do
     end
 
     it 'creates the scenarios for the collection, ignoring duplicates' do
-      expect(result.value!.scenarios.map(&:scenario_id).sort).to eq([10, 20])
+      expect(result.value!.scenarios.map(&:scenario_id).sort).to eq([ 10, 20 ])
     end
   end
 end

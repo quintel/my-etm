@@ -8,15 +8,16 @@ module MyEtm
     # Checks if Mailchimp is configured for a given audience
     def enabled?
       Settings.mailchimp.newsletter.list_url.present? &&
-      Settings.mailchimp.newsletter.api_key.present? &&
-      Settings.mailchimp.changelog.list_url.present? &&
-      Settings.mailchimp.changelog.api_key.present?
+        Settings.mailchimp.newsletter.api_key.present? &&
+        Settings.mailchimp.changelog.list_url.present? &&
+        Settings.mailchimp.changelog.api_key.present?
     end
 
     # Returns a Mailchimp API client for the given audience
     def client(audience)
       audience = audience.is_a?(Hash) ? audience[:audience]&.to_sym : audience&.to_sym
-      raise ArgumentError, "Invalid audience: #{audience.inspect}" unless %i[newsletter changelog].include?(audience)
+      raise ArgumentError, "Invalid audience: #{audience.inspect}" unless %i[newsletter
+changelog].include?(audience)
 
       Faraday.new(Settings.mailchimp[audience][:list_url]) do |conn|
         conn.request(:authorization, :basic, "", Settings.mailchimp[audience][:api_key])

@@ -25,17 +25,17 @@ class SavedScenarioHistoryPresenter
 
     return if version.blank?
 
-    if version.key?('user_id')
-      version['frozen'] = false
-      version['user_name'] = User.find(version.delete('user_id').to_i).name
+    if version.key?("user_id")
+      version["frozen"] = false
+      version["user_name"] = User.find(version.delete("user_id").to_i).name
     else
-      version['frozen'] = true
-      version['user_name'] = I18n.t('saved_scenario_users.unknown')
+      version["frozen"] = true
+      version["user_name"] = I18n.t("saved_scenario_users.unknown")
     end
 
-    version['scenario_id'] = scenario_id
-    version['description'] ||= ""
-    version['updated_at'] = version.delete('last_updated_at')
+    version["scenario_id"] = scenario_id
+    version["description"] ||= ""
+    version["updated_at"] = version.delete("last_updated_at")
 
     SavedScenarioHistory.from_params(version)
   end

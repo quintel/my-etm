@@ -18,7 +18,7 @@ module Api
 
       rule(:scenario_ids, :saved_scenario_ids) do
         if values[:scenario_ids].nil? && values[:saved_scenario_ids].nil?
-          key.failure('at least one scenario_id or saved_scenario_id should be present')
+          key.failure("at least one scenario_id or saved_scenario_id should be present")
         end
       end
     end

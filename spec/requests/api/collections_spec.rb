@@ -149,7 +149,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
       {
         area_code: 'nl',
         end_year: 2050,
-        scenario_ids: [1, 2, 3],
+        scenario_ids: [ 1, 2, 3 ],
         title: 'My collection',
         version: Version.default.tag
       }
@@ -172,7 +172,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
 
       it 'sets the scenario IDs' do
         request
-        expect(JSON.parse(response.body)['scenario_ids']).to eq([1, 2, 3])
+        expect(JSON.parse(response.body)['scenario_ids']).to eq([ 1, 2, 3 ])
       end
     end
 
@@ -256,7 +256,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
         area_code: 'uk',
         end_year: 2060,
         title: 'My updated collection',
-        scenario_ids: [1000, 2000]
+        scenario_ids: [ 1000, 2000 ]
       }
     end
 
@@ -267,7 +267,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
       end
 
       it 'updates the collection' do
-        keys = collection_attributes.keys - [:scenario_ids]
+        keys = collection_attributes.keys - [ :scenario_ids ]
 
         expect { request }
           .to change { collection.reload.attributes.symbolize_keys.slice(*keys) }
@@ -277,7 +277,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
 
       it 'changes the scenario IDs' do
         request
-        expect(JSON.parse(response.body)['scenario_ids']).to eq([1000, 2000])
+        expect(JSON.parse(response.body)['scenario_ids']).to eq([ 1000, 2000 ])
       end
     end
 

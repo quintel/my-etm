@@ -131,7 +131,9 @@ class NastyCache
   end
 
   def expire_local!
-    log("NastyCache(#{Process.pid})#expire: timestamp: #{local_timestamp} (local) / #{global_timestamp} (global)")
+    log("NastyCache(#{Process.pid})#expire: " \
+    "timestamp: #{local_timestamp} (local) / " \
+    "#{global_timestamp} (global)")
     @local_timestamp = global_timestamp
     log("NastyCache#expire: #{ @cache_store.length } keys")
 

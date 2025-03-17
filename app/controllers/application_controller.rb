@@ -32,12 +32,16 @@ class ApplicationController < ActionController::Base
   def set_locale
     if params[:locale] && I18n.available_locales.include?(params[:locale].to_sym)
       session[:locale] = params[:locale]
-      redirect_to(params.permit!.except(:locale)) if request.get?
+
+      if request.get?
+        safe_params = params.permit(:page, :sort, :filter)
+        redirect_to(safe_params)
+      end
     end
 
-    # set locale based on session or url
-    I18n.locale =
-      session[:locale] || http_accept_language.preferred_language_from(I18n.available_locales)
+    # Set locale based on session or HTTP headers
+    I18n.locale = session[:locale] ||
+      http_accept_language.preferred_language_from(I18n.available_locales)
   end
 
   def active_version_tag
@@ -56,8 +60,8 @@ class ApplicationController < ActionController::Base
 
   # Its important that the location is NOT stored if:
   # - The request method is not GET (non idempotent)
-  # - The request is handled by a Devise controller such as Devise::SessionsController as that could cause an
-  #    infinite redirect loop.
+  # - The request is handled by a Devise controller such as Devise::SessionsController
+  # as that could cause an infinite redirect loop.
   # - The request is an Ajax request as this can lead to very unexpected behaviour.
   def storable_location?
     request.get? && is_navigational_format? && !devise_controller? && !request.xhr?
