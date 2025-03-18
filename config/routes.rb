@@ -96,7 +96,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :collections, only: %i[index show new destroy] do
+  resources :collections, only: %i[index show new destroy update] do
     collection do
       get :list
       post :list

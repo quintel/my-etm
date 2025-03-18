@@ -1,4 +1,10 @@
-<%- content_for :menu_title, @collection.title %>
+<%- content_for :menu_title do %>
+  <%= render(Collections::Title::Component.new(
+    path: collection_path(@collection),
+    title: @collection.title,
+    editable: @editable
+  ))%>
+<% end %>
 <%- content_for :title, "#{@collection.title} - #{t('collections.title')} - #{t('meta.title')}" %>
 <%= render(partial: "collections/show/block_right_menu", locals: { collection: @collection })%>
 
