@@ -19,7 +19,9 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
 
         parsed_response['featured_scenarios'].each do |scenario|
           expect(scenario.keys).to contain_exactly(
-            'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version', 'end_year', 'author'
+            'id', 'saved_scenario_id', 'owner_id', 'group',
+            'title_en', 'title_nl', 'version', 'end_year',
+            'author', 'area_code'
           )
           expect(scenario['version']).to eq('latest')
         end
@@ -44,7 +46,9 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
 
         parsed_response['featured_scenarios'].each do |scenario|
           expect(scenario.keys).to contain_exactly(
-            'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version', 'end_year', 'author'
+            'id', 'saved_scenario_id', 'owner_id', 'group',
+            'title_en', 'title_nl', 'version', 'end_year',
+            'author', 'area_code'
           )
           expect(scenario['version']).to eq(version.tag)
         end
@@ -60,7 +64,9 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
         expect(response).to have_http_status(:ok)
         parsed_response = JSON.parse(response.body)
         expect(parsed_response.keys).to contain_exactly(
-          'id', 'saved_scenario_id', 'owner_id', 'group', 'title_en', 'title_nl', 'version', 'end_year', 'author'
+          'id', 'saved_scenario_id', 'owner_id', 'group',
+          'title_en', 'title_nl', 'version', 'end_year',
+          'author', 'area_code'
         )
         expect(parsed_response['id']).to eq(featured_scenario_id)
         expect(parsed_response['version']).to eq('latest')
