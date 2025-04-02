@@ -7,7 +7,7 @@
   )) %>
 <% end %>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { "data-turbo" => "false" }) do |f| %>
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { "data-turbo" => "false", id: "signup-form" }) do |f| %>
   <%= render "devise/shared/error_messages", resource: resource %>
 
   <div class="mb-6">
@@ -26,6 +26,10 @@
     <% end %>
   </div>
 
+  <% if Settings.recaptcha.site_key.present? %>
+    <%= hidden_field_tag 'recaptcha_token', '', id: 'recaptcha-token' %>
+  <% end %>
+
   <%= render(Login::ButtonComponent.new(form: f).with_content(t('.submit'))) %>
 <% end %>
 
@@ -37,3 +41,24 @@
 </p>
 
 <%= render "devise/shared/links" %>
+
+<% if Settings.recaptcha.site_key.present? %>
+  <script src="https://www.google.com/recaptcha/api.js?render=<%= Settings.recaptcha.site_key %>"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var form = document.getElementById("signup-form");
+
+      if (form) {
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          grecaptcha.ready(function () {
+            grecaptcha.execute("<%= Settings.recaptcha.site_key %>", { action: "signup" }).then(function (token) {
+              document.getElementById("recaptcha-token").value = token;
+              form.submit();
+            });
+          });
+        });
+      }
+    });
+  </script>
+<% end %>

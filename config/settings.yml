@@ -32,3 +32,7 @@ auth:
 # Optionally send error messages to the Sentry service by providing your
 # Sentry DSN:
 sentry_dsn: <%= ENV['SENTRY_DSN'] %>
+
+recaptcha:
+  site_key:  <%= ENV.fetch('RECAPTCHA_SITE_KEY', nil) %>
+  secret_key: <%= ENV.fetch('RECAPTCHA_SECRET_KEY', nil) %>

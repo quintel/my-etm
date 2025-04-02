@@ -5,6 +5,18 @@ module Users
     before_action :configure_sign_up_params, only: [ :create ]
     before_action :configure_account_update_params, only: [ :update ]
 
+    def create
+      if Settings.recaptcha.site_key.present?
+        unless verify_recaptcha(action: 'signup', minimum_score: 0.5, secret_key: Settings.recaptcha.secret_key)
+          flash.now[:alert] = "reCAPTCHA verification failed. Please try again."
+          self.resource = resource_class.new(sign_up_params)
+          render :new, status: :unprocessable_entity and return
+        end
+      end
+
+      super
+    end
+
     def confirm_destroy
       @counts = stats_for_destroy
       render :confirm_destroy, layout: "application"
@@ -45,6 +57,10 @@ module Users
     # If you have extra params to permit, append them to the sanitizer.
     def configure_sign_up_params
       devise_parameter_sanitizer.permit(:sign_up, keys: [ :name ])
+    end
+
+    def sign_up_params
+      params.require(:user).permit(:name, :email, :password)
     end
 
     # If you have extra params to permit, append them to the sanitizer.
