@@ -30,8 +30,9 @@ RSpec.describe Users::RegistrationsController, type: :request do
       end
     end
 
-    pending "when recaptcha is configured" do
+    context "when recaptcha is configured" do
       before do
+        allow(Recaptcha::Helpers).to receive(:recaptcha_v3).and_return("")
         allow(Settings.recaptcha).to receive(:site_key).and_return("dummy-key")
         allow(Settings.recaptcha).to receive(:secret_key).and_return("dummy-secret")
       end
