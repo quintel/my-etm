@@ -78,6 +78,12 @@
     @apply pl-5;
   }
 
+  .trix-content a {
+    text-decoration: underline;
+    @apply text-midnight-800;
+    @apply hover:text-midnight-450;
+  }
+
   trix-editor {
     overflow-y: scroll;
   }
