@@ -15,7 +15,7 @@
     = f.label :version, t('collections.new.form.version'), class: 'text-sm text-gray-400 mb-2'
     = f.select :version, versions.map { |v| [v.titleize, v.tag] }, {}, id: 'version-select', data: { action: 'collections#versionChanged', 'collections-target': 'versionSelect' }, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
   - else
-    = f.hidden_field :version, value: versions.first
+    = f.hidden_field :version, value: versions.first.tag
 
   = f.label :saved_scenario_ids, t('collections.new.form.scenario_ids'), class: 'text-sm text-gray-400 mb-2'
   .flex.flex-wrap

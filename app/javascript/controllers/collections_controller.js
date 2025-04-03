@@ -13,7 +13,7 @@ export default class extends Controller {
   }
 
   filterScenarios() {
-    if (!this.hasversionSelectTarget) {
+    if (!this.hasVersionSelectTarget) {
       return
     }
     const selectedVersion = this.versionSelectTarget.value
