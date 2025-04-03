@@ -13,7 +13,7 @@
 
   - if versions.count > 1
     = f.label :version, t('collections.new.form.version'), class: 'text-sm text-gray-400 mb-2'
-    = f.select :version, versions.map { |v| [v.titleize, v] }, {}, id: 'version-select', data: { action: 'collections#versionChanged', 'collections-target': 'versionSelect' }, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
+    = f.select :version, versions.map { |v| [v.titleize, v.tag] }, {}, id: 'version-select', data: { action: 'collections#versionChanged', 'collections-target': 'versionSelect' }, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
   - else
     = f.hidden_field :version, value: versions.first
 
