@@ -353,6 +353,7 @@ GEM
     rdiscount (2.2.7.3)
     rdoc (6.7.0)
       psych (>= 4.0.0)
+    recaptcha (5.19.0)
     redis-client (0.22.2)
       connection_pool
     regexp_parser (2.9.2)
@@ -528,6 +529,7 @@ DEPENDENCIES
   rails-controller-testing
   rake
   rdiscount (~> 2.2)
+  recaptcha
   rspec-rails
   rubocop-rails-omakase
   rubocop-rspec

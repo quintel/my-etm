@@ -18,6 +18,10 @@ mailchimp:
     list_url: <%= ENV.fetch('MAILCHIMP_LIST_CHANGELOG_URL', nil) %>
     api_key: <%= ENV.fetch('MAILCHIMP_API_KEY', nil) %>
 
+recaptcha:
+  site_key:  <%= ENV.fetch('RECAPTCHA_SITE_KEY', nil) %>
+  secret_key: <%= ENV.fetch('RECAPTCHA_SECRET_KEY', nil) %>
+
 # set to true if the server won't have online access. this disables Sentry,
 # etc.
 standalone: false

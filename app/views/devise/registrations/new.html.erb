@@ -26,6 +26,8 @@
     <% end %>
   </div>
 
+<%= recaptcha_v3(action: 'signup', script: true) if Settings.recaptcha&.site_key.present? && Settings.recaptcha&.secret_key.present? %>
+
   <%= render(Login::ButtonComponent.new(form: f).with_content(t('.submit'))) %>
 <% end %>
 

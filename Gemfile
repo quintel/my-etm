@@ -98,3 +98,4 @@ end
 gem 'web-console', group: :development
 
 gem "invisible_captcha", "~> 2.3"
+gem 'recaptcha', require: 'recaptcha/rails'
