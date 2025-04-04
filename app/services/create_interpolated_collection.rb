@@ -52,6 +52,7 @@ class CreateInterpolatedCollection
 
   def create_collection
     collection = Collection.new_from_saved_scenario(@saved_scenario, user: @user)
+    collection.version ||= @saved_scenario.version || Version.default
 
     scenarios.each do |sresult|
       collection.scenarios.build(scenario_id: sresult.value['id'])
