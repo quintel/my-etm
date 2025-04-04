@@ -319,6 +319,10 @@ nl:
     latest: |
       Dit scenario is gemaakt in de live versie van het ETM die de nieuwste, maandelijkse
       updates bevat. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline mt-5 hover:text-midnight-800">Meer informatie...</a>
+    2025:
+      01_html: |
+        Dit scenario is gemaakt in de 2025.01 versie van het ETM, uitgebracht in april
+        2025. <a href="https://docs.energytransitionmodel.com/main/user_manual/model-versions" target="_blank" class="underline mt-5 hover:text-midnight-800">Meer informatie...</a>
   layouts:
     welcome_back:
       title: Welkom bij Mijn Scenarios
