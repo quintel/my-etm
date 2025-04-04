@@ -461,7 +461,7 @@ GEM
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.6.0)
-    uri (0.13.2)
+    uri (0.13.1)
     useragent (0.16.11)
     view_component (3.19.0)
       activesupport (>= 5.2.0, < 8.1)
