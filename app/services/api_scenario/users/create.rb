@@ -17,7 +17,7 @@ module ApiScenario
         ServiceResult.success(
           @http_client.post(
             "/api/v3/scenarios/#{@scenario_id}/users",
-            { scenario_users: [ @scenario_user ], invitation_args: @invitation_args }
+            { scenario_users: [ @scenario_user ] }
           ).body
         )
       rescue Faraday::ResourceNotFound

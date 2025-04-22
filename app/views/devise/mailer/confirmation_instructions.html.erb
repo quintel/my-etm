@@ -75,7 +75,9 @@
   <div class="container">
     <div class="header">
       <div class="logo-container">
-        <img src="<%= asset_path('header/logo-round.svg') %>" alt="Logo" class="logo">
+        <%= email_inline_image_tag("header/logo-round.svg",
+            class: "logo",
+            alt: "ETM Logo") %>
         <h2><%=I18n.t('meta.title')%></h2>
       </div>
       <h1>Welcome <%= @resource.name %>!</h1>

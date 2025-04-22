@@ -57,7 +57,7 @@
 
 <%= render(Identity::ProfileRowComponent.new(title: t('.privacy.title'))) do |row| %>
   <% row.with_message do %>
-    <p class="-mt-2 mb-2">
+    <p>
       <%= t('.privacy.choose') %>
     </p>
     <p>
@@ -100,7 +100,7 @@
 
 <%= render(Identity::ProfileRowComponent.new(title: t('devise.registrations.confirm_destroy.title'))) do |row| %>
   <% row.with_message do %>
-    <p class="-mt-2 mb-2">
+    <p>
       <%= t('devise.registrations.confirm_destroy.information') %>
     </p>
   <% end %>

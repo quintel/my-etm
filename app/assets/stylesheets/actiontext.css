@@ -50,3 +50,7 @@ trix-toolbar .trix-button.trix-active {
   background: #fdece0;
   color: #462c34;
 }
+
+trix-editor a {
+  text-decoration: underline;
+}

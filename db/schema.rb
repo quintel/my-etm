@@ -178,7 +178,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_13_134056) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "version_id"
-    t.text "tmp_description"
     t.index ["discarded_at"], name: "index_saved_scenarios_on_discarded_at"
     t.index ["scenario_id"], name: "index_saved_scenarios_on_scenario_id"
     t.index ["version_id"], name: "index_saved_scenarios_on_version_id"

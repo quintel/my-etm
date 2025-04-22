@@ -54,6 +54,10 @@ describe CreateInterpolatedCollection, type: :service do
       it 'associates the scenarios with the Collection' do
         expect(result.value.scenarios.count).to be(2)
       end
+
+      it 'sets the version on the Collection based on the saved_scenario' do
+        expect(result.value.version).to eq(scenario.version)
+      end
     end
 
     context 'when ETEngine returns an error for 2030, but not 2040' do

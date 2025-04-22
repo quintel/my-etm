@@ -1,7 +1,7 @@
 <%= turbo_frame_tag @audience.to_s do %>
   <%= render(Identity::ProfileRowComponent.new(title: t(".title.#{@audience}"))) do |row| %>
     <% if @subscribed %>
-      <div class="flex items-center gap-1 text-midnight-980">
+      <div class="flex items-center gap-1 text-sm text-midnight-980">
         <%= heroicon 'check-circle', options: { class: 'w-5 h-5 mr-2' } %>
         <%= t('.subscribed') %>
       </div>
@@ -20,7 +20,7 @@
                       class: button_classes(color: :border) %>
       <% end %>
     <% else %>
-      <div class="flex items-center gap-1">
+      <div class="flex text-sm items-center gap-1">
         <%= t('.not_subscribed') %>
       </div>
 

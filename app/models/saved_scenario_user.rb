@@ -21,7 +21,7 @@ class SavedScenarioUser < ApplicationRecord
   end
 
   def initials
-    user.present? ? user.name.first : user_email.first
+    user.present? ? user.name.first : user_email&.first
   end
 
   def email
