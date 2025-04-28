@@ -105,6 +105,8 @@ GEM
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
     cgi (0.4.2)
+    childprocess (5.1.0)
+      logger (~> 1.5)
     concurrent-ruby (1.3.5)
     config (5.5.2)
       deep_merge (~> 1.2, >= 1.2.1)
@@ -240,6 +242,12 @@ GEM
     jwt (2.9.3)
       base64
     language_server-protocol (3.17.0.3)
+    launchy (3.1.1)
+      addressable (~> 2.8)
+      childprocess (~> 5.0)
+      logger (~> 1.6)
+    letter_opener (1.10.0)
+      launchy (>= 2.2, < 4)
     listen (3.9.0)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
@@ -520,6 +528,7 @@ DEPENDENCIES
   jbuilder
   json-jwt
   jwt
+  letter_opener
   listen
   local_time
   mysql2 (~> 0.5.6)
