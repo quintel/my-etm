@@ -87,6 +87,9 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
   gem "rubocop-rspec", require: false
 
+  # Test mailers locally
+  gem "letter_opener"
+
   # Test suite
   gem "rspec-rails"
   gem "factory_bot_rails"
