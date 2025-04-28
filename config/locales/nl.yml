@@ -191,11 +191,11 @@ nl:
     new:
       email: E-mailadres
       new_email_hint: Als er geen bestaande gebruiker wordt gevonden voor het opgegeven
-        e-mailadres, wordt er een e-mail gestuurd op deze persoon uit te nodigen een
-        aacount aan te amken voor het ETM.
+        e-mailadres, wordt er een e-mail gestuurd om deze persoon uit te nodigen een
+        account aan te maken.
       role: Rol
       role_hint: Kies het type toegang dat je wilt verlenen.
-      title: Geef iemand toegang to jouw scenario
+      title: Geef iemand toegang tot jouw scenario
     role: Rol
     roles:
       pending: In afwachting

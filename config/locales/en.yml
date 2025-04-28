@@ -152,8 +152,8 @@ en:
     nameless: Nameless user
     new:
       email: Email address
-      new_email_hint: If no existing user can be found for the given email address
-        we will send an email inviting this person to create an account for the ETM.
+      new_email_hint: If no existing user can be found for the given email address,
+        an email is sent inviting this person to create an account.
       role: Role
       role_hint: Pick the type of access you want to grant.
       title: Give someone access to your scenario
