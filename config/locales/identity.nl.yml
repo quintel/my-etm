@@ -115,7 +115,7 @@ nl:
           We versturen ongeveer vier keer per jaar een nieuwsbrief met informatie over verbeteringen
           en wijzigingen aan het ETM. Je kan je op elk moment uitschrijven.
         changelog: |
-          Voor iedere realease van het model maken we een technish document waarin exacte
+          Voor iedere release van het model maken we een technish document waarin exacte
           veranderingen in inputs en queries worden uitgelegd. We sturen een link om het
           document te downloaden wanneer het beschikbaar is. Aangeraden voor API gebruikers.
       subscribe: Inschrijven
@@ -124,7 +124,7 @@ nl:
           Je bent ingeschreven voor onze nieuwsbrief. We versturen ongeveer vier e-mails per jaar
           met verbeteringen en wijzigingen aan het model.
         changelog: |
-          Iedere realease van het model ontvang je een link naar een technish document waarin exacte
+          Iedere release van het model ontvang je een link naar een technish document waarin exacte
           veranderingen in inputs en queries worden uitgelegd. Aangeraden voor API gebruikers.
 
     token_component:
