@@ -3,18 +3,27 @@ module Api
     class SavedScenariosController < BaseController
       check_authorization
 
-      before_action :require_user, only: :index
       load_and_authorize_resource(class: SavedScenario, only: %i[index create show update destroy])
 
       # GET /saved_scenarios or /saved_scenarios.json
       def index
-        saved_scenarios = current_user
-          .saved_scenarios
+        base =
+          if params[:scope] == 'all'
+            SavedScenario.accessible_by(current_ability)
+          elsif current_user
+            current_user
+              .saved_scenarios
+              .accessible_by(current_ability)
+          else
+            SavedScenario.none
+          end
+
+        @saved_scenarios = base
           .available
           .includes(:featured_scenario, :users)
-          .order("updated_at DESC")
+          .order(updated_at: :desc)
 
-          render json: saved_scenarios
+        render json: @saved_scenarios
       end
 
       # GET /saved_scenarios/:id

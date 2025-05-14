@@ -4,57 +4,59 @@ require 'rails_helper'
 
 RSpec.describe 'API::SavedScenarios', type: :request, api: true do
   let(:user) { create(:user) }
-  let(:client) { Faraday.new(url: 'http://et.engine') }
+  let(:client) { Faraday.new(url: 'http://testing') }
 
   before { allow(MyEtm::Auth).to receive(:engine_client).and_return(client) }
 
   describe 'GET /api/v1/saved_scenarios' do
     context 'with an access token with the correct scope' do
-      let!(:user_ss1) { create(:saved_scenario, user:) }
-      let!(:user_ss2) { create(:saved_scenario, user:) }
-      let!(:other_ss) { create(:saved_scenario) }
-      let!(:discarded_ss) { create(:saved_scenario, user:, discarded_at: 1.day.ago) }
+      let!(:user_ss1)    { create(:saved_scenario, user: user) }
+      let!(:user_ss2)    { create(:saved_scenario, user: user) }
+      let!(:other_ss)    { create(:saved_scenario, private: true) }
+      let!(:public_ss)   { create(:saved_scenario, private: false) }
+      let!(:discarded_ss){ create(:saved_scenario, user: user, discarded_at: 1.day.ago) }
 
       before do
         get '/api/v1/saved_scenarios',
-          as: :json,
-          headers: access_token_header(user, :read)
+            as: :json,
+            headers: access_token_header(user, :read)
       end
 
       it 'returns success' do
         expect(response).to have_http_status(:success)
       end
 
-      it 'returns only available saved scenarios for the user' do
-        expect(response.parsed_body).to match_array(
-          [ user_ss1, user_ss2 ].as_json
-        )
+      it 'returns only the current user’s saved scenarios' do
+        returned_ids = response.parsed_body.map { |s| s['id'] }
+        expect(returned_ids).to match_array([user_ss1.id, user_ss2.id])
       end
 
-      it 'does not contain scenarios from other users' do
-        expect(JSON.parse(response.body)).not_to include(other_ss.as_json)
+      it 'does not contain scenarios from other users or public scenarios' do
+        returned_ids = response.parsed_body.map { |s| s['id'] }
+        expect(returned_ids).not_to include(other_ss.id, public_ss.id)
       end
 
       it 'does not contain discarded scenarios' do
-        expect(JSON.parse(response.body)).not_to include(discarded_ss.as_json)
+        returned_ids = response.parsed_body.map { |s| s['id'] }
+        expect(returned_ids).not_to include(discarded_ss.id)
       end
 
       it 'orders scenarios by updated_at DESC' do
         user_ss2.touch
         get '/api/v1/saved_scenarios',
-          as: :json,
-          headers: access_token_header(user, :read)
+            as: :json,
+            headers: access_token_header(user, :read)
 
-        parsed_response = JSON.parse(response.body)
-        expect(parsed_response.first['id']).to eq(user_ss2.id)
+        first_id = JSON.parse(response.body).first['id']
+        expect(first_id).to eq(user_ss2.id)
       end
     end
 
     context 'with an access token with the correct scope, but the user does not exist' do
       let(:request) do
         get '/api/v1/saved_scenarios',
-          as: :json,
-          headers: access_token_header(user, :read)
+            as: :json,
+            headers: access_token_header(user, :read)
       end
 
       before { user.destroy! }
@@ -70,16 +72,20 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         get '/api/v1/saved_scenarios', as: :json
       end
 
-      it 'returns unauthorized' do
-        expect(response).to have_http_status(:not_found)
+      it 'returns ok' do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'does not return any scenarios' do
+        expect(JSON.parse(response.body)).to be_empty
       end
     end
 
     context 'with an access token with the incorrect scope' do
       before do
         get '/api/v1/saved_scenarios',
-          as: :json,
-          headers: access_token_header(user, "string")
+            as: :json,
+            headers: access_token_header(user, "string")
       end
 
       it 'returns ok' do
@@ -88,6 +94,59 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       it 'does not return any scenarios' do
         expect(JSON.parse(response.body)).to be_empty
+      end
+    end
+
+    context 'with scope=all param' do
+      # current user’s scenarios
+      let!(:user_private_ss1) { create(:saved_scenario, user: user, private: true)  }
+      let!(:user_private_ss2) { create(:saved_scenario, user: user, private: true)  }
+      let!(:user_public_ss)   { create(:saved_scenario, user: user, private: false) }
+
+      # other users’ scenarios
+      let!(:other_private_ss) { create(:saved_scenario,               private: true) }
+      let!(:other_public_ss)  { create(:saved_scenario,               private: false) }
+
+      # ensure discarded still doesn’t show up
+      let!(:discarded_ss)     { create(:saved_scenario, user: user, private: false, discarded_at: 1.day.ago) }
+
+      before do
+        get '/api/v1/saved_scenarios',
+            params: { scope: 'all' },
+            as: :json,
+            headers: access_token_header(user, :read)
+      end
+
+      it 'returns HTTP success' do
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'includes all scenarios the user is allowed to read (own + any public)' do
+        returned_ids = response.parsed_body.map { |s| s['id'] }
+        expect(returned_ids).to match_array([
+          user_private_ss1.id,
+          user_private_ss2.id,
+          user_public_ss.id,
+          other_public_ss.id
+        ])
+      end
+
+      it 'excludes private scenarios of other users and any discarded ones' do
+        returned_ids = response.parsed_body.map { |s| s['id'] }
+        expect(returned_ids).not_to include(other_private_ss.id, discarded_ss.id)
+      end
+
+      it 'orders the results by updated_at descending' do
+        user_private_ss1.touch
+        other_public_ss.touch
+
+        get '/api/v1/saved_scenarios',
+            params: { scope: 'all' },
+            as: :json,
+            headers: access_token_header(user, :read)
+
+        first_id = response.parsed_body.first['id']
+        expect(first_id).to eq(other_public_ss.id)
       end
     end
   end
