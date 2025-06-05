@@ -73,7 +73,7 @@
 <% end %>
 
 <% if MyEtm::Mailchimp.enabled? %>
-  <% [:newsletter, :changelog].each do |audience| %>
+  <% [:changelog].each do |audience| %>
     <%= turbo_frame_tag audience, src: identity_edit_subscription_path(audience: audience) do %>
       <%= render(Identity::ProfileRowComponent.new(title: t("identity.newsletter_status_row_component.title.#{audience}", audience: t("identity.audience.#{audience}")))) do |row| %>
         <%= heroicon 'ellipsis-horizontal', options: { class: 'w-4 h-4' } %>
