@@ -108,15 +108,15 @@ en:
       not_subscribed: Not subscribed
       title:
         newsletter: E-mail newsletter
-        changelog: Changelog newsletter
+        changelog: Technical newsletter
       unsubscribe: Unsubscribe
       not_subscribed_message:
         newsletter: |
           We occasionally publish a newsletter with information about improvements and changes to
           the ETM. We send roughly four messages a year and you can unsubscribe at any time.
         changelog: |
-          With each release of the model we publish a document containing the
-          technical changes in inputs and queries, and send you a link to download. Recommended for API users.
+          With each release of the model a technical newsletter is sent with a changelog file containing
+          changes in inputs (sliders). Recommended for API users.
       subscribe: Subscribe
       subscribed_message:
         newsletter: |

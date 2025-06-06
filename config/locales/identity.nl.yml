@@ -106,7 +106,7 @@ nl:
     newsletter_status_row_component:
       title:
         newsletter: E-mail nieuwsbrief
-        changelog: Changelog nieuwsbrief
+        changelog: Technische nieuwsbrief
       subscribed: Geabonneerd
       not_subscribed: Niet geabonneerd
       unsubscribe: Uitschrijven
@@ -115,9 +115,9 @@ nl:
           We versturen ongeveer vier keer per jaar een nieuwsbrief met informatie over verbeteringen
           en wijzigingen aan het ETM. Je kan je op elk moment uitschrijven.
         changelog: |
-          Voor iedere release van het model maken we een technish document waarin exacte
-          veranderingen in inputs en queries worden uitgelegd. We sturen een link om het
-          document te downloaden wanneer het beschikbaar is. Aangeraden voor API gebruikers.
+          Bij iedere release van het model wordt een technische nieuwsbrief verstuurd met daarin een
+          changelogbestand waarin exacte wijzigingen in inputs (sliders) worden toegelicht.
+          Aangeraden voor API gebruikers.
       subscribe: Inschrijven
       subscribed_message:
         newsletter: |
