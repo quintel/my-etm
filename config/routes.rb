@@ -91,7 +91,9 @@ Rails.application.routes.draw do
           end
         end
       end
-      resources :featured_scenarios, only: %i[index show]
+      resources :featured_scenarios, only: %i[index show] do
+        collection { get :scenario_ids }
+      end
       resources :versions, only: [:index]
     end
   end
