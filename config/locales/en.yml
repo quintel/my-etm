@@ -76,6 +76,11 @@ en:
   errors:
     sorry: Oops! We're sorry
   featured_scenarios:
+    edit:
+      description: |
+        A featured scenario needs both a Dutch and English description. A new owner
+        can be added by going to the featured users menu in the admin section. </br>
+        Scroll to the bottom to save or discard your changes.
     confirm_destroy:
       irreversible: This action is irreversible
       submit: Confirm unfeaturing
