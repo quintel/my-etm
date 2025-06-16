@@ -1,27 +1,33 @@
 - content_for :title, "Featuring #{@featured_scenario.saved_scenario.title}"
 - content_for :menu_title, "Featuring #{@featured_scenario.saved_scenario.title}"
-= render(partial: "saved_scenarios/block_right_menu", locals: { saved_scenario: @featured_scenario.saved_scenario })
+= render partial: "saved_scenarios/block_right_menu", locals: { saved_scenario: @featured_scenario.saved_scenario }
 
-= form_for(@featured_scenario, url: saved_scenario_feature_path(@featured_scenario.saved_scenario), html: { method: @featured_scenario.persisted? ? :put : :post , class: 'flex flex-col h-full' }) do |f|
+= form_for(@featured_scenario,
+           url: saved_scenario_feature_path(@featured_scenario.saved_scenario),
+           html: { method: (@featured_scenario.persisted? ? :put : :post), class: 'flex flex-col h-full space-y-6 p-4' }) do |f|
+  %div{ class: "grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" }
+    = render SavedScenarios::Feature::GroupSelectComponent.new(form: f)
+    = render SavedScenarios::Feature::OwnerSelectComponent.new(form: f)
 
-  .flex.mb-5
-    .flex.flex-col.mr-5
-      = render(SavedScenarios::Feature::GroupSelectComponent.new(form: f))
-    .flex.flex-col
-      = render(SavedScenarios::Feature::OwnerSelectComponent.new(form: f))
+  %div{ class: "grid grid-cols-1 lg:grid-cols-2 gap-6" }
+    %div.flex.flex-col
+      = f.label :title_en, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
+      = f.text_field :title_en, class: 'appearance-none w-full md:w-3/4 lg:w-1/2 rounded-md border-gray-200 p-2'
 
-  .mb-2= t('language.english')
-  = f.label :title_en, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
-  = f.text_field :title_en, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
-  = f.rich_text_area :description_en, class: 'appearance-none resize-none rounded-md border-gray-200 h-full mb-5'
+    %div.flex.flex-col
+      = f.label :title_nl, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
+      = f.text_field :title_nl, class: 'appearance-none w-full md:w-3/4 lg:w-1/2 rounded-md border-gray-200 p-2'
 
-  .mb-2= t('language.dutch')
-  = f.label :title_nl, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
-  = f.text_field :title_nl, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
-  = f.rich_text_area :description_nl, class: 'appearance-none resize-none rounded-md border-gray-200 h-full mb-5'
+  %div{ class: "flex flex-col" }
+    = f.label :description_en, t('language.english'), class: 'text-sm text-gray-400 mb-2'
+    = f.rich_text_area :description_en, class: 'appearance-none w-full rounded-md border-gray-200 p-2 min-h-[200px] mb-6'
 
-  .flex.mt-auto.mb-0
-    = submit_tag t('scenario.save'), class: 'button w-1/4 bg-midnight-900 text-midnight-200'
-    = link_to t('scenario.discard_changes'), saved_scenario_path(@featured_scenario.saved_scenario), class: 'button w-1/4 ml-auto mr-0'
+  %div{ class: "flex flex-col" }
+    = f.label :description_nl, t('language.dutch'), class: 'text-sm text-gray-400 mb-2'
+    = f.rich_text_area :description_nl, class: 'appearance-none w-full rounded-md border-gray-200 p-2 min-h-[200px] mb-6'
+
+  %div{ class: "flex flex-col md:flex-row md:space-x-4 mt-auto" }
+    = submit_tag t('scenario.save'), class: 'button w-full md:w-auto bg-midnight-900 text-midnight-200 mb-2 md:mb-0'
+    = link_to t('scenario.discard_changes'), saved_scenario_path(@featured_scenario.saved_scenario), class: 'button w-full md:w-auto'
     - if @featured_scenario.persisted?
-      = link_to t('featured_scenario.unfeature'), confirm_destroy_saved_scenario_feature_path(@featured_scenario.saved_scenario), data: { turbo_frame: 'modal' } , class: 'button w-1/4 ml-auto mr-0'
+      = link_to t('featured_scenario.unfeature'), confirm_destroy_saved_scenario_feature_path(@featured_scenario.saved_scenario), data: { turbo_frame: 'modal' }, class: 'button w-full md:w-auto text-red-600'
