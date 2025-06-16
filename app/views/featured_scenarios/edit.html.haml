@@ -1,26 +1,28 @@
 - content_for :title, "Featuring #{@featured_scenario.saved_scenario.title}"
-- content_for :menu_title, "Featuring #{@featured_scenario.saved_scenario.title}"
+- content_for :menu_title, "Featuring \"#{@featured_scenario.saved_scenario.title}\""
 = render(partial: "saved_scenarios/block_right_menu", locals: { saved_scenario: @featured_scenario.saved_scenario })
 
-= form_for(@featured_scenario, url: saved_scenario_feature_path(@featured_scenario.saved_scenario), html: { method: @featured_scenario.persisted? ? :put : :post , class: 'flex flex-col h-full' }) do |f|
+.text-midnight-450.mb-5
+  = t('featured_scenarios.edit.description').html_safe
 
+= form_for(@featured_scenario, url: saved_scenario_feature_path(@featured_scenario.saved_scenario), html: { method: @featured_scenario.persisted? ? :put : :post , class: 'flex flex-col' }) do |f|
   .flex.mb-5
     .flex.flex-col.mr-5
       = render(SavedScenarios::Feature::GroupSelectComponent.new(form: f))
     .flex.flex-col
       = render(SavedScenarios::Feature::OwnerSelectComponent.new(form: f))
 
-  .mb-2= t('language.english')
+  .mb-2.mt-5= t('language.english')
   = f.label :title_en, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title_en, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
-  = f.rich_text_area :description_en, class: 'appearance-none resize-none rounded-md border-gray-200 h-full mb-5'
+  = f.rich_text_area :description_en, class: 'appearance-none rounded-md border-gray-200 min-h-[200px] h-min-content mb-5'
 
-  .mb-2= t('language.dutch')
+  .mb-2.mt-5= t('language.dutch')
   = f.label :title_nl, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title_nl, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
-  = f.rich_text_area :description_nl, class: 'appearance-none resize-none rounded-md border-gray-200 h-full mb-5'
+  = f.rich_text_area :description_nl, class: 'appearance-none rounded-md border-gray-200 min-h-[200px] h-min-content mb-5'
 
-  .flex.mt-auto.mb-0
+  .flex.mt-5.mb-0
     = submit_tag t('scenario.save'), class: 'button w-1/4 bg-midnight-900 text-midnight-200'
     = link_to t('scenario.discard_changes'), saved_scenario_path(@featured_scenario.saved_scenario), class: 'button w-1/4 ml-auto mr-0'
     - if @featured_scenario.persisted?

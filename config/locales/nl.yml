@@ -113,6 +113,12 @@ nl:
   errors:
     sorry: Oeps! Onze excuses
   featured_scenarios:
+    edit:
+        description: |
+          Een uitgelicht scenario heeft zowel een Nederlandse als Engelse titel
+          en beschrijving nodig. Een nieuwe eigenaar kan worden toegevoegd via
+          het 'uitgelichte gebruikers' menu in de admin sectie. </br>
+          Om je wijzigen op te slaan, scroll omlaag.
     confirm_destroy:
       irreversible: Deze handeling is onomkeerbaar
       submit: Bevestig scenario niet meer uitlichten
