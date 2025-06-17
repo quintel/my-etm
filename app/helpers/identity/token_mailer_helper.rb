@@ -14,7 +14,7 @@ module Identity
       permissions
         .select { |_, scope| token.scopes.include?(scope) }
         .map { |permission, _| "- #{permission}" }
-        .join("\n")
+        .join("</br>")
     end
   end
 end
