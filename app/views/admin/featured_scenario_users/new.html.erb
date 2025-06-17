@@ -18,7 +18,7 @@
 
         <%= render(FormSteps::RowComponent.new(title: t('.user'), label_for: "featured_scenario_user_user")) do |row| %>
           <div class="relative">
-            <%= f.select :user_id, options_from_collection_for_select(User.all.order(:name), "id", "name"), class: 'mb-2'%>
+            <%= f.select :user_id, options_from_collection_for_select(User.all.order(:name), "id", "name"), required: false, include_blank: true, class: 'mb-2'%>
           </div>
 
           <% row.icon { heroicon 'user', options: {class: 'w-5 h-5 mr-2'} } %>

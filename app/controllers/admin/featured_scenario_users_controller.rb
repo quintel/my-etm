@@ -25,7 +25,7 @@ module Admin
           format.turbo_stream do
             render turbo_stream: [
               turbo_stream.update(:modal, ""),
-              turbo_user,
+              turbo_new_user,
               turbo_notice
             ]
           end
@@ -65,19 +65,19 @@ module Admin
       params.require(:featured_scenario_user).permit(:name, :user_id)
     end
 
-    def turbo_notice(message = nil)
-      message ||= flash.delete(:notice)
-      return if message.nil?
-
-      turbo_stream.update(
-        "toast",
-        ToastComponent.new(type: :notice, message:).render_in(view_context)
-      )
-    end
-
     def turbo_user
       turbo_stream.replace(
         "user_#{@featured_scenario_user.id}",
+        Admin::FeaturedUserRow::Component.new(
+          user: @featured_scenario_user,
+          path: edit_admin_featured_scenario_user_path(@featured_scenario_user),
+        )
+      )
+    end
+
+    def turbo_new_user
+      turbo_stream.append(
+        "featured_users",
         Admin::FeaturedUserRow::Component.new(
           user: @featured_scenario_user,
           path: edit_admin_featured_scenario_user_path(@featured_scenario_user),
