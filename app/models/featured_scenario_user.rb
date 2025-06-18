@@ -1,5 +1,5 @@
 class FeaturedScenarioUser < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true
   has_many :featured_scenarios, foreign_key: :owner_id, dependent: :destroy
 
   validate :user_or_name_must_exist

@@ -9,12 +9,15 @@
 <div class="mt-10 text-midnight-400 text-sm">
   <%= "Featured users (#{@featured_scenario_users.count})"%>
 </div>
+
 <div class="mt-2 border border-gray-200 rounded-md p-5">
-  <% @featured_scenario_users.each do |user| %>
-    <%= render Admin::FeaturedUserRow::Component.new(
-      user: user,
-      path: edit_admin_featured_scenario_user_path(user),
-    )%>
+  <%= turbo_frame_tag :featured_users do %>
+    <% @featured_scenario_users.each do |user| %>
+      <%= render Admin::FeaturedUserRow::Component.new(
+        user: user,
+        path: edit_admin_featured_scenario_user_path(user),
+      )%>
+    <% end %>
   <% end %>
 </div>
 
