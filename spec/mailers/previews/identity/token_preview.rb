@@ -1,6 +1,6 @@
-# Preview all emails at http://localhost:3000/rails/mailers/identity/token
+# Preview all emails at http://localhost:3002/rails/mailers/identity/token
 class Identity::TokenPreview < ActionMailer::Preview
-  # Preview this email at http://localhost:3000/rails/mailers/identity/token/created_token
+  # Preview this email at http://localhost:3002/rails/mailers/identity/token/created_token
   def created_token
     Identity::TokenMailer.created_token(personal_access_token)
   end
