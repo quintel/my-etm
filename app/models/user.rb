@@ -29,7 +29,7 @@ class User < ApplicationRecord
 
   FILTER_PARAMS = %i[name].freeze
 
-  scope :by_name, ->(name) { where("name LIKE ?", "%#{name}%") }
+  scope :by_name, ->(name) { where("name LIKE ? OR email LIKE ?", "%#{name}%", "%#{name}%") }
 
 
   has_many :staff_applications, dependent: :destroy
