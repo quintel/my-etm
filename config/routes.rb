@@ -92,7 +92,7 @@ Rails.application.routes.draw do
         end
       end
       resources :featured_scenarios, only: %i[index show] do
-        collection { get :scenario_ids }
+        collection { get :scenarios }
       end
       resources :versions, only: [:index]
     end

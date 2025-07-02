@@ -18,14 +18,20 @@ module Api
 
       # GET /api/v1/featured_scenarios/scenario_ids
       #
-      # Returns the list of scenario_ids associated with the featured scenarios.
+      # Returns the list of scenario_ids and names associated with the featured scenarios.
       # Used by the dump feature in the Engine
-      def scenario_ids
-        ids = featured_scenarios
-                .includes(:saved_scenario)
-                .map { |f| f.saved_scenario.scenario_id }
+      def scenarios
+        scenarios = featured_scenarios
+                     .includes(:saved_scenario)
+                     .map do |featured_scenario|
+                       saved_scenario = featured_scenario.saved_scenario
+                       {
+                         id: saved_scenario.scenario_id,
+                         title: saved_scenario.title
+                       }
+                     end
 
-        render json: { scenario_ids: ids }, status: :ok
+        render json: { scenarios: scenarios }, status: :ok
       end
 
       private
