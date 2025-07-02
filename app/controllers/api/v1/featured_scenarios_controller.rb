@@ -31,7 +31,7 @@ module Api
                        }
                      end
 
-        render json: { scenarios: scenarios }, status: :ok
+        render json: scenarios, status: :ok
       end
 
       private
