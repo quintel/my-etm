@@ -14,7 +14,7 @@ class SavedScenario < ApplicationRecord
   AUTO_DELETES_AFTER = 60.days
 
   # Used by Fiterable Concern
-  FILTER_PARAMS = %i[title].freeze
+  FILTER_PARAMS = [ :title, area_codes: {} ].freeze
 
   has_one :featured_scenario, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
@@ -34,7 +34,6 @@ class SavedScenario < ApplicationRecord
 
   # Returns all saved scenarios whose areas are avaliable.
   def self.available
-    # kept.where(area_code: Engine::Area.keys)
     kept
   end
 
@@ -44,7 +43,10 @@ class SavedScenario < ApplicationRecord
   def self.filter(filters)
     scenarios = order(created_at: :desc)
 
+    area_codes = filters["area_codes"]&.filter_map { |area, picked| area if picked == "1" }
+
     scenarios = scenarios.by_title(filters["title"]) if filters["title"].present?
+    scenarios = scenarios.where(area_code: area_codes) if area_codes.present?
 
     scenarios
   end
@@ -74,7 +76,7 @@ class SavedScenario < ApplicationRecord
   end
 
   def as_json(*)
-    json = super(except: ["version_id", "tmp_description"])
+    json = super(except: [ "version_id", "tmp_description" ])
     json.merge(
       "version" => version.tag,
       "title" => localized_title(:en),
