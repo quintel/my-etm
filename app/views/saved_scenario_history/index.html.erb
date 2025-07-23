@@ -1,4 +1,4 @@
-<% content_for(:title) { "#{@saved_scenario.title} <% #{t('meta.title')}" } %>
+<% content_for(:title) { "#{@saved_scenario.title}" } %>
 <% content_for :menu_title, @saved_scenario.localized_title(I18n.locale) %>
 <%= render(partial: "saved_scenarios/block_right_menu", locals: { saved_scenario: @saved_scenario }) %>
 
