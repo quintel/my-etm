@@ -190,7 +190,9 @@ class CollectionsController < ApplicationController
   end
 
   def create_collection_params
-    params.require(:collection).permit(:title, :version, saved_scenario_ids: [])
+    params.require(:collection).permit(:title, :version, saved_scenario_ids: []).tap do |permitted|
+      permitted[:saved_scenario_ids] ||= []
+    end
   end
 
   def create_transition_params
