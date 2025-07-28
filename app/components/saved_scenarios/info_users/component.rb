@@ -2,7 +2,7 @@ module SavedScenarios::InfoUsers
   class Component < ApplicationComponent
     option :users
     option :title
-    option :color,  default: proc { 'bg-midnight-900' }
+    option :color,  default: proc { "bg-midnight-900" }
     option :privacy, default: proc { true }
 
     # Initials to show
@@ -12,7 +12,7 @@ module SavedScenarios::InfoUsers
 
     def hover_text_for(saved_scenario_user)
       if saved_scenario_user.name.present?
-        "#{saved_scenario_user.name} (#{email_for(saved_scenario_user)})"
+        [ saved_scenario_user.name, "(#{email_for(saved_scenario_user)})" ]
       else
         email_for(saved_scenario_user)
       end
