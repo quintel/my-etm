@@ -17,6 +17,7 @@ en:
         admin: Admin
         submit: Update
         success: User was successfully updated!
+        failed: Something went wrong updating this user
       is_an_admin: This user is an admin
     welcome: |
       Welcome to the admin panel. Here you can use your special powers

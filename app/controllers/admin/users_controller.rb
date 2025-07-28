@@ -71,7 +71,10 @@ module Admin
           end
         end
       else
-        render(:edit, status: :unprocessable_entity)
+        flash[:alert] = t("admin.users.edit.failed")
+
+        format.html { render(:edit, status: :unprocessable_entity) }
+        format.turbo_stream { [ turbo_alert ] }
       end
     end
 
@@ -82,19 +85,9 @@ module Admin
     end
 
     def user_params
-      attributes = [:name, :email, :password]
+      attributes = [ :name, :email, :password ]
       attributes << :admin if current_user&.admin?
       params.require(:user).permit(*attributes)
-    end
-
-    def turbo_notice(message = nil)
-      message ||= flash.delete(:notice)
-      return if message.nil?
-
-      turbo_stream.update(
-        "toast",
-        ToastComponent.new(type: :notice, message:).render_in(view_context)
-      )
     end
 
     def turbo_user

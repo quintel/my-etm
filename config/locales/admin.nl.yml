@@ -17,6 +17,7 @@ nl:
         admin: Admin
         submit: Bijwerken
         success: Gebruiker is succesvol bijgewerkt!
+        failed: Er ging iets mis bij het updaten van de gebruiker
       is_an_admin: Deze gebruiker is admin
     welcome: |
       Welkom in het adminoverzicht. Hier kun je je speciale bevoegdheden gebruiken

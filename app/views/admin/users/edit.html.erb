@@ -1,5 +1,5 @@
 <%= render(ModalComponent.new(title: t('.title'))) do |modal| %>
-  <%= turbo_frame_tag :update_user_form do %>
+  <%= turbo_frame_tag :modal do %>
     <%= form_for(@user, url: admin_update_user_path, html: { method: :put }) do |f| %>
       <%= render(FormSteps::WrapperComponent.new) do |steps| %>
         <%= render(FormSteps::RowComponent.new(title: t('.name'), label_for: "user_name")) do |row| %>
