@@ -27,5 +27,5 @@
 
   .flex.mt-10
     - if @scenarios.present?
-      = f.submit t('scenario.save'), class: 'button button-primary mr-5'
+      = f.submit t('scenario.save'), class: 'button button-primary mr-5', data: { 'collections-target': 'saveButton' }
     = link_to t('collections.new.form.cancel'), collections_path, class: 'button'

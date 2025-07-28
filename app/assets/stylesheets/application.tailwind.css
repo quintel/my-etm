@@ -43,6 +43,8 @@
     @apply bg-midnight-980;
     @apply text-midnight-200;
     @apply hover:bg-midnight-990;
+    @apply disabled:bg-midnight-990;
+    @apply disabled:cursor-default;
   }
 
   .button-success {
