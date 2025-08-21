@@ -5,6 +5,7 @@ module SidebarItem
     option :icon
     option :active, default: proc { false }
     option :text, default: proc { "text-midnight-450" }
+    option :item_count, default: proc { nil }
 
     def css_classes
       if @active

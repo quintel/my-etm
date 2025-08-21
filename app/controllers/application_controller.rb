@@ -11,7 +11,7 @@ class ApplicationController < ActionController::Base
 
   WELCOME_BACK_DATE = Date.new(2025, 2, 21)
 
-  helper_method :active_version_tag
+  helper_method :active_version_tag, :trash_item_count
 
   rescue_from CanCan::AccessDenied do |_exception|
     if current_user
@@ -42,6 +42,11 @@ class ApplicationController < ActionController::Base
 
   def active_version_tag
     session[:active_version_tag] || Version.default.tag
+  end
+
+  # How many items are in the trash?
+  def trash_item_count
+    current_user.saved_scenarios.discarded.count + current_user.collections.discarded.count
   end
 
   private
