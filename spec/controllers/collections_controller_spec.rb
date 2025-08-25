@@ -11,7 +11,6 @@ describe CollectionsController do
   before { allow(MyEtm::Auth).to receive(:engine_client).and_return(client) }
 
   describe '#create_transition' do
-
     context 'when signed in and given a valid saved scenario ID' do
       let(:scenario) { create(:saved_scenario, end_year: 2050, user: user) }
       let(:user) { create(:user) }
@@ -26,7 +25,7 @@ describe CollectionsController do
       end
 
       it 'redirects to the collection' do
-        post :create_transition, params: { collection: {saved_scenario_ids: scenario.id, version: Version.tags.last }}
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id, version: Version.tags.last } }
 
         expect(response).to redirect_to(
           collection_path(Collection.last)
@@ -34,7 +33,41 @@ describe CollectionsController do
       end
 
       it 'calls the CreateInterpolatedCollection service' do
-        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id }}
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
+        expect(service).to have_received(:call).with(anything, scenario, user)
+      end
+    end
+
+    context 'when a saved scenario is in a specific version' do
+      let(:version) { create(:version) }
+      let(:scenario) { create(:saved_scenario, end_year: 2050, user: user, version: version) }
+      let(:user) { create(:user) }
+      let(:collection) { create(:collection, scenarios_count: 1, version: version) }
+
+      let!(:service) { class_double('CreateInterpolatedCollection').as_stubbed_const }
+
+      before do
+        sign_in user
+
+        allow(service).to receive(:call).and_return(ServiceResult.success(collection))
+      end
+
+      it 'redirects to the collection' do
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
+
+        expect(response).to redirect_to(
+          collection_path(Collection.last)
+        )
+      end
+
+      it 'sets the version of the collection' do
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
+
+        expect(Collection.last.version).to eq(scenario.version)
+      end
+
+      it 'calls the CreateInterpolatedCollection service' do
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(service).to have_received(:call).with(anything, scenario, user)
       end
     end
@@ -45,7 +78,7 @@ describe CollectionsController do
       before { sign_in create(:user) }
 
       it 'raises a Not Found error' do
-        post(:create_transition, params: { collection: { saved_scenario_ids: scenario.id }})
+        post(:create_transition, params: { collection: { saved_scenario_ids: scenario.id } })
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -65,22 +98,22 @@ describe CollectionsController do
       end
 
       it 'fails the request with a 422 code' do
-        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id }}
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(response.status).to eq(422)
       end
 
       it 'renders the index' do
-        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id }}
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(response).to render_template(:new_transition)
       end
 
       it 'sets the error message in the flash' do
-        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id }}
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(flash[:alert]).to eq("That didn't work.")
       end
 
       it 'calls the CreateInterpolatedCollection service' do
-        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id }}
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(service).to have_received(:call).with(anything, scenario, user)
       end
     end
@@ -88,7 +121,7 @@ describe CollectionsController do
     context 'when not signed in ' do
       let(:scenario) { create(:saved_scenario, end_year: 2050, user: create(:user)) }
       it 'shows a sign-in prompt' do
-        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id }}
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(response).to be_redirect
       end
     end
