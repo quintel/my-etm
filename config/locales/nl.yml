@@ -212,6 +212,12 @@ nl:
     unknown: Onbekende gebruiker
     you: jij
   saved_scenarios:
+    scenario_warning:
+      desc: |
+        This scenario will be updated to reference 2023 data. This may impact outcomes.
+        You may switch the scenario to a stable version of the ETM, where the current
+        reference data will stay available.
+      learn: Learn more..
     confirm_destroy:
       irreversible: Deze handeling is onomkeerbaar
       submit: Verwijder dit scenario
