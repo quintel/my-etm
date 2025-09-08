@@ -214,10 +214,11 @@ nl:
   saved_scenarios:
     scenario_warning:
       desc: |
-        This scenario will be updated to reference 2023 data. This may impact outcomes.
-        You may switch the scenario to a stable version of the ETM, where the current
-        reference data will stay available.
-      learn: Learn more..
+        Dit scenario zal worden beïnvloed door de aanstaande update van de gemeentelijke datasets
+        van startjaar 2019 naar 2023 in oktober. Dit kan gevolgen hebben voor de uitkomsten van
+        het scenario. Om de scenario-uitkomsten te behouden kun je het scenario overzetten
+        naar een stabiele versie van het ETM, waar het huidige startjaar beschikbaar blijft.
+      learn: Learn more...
     confirm_destroy:
       irreversible: Deze handeling is onomkeerbaar
       submit: Verwijder dit scenario
