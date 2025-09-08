@@ -18,7 +18,8 @@ class SavedScenariosController < ApplicationController
 
   # GET /saved_scenarios
   def index
-    @pagy_saved_scenarios, @saved_scenarios = pagy_countless(user_saved_scenarios)
+    @pagy_saved_scenarios, @saved_scenarios = pagy_countless(ordered_user_saved_scenarios)
+    @area_codes = user_saved_scenarios.group(:area_code).count.sort_by { |_k, v| v }.reverse
 
     respond_to do |format|
       format.html
@@ -34,6 +35,7 @@ class SavedScenariosController < ApplicationController
       .viewable_by?(current_user)
       .available
       .includes(:featured_scenario, :users)
+      .order("updated_at DESC")
 
     @pagy_saved_scenarios, @saved_scenarios = pagy(filtered)
 
@@ -173,7 +175,10 @@ class SavedScenariosController < ApplicationController
       .saved_scenarios
       .available
       .includes(:featured_scenario, :users)
-      .order("updated_at DESC")
+  end
+
+  def ordered_user_saved_scenarios
+    user_saved_scenarios.order("updated_at DESC")
   end
 
   # Use callbacks to share common setup or constraints between actions.
