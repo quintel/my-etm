@@ -212,6 +212,13 @@ nl:
     unknown: Onbekende gebruiker
     you: jij
   saved_scenarios:
+    scenario_warning:
+      desc: |
+        Dit scenario zal worden beïnvloed door de aanstaande update van de gemeentelijke datasets
+        van startjaar 2019 naar 2023 in oktober. Dit kan gevolgen hebben voor de uitkomsten van
+        het scenario. Om de scenario-uitkomsten te behouden kun je het scenario overzetten
+        naar een stabiele versie van het ETM, waar het huidige startjaar beschikbaar blijft.
+      learn: Learn more...
     confirm_destroy:
       irreversible: Deze handeling is onomkeerbaar
       submit: Verwijder dit scenario
