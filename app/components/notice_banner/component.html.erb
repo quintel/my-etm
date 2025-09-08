@@ -1,7 +1,7 @@
-<div class="rounded-md flex bg-midnight-300 p-2 px-5 mt-5 text-sm text-midnight-800">
-  <span class="mr-5 text-midnight-450"><%= heroicon @icon, options: { class: 'w-5 h-5' } %></span>
+<div class="rounded-md flex <%=bg_color%> p-2 px-5 mt-5 text-sm <%=text_color%>">
+  <span class="mr-5 my-auto <%=icon_color%>"><%= heroicon @icon, options: { class: 'w-5 h-5' } %></span>
   <span class="mr-2"><%= @text %></span>
   <% if @path %>
-    <span class="underline hover:text-midnight-980"><%= link_to @button_text, @path, method: :put, data: { 'turbo-method': :put }%></span>
+    <span class="underline whitespace-nowrap hover:text-midnight-980"><%= link_to @button_text, @path, method: :put, data: { 'turbo-method': :put }%></span>
   <% end %>
 </div>
