@@ -107,7 +107,7 @@ you have to follow these steps to run MyETM.
    2. run `bundle exec rake db:create` to create your database and
       contact the private Quintel slack channel to fill your database with records from staging server
 
-7. You're now ready-to-go! Fire up the Rails process with `rails s` or better `bin/dev`.
+7. You're now ready-to-go! Fire up the Rails process with `rails s -p 3002` or better `bin/dev -p 3002`.
 
 8. If you run into an dataset error, check out this
    [explanation](https://github.com/quintel/etsource#csv-documents "Explanation on etsource CSV files") on CSV files
