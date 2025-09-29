@@ -38,7 +38,7 @@ class RenameMunicipalAreaCodes < ActiveRecord::Migration[7.2]
 
   def change
     AREA_CODE_MAPPING.each do |old_code, new_code|
-      SavedScenario.where(area_code: old_code).update_all(area_code: new_code)
+      SavedScenario.where(area_code: old_code, version: Version.default).update_all(area_code: new_code)
     end
   end
 end
