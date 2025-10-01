@@ -8,7 +8,7 @@ module NoticeBanner
 
     def text_color
       if warning
-        "text-midnight-200"
+        "text-midnight-100"
       else
         "text-midnight-800"
       end
@@ -16,7 +16,7 @@ module NoticeBanner
 
     def icon_color
       if warning
-        "text-midnight-200"
+        "text-blue-500"
       else
         "text-midnight-450"
       end
@@ -24,7 +24,7 @@ module NoticeBanner
 
     def bg_color
       if warning
-        "bg-red-600"
+        "bg-blue-100"
       else
         "bg-midnight-300"
       end
