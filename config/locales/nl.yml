@@ -20,6 +20,12 @@ nl:
           Kies een 2050 scenario om te interpoleren naar scenario's voor
           2030 en 2040
         title: Nieuw transitiepad
+    back_to_collection: Terug naar collectie
+    edit:
+      description: Pas aan de titel en de opgenomen scenario's van deze collectie
+      title: Pas aan
+      instructions: Scenario's toevoegen of verwijderen. Versleep ze om de volgorde ervan te wijzigen.
+    succesful_update: Je collectie is succesvol bijgewerkt
     confirm_destroy:
       irreversible: Deze handeling is onomkeerbaar
       submit: Verwijder deze collectie

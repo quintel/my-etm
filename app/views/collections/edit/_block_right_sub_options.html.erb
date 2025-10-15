@@ -1,19 +1,4 @@
 <% if collection.user == current_user %>
-  <% if !collection.discarded? && !collection.interpolated? %>
-    <%= render(Hovercard::Component.new(
-        path: '',
-        text: t("collections.edit.description")
-      )) do %>
-      <%= render(SavedScenarios::NavItem::Component.new(
-        path: edit_collection_path(collection),
-        title: t("collections.edit.title"),
-        icon: 'pencil',
-        static: true,
-        active: action_name == 'edit',
-        data: { turbo: false }
-      ))%>
-    <% end %>
-  <% end %>
   <%= render(Hovercard::Component.new(
       path: '',
       text: t("scenario_bar.discarded.description.#{collection.discarded?}")

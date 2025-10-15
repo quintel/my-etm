@@ -20,6 +20,12 @@ en:
           Pick one of your 2050 scenarios to interpolate into scenarios
           for 2030 and 2040
         title: New transition path
+    back_to_collection: Back to collection
+    edit:
+      description: Edit the title and included scenarios of this collection
+      title: Edit
+      instructions: Add or remove scenarios. Drag and drop to reorder them.
+    succesful_update: Your collection was succesfully updated
     confirm_destroy:
       irreversible: This action is irreversible
       submit: Delete this collection

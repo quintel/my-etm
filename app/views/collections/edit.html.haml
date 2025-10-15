@@ -1,0 +1,38 @@
+- content_for :title, "Editing #{@collection.title} - #{t('collections.title')} - #{t('meta.title')}"
+- content_for :menu_title, "Editing #{@collection.title}"
+= render(partial: "collections/edit/block_right_menu", locals: { collection: @collection })
+
+= form_for(@collection, url: collection_path(@collection), html: { data: { controller:"sortable-list" }, method: :put, class: 'flex flex-col h-full' }) do |f|
+  = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
+  = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
+
+  .pt-5.border-t.border-solid.border-gray-200
+    = t('collections.edit.instructions')
+    .mt-5{ data: { sortable_list_target:"list" } }
+      = f.hidden_field :saved_scenario_ids, value: @collection.saved_scenarios.map(&:id).join(','), data: { sortable_list_target:"sortedIds" }
+      - @collection.saved_scenarios.each do |scenario|
+        = render(Collections::EditableSavedScenario::Component.new(         |
+          path: saved_scenario_path(scenario),                              |
+          saved_scenario: scenario,                                         |
+          access: !scenario.private? || scenario.viewer?(current_user)))    |
+      - @scenarios.each do |scenario|
+        - if (!@collection.saved_scenarios.include?(scenario))
+          = render(Collections::EditableSavedScenario::Component.new(       |
+            hidden: true,                                                   |
+            path: saved_scenario_path(scenario),                            |
+            saved_scenario: scenario,                                       |
+            access: !scenario.private? || scenario.viewer?(current_user)))  |
+
+  = f.label :saved_scenario_ids, t('collections.new.form.scenario_ids'), class: 'text-sm text-gray-400 mb-2'
+  .flex.flex-wrap
+    - if @scenarios.present?
+      - @scenarios.each do |scenario|
+        = render(Collections::EditableSavedScenario::ScenarioPicker::Component.new( |
+          scenario: scenario,                                                       |
+          hidden: @collection.saved_scenarios.include?(scenario)))                  |
+    - else
+      = t('collections.new.no_scenarios')
+
+  .flex.mt-10
+    = submit_tag t('scenario.save'), class: 'button button-primary mr-5', data: { sortable_list_target:"saveButton" }
+    = link_to t('collections.new.form.cancel'), collection_path(@collection), class: 'button'

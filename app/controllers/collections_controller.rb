@@ -5,7 +5,7 @@ class CollectionsController < ApplicationController
   include Filterable
 
   load_resource only: %i[discard undiscard new_transition create_transition confirm_destroy]
-  load_and_authorize_resource only: %i[show new destroy update]
+  load_and_authorize_resource only: %i[show new edit destroy update]
 
   before_action :require_user, only: %i[index create_collection new_transition create_transition]
   before_action :ensure_valid_config
@@ -54,11 +54,21 @@ class CollectionsController < ApplicationController
     end
   end
 
+  # GET /collections/1/edit
+  def edit
+    @scenarios = current_user.saved_scenarios.available.order(updated_at: :desc)
+    #@pick_scenarios = @scenarios.where.not(id: @collection.saved_scenarios.pluck(:id))
+  end
+
   def update
-    if @collection.update(update_collection_params)
-      render json: @collection
-    else
-      render json: { errors: @collection.errors.full_messages }, status: :unprocessable_entity
+    respond_to do |format|
+      if @collection.update_scenarios(saved_scenario_ids_param) && @collection.update(update_collection_params)
+        format.html { redirect_to @collection, notice: t("collections.succesful_update") }
+        format.json { render json: @collection }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: { errors: @collection.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -183,6 +193,11 @@ class CollectionsController < ApplicationController
 
     redirect_to root_path,
       notice: "Missing collections.uri setting in config.yml"
+  end
+
+  def saved_scenario_ids_param
+    collection_params = params.require(:collection).permit(:saved_scenario_ids)
+    collection_params[:saved_scenario_ids].split(',').uniq.reject(&:empty?)
   end
 
   def update_collection_params

@@ -12,6 +12,7 @@ pin "tabbable", to: "https://ga.jspm.io/npm:tabbable@6.0.1/dist/index.esm.js"
 pin "stimulus-use", to: "https://ga.jspm.io/npm:stimulus-use@0.51.1/dist/index.js"
 pin "focus-trap", to: "https://ga.jspm.io/npm:focus-trap@7.0.0/dist/focus-trap.esm.js"
 pin "hotkeys-js", to: "https://ga.jspm.io/npm:hotkeys-js@3.10.1/dist/hotkeys.esm.js"
+pin "sortablejs", to: "https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"
 
 pin_all_from "app/javascript/controllers", under: "controllers"
 pin "trix"

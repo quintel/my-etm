@@ -19,7 +19,7 @@ class Collection < ApplicationRecord
     dependent: :delete_all
 
   has_many :collection_saved_scenarios, dependent: :destroy
-  has_many :saved_scenarios, through: :collection_saved_scenarios
+  has_many :saved_scenarios, -> { order "saved_scenario_order ASC" }, through: :collection_saved_scenarios
 
   validates_presence_of :user_id
   validates :title, presence: true
@@ -112,6 +112,18 @@ class Collection < ApplicationRecord
       'owner' => user.as_json(only: %i[id name]),
       'scenario_ids' => latest_scenario_ids.sort
     )
+  end
+
+  # Public: Updates the saved scenarios associated with this collection, ordering them as passed.
+  def update_scenarios(saved_scenario_ids)
+    return false if self.interpolated? || !saved_scenario_ids.size.between?(2, 6)
+
+    collection_saved_scenarios.delete_all
+    saved_scenario_ids.each.with_index(1) do |saved_scenario_id, saved_scenario_order|
+      collection_saved_scenarios.create(saved_scenario_id:, saved_scenario_order:)
+    end
+
+    true
   end
 
   def validate_scenarios

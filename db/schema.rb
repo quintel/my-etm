@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_26_140847) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_14_073755) do
   create_table "action_text_rich_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "body", size: :long
@@ -52,6 +52,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_26_140847) do
   create_table "collection_saved_scenarios", primary_key: ["collection_id", "saved_scenario_id"], charset: "utf8mb3", force: :cascade do |t|
     t.bigint "collection_id", null: false
     t.bigint "saved_scenario_id", null: false
+    t.integer "saved_scenario_order", default: 0, null: false
     t.index ["collection_id"], name: "index_collection_saved_scenarios_on_collection_id"
     t.index ["saved_scenario_id"], name: "index_collection_saved_scenarios_on_saved_scenario_id"
   end
