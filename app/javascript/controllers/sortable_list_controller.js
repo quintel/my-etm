@@ -20,11 +20,9 @@ export default class extends Controller {
 
   pick(event) {
     // Hide the picked element from the picker and show it in the list (moving it to the end)
-    //event.currentTarget.classList.toggle("hidden");
-    event.currentTarget.hidden = true;
+    event.currentTarget.classList.toggle("hidden");
     const listElement = this.element.querySelector(`[data-id="${event.currentTarget.dataset.pickId}"]`)
-    //listElement.classList.toggle("hidden");
-    listElement.hidden = false;
+    listElement.classList.toggle("hidden");
     listElement.parentElement.appendChild(listElement)
     
     this.updateSortedIds();
@@ -35,10 +33,8 @@ export default class extends Controller {
 
     // Hide the element from the list and show it in the picker
     const listElement = event.target.closest("[data-id]");
-    //listElement.classList.toggle("hidden");
-    listElement.hidden = true;
-    //this.element.querySelector(`[data-pick-id="${listElement.dataset.id}"]`).classList.toggle("hidden");
-    this.element.querySelector(`[data-pick-id="${listElement.dataset.id}"]`).hidden = false;
+    listElement.classList.toggle("hidden");
+    this.element.querySelector(`[data-pick-id="${listElement.dataset.id}"]`).classList.toggle("hidden");
 
     this.updateSortedIds();
   }

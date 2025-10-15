@@ -23,7 +23,7 @@
             saved_scenario: scenario,                                       |
             access: !scenario.private? || scenario.viewer?(current_user)))  |
 
-  = f.label :saved_scenario_ids, t('collections.new.form.scenario_ids'), class: 'text-sm text-gray-400 mb-2'
+  = f.label :saved_scenario_ids, t('collections.edit.picker'), class: 'text-sm text-gray-400 mb-2'
   .flex.flex-wrap
     - if @scenarios.present?
       - @scenarios.each do |scenario|

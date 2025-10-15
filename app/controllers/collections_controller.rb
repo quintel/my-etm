@@ -161,7 +161,7 @@ class CollectionsController < ApplicationController
       flash[:undo_params] = [ undiscard_collection_path(@collection), { method: :put } ]
     end
 
-    redirect_back(fallback_location: collections_path)
+    redirect_to(collection_path(@collection))
   end
 
   # Removes the soft-deletes of the scenario.

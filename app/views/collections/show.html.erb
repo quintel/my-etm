@@ -2,7 +2,7 @@
   <%= render(Collections::Title::Component.new(
     path: collection_path(@collection),
     title: @collection.title,
-    editable: @editable
+    editable: false
   ))%>
 <% end %>
 <%- content_for :title, "#{@collection.title} - #{t('collections.title')} - #{t('meta.title')}" %>

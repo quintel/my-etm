@@ -9,12 +9,12 @@
     mb-2
     hover:bg-midnight-600
     hover:cursor-pointer
+    <%= 'hidden' if hidden %>
     "
     data-pick-id= <%=scenario.id%>
     data-version= <%=scenario.version.tag%>
     data-collections-target= "listPick"
     data-action="click->sortable-list#pick"
-    <%= 'hidden' if hidden %>
   >
   <span><%= scenario.title %> </span>
 </div>
