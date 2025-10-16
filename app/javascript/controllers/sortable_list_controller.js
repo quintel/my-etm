@@ -43,7 +43,7 @@ export default class extends Controller {
     const sortedIds = Array.from(this.element.querySelectorAll("[data-id]:not(.hidden)")).map(el => el.getAttribute("data-id"));
     this.sortedIdsTarget.value = sortedIds.join(",");
 
-    // Collection must have minimum 2 scenarios and maximum 6
-    this.saveButtonTarget.disabled = sortedIds.length < 2 || sortedIds.length > 6;
+    // Collection must have minimum 1 scenario and maximum 6
+    this.saveButtonTarget.disabled = sortedIds.length < 1 || sortedIds.length > 6;
   }
 }

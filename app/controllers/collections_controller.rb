@@ -62,7 +62,7 @@ class CollectionsController < ApplicationController
 
   def update
     respond_to do |format|
-      if @collection.update_scenarios(saved_scenario_ids_param) && @collection.update(update_collection_params)
+      if @collection.update_scenarios(update_collection_params[:sorted_scenario_ids]) && @collection.update(title: update_collection_params[:title])
         format.html { redirect_to @collection, notice: t("collections.succesful_update") }
         format.json { render json: @collection }
       else
@@ -195,13 +195,8 @@ class CollectionsController < ApplicationController
       notice: "Missing collections.uri setting in config.yml"
   end
 
-  def saved_scenario_ids_param
-    collection_params = params.require(:collection).permit(:saved_scenario_ids)
-    collection_params[:saved_scenario_ids].split(',').uniq.reject(&:empty?)
-  end
-
   def update_collection_params
-    params.require(:collection).permit(:title)
+    params.require(:collection).permit(:title, :sorted_scenario_ids)
   end
 
   def create_collection_params
