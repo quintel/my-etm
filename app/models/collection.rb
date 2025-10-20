@@ -137,6 +137,15 @@ class Collection < ApplicationRecord
     true
   end
 
+  # Public: Updates the collection attributes as well as the associated saved scenarios.
+  def update_with_scenarios(params)
+    return false if !update_scenarios(params[:saved_scenario_ids])
+    return true if update(params.except(:saved_scenario_ids))
+
+    ActiveRecord::Rollback
+    false
+  end
+
   def validate_scenarios
     if scenarios.size + saved_scenarios.size > 6
       errors.add(:scenarios, 'exceeds maximum of 6 scenarios')

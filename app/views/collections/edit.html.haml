@@ -9,7 +9,6 @@
   .pt-5.border-t.border-solid.border-gray-200
     = t('collections.edit.instructions')
     .mt-5{ data: { sortable_list_target:"sortableList" } }
-      -# = f.hidden_field :sorted_scenario_ids, value: @collection.saved_scenarios.map(&:id).join(','), data: { sortable_list_target:"sortedIds" }
       - @collection.saved_scenarios.each do |scenario|
         = render(Collections::EditableSavedScenario::Component.new(         |
           form: f,                                                          |

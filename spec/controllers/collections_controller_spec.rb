@@ -323,10 +323,10 @@ describe CollectionsController do
         collection_saved_scenario_3 = create(:collection_saved_scenario, collection:, saved_scenario: create(:saved_scenario, user:), saved_scenario_order: 3)
 
         @new_scenario_ids = [collection_saved_scenario_2.saved_scenario_id, collection_saved_scenario_1.saved_scenario_id]
-        put(:update, params: { id: collection.id, collection: { title: 'New title', sorted_scenario_ids: @new_scenario_ids.join(',') } }, format: :json)
+        put(:update, params: { id: collection.id, collection: { title: 'New title', saved_scenario_ids: @new_scenario_ids } }, format: :json)
       end
 
-      it 'updates the order os the saved scenarios in the collection' do
+      it 'updates the order of the saved scenarios in the collection' do
         expect(collection.reload.saved_scenario_ids).to eq(@new_scenario_ids)
       end
     end

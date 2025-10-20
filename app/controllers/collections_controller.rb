@@ -62,7 +62,7 @@ class CollectionsController < ApplicationController
 
   def update
     respond_to do |format|
-      if @collection.update_scenarios(update_collection_params[:saved_scenario_ids]) && @collection.update(title: update_collection_params[:title])
+      if @collection.update_with_scenarios(update_collection_params)
         format.html { redirect_to @collection, notice: t("collections.succesful_update") }
         format.json { render json: @collection }
       else

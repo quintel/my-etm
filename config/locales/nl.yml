@@ -25,7 +25,7 @@ nl:
       description: Pas aan de titel en de opgenomen scenario's van deze collectie
       title: Pas aan
       instructions: Scenario's toevoegen of verwijderen. Versleep ze om de volgorde ervan te wijzigen.
-      picker: Kies een scenario om toe te voegen aan de collectie (min 2, max 6)
+      picker: Kies een scenario om toe te voegen aan de collectie (min 1, max 6)
     succesful_update: Je collectie is succesvol bijgewerkt
     confirm_destroy:
       irreversible: Deze handeling is onomkeerbaar
