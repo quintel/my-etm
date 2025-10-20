@@ -1,4 +1,5 @@
 .bg-white.transition.p-2.pr-4.rounded-md{ class: ('hidden' if @hidden), data: { id:@saved_scenario.id, sortable_list_target:"listElement" }}
+  = form.check_box :saved_scenario_ids, { multiple: true, class: "hidden" }, @saved_scenario.id, nil
   .flex
     .w-min.drag-handle
       = heroicon 'bars-3', options: { class: 'w-4 h-4 mt-5 ml-2 mr-2 text-midnight-400 cursor-move' }

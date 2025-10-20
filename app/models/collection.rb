@@ -117,7 +117,7 @@ class Collection < ApplicationRecord
   # Public: Updates the saved scenarios associated with this collection if any, ordering them as passed.
   def update_scenarios(sorted_scenario_ids)
     return true if sorted_scenario_ids.nil? || sorted_scenario_ids.empty?
-    saved_scenario_ids = sorted_scenario_ids.split(',').uniq.reject(&:empty?)
+    saved_scenario_ids = sorted_scenario_ids.uniq.reject(&:empty?)
 
     if self.interpolated? 
       errors.add(:scenarios, 'cannot be updated for interpolated collections')
@@ -131,7 +131,7 @@ class Collection < ApplicationRecord
     
     collection_saved_scenarios.delete_all
     saved_scenario_ids.each.with_index(1) do |saved_scenario_id, saved_scenario_order|
-      collection_saved_scenarios.create(saved_scenario_id:, saved_scenario_order:)
+      collection_saved_scenarios.build(saved_scenario_id:, saved_scenario_order:)
     end
 
     true
