@@ -57,7 +57,6 @@ class CollectionsController < ApplicationController
   # GET /collections/1/edit
   def edit
     @scenarios = current_user.saved_scenarios.available.order(updated_at: :desc)
-    #@pick_scenarios = @scenarios.where.not(id: @collection.saved_scenarios.pluck(:id))
   end
 
   def update

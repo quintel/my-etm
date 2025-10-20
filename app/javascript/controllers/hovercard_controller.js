@@ -9,7 +9,7 @@ export default class extends Controller {
       this.cardTarget.classList.remove("hidden");
       this.cardTarget.classList.add("opacity-100");
       this.cardTarget.classList.remove("opacity-0");
-    } else {
+    } else if (this.urlValue) {
       fetch(this.urlValue)
         .then((r) => r.text())
         .then((html) => {
@@ -31,7 +31,7 @@ export default class extends Controller {
   }
 
   disconnect() {
-    if (this.hasCardTarget) {
+    if (this.hasCardTarget && this.urlValue) {
       this.cardTarget.remove();
     }
   }
