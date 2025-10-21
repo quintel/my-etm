@@ -33,7 +33,7 @@ en:
       title: Permanently deleting collection
       warning: Deleting will remove all references to this collection.
       warning_header: You are permanently deleting your collection
-    contains: This collection contains the following scenarios
+    contains: This collection contains the following sorted scenarios
     failure: Something went wrong!
     filter:
       plain: Scenario collections

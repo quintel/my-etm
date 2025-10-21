@@ -33,7 +33,7 @@ nl:
       title: Collectie permanent verwijderen
       warning: Alle verwijzingen naar de collectie worden verwijderd.
       warning_header: Je verwijdert je collectie permanent
-    contains: Deze collecties bevat de volgende scenario's
+    contains: Deze verzameling bevat de volgende gesorteerde scenario's
     failure: Er ging iets mis!
     filter:
       plain: Collecties

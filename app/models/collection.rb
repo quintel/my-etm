@@ -98,12 +98,6 @@ class Collection < ApplicationRecord
     latest_scenario_ids.join(',')
   end
 
-  # Public: MYC doesn't have an update at, but we need it for sorting the items
-  # in the trash
-  def updated_at
-    created_at
-  end
-
   def as_json(options = {})
     options[:except] ||= %i[area_code end_year user_id]
 
@@ -133,7 +127,7 @@ class Collection < ApplicationRecord
     saved_scenario_ids.each.with_index(1) do |saved_scenario_id, saved_scenario_order|
       collection_saved_scenarios.build(saved_scenario_id:, saved_scenario_order:)
     end
-
+    
     true
   end
 

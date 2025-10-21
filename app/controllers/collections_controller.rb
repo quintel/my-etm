@@ -56,7 +56,7 @@ class CollectionsController < ApplicationController
 
   # GET /collections/1/edit
   def edit
-    @scenarios = current_user.saved_scenarios.available.order(updated_at: :desc)
+    @scenarios = current_user.saved_scenarios.available.where(version: @collection.version).order(updated_at: :desc)
   end
 
   def update
@@ -215,7 +215,7 @@ class CollectionsController < ApplicationController
   end
 
   def elegible_scenarios
-    current_user.saved_scenarios.where(end_year: 2050).order(updated_at: :desc)
+    current_user.saved_scenarios.available.where(end_year: 2050).order(updated_at: :desc)
   end
 
   def collection_title

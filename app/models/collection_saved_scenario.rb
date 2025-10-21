@@ -2,7 +2,7 @@
 
 # A saved scenario used by a Collection.
 class CollectionSavedScenario < ApplicationRecord
-  belongs_to :collection
+  belongs_to :collection, touch: true
   belongs_to :saved_scenario
 
   validate :shared_access
