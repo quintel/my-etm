@@ -56,12 +56,15 @@ class CollectionsController < ApplicationController
 
   # GET /collections/1/edit
   def edit
-    @scenarios = current_user.saved_scenarios.available.where(version: @collection.version).order(updated_at: :desc)
+    @scenarios = current_user.saved_scenarios
+      .available
+      .where(version: @collection.version)
+      .order(updated_at: :desc)
   end
 
   def update
     respond_to do |format|
-      if @collection.update_with_scenarios(update_collection_params)
+      if @collection.update(update_collection_params)
         format.html { redirect_to @collection, notice: t("collections.succesful_update") }
         format.json { render json: @collection }
       else

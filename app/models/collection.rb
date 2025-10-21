@@ -15,11 +15,13 @@ class Collection < ApplicationRecord
   belongs_to :version
 
   has_many :scenarios,
-    class_name: 'CollectionScenario',
+    class_name: "CollectionScenario",
     dependent: :delete_all
 
   has_many :collection_saved_scenarios, dependent: :destroy
-  has_many :saved_scenarios, -> { order "saved_scenario_order ASC" }, through: :collection_saved_scenarios
+  has_many :saved_scenarios,
+    -> { order("collection_saved_scenarios.saved_scenario_order ASC") },
+    through: :collection_saved_scenarios
 
   validates_presence_of :user_id
   validates :title, presence: true
@@ -95,60 +97,51 @@ class Collection < ApplicationRecord
   #
   # Returns an array.
   def redirect_slug
-    latest_scenario_ids.join(',')
+    latest_scenario_ids.join(",")
   end
 
   def as_json(options = {})
     options[:except] ||= %i[area_code end_year user_id]
 
     super(options).merge(
-      'discarded' => discarded_at.present?,
-      'owner' => user.as_json(only: %i[id name]),
-      'scenario_ids' => latest_scenario_ids.sort
+      "discarded" => discarded_at.present?,
+      "owner" => user.as_json(only: %i[id name]),
+      "scenario_ids" => latest_scenario_ids
     )
   end
 
-  # Public: Updates the saved scenarios associated with this collection if any, ordering them as passed.
-  def update_scenarios(sorted_scenario_ids)
+  # Public: Updates the saved scenarios associated with this collection if any,
+  # ordering them as passed.
+  def saved_scenario_ids=(sorted_scenario_ids)
     return true if sorted_scenario_ids.nil? || sorted_scenario_ids.empty?
-    saved_scenario_ids = sorted_scenario_ids.uniq.reject(&:empty?)
 
-    if self.interpolated? 
-      errors.add(:scenarios, 'cannot be updated for interpolated collections')
+    if self.interpolated?
+      errors.add(:scenarios, "cannot be updated for interpolated collections")
       return false
     end
-      
-    if !saved_scenario_ids.size.between?(1, 6)
-      errors.add(:scenarios, 'must have between 1 and 6 scenarios')
-      return false
-    end
-    
-    collection_saved_scenarios.delete_all
-    saved_scenario_ids.each.with_index(1) do |saved_scenario_id, saved_scenario_order|
-      collection_saved_scenarios.build(saved_scenario_id:, saved_scenario_order:)
-    end
-    
-    true
-  end
 
-  # Public: Updates the collection attributes as well as the associated saved scenarios.
-  def update_with_scenarios(params)
-    return false if !update_scenarios(params[:saved_scenario_ids])
-    return true if update(params.except(:saved_scenario_ids))
+    # Remove the scenarios that were not passed
+    collection_saved_scenarios.where(saved_scenario_id: (saved_scenario_ids - sorted_scenario_ids))
+      .destroy_all
 
-    ActiveRecord::Rollback
-    false
+    # Update and create new records
+    sorted_scenario_ids.uniq.each.with_index(1) do |saved_scenario_id, saved_scenario_order|
+      coll_ss = collection_saved_scenarios.find_or_create_by(saved_scenario_id: saved_scenario_id)
+      coll_ss.update(saved_scenario_order:)
+    end
   end
 
   def validate_scenarios
     if scenarios.size + saved_scenarios.size > 6
-      errors.add(:scenarios, 'exceeds maximum of 6 scenarios')
+      errors.add(:scenarios, "exceeds maximum of 6 scenarios")
     end
   end
 
   def validate_scenario_versions
     # Ensure all scenarios match the collection's version
-    invalid_scenarios = saved_scenarios.reject { |saved_scenario| saved_scenario.version == version }
+    invalid_scenarios = saved_scenarios.reject do |saved_scenario|
+      saved_scenario.version == version
+    end
     if invalid_scenarios.any?
       errors.add(:scenarios, "must all belong to the collection's version (#{version})")
     end

@@ -135,6 +135,57 @@ RSpec.describe Collection, type: :model do
     end
   end
 
+  describe '.saved_scenario_ids=' do
+    let(:user) { create(:user) }
+
+    let(:scenario1) { create(:saved_scenario, user: user, scenario_id: 1) }
+    let(:scenario2) { create(:saved_scenario, user: user, scenario_id: 2) }
+    let(:scenario3) { create(:saved_scenario, user: user, scenario_id: 3) }
+
+    let(:collection) { create(:collection, interpolation: false, user: user, scenarios_count: 0) }
+
+    before do
+      # They are unordered at this moment, but will show as [1, 2, 3]
+      collection.saved_scenarios << scenario1
+      collection.saved_scenarios << scenario2
+      collection.saved_scenarios << scenario3
+    end
+
+    context 'when changing the existing order' do
+      subject do
+        collection.update(saved_scenario_ids: [ scenario3.id, scenario2.id, scenario1.id ])
+      end
+
+      it 'changes the latest_scenario_ids order' do
+        # expect { subject }.to change(collection.latest_scenario_ids, :first)
+        #   .from(scenario1.scenario_id)
+        #   .to(scenario3.scenario_id)
+      end
+
+      it 'keeps the scenarios' do
+        expect { subject }.not_to change(collection.saved_scenarios, :count)
+      end
+    end
+
+    context 'when inserting a scenario in the order' do
+    end
+
+    context 'when inserting a scenario in the order that is inaccesible by the user' do
+    end
+
+    context 'when removing a scenario from the order' do
+    end
+
+    context 'when attempting to update an interpolated collection' do
+    end
+
+    context 'when trying to insert too many scenarios' do
+    end
+
+    context 'when removing all scenarios' do
+    end
+  end
+
   describe '#filter' do
     before { create(:collection, scenarios_count: 3, title: 'Hello', interpolation: false) }
 

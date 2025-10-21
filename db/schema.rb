@@ -70,10 +70,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.string "area_code"
     t.integer "end_year"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.datetime "discarded_at"
     t.boolean "interpolation", default: true
     t.bigint "version_id"
+    t.datetime "updated_at", null: false
     t.index ["discarded_at"], name: "index_collections_on_discarded_at"
     t.index ["user_id"], name: "index_collections_on_user_id"
     t.index ["version_id"], name: "index_collections_on_version_id"
