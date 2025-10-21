@@ -6,8 +6,8 @@
   = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
 
-  .pt-5.border-t.border-solid.border-gray-200
-    = t('collections.edit.instructions')
+  .mt-5
+    .text-sm.text-gray-400= t('collections.edit.instructions')
     .mt-5{ data: { sortable_list_target:"sortableList" } }
       - @collection.saved_scenarios.each do |scenario|
         = render(Collections::EditableSavedScenario::Component.new(         |
@@ -24,8 +24,8 @@
             saved_scenario: scenario,                                       |
             access: !scenario.private? || scenario.viewer?(current_user)))  |
 
-  = f.label :saved_scenario_ids, t('collections.edit.picker'), class: 'text-sm text-gray-400 mb-2'
-  .flex.flex-wrap
+  .mt-5= f.label :saved_scenario_ids, t('collections.edit.picker'), class: 'text-sm text-gray-400 mb-2'
+  .mt-5.flex.flex-wrap
     - if @scenarios.present?
       - @scenarios.each do |scenario|
         = render(Collections::EditableSavedScenario::ScenarioPicker::Component.new( |
