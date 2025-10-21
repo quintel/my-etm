@@ -25,7 +25,7 @@
             access: !scenario.private? || scenario.viewer?(current_user)))  |
 
   .mt-5= f.label :saved_scenario_ids, t('collections.edit.picker'), class: 'text-sm text-gray-400 mb-2'
-  .mt-5.flex.flex-wrap
+  .mt-5.flex.flex-wrap{ data: { sortable_list_target:"listPicker" } }
     - if @scenarios.present?
       - @scenarios.each do |scenario|
         = render(Collections::EditableSavedScenario::ScenarioPicker::Component.new( |

@@ -3,7 +3,7 @@ import "sortablejs";
 
 // Connects to data-controller="sortable-list"
 export default class extends Controller {
-  static targets = [ "sortableList", "removeButton", "listPick", "saveButton" ];
+  static targets = [ "sortableList", "listPicker", "saveButton" ];
 
   connect() {
     new Sortable(this.sortableListTarget, {
@@ -37,8 +37,9 @@ export default class extends Controller {
   }
 
   validate() {
-    // Collection must have minimum 1 scenario and maximum 6
-    const selectedIds = Array.from(this.element.querySelectorAll('input[type="checkbox"]:checked'))
-    this.saveButtonTarget.disabled = selectedIds.length < 1 || selectedIds.length > 6;
+    // List must have minimum 1 element and maximum 6
+    const numSelected = this.element.querySelectorAll('input[type="checkbox"]:checked').length
+    this.listPickerTarget.style.pointerEvents = (numSelected >= 6) ? 'none' : 'auto';
+    this.saveButtonTarget.disabled = numSelected < 1 || numSelected > 6;
   }
 }
