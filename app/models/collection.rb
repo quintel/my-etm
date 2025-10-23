@@ -25,7 +25,7 @@ class Collection < ApplicationRecord
 
   validates_presence_of :user_id
   validates :title, presence: true
-  validate :validate_scenarios, :validate_scenario_versions
+  validate :validate_scenarios, :validate_scenario_versions, :validate_interpolated
 
   scope :by_title, ->(title) { where("title LIKE ?", "%#{title}%") }
   scope :interpolated, ->() { where(interpolation: true) }
@@ -115,10 +115,16 @@ class Collection < ApplicationRecord
   def saved_scenario_ids=(sorted_scenario_ids)
     return true if sorted_scenario_ids.nil? || sorted_scenario_ids.empty?
 
-    if self.interpolated?
-      errors.add(:scenarios, "cannot be updated for interpolated collections")
+
+    if !sorted_scenario_ids.uniq.size.between?(1, 6)
+      errors.add(:scenarios, "must be between 1 and 6 scenarios")
       return false
     end
+
+    # if self.interpolated?
+    #   errors.add(:scenarios, "cannot be updated for interpolated collections")
+    #   return false
+    # end
 
     # Remove the scenarios that were not passed
     collection_saved_scenarios.where(saved_scenario_id: (saved_scenario_ids - sorted_scenario_ids))
@@ -144,6 +150,13 @@ class Collection < ApplicationRecord
     end
     if invalid_scenarios.any?
       errors.add(:scenarios, "must all belong to the collection's version (#{version})")
+    end
+  end
+
+  def validate_interpolated
+    # Ensure interpolated collections (AKA transition paths) have no saved scenarios
+    if self.interpolated? && saved_scenarios.exists?
+      errors.add(:scenarios, "interpolated collections cannot have saved scenarios")
     end
   end
 
