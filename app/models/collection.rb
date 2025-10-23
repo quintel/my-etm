@@ -115,16 +115,10 @@ class Collection < ApplicationRecord
   def saved_scenario_ids=(sorted_scenario_ids)
     return true if sorted_scenario_ids.nil? || sorted_scenario_ids.empty?
 
-
     if !sorted_scenario_ids.uniq.size.between?(1, 6)
       errors.add(:scenarios, "must be between 1 and 6 scenarios")
       return false
     end
-
-    # if self.interpolated?
-    #   errors.add(:scenarios, "cannot be updated for interpolated collections")
-    #   return false
-    # end
 
     # Remove the scenarios that were not passed
     collection_saved_scenarios.where(saved_scenario_id: (saved_scenario_ids - sorted_scenario_ids))
@@ -155,8 +149,8 @@ class Collection < ApplicationRecord
 
   def validate_interpolated
     # Ensure interpolated collections (AKA transition paths) have no saved scenarios
-    if self.interpolated? && saved_scenarios.exists?
-      errors.add(:scenarios, "interpolated collections cannot have saved scenarios")
+    if self.interpolated? && saved_scenarios.size > 1
+      errors.add(:scenarios, "interpolated collections cannot have more than 1 saved scenario")
     end
   end
 

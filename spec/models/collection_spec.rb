@@ -233,9 +233,8 @@ RSpec.describe Collection, type: :model do
         expect { subject }.not_to change { interp_coll.reload.saved_scenario_ids }
       end
 
-      it 'is not valid' do
-        # expect { subject }.to change { collection.reload.valid? }
-        #   .from(true).to(false)
+      it 'is not valid' do  
+        expect{ subject }.to raise_error(ActiveRecord::RecordInvalid)
       end
     end
 
