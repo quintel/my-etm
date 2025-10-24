@@ -162,14 +162,14 @@ RSpec.describe Collection, type: :model do
           .to([ss3.id, ss2.id, ss1.id])
       end
 
-      it 'keeps the scenarios' do
+      it 'keeps the saved scenarios' do
         before_ids = collection.saved_scenario_ids
         subject
         expect(collection.reload.saved_scenario_ids).to match_array(before_ids)
       end
     end
 
-    context 'when inserting a scenario in the order' do
+    context 'when inserting a saved scenario in the order' do
       let(:ss4) { create(:saved_scenario, user: user) }
 
       subject do
@@ -182,13 +182,13 @@ RSpec.describe Collection, type: :model do
           .to([ss1.id, ss4.id, ss2.id, ss3.id])
       end
 
-      it 'adds the new scenario' do
+      it 'adds the new saved scenario' do
         expect { subject }.to change { collection.reload.saved_scenario_ids.include?(ss4.id) }
           .from(false).to(true)
       end
     end
 
-    context 'when inserting a scenario in the order that is inaccesible by the user' do
+    context 'when inserting a saved scenario in the order that is inaccesible by the user' do
       let(:other_user) { create(:user) }
       let(:ss4) { create(:saved_scenario, user: other_user) }
 
@@ -200,7 +200,7 @@ RSpec.describe Collection, type: :model do
         expect { subject }.not_to change { collection.reload.saved_scenario_ids }
       end
 
-      it 'does not add the new scenario' do
+      it 'does not add the extra saved scenario' do
         expect { subject }.not_to change { collection.reload.saved_scenario_ids.include?(ss4.id) }
       end
     end
@@ -216,7 +216,7 @@ RSpec.describe Collection, type: :model do
           .to([ss1.id, ss3.id])
       end
 
-      it 'removes the scenario' do
+      it 'removes the saved scenario' do
         expect { subject }.to change { collection.reload.saved_scenario_ids.include?(ss2.id) }
           .from(true).to(false)
       end
@@ -229,16 +229,16 @@ RSpec.describe Collection, type: :model do
         interp_coll.update(saved_scenario_ids: [ss1.id, ss3.id])
       end
 
-      it 'does not change the saved_scenario_ids order' do
+      it 'does not insert a saved_scenario' do
         expect { subject }.not_to change { interp_coll.reload.saved_scenario_ids }
       end
 
-      it 'is not valid' do  
-        expect{ subject }.to raise_error(ActiveRecord::RecordInvalid)
+      it 'keeps the scenarios' do
+        expect { subject }.not_to change { interp_coll.saved_scenario_ids }
       end
     end
 
-    context 'when trying to insert too many scenarios' do
+    context 'when trying to insert too many saved scenarios' do
       let(:many_ss) { Array.new(5) { create(:saved_scenario, user: user) } }
 
       subject do
@@ -248,14 +248,9 @@ RSpec.describe Collection, type: :model do
       it 'does not change the saved_scenario_ids order' do
         expect { subject }.not_to change { collection.reload.saved_scenario_ids }
       end
-
-      it 'is not valid' do
-        # expect { subject }.to change { collection.reload.valid? }
-        #   .from(true).to(false)
-      end     
     end
 
-    context 'when removing all scenarios' do
+    context 'when removing all saved scenarios' do
       subject do
         collection.update(saved_scenario_ids: [])
       end

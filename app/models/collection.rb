@@ -39,14 +39,17 @@ class Collection < ApplicationRecord
   #
   # Returns an unsaved Collection.
   def self.new_from_saved_scenario(scenario, attrs)
-    new({
+    collection = new({
       area_code: scenario.area_code,
       end_year: scenario.end_year,
       title: scenario.title,
       interpolation: true,
-      version: scenario.version,
-      saved_scenario_ids: [ scenario.id ]
+      version: scenario.version
     }.merge(attrs))
+
+    collection.collection_saved_scenarios.build(saved_scenario: scenario)
+
+    collection
   end
 
   # Public: Used to filter collections.
