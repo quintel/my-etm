@@ -2,7 +2,7 @@
   <%= render(Collections::Title::Component.new(
     path: collection_path(@collection),
     title: @collection.title,
-    editable: @editable
+    editable: false
   ))%>
 <% end %>
 <%- content_for :title, "#{@collection.title} - #{t('collections.title')} - #{t('meta.title')}" %>
@@ -12,7 +12,7 @@
     path: collection_url(@collection),
     button_title: t('collections.open'),
     collection: @collection,
-    time: time_ago_in_words(@collection.created_at))
+    time: time_ago_in_words(@collection.updated_at))
 )%>
 
 <% if @collection.discarded?%>
@@ -41,7 +41,7 @@
     <% end %>
   <% elsif @collection.saved_scenarios.present? %>
     <%= t('collections.contains') %>
-    <div class="flex flex-wrap mt-5">
+    <div class="mt-5">
       <% @collection.saved_scenarios.each do |saved_scenario| %>
         <%= render(Collections::SavedScenario::Component.new(
           path: saved_scenario_path(saved_scenario),

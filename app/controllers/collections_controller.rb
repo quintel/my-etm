@@ -5,7 +5,7 @@ class CollectionsController < ApplicationController
   include Filterable
 
   load_resource only: %i[discard undiscard new_transition create_transition confirm_destroy]
-  load_and_authorize_resource only: %i[show new destroy update]
+  load_and_authorize_resource only: %i[show new edit destroy update]
 
   before_action :require_user, only: %i[index create_collection new_transition create_transition]
   before_action :ensure_valid_config
@@ -54,11 +54,23 @@ class CollectionsController < ApplicationController
     end
   end
 
+  # GET /collections/1/edit
+  def edit
+    @scenarios = current_user.saved_scenarios
+      .available
+      .where(version: @collection.version)
+      .order(updated_at: :desc)
+  end
+
   def update
-    if @collection.update(update_collection_params)
-      render json: @collection
-    else
-      render json: { errors: @collection.errors.full_messages }, status: :unprocessable_entity
+    respond_to do |format|
+      if @collection.update(update_collection_params)
+        format.html { redirect_to @collection, notice: t("collections.succesful_update") }
+        format.json { render json: @collection }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: { errors: @collection.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -151,7 +163,7 @@ class CollectionsController < ApplicationController
       flash[:undo_params] = [ undiscard_collection_path(@collection), { method: :put } ]
     end
 
-    redirect_back(fallback_location: collections_path)
+    redirect_to(collection_path(@collection))
   end
 
   # Removes the soft-deletes of the scenario.
@@ -186,7 +198,7 @@ class CollectionsController < ApplicationController
   end
 
   def update_collection_params
-    params.require(:collection).permit(:title)
+    params.require(:collection).permit(:title, saved_scenario_ids: [])
   end
 
   def create_collection_params
@@ -206,7 +218,7 @@ class CollectionsController < ApplicationController
   end
 
   def elegible_scenarios
-    current_user.saved_scenarios.where(end_year: 2050).order(updated_at: :desc)
+    current_user.saved_scenarios.available.where(end_year: 2050).order(updated_at: :desc)
   end
 
   def collection_title

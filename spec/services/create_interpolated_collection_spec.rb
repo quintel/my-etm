@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 describe CreateInterpolatedCollection, type: :service do
-  let(:scenario) { FactoryBot.build(:saved_scenario, scenario_id: 1) }
+  let(:scenario) { FactoryBot.create(:saved_scenario, scenario_id: 1, user:) }
   let(:user) { FactoryBot.create(:user) }
   let(:result) { described_class.call(nil, scenario, user, years) }
 
@@ -151,6 +151,7 @@ describe CreateInterpolatedCollection, type: :service do
   # Sanity check that invalid records raise exceptions.
   context 'when given an invalid user, creating a 2030 scenario' do
     let(:user) { User.new }
+    let(:scenario) { FactoryBot.create(:saved_scenario, scenario_id: 1) }
     let(:years) { [2030] }
 
     before do
