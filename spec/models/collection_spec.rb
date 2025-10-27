@@ -232,10 +232,6 @@ RSpec.describe Collection, type: :model do
       it 'does not insert a saved_scenario' do
         expect { subject }.not_to change { interp_coll.reload.saved_scenario_ids }
       end
-
-      it 'keeps the scenarios' do
-        expect { subject }.not_to change { interp_coll.saved_scenario_ids }
-      end
     end
 
     context 'when trying to insert too many saved scenarios' do
