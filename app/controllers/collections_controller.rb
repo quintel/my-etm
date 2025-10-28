@@ -48,6 +48,7 @@ class CollectionsController < ApplicationController
   def new
     @collection = current_user.collections.build(interpolation: false)
     @scenarios = current_user.saved_scenarios.available.order(updated_at: :desc)
+    @versions = @scenarios.map(&:version).uniq
 
     respond_to do |format|
       format.html { render layout: "application" }

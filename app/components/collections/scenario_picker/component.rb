@@ -1,6 +1,6 @@
 module Collections::ScenarioPicker
   class Component < ApplicationComponent
     option :scenario
-    option :form
+    option :hidden, default: proc { false }
   end
 end

@@ -270,8 +270,9 @@ en:
         delete or restore them. Trashed scenarios are automatically removed after
         %{deleted_after} days.
       title: There are no items in the trash
-    notice: Scenarios in the trash will be automatically deleted after %{deleted_after}
-      days.
+    notice:
+      scenarios: Scenarios in the trash will be automatically deleted after %{deleted_after} days.
+      collections: Collections in the trash will be automatically deleted after %{deleted_after} days.
     title: Trash bin
     undiscarded_flash: Your scenario was restored
     all: All items in trash

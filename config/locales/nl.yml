@@ -312,8 +312,9 @@ nl:
         je aangeven deze permanent te verwijderen of te herstellen. Verwijderde scenarios
         worden automatisch permanent verwijderd na %{deleted_after} dagen.
       title: Er zijn geen items in de prullenbak
-    notice: Verwijderde scenario's worden automatisch permanent verwijderd na %{deleted_after}
-      dagen.
+    notice:
+      scenarios: Verwijderde scenario's worden automatisch permanent verwijderd na %{deleted_after} dagen.
+      collections: Verwijderde collecties worden automatisch permanent verwijderd na %{deleted_after} dagen.
     title: Prullenbak
     undiscarded_flash: Je scenario is hersteld
     all: Alle items in de prullenbak

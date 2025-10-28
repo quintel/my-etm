@@ -11,7 +11,7 @@
   = render(NoticeBanner::Component.new(path: "#{Version.default.model_url}/whats-new", text: t('saved_scenarios.scenario_warning.desc'), button_text: t('saved_scenarios.scenario_warning.learn'), icon: "exclamation-triangle", warning: true))
 
 - if @saved_scenario.discarded?
-  = render(NoticeBanner::TrashComponent.new(text: t('trash.notice', deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)))
+  = render(NoticeBanner::TrashComponent.new(text: t('trash.notice.scenarios', deleted_after: SavedScenario::AUTO_DELETES_AFTER.in_days.to_i)))
 
 .w-min
   = render(HovercardWithVersion::Component.new(version: @saved_scenario.version.tag))

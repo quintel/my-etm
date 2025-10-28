@@ -1,0 +1,9 @@
+.p-2.px-5.rounded-md.text-midnight-800.bg-midnight-300.mr-2.mb-2.hover:bg-midnight-600.hover:cursor-pointer{
+  class: ('hidden' if hidden), 
+  data: {
+    pick_id: scenario.id,
+    version: scenario.version.tag,
+    collections_target: 'listPick',
+    action: 'click->collections#pick' }
+}
+  %span= scenario.title
