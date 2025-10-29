@@ -123,8 +123,8 @@ class CollectionsController < ApplicationController
       interpolation: false
     )
 
-    create_collection_params[:saved_scenario_ids].uniq.reject(&:empty?).each do |saved_scenario_id|
-      collection.collection_saved_scenarios.build(saved_scenario_id:)
+    create_collection_params[:saved_scenario_ids].uniq.reject(&:empty?).each.with_index(1) do |saved_scenario_id, saved_scenario_order|
+      collection.collection_saved_scenarios.build(saved_scenario_id:, saved_scenario_order:)
     end
 
     if collection.valid?
