@@ -8,3 +8,4 @@ jobs:
     with:
       issue_number: ${{ github.event.issue.number }}
       repo_name: ${{ github.repository }}
+      issue_body: ${{ github.event.issue.body }}
