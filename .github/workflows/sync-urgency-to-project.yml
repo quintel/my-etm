@@ -1,0 +1,10 @@
+name: "Sync Urgency"
+on:
+  issues:
+    types: [opened]
+jobs:
+  call-reusable:
+    uses: quintel/.github/.github/workflows/set-project-field.yml@main
+    with:
+      issue_number: ${{ github.event.issue.number }}
+      repo_name: ${{ github.repository }}
