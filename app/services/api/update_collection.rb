@@ -52,11 +52,7 @@ module Api
     end
 
     def update_saved_scenarios(collection, saved_scenario_ids)
-      existing_ids = collection.saved_scenarios.pluck(:saved_scenario_id)
-      delete_ids   = existing_ids - saved_scenario_ids
-
-      collection.collection_saved_scenarios.delete_by(saved_scenario_id: delete_ids)
-      saved_scenario_ids.each.with_index(1) { |id, i| collection.collection_saved_scenarios.find_or_create_by(saved_scenario_id: id).update!(saved_scenario_order: i) }
+      collection.update(saved_scenario_ids:)
     end
   end
 end
