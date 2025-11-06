@@ -437,12 +437,11 @@ RSpec.describe "API::Collections", type: :request, api: true do
         collection.scenarios.create!(scenario_id: 2)
       end
 
-      # REVIEW: The change still happens even though status and response are as expected but (Tried build/save + transaction without success).
-      # it 'does not insert a saved_scenario' do
-      #   expect { request }.not_to change { collection.reload.latest_scenario_ids }
-      #   expect(response).to have_http_status(:unprocessable_entity)
-      #   expect(JSON.parse(response.body)['scenarios']).to include('interpolated collections cannot have more than 1 saved scenario')
-      # end
+      it 'does not insert a saved_scenario' do
+        expect { request }.not_to change { collection.reload.latest_scenario_ids }
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(JSON.parse(response.body)['scenarios']).to include('interpolated collections cannot have more than 1 saved scenario')
+      end
     end
 
     context 'when trying to insert too many saved scenarios' do
