@@ -121,20 +121,17 @@ class Collection < ApplicationRecord
   def saved_scenario_ids=(sorted_ids)
     return true if sorted_ids.nil? || sorted_ids.empty?
 
-    existing_ids = collection_saved_scenarios.index_by(&:saved_scenario_id)
-    nested_attrs = []
+    sorted_ids = sorted_ids.map(&:to_i)
 
     # Mark for removal existing scenario relations that were not passed
-    existing_ids.each do |ss_id, rec|
-      if !sorted_ids.include?(ss_id)
-        nested_attrs << { id: rec.id, _destroy: '1' }
-      end
+    nested_attrs = saved_scenario_ids.filter_map do |ss_id|
+      { id: [ self.id, ss_id ], _destroy: true } unless sorted_ids.include?(ss_id)
     end
 
     # Create new or update existing scenario relations that were passed
     sorted_ids.uniq.each.with_index(1) do |ss_id, ss_order|
-      if rec = existing_ids[ss_id]
-        nested_attrs << { id: rec.id, saved_scenario_order: ss_order }
+      if saved_scenario_ids.include?(ss_id)
+        nested_attrs << { id: [ self.id, ss_id ], saved_scenario_order: ss_order }
       else
         nested_attrs << { saved_scenario_id: ss_id, saved_scenario_order: ss_order }
       end

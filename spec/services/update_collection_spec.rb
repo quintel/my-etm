@@ -4,7 +4,7 @@ require 'rails_helper'
 
 describe UpdateCollection, type: :service do
   let(:user) { create(:user) }
-  let(:collection) { create(:collection, user: user) }
+  let(:collection) { create(:collection, user: user, interpolation: false) }
   let!(:saved_scenario) do
     FactoryBot.create(:saved_scenario, user: user, id: 900)
   end
