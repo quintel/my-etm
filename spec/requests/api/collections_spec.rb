@@ -233,7 +233,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
 
   # ------------------------------------------------------------------------------------------------
 
-  describe 'PUT /api/v1/collections/:id' do
+  describe 'PUT /api/v1/collections/:id (For scenario_ids)' do
     let(:collection) do
       create(
         :collection,
@@ -323,6 +323,144 @@ RSpec.describe "API::Collections", type: :request, api: true do
     end
   end
 
+  # ------------------------------------------------------------------------------------------------
+
+  describe 'PUT /api/v1/collections/:id (For saved_scenario_ids)' do
+    let(:request) do
+      put "/api/v1/collections/#{collection.id}",
+      as: :json,
+      params: { collection: attributes },
+      headers: access_token_header(user, :write)
+    end
+
+    let(:collection) { create(:collection, interpolation: false, user: user, scenarios_count: 0) }
+    let(:ss1) { create(:saved_scenario, user: user) }
+    let(:ss2) { create(:saved_scenario, user: user) }
+    let(:ss3) { create(:saved_scenario, user: user) }
+    let(:attributes) { { title: 'New title' } }
+
+    before do
+      collection.saved_scenarios = [ss1, ss2, ss3]
+    end
+
+    context 'when updating title' do
+      it 'returns a successful response' do
+        expect { request }.not_to raise_error
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'changes the title' do
+        expect { request }.to change { collection.reload.title }
+          .to('New title')
+      end
+    end
+
+    context 'when changing the existing order' do
+      let(:attributes) { { saved_scenario_ids: [ss3.id, ss2.id, ss1.id] } }
+
+      it 'returns a successful response' do
+        expect { request }.not_to raise_error
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'changes the saved_scenario_ids order' do
+        expect { request }.to change { collection.reload.saved_scenario_ids }
+          .from([ss1.id, ss2.id, ss3.id])
+          .to([ss3.id, ss2.id, ss1.id])
+      end
+
+      it 'keeps the saved scenarios' do
+        before_ids = collection.saved_scenario_ids
+        expect { request }.not_to raise_error
+        expect(collection.reload.saved_scenario_ids).to match_array(before_ids)
+      end
+    end
+
+    context 'when inserting a saved scenario in the order' do
+      let(:ss4) { create(:saved_scenario, user: user) }
+      let(:attributes) { { saved_scenario_ids: [ss1.id, ss4.id, ss2.id, ss3.id] } }
+
+      it 'returns a successful response' do
+        expect { request }.not_to raise_error
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'changes the saved_scenario_ids order' do
+        expect { request }.to change { collection.reload.saved_scenario_ids }
+          .from([ss1.id, ss2.id, ss3.id])
+          .to([ss1.id, ss4.id, ss2.id, ss3.id])
+      end
+
+      it 'adds the new saved scenario' do
+        expect { request }.to change { collection.reload.saved_scenario_ids.include?(ss4.id) }
+          .from(false).to(true)
+      end
+    end
+
+    context 'when inserting a saved scenario in the order that is inaccesible by the user' do
+      let(:other_user) { create(:user) }
+      let(:ss4) { create(:saved_scenario, user: other_user) }
+      let(:attributes) { { saved_scenario_ids: [ss1.id, ss4.id, ss2.id, ss3.id] } }
+
+      it 'does not change the latest_scenario_ids order' do
+        expect { request }.not_to change { collection.reload.saved_scenario_ids }
+      end
+
+      it 'does not add the extra saved scenario' do
+        expect { request }.not_to change { collection.reload.saved_scenario_ids.include?(ss4.id) }
+      end
+    end
+    
+    context 'when removing a scenario from the order' do
+      let(:attributes) { { saved_scenario_ids: [ss1.id, ss3.id] } }
+
+      it 'changes the saved_scenario_ids order' do
+        expect { request }.to change { collection.reload.saved_scenario_ids }
+          .from([ss1.id, ss2.id, ss3.id])
+          .to([ss1.id, ss3.id])
+      end
+
+      it 'removes the saved scenario' do
+        expect { request }.to change { collection.reload.saved_scenario_ids.include?(ss2.id) }
+          .from(true).to(false)
+      end
+    end
+
+    context 'when attempting to update an interpolated collection' do
+      let(:collection) { create(:collection, interpolation: true, user: user, scenarios_count: 0) }
+      let(:attributes) { { saved_scenario_ids: [ss1.id, ss2.id] } }
+
+      before do
+        # This reflects the nature of the scenario relations in an interpolated collection
+        collection.saved_scenarios = [ss1]
+        collection.scenarios.create!(scenario_id: 1)
+        collection.scenarios.create!(scenario_id: 2)
+      end
+
+      it 'does not insert a saved_scenario' do
+        expect { request }.not_to change { collection.reload.latest_scenario_ids }
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(JSON.parse(response.body)['scenarios']).to include('interpolated collections cannot have more than 1 saved scenario')
+      end
+    end
+
+    context 'when trying to insert too many saved scenarios' do
+      let(:many_ss) { Array.new(5) { create(:saved_scenario, user: user) } }
+      let(:attributes) { { saved_scenario_ids: [ss1.id, ss2.id, ss3.id, *many_ss.map(&:id)] } }
+
+      it 'does not change the saved_scenario_ids order' do
+        expect { request }.not_to change { collection.reload.saved_scenario_ids }
+      end
+    end
+
+    context 'when removing all saved scenarios' do
+      let(:attributes) { { saved_scenario_ids: [] } }
+
+      it 'nothing changes' do
+        expect { request }.not_to change { collection.reload.saved_scenario_ids }
+      end
+    end
+  end
   # ------------------------------------------------------------------------------------------------
 
   describe 'DELETE /api/v1/collections/:id' do

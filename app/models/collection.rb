@@ -18,10 +18,13 @@ class Collection < ApplicationRecord
     class_name: "CollectionScenario",
     dependent: :delete_all
 
-  has_many :collection_saved_scenarios, dependent: :destroy
+  has_many :collection_saved_scenarios, dependent: :destroy,  autosave: true, inverse_of: :collection
   has_many :saved_scenarios,
     -> { order("collection_saved_scenarios.saved_scenario_order ASC") },
     through: :collection_saved_scenarios
+
+  # Allow nested attributes so child changes are saved/validated with parent
+  accepts_nested_attributes_for :collection_saved_scenarios, allow_destroy: true
 
   validates_presence_of :user_id
   validates :title, presence: true
@@ -115,27 +118,32 @@ class Collection < ApplicationRecord
 
   # Public: Updates the saved scenarios associated with this collection if any,
   # ordering them as passed.
-  def saved_scenario_ids=(sorted_scenario_ids)
-    return true if sorted_scenario_ids.nil? || sorted_scenario_ids.empty?
+  def saved_scenario_ids=(sorted_ids)
+    return true if sorted_ids.nil? || sorted_ids.empty?
 
-    if !sorted_scenario_ids.uniq.size.between?(1, 6)
-      errors.add(:scenarios, "must be between 1 and 6 scenarios")
-      return false
+    sorted_ids = sorted_ids.map(&:to_i)
+
+    # Mark for removal existing scenario relations that were not passed
+    nested_attrs = saved_scenario_ids.filter_map do |ss_id|
+      { id: [ self.id, ss_id ], _destroy: true } unless sorted_ids.include?(ss_id)
     end
 
-    # Remove the scenarios that were not passed
-    collection_saved_scenarios.where(saved_scenario_id: (saved_scenario_ids - sorted_scenario_ids))
-      .destroy_all
-
-    # Update and create new records
-    sorted_scenario_ids.uniq.each.with_index(1) do |saved_scenario_id, saved_scenario_order|
-      coll_ss = collection_saved_scenarios.find_or_create_by(saved_scenario_id: saved_scenario_id)
-      coll_ss.update(saved_scenario_order:)
+    # Create new or update existing scenario relations that were passed
+    sorted_ids.uniq.each.with_index(1) do |ss_id, ss_order|
+      if saved_scenario_ids.include?(ss_id)
+        nested_attrs << { id: [ self.id, ss_id ], saved_scenario_order: ss_order }
+      else
+        nested_attrs << { saved_scenario_id: ss_id, saved_scenario_order: ss_order }
+      end
     end
+
+    # Make changes in-memory only. Will not persist until collection is saved
+    self.collection_saved_scenarios_attributes = nested_attrs
   end
 
   def validate_scenarios
-    if scenarios.size + saved_scenarios.size > 6
+    active_saved_scenarios = collection_saved_scenarios.reject(&:marked_for_destruction?)
+    if scenarios.size + active_saved_scenarios.size > 6
       errors.add(:scenarios, "exceeds maximum of 6 scenarios")
     end
   end
@@ -152,7 +160,8 @@ class Collection < ApplicationRecord
 
   def validate_interpolated
     # Ensure interpolated collections (AKA transition paths) have no saved scenarios
-    if self.interpolated? && saved_scenarios.size > 1
+    active_saved_scenarios = collection_saved_scenarios.reject(&:marked_for_destruction?)
+    if self.interpolated? && active_saved_scenarios.size > 1
       errors.add(:scenarios, "interpolated collections cannot have more than 1 saved scenario")
     end
   end

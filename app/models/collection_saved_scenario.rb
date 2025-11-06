@@ -12,6 +12,6 @@ class CollectionSavedScenario < ApplicationRecord
   def shared_access
     return if saved_scenario.viewer?(collection.user)
 
-    errors.add(:base, :user, message: 'User must have access to both the Collection and the Saved Sceanrio')
+    errors.add(:base, :user, message: 'User must have access to both the Collection and the Saved Scenario')
   end
 end

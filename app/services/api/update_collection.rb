@@ -52,12 +52,7 @@ module Api
     end
 
     def update_saved_scenarios(collection, saved_scenario_ids)
-      existing_ids = collection.saved_scenarios.pluck(:saved_scenario_id)
-      new_ids      = saved_scenario_ids - existing_ids
-      delete_ids   = existing_ids - saved_scenario_ids
-
-      collection.multi_year_chart_saved_scenarios.delete_by(saved_scenario_id: delete_ids)
-      new_ids.each { |id| collection.multi_year_chart_saved_scenarios.create!({ saved_scenario_id: id }) }
+      collection.update(saved_scenario_ids:)
     end
   end
 end
