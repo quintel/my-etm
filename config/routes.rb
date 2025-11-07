@@ -44,12 +44,6 @@ Rails.application.routes.draw do
 
   root :to => "saved_scenarios#index"
 
-  resources :users, :except => %i[show destroy] do
-    member do
-      post 'resend_confirmation_email'
-    end
-  end
-
   resources :saved_scenarios do
     resource :feature, only: %i[show create update destroy], controller: 'featured_scenarios' do
       get :confirm_destroy
