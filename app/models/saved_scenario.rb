@@ -16,6 +16,9 @@ class SavedScenario < ApplicationRecord
   # Used by Fiterable Concern
   FILTER_PARAMS = [ :title, area_codes: {} ].freeze
 
+  # Area codes to be treated the same for Filterable
+  AREA_DUPS = %w[ nl nl2019 nl2023 ]
+
   has_one :featured_scenario, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
   has_many :users, through: :saved_scenario_users
@@ -43,7 +46,9 @@ class SavedScenario < ApplicationRecord
   def self.filter(filters)
     scenarios = order(created_at: :desc)
 
-    area_codes = filters["area_codes"]&.filter_map { |area, picked| area if picked == "1" }
+    area_codes = filters["area_codes"]&.flat_map do |area, picked|
+      AREA_DUPS.include?(area) ? AREA_DUPS : area if picked == "1"
+    end.compact
 
     scenarios = scenarios.by_title(filters["title"]) if filters["title"].present?
     scenarios = scenarios.where(area_code: area_codes) if area_codes.present?
