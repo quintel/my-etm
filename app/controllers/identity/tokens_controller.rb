@@ -20,7 +20,7 @@ module Identity
     def create
       result = CreatePersonalAccessToken.call(
         user: current_user,
-        params: params[:create_personal_access_token_params].permit!
+        params: create_personal_access_token_params
       )
 
       if result.failure?
@@ -61,6 +61,12 @@ module Identity
 
     def token
       @token ||= current_user.personal_access_tokens.find(params[:id])
+    end
+
+    def create_personal_access_token_params
+      params.require(:create_personal_access_token_params).permit(
+        CreatePersonalAccessToken::Params.schema.keys.map(&:name)
+      )
     end
   end
 end

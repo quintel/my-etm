@@ -32,7 +32,6 @@ class ApplicationController < ActionController::Base
   def set_locale
     if params[:locale] && I18n.available_locales.include?(params[:locale].to_sym)
       session[:locale] = params[:locale]
-      redirect_to(params.permit!.except(:locale)) if request.get?
     end
 
     # set locale based on session or url

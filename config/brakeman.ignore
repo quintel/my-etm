@@ -1,0 +1,162 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "03dc4c9c32f7e484516af16c4ee6d4adfc4bc2b0e573f5b54d74f836b119d9c1",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/personal_access_token.rb",
+      "line": 19,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "joins(:oauth_access_token).includes(:oauth_access_token).where(:oauth_access_tokens => ({ :revoked_at => nil })).where(\"#{Doorkeeper::AccessToken.expiration_time_sql} > ?\", Time.now.utc)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PersonalAccessToken",
+        "method": "PersonalAccessToken.not_expired"
+      },
+      "user_input": "Doorkeeper::AccessToken.expiration_time_sql",
+      "confidence": "Weak",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "450d2984cc45d3b8713bebbd91f18e732bafe93c4098fb15d920a7a86a2d63fc",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/components/select_locale/component.html.erb",
+      "line": 66,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => SelectLocale::ItemComponent.new(:selected => (I18n.locale == :nl), :href => url_for(params.permit!.merge(:locale => \"nl\"))).with_content(\"Nederlands\"), {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "app/components/select_locale/component"
+      },
+      "user_input": "params.permit!.merge(:locale => \"nl\")",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "66cd3a63f13934d2d584285d6122d7a46e5211f3fdde32b2fd0787bd0254abf1",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/passthru_controller.rb",
+      "line": 6,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(cookies[:etm_last_visited_page], :allow_other_host => true)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PassthruController",
+        "method": "last"
+      },
+      "user_input": "cookies[:etm_last_visited_page]",
+      "confidence": "Weak",
+      "cwe_id": [
+        601
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "85c079263018a082237a313c39f8dc4f12def1427f239acb1023fb826b305562",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/admin/users_controller.rb",
+      "line": 90,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.require(:user).permit(:name, :email, :password, :admin)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Admin::UsersController",
+        "method": "user_params"
+      },
+      "user_input": ":admin",
+      "confidence": "High",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "c5a12fec52b7486b1f03af60a467069403ceee15b891ff01fe883fbb91980479",
+      "check_name": "MassAssignment",
+      "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
+      "file": "app/components/select_locale/component.html.erb",
+      "line": 61,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "app/components/select_locale/component"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 70,
+      "fingerprint": "c5a12fec52b7486b1f03af60a467069403ceee15b891ff01fe883fbb91980479",
+      "check_name": "MassAssignment",
+      "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
+      "file": "app/components/select_locale/component.html.erb",
+      "line": 66,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "params.permit!",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "app/components/select_locale/component"
+      },
+      "user_input": null,
+      "confidence": "Medium",
+      "cwe_id": [
+        915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "ddcb37a7c6113f67b6e933c41a4856df415d83e693cab01d426e2eadc4765a8d",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/components/select_locale/component.html.erb",
+      "line": 61,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => SelectLocale::ItemComponent.new(:selected => (I18n.locale == :en), :href => url_for(params.permit!.merge(:locale => \"en\"))).with_content(\"English\"), {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "app/components/select_locale/component"
+      },
+      "user_input": "params.permit!.merge(:locale => \"en\")",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    }
+  ],
+  "brakeman_version": "7.1.1"
+}
