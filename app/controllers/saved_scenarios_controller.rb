@@ -19,7 +19,7 @@ class SavedScenariosController < ApplicationController
   # GET /saved_scenarios
   def index
     @pagy_saved_scenarios, @saved_scenarios = pagy_countless(ordered_user_saved_scenarios)
-    @area_codes = user_saved_scenarios.group(:area_code).count.sort_by { |_k, v| v }.reverse
+    @area_codes = area_codes_for_filter
 
     respond_to do |format|
       format.html
@@ -200,5 +200,19 @@ class SavedScenariosController < ApplicationController
     params.require(:saved_scenario).permit(
       :title, :description
     )
+  end
+
+  # Make sure to group all dup area_codes for nl together
+  def area_codes_for_filter
+    area_codes = user_saved_scenarios.group(:area_code).count
+
+    dups = area_codes.select { |k, _v| SavedScenario::AREA_DUPS.include?(k) }
+
+    if dups.size > 1
+      area_codes = area_codes.except(*dups.keys)
+      area_codes[dups.keys.first] = dups.sum { |_k, v| v }
+    end
+
+    area_codes = area_codes.sort_by { |_k, v| v }.reverse
   end
 end
