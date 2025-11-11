@@ -171,6 +171,7 @@ describe CollectionsController do
       end
 
       it 'the saved scenarios have the specified order' do
+        request
         sorted_saved_scenarios = Collection.last.collection_saved_scenarios.order(:saved_scenario_order)
         expect(sorted_saved_scenarios.pluck(:saved_scenario_id)).to eq([ss3.id, ss2.id, ss1.id])
       end
