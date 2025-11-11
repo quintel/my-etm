@@ -127,6 +127,61 @@ describe CollectionsController do
     end
   end
 
+  describe '#create_collection' do
+    let(:user) { create(:user) }
+    let(:version) { create(:version) }
+    let(:ss1) { create(:saved_scenario, user: user) }
+    let(:ss2) { create(:saved_scenario, user: user) }
+    let(:ss3) { create(:saved_scenario, user: user) }
+    let(:request) { post :create_collection, params: { collection: attributes } }
+    let(:attributes)  { { title: 'New title', saved_scenario_ids: [ss3.id, ss2.id, ss1.id], version: version } }
+
+    context 'when not signed in' do
+      it 'does not save the collection' do
+        expect { request }.not_to change(Collection, :count)
+      end
+    end
+
+    context 'when not having access to any of the saved scenarios' do
+      let(:other_user) { create(:user) }
+      
+      before { sign_in other_user }
+
+      it 'does not save the collection' do
+        expect { request }.not_to change(Collection, :count)
+      end
+    end
+
+    context 'when any of the saved scenarios has the wrong version' do
+      let(:other_version) { create(:version) }
+      let(:ss1) { create(:saved_scenario, user: user, version: other_version) }
+
+      before { sign_in user }
+
+      it 'does not save the collection' do
+        expect { request }.not_to change(Collection, :count)
+      end
+    end
+
+    context 'when passing valid saved scenarios' do
+      before { sign_in user }
+
+      it 'creates the collection' do
+        expect { request }.to change(Collection, :count).by(1)
+      end
+
+      it 'the saved scenarios have the specified order' do
+        sorted_saved_scenarios = Collection.last.collection_saved_scenarios.order(:saved_scenario_order)
+        expect(sorted_saved_scenarios.pluck(:saved_scenario_id)).to eq([ss3.id, ss2.id, ss1.id])
+      end
+
+      it 'redirects to the collection' do
+        expect { request }.not_to raise_error
+        expect(response).to redirect_to(collection_path(Collection.last))
+      end
+    end
+  end
+
   describe '#destroy' do
     let!(:service) { class_double('DeleteCollection').as_stubbed_const }
 
