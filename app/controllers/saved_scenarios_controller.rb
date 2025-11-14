@@ -1,5 +1,5 @@
 class SavedScenariosController < ApplicationController
-  include Pagy::Backend
+  include Pagy::Method
   include Filterable
 
   load_resource only: %i[discard undiscard publish unpublish confirm_destroy]
@@ -18,7 +18,7 @@ class SavedScenariosController < ApplicationController
 
   # GET /saved_scenarios
   def index
-    @pagy_saved_scenarios, @saved_scenarios = pagy_countless(ordered_user_saved_scenarios)
+    @pagy_saved_scenarios, @saved_scenarios = pagy(ordered_user_saved_scenarios)
     @area_codes = area_codes_for_filter
 
     respond_to do |format|

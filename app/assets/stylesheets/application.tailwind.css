@@ -213,3 +213,44 @@ form#new_collection .checkbox-wrapper:has(input:checked) {
 form#new_collection .checkbox-wrapper:has(input:checked) span {
   @apply text-midnight-200;
 }
+
+
+/* PAGY */
+@layer components {
+  .pagy {
+    @apply flex space-x-2;
+
+    a:first-child {
+      margin-left: auto;
+    }
+    a:last-child {
+      margin-right: 0;
+    }
+
+    a:not([role="separator"]) { /* all but gaps */
+      @apply block
+        text-sm
+        text-midnight-800
+        rounded-md border
+        border-midnight-940
+        p-2 px-5
+        hover:bg-midnight-940;
+    }
+
+    a[aria-label="Next"], a[aria-label="Previous"] {
+      @apply border-none hover:bg-transparent;
+    }
+
+    a[aria-label="Next"]:not([aria-disabled]), a[aria-label="Previous"]:not([aria-disabled]) {
+      @apply hover:underline;
+    }
+
+    a:not([href]) { /* all but links */
+      @apply cursor-default
+    }
+
+    a[aria-current] {  /* current page */
+      @apply bg-midnight-940;
+    }
+  }
+}

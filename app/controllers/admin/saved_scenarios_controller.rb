@@ -1,12 +1,12 @@
 module Admin
   class SavedScenariosController < ApplicationController
     include AdminController
-    include Pagy::Backend
+    include Pagy::Method
     include Filterable
 
     # GET /admin/saved_scenarios
     def index
-      @pagy_admin_saved_scenarios, @saved_scenarios = pagy_countless(admin_saved_scenarios)
+      @pagy_admin_saved_scenarios, @saved_scenarios = pagy(admin_saved_scenarios)
 
       respond_to do |format|
         format.html

@@ -1,5 +1,5 @@
 class DiscardedController < ApplicationController
-  include Pagy::Backend
+  include Pagy::Method
   before_action :require_user
 
   def index
@@ -13,7 +13,7 @@ class DiscardedController < ApplicationController
         .discarded.to_a
     ).sort_by(&:updated_at).reverse
 
-    @pagy, @resources = pagy_array(discarded_resources, items: 10)
+    @pagy, @resources = pagy(:offset, discarded_resources, items: 10)
 
     respond_to do |format|
       format.html
