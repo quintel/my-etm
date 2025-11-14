@@ -91,7 +91,9 @@ class FeaturedScenario < ApplicationRecord
       version: version.tag,
       end_year: end_year,
       area_code: area_code,
-      author: owner&.user_name || "No author"
+      author: owner&.user_name || "No author",
+      study_en: title_en.include?("-") ? title_en.split(" - ", 2).first : "",
+      study_nl: title_nl.include?("-") ? title_nl.split(" - ", 2).first : ""
     )
   end
 end

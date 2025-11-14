@@ -21,7 +21,7 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
           expect(scenario.keys).to contain_exactly(
             'id', 'saved_scenario_id', 'owner_id', 'group',
             'title_en', 'title_nl', 'version', 'end_year',
-            'author', 'area_code'
+            'author', 'area_code', 'study_nl', 'study_en'
           )
           expect(scenario['version']).to eq('latest')
         end
@@ -48,7 +48,7 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
           expect(scenario.keys).to contain_exactly(
             'id', 'saved_scenario_id', 'owner_id', 'group',
             'title_en', 'title_nl', 'version', 'end_year',
-            'author', 'area_code'
+            'author', 'area_code', 'study_nl', 'study_en'
           )
           expect(scenario['version']).to eq(version.tag)
         end
@@ -66,7 +66,7 @@ RSpec.describe 'FeaturedScenarios API', type: :request do
         expect(parsed_response.keys).to contain_exactly(
           'id', 'saved_scenario_id', 'owner_id', 'group',
           'title_en', 'title_nl', 'version', 'end_year',
-          'author', 'area_code'
+          'author', 'area_code', 'study_nl', 'study_en'
         )
         expect(parsed_response['id']).to eq(featured_scenario_id)
         expect(parsed_response['version']).to eq('latest')
