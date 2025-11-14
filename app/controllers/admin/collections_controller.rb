@@ -1,12 +1,12 @@
 module Admin
   class CollectionsController < ApplicationController
     include AdminController
-    include Pagy::Backend
+    include Pagy::Method
     include Filterable
 
     def index
       # Include Pagy to paginate @collections or any other resource
-      @pagy_collections, @collections = pagy_countless(
+      @pagy_collections, @collections = pagy(
         Collection.kept.order(created_at: :desc)
       )
 
@@ -22,7 +22,7 @@ module Admin
     def list
       filtered = filter!(Collection)
 
-      @pagy_collections, @collections =  pagy_countless(filtered.kept)
+      @pagy_collections, @collections =  pagy(filtered.kept)
 
       respond_to do |format|
         format.html { render(

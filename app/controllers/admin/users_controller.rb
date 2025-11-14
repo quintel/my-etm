@@ -1,7 +1,7 @@
 module Admin
   class UsersController < ApplicationController
     include AdminController
-    include Pagy::Backend
+    include Pagy::Method
     include Filterable
 
     before_action :set_user, only: %i[confirm update edit]
@@ -13,7 +13,7 @@ module Admin
 
     # All users
     def index
-      @pagy_admin_users, @users = pagy_countless(admin_all_users)
+      @pagy_admin_users, @users = pagy(admin_all_users)
 
       respond_to do |format|
         format.html

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class CollectionsController < ApplicationController
-  include Pagy::Backend
+  include Pagy::Method
   include Filterable
 
   load_resource only: %i[discard undiscard new_transition create_transition confirm_destroy]
@@ -17,7 +17,7 @@ class CollectionsController < ApplicationController
 
   # GET /collections or /collections.json
   def index
-    @pagy_collections, @collections = pagy_countless(user_collections)
+    @pagy_collections, @collections = pagy(user_collections)
 
     respond_to do |format|
       format.html
