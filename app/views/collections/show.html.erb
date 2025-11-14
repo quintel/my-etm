@@ -16,7 +16,7 @@
 )%>
 
 <% if @collection.discarded?%>
-  <%= render(NoticeBanner::TrashComponent.new(text: t('trash.notice', deleted_after: Collection::AUTO_DELETES_AFTER.in_days.to_i)))%>
+  <%= render(NoticeBanner::TrashComponent.new(text: t('trash.notice.collections', deleted_after: Collection::AUTO_DELETES_AFTER.in_days.to_i)))%>
 <% end %>
 
 <div class="w-min mb-5">

@@ -1,5 +1,5 @@
-.transition.mb-2{ class: ('hidden' if @hidden), data: { id:@saved_scenario.id, sortable_list_target:"listElement" }}
-  = form.check_box :saved_scenario_ids, { multiple: true, class: "hidden" }, @saved_scenario.id, nil
+.transition.mb-2{ class: ('hidden' if @hidden), data: { id:@saved_scenario.id }}
+  = form.check_box :saved_scenario_ids, { multiple: true, class: 'hidden' }, @saved_scenario.id, nil
   .flex.bg-midnight-200.border-grey-200.border-solid.border.rounded-md.p-2
     .w-min.drag-handle{class: 'hover:cursor-grab active:cursor-grabbing'}
       = heroicon 'bars-3', options: { class: 'w-4 h-4 mt-5 ml-2 mr-2 text-midnight-400' }
@@ -18,6 +18,6 @@
         = render(Hovercard::Component.new(path: '', text: t('scenario.private'))) do
           %span= heroicon 'eye-slash', options: { class: 'w-4 h-4 mt-5 mr-3 text-midnight-400' }
 
-    .w-min{ data: { action:"click->sortable-list#remove" } }
+    .w-min{ data: { action: 'click->collections#remove' } }
       %span= heroicon 'x-mark', options: { class: 'w-4 h-4 mt-5 mr-2 hover:cursor-pointer' }
 

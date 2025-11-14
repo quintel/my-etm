@@ -1,6 +1,6 @@
 - content_for :title, t('collections.new.title')
 - content_for :menu_title, t('collections.new.title')
-= render(partial: "block_right_menu")
+= render(partial: 'block_right_menu')
 
 .text-readable-width.text-midnight-400.mb-10
   = t('collections.new_collection.description')
@@ -9,23 +9,34 @@
   = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5', placeholder: t('collections.new.form.default_title')
 
-  - versions = @scenarios.map(&:version).uniq
-
-  - if versions.count > 1
+  = f.hidden_field :version, value: @versions.first.tag, data: { collections_target: 'hiddenVersion' }
+  - if @versions.count > 1
     = f.label :version, t('collections.new.form.version'), class: 'text-sm text-gray-400 mb-2'
-    = f.select :version, versions.map { |v| [v.titleize, v.tag] }, {}, id: 'version-select', data: { action: 'collections#versionChanged', 'collections-target': 'versionSelect' }, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'
-  - else
-    = f.hidden_field :version, value: versions.first.tag
+    = select_tag nil,                                                                             |
+      options_for_select(@versions.map { |v| [v.titleize, v.tag] }, @versions.first.tag),         |
+      data: { action: 'collections#changeVersion', collections_target: 'versionSelect' },         |
+      class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'                              | 
 
-  = f.label :saved_scenario_ids, t('collections.new.form.scenario_ids'), class: 'text-sm text-gray-400 mb-2'
-  .flex.flex-wrap
+  .mt-5
+    .text-sm.text-gray-400{ data: { collections_target: 'sortableListLabel' } }= t('collections.edit.instructions')
+    .mt-5{ data: { collections_target: 'sortableList' } }
+      - @scenarios.each do |scenario|
+        = render(Collections::SortableSavedScenario::Component.new(       |
+          hidden: true,                                                   |
+          form: f,                                                        |
+          path: saved_scenario_path(scenario),                            |
+          saved_scenario: scenario,                                       |
+          access: !scenario.private? || scenario.viewer?(current_user)))  |
+
+  .mt-5.text-sm.text-gray-400.mb-2{ data: { collections_target: 'listPickerLabel' }}= t('collections.edit.picker')
+  .mt-5.flex.flex-wrap{ data: { collections_target: 'listPicker' } }
     - if @scenarios.present?
       - @scenarios.each do |scenario|
-        = render(Collections::ScenarioPicker::Component.new(form: f, scenario: scenario))
+        = render(Collections::ScenarioPicker::Component.new(              |
+          scenario: scenario))                                            |
     - else
       = t('collections.new.no_scenarios')
 
   .flex.mt-10
-    - if @scenarios.present?
-      = f.submit t('scenario.save'), class: 'button button-primary mr-5', data: { 'collections-target': 'saveButton' }
+    = submit_tag t('scenario.save'), class: 'button button-primary mr-5', data: { collections_target: 'saveButton' }
     = link_to t('collections.new.form.cancel'), collections_path, class: 'button'
