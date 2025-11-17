@@ -492,6 +492,7 @@ GEM
       nokogiri (~> 1.8)
     yaml (0.4.0)
     zeitwerk (2.6.18)
+    zstd-ruby (2.0.3)
 
 PLATFORMS
   aarch64-linux
@@ -558,6 +559,7 @@ DEPENDENCIES
   tzinfo-data
   view_component
   web-console
+  zstd-ruby
 
 BUNDLED WITH
    2.5.18
