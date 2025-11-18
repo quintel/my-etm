@@ -12,6 +12,7 @@ module Api
         optional(:area_code).filled(:string)
         optional(:end_year).filled(:integer)
         required(:version).filled(:string)
+        optional(:interpolation).filled(:bool)
         optional(:scenario_ids).filled(min_size?: 1, max_size?: 100).each(:integer, gt?: 0)
         optional(:saved_scenario_ids).filled(min_size?: 1, max_size?: 100).each(:integer, gt?: 0)
       end
