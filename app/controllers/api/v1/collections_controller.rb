@@ -60,7 +60,7 @@ module Api
       def collection_params
         # Support both flat and nested collection params
         coll_params = params[:collection].present? ? params.require(:collection) : params
-        coll_params.permit(:title, :area_code, :end_year, :version, :interpolation, saved_scenario_ids: [], scenario_ids: [])
+        coll_params.permit(:title, :area_code, :end_year, :version, :interpolation, :discarded, saved_scenario_ids: [], scenario_ids: [])
       end
     end
   end
