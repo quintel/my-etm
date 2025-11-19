@@ -107,7 +107,7 @@ class Collection < ApplicationRecord
   end
 
   def as_json(options = {})
-    options[:except] ||= %i[area_code end_year user_id]
+    options[:except] ||= %i[area_code end_year user_id version_id]
 
     extra_attrs = {
       "version" => version.tag,
@@ -122,8 +122,7 @@ class Collection < ApplicationRecord
       extra_attrs = extra_attrs.merge(
         "interpolation_params" => {
           "area_code" => area_code,
-          # "start_year" => start_year, # Where can we get this from? It is not in collection nor in the saved scenario.
-          "end_years" => [2030, 2040, end_year] # Future-proofing for possible custom years
+          "end_years" => CreateInterpolatedCollection::DEFAULT_YEARS + [end_year] # Future-proofing for possible custom years
         }
       )
     end
