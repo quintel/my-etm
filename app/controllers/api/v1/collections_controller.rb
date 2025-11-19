@@ -1,6 +1,8 @@
 module Api
   module V1
-    class CollectionsController < BaseController
+    class CollectionsController < BaseController            
+      wrap_parameters false
+
       check_authorization
 
       load_and_authorize_resource(class: Collection, only: %i[index show destroy update])
@@ -58,7 +60,7 @@ module Api
       private
 
       def collection_params
-        # Support both flat and nested collection params
+        # Support both flat and nested collection params (Make sure there is no automatic wrapping)
         coll_params = params[:collection].present? ? params.require(:collection) : params
         coll_params.permit(:title, :area_code, :end_year, :version, :interpolation, :discarded, saved_scenario_ids: [], scenario_ids: [])
       end
