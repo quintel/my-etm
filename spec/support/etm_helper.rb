@@ -1,40 +1,20 @@
 # frozen_string_literal: true
 
 require 'zstd-ruby'
-require 'rubygems/package'
-require 'stringio'
 
 module EtmHelper
-  # Helper method to read and extract files from an ETM archive
-  def extract_from_etm(etm_path)
-    compressed_data = File.binread(etm_path)
-    tar_data = Zstd.decompress(compressed_data)
-
-    files = {}
-    tar_io = StringIO.new(tar_data)
-
-    Gem::Package::TarReader.new(tar_io) do |tar|
-      tar.each do |entry|
-        files[entry.full_name] = entry.read
-      end
-    end
-
-    files
+  # Helper method to read and parse an ETM file
+  def extract_from_etm(file_path)
+    compressed_data = File.binread(file_path)
+    json_data = Zstd.decompress(compressed_data)
+    JSON.parse(json_data, symbolize_names: true)
   end
 
   # Helper method to create an ETM file for testing
-  def create_etm_file(path, files)
-    tar_io = StringIO.new
-
-    Gem::Package::TarWriter.new(tar_io) do |tar|
-      files.each do |filename, content|
-        tar.add_file_simple(filename, 0644, content.bytesize) do |io|
-          io.write(content)
-        end
-      end
-    end
-
-    compressed_data = Zstd.compress(tar_io.string, level: 3)
+  # data should be a hash that will be converted to JSON
+  def create_etm_file(path, data)
+    json_data = JSON.pretty_generate(data)
+    compressed_data = Zstd.compress(json_data, level: 3)
     File.binwrite(path, compressed_data)
   end
 end

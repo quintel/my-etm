@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
 require 'zstd-ruby'
-require 'rubygems/package'
-require 'stringio'
 require_relative 'result'
 
 # Loads a saved scenario dump file and restores both ETEngine scenarios and MyETM metadata.
 #
-# etm_path    - Path to the .etm file containing the dump
+# file_path    - Path to the .etm file containing the dump
 # http_client - Faraday HTTP client configured for ETEngine API
 # user        - Current user (admin who is performing the load)
 #
@@ -16,7 +14,7 @@ class SavedScenarioPacker::Load
   extend Dry::Initializer
   include Dry::Monads[:result]
 
-  param :file_path # Keep name for backward compat, but it's actually etm_path
+  param :file_path
   param :http_client
   param :user
 
@@ -41,49 +39,30 @@ class SavedScenarioPacker::Load
   def extract_and_parse_manifest(path)
     # Read and decompress the ETM file
     compressed_data = File.binread(path)
-    tar_data = Zstd.decompress(compressed_data)
+    json_data = Zstd.decompress(compressed_data)
 
-    # Extract manifest from TAR
-    tar_io = StringIO.new(tar_data)
-    manifest_content = nil
-
-    Gem::Package::TarReader.new(tar_io) do |tar|
-      tar.each do |entry|
-        if entry.full_name == 'manifest.json'
-          manifest_content = entry.read
-          break
-        end
-      end
-    end
-
-    return Failure('manifest.json not found in ETM file') unless manifest_content
-
-    manifest = JSON.parse(manifest_content, symbolize_names: true)
-    scenarios_data = manifest[:saved_scenarios] || []
+    # Parse JSON
+    data = JSON.parse(json_data, symbolize_names: true)
+    scenarios_data = data[:scenarios] || []
 
     Success(SavedScenarioPacker::ParsedManifestResult.new(
-      manifest: manifest,
+      manifest: data,
       scenarios_data: scenarios_data
     ))
   rescue Zstd::Error => e
     Failure("Failed to decompress ETM file: #{e.message}")
+  rescue JSON::ParserError => e
+    Failure("Failed to parse JSON: #{e.message}")
   rescue StandardError => e
-    Failure("Failed to parse manifest: #{e.message}")
+    Failure("Failed to read ETM file: #{e.message}")
   end
 
   def load_scenarios_to_engine(manifest_result)
     mappings = []
     warnings = []
 
-    # Read and decompress the ETM file
-    compressed_data = File.binread(file_path)
-    tar_data = Zstd.decompress(compressed_data)
-
-    # Extract all scenario dumps from TAR
-    scenario_dumps = extract_scenario_dumps_from_tar(tar_data)
-
-    manifest_result.scenarios_data.each do |saved_scenario_data|
-      load_single_scenario(scenario_dumps, saved_scenario_data)
+    manifest_result.scenarios_data.each do |scenario_data|
+      load_single_scenario(scenario_data)
         .fmap { |mapping| mappings << mapping }
         .or do |error|
           warnings << error
@@ -99,41 +78,21 @@ class SavedScenarioPacker::Load
         warnings: warnings
       ))
     end
-  rescue Zstd::Error => e
-    Failure("Failed to decompress ETM file: #{e.message}")
   rescue StandardError => e
     Failure("Failed to load scenarios to engine: #{e.message}")
   end
 
-  def extract_scenario_dumps_from_tar(tar_data)
-    dumps = {}
-    tar_io = StringIO.new(tar_data)
+  def load_single_scenario(scenario_data)
+    original_scenario_id = scenario_data[:scenario_id]
+    engine_dump = scenario_data[:engine_dump]
 
-    Gem::Package::TarReader.new(tar_io) do |tar|
-      tar.each do |entry|
-        if entry.full_name.start_with?('dumps/')
-          dumps[entry.full_name] = entry.read
-        end
-      end
-    end
-
-    dumps
-  end
-
-  def load_single_scenario(scenario_dumps, saved_scenario_data)
-    original_scenario_id = saved_scenario_data[:scenario_id]
-    saved_scenario_id = saved_scenario_data[:saved_scenario_id]
-
-    # Find the dump file for this scenario
-    filename = "dumps/scenario_#{original_scenario_id}_saved_#{saved_scenario_id}.json"
-    dump_content = scenario_dumps[filename]
-
-    unless dump_content
-      return Failure("Dump file not found for scenario #{original_scenario_id}, skipping")
+    unless engine_dump
+      return Failure("Engine dump not found for scenario #{original_scenario_id}, skipping")
     end
 
     # Load the scenario to ETEngine
-    dump_data = JSON.parse(dump_content)
+    # Convert symbolized keys back to string keys for API
+    dump_data = JSON.parse(engine_dump.to_json)
 
     response = http_client.post('/api/v3/scenarios/load_dump', dump_data)
 
@@ -147,11 +106,9 @@ class SavedScenarioPacker::Load
         {
           original_scenario_id: original_scenario_id,
           new_scenario_id: new_scenario_id,
-          saved_scenario_data: saved_scenario_data
+          saved_scenario_data: scenario_data
         }
       end
-  rescue JSON::ParserError => e
-    Failure("Failed to parse dump data for scenario #{original_scenario_id}: #{e.message}")
   rescue StandardError => e
     Failure("Error loading scenario #{original_scenario_id}: #{e.message}")
   end

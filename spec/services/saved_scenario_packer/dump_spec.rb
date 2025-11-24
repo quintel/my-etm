@@ -38,7 +38,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
   let(:engine_dump_one) do
     {
-      'original_scenario_id' => 123,
+      'id' => 123,
       'area_code' => 'nl',
       'end_year' => 2050,
       'user_values' => { 'foo' => 100 }
@@ -47,7 +47,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
   let(:engine_dump_two) do
     {
-      'original_scenario_id' => 124,
+      'id' => 124,
       'area_code' => 'de',
       'end_year' => 2040,
       'user_values' => { 'bar' => 200 }
@@ -66,8 +66,8 @@ describe SavedScenarioPacker::Dump, type: :service do
 
   before do
     # Mock successful ETEngine streaming API call
-    allow(http_client).to receive(:get)
-      .with('/api/v3/scenarios/dump', ids: [123, 124])
+    allow(http_client).to receive(:post)
+      .with('/api/v3/scenarios/stream', ids: [123, 124])
       .and_return(successful_streaming_response)
   end
 
@@ -102,32 +102,34 @@ describe SavedScenarioPacker::Dump, type: :service do
 
     it 'fetches dumps from ETEngine using streaming endpoint' do
       service.call
-      expect(http_client).to have_received(:get).with('/api/v3/scenarios/dump', ids: [123, 124]).once
+      expect(http_client).to have_received(:post).with('/api/v3/scenarios/stream', ids: [123, 124]).once
     end
 
     describe 'ETM file contents' do
-      let(:etm_path) { service.call.value!.file_path }
-      let(:files) { extract_from_etm(etm_path) }
+      let(:file_path) { service.call.value!.file_path }
+      let(:data) { extract_from_etm(file_path) }
 
-      it 'includes a manifest.json file' do
-        expect(files).to have_key('manifest.json')
+      it 'includes version information' do
+        expect(data[:version]).to eq('1.0')
       end
 
-      it 'includes scenario dump files in dumps/ directory' do
-        expect(files).to have_key("dumps/scenario_123_saved_#{saved_scenario_one.id}.json")
-        expect(files).to have_key("dumps/scenario_124_saved_#{saved_scenario_two.id}.json")
+      it 'includes scenarios array' do
+        expect(data[:scenarios]).to be_an(Array)
+        expect(data[:scenarios].size).to eq(2)
       end
 
-      it 'has valid JSON in manifest.json' do
-        manifest_content = files['manifest.json']
-        expect { JSON.parse(manifest_content) }.not_to raise_error
+      it 'includes scenario metadata' do
+        scenario = data[:scenarios].find { |s| s[:title] == 'Netherlands 2050' }
+        expect(scenario[:saved_scenario_id]).to eq(saved_scenario_one.id)
+        expect(scenario[:scenario_id]).to eq(123)
+        expect(scenario[:area_code]).to eq('nl')
       end
 
-      it 'has valid JSON in scenario dumps' do
-        dump_content = files["dumps/scenario_123_saved_#{saved_scenario_one.id}.json"]
-        parsed = JSON.parse(dump_content)
-        expect(parsed['original_scenario_id']).to eq(123)
-        expect(parsed['area_code']).to eq('nl')
+      it 'includes engine dumps embedded in scenarios' do
+        scenario = data[:scenarios].find { |s| s[:title] == 'Netherlands 2050' }
+        expect(scenario[:engine_dump]).to be_a(Hash)
+        expect(scenario[:engine_dump][:id]).to eq(123)
+        expect(scenario[:engine_dump][:area_code]).to eq('nl')
       end
     end
   end
@@ -150,7 +152,7 @@ describe SavedScenarioPacker::Dump, type: :service do
     context 'when all ETEngine dumps fail' do
       before do
         failed_response = instance_double(Faraday::Response, success?: false, status: 404)
-        allow(http_client).to receive(:get).and_return(failed_response)
+        allow(http_client).to receive(:post).and_return(failed_response)
       end
 
       it 'returns a Failure result' do
@@ -174,8 +176,8 @@ describe SavedScenarioPacker::Dump, type: :service do
       end
 
       before do
-        allow(http_client).to receive(:get)
-          .with('/api/v3/scenarios/dump', ids: [123, 124])
+        allow(http_client).to receive(:post)
+          .with('/api/v3/scenarios/stream', ids: [123, 124])
           .and_return(partial_streaming_response)
       end
 
@@ -194,10 +196,11 @@ describe SavedScenarioPacker::Dump, type: :service do
       end
 
       it 'only includes successfully dumped scenarios' do
-        etm_path = service.call.value!.file_path
-        files = extract_from_etm(etm_path)
-        expect(files).to have_key("dumps/scenario_123_saved_#{saved_scenario_one.id}.json")
-        expect(files).not_to have_key("dumps/scenario_124_saved_#{saved_scenario_two.id}.json")
+        file_path = service.call.value!.file_path
+        data = extract_from_etm(file_path)
+        scenario_ids = data[:scenarios].map { |s| s[:scenario_id] }
+        expect(scenario_ids).to include(123)
+        expect(scenario_ids).not_to include(124)
       end
     end
   end
@@ -208,16 +211,14 @@ describe SavedScenarioPacker::Dump, type: :service do
       result = service.call
       expect(result).to be_success
 
-      etm_path = result.value!.file_path
-      files = extract_from_etm(etm_path)
+      file_path = result.value!.file_path
+      data = extract_from_etm(file_path)
 
-      dump_content_one = files["dumps/scenario_123_saved_#{saved_scenario_one.id}.json"]
-      parsed_one = JSON.parse(dump_content_one)
-      expect(parsed_one['original_scenario_id']).to eq(123)
+      scenario_one = data[:scenarios].find { |s| s[:saved_scenario_id] == saved_scenario_one.id }
+      expect(scenario_one[:engine_dump][:id]).to eq(123)
 
-      dump_content_two = files["dumps/scenario_124_saved_#{saved_scenario_two.id}.json"]
-      parsed_two = JSON.parse(dump_content_two)
-      expect(parsed_two['original_scenario_id']).to eq(124)
+      scenario_two = data[:scenarios].find { |s| s[:saved_scenario_id] == saved_scenario_two.id }
+      expect(scenario_two[:engine_dump][:id]).to eq(124)
     end
 
     it 'handles empty lines in NDJSON stream' do
@@ -228,8 +229,8 @@ describe SavedScenarioPacker::Dump, type: :service do
         status: 200
       )
 
-      allow(http_client).to receive(:get)
-        .with('/api/v3/scenarios/dump', ids: [123, 124])
+      allow(http_client).to receive(:post)
+        .with('/api/v3/scenarios/stream', ids: [123, 124])
         .and_return(response_with_empty_lines)
 
       result = service.call
@@ -268,7 +269,7 @@ describe SavedScenarioPacker::Dump, type: :service do
   describe 'temp file cleanup' do
     context 'when an error occurs before ZIP creation' do
       before do
-        allow(http_client).to receive(:get).and_raise(StandardError, 'Network error')
+        allow(http_client).to receive(:post).and_raise(StandardError, 'Network error')
       end
 
       it 'cleans up temporary files' do
@@ -278,7 +279,7 @@ describe SavedScenarioPacker::Dump, type: :service do
         service.call
 
         # The cleanup should have removed temp files, but the directory might still exist
-        # We're mainly testing that the ensure block runs without error
+        # Mainly testing that the ensure block runs without error
         expect(true).to be true
       end
     end

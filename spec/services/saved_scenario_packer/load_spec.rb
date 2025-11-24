@@ -81,13 +81,16 @@ describe SavedScenarioPacker::Load, type: :service do
   end
 
   before do
-    # Create a test ETM file with manifest and dumps
+    # Create a test ETM file with combined structure
     FileUtils.mkdir_p(File.dirname(file_path))
-    create_etm_file(file_path, {
-      'manifest.json' => manifest_data.to_json,
-      'dumps/scenario_123_saved_100.json' => dump_data_one.to_json,
-      'dumps/scenario_124_saved_101.json' => dump_data_two.to_json
-    })
+
+    # Combine manifest data with engine dumps
+    combined_data = manifest_data.dup
+    combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map.with_index do |scenario, index|
+      scenario.merge(engine_dump: index == 0 ? dump_data_one : dump_data_two)
+    end
+
+    create_etm_file(file_path, combined_data)
 
     # Mock ETEngine load_dump API calls
     allow(http_client).to receive(:post)
@@ -228,24 +231,26 @@ describe SavedScenarioPacker::Load, type: :service do
       end
     end
 
-    context 'when manifest.json is missing' do
-      let(:file_path_no_manifest) { Rails.root.join('tmp', 'test_dump_no_manifest.etm') }
-      let(:service) { described_class.new(file_path_no_manifest.to_s, http_client, admin_user) }
+    context 'when scenarios data is missing' do
+      let(:file_path_no_scenarios) { Rails.root.join('tmp', 'test_dump_no_scenarios.etm') }
+      let(:service) { described_class.new(file_path_no_scenarios.to_s, http_client, admin_user) }
 
       before do
-        create_etm_file(file_path_no_manifest, {
-          'dumps/scenario_123_saved_100.json' => dump_data_one.to_json
+        # Create ETM file with no scenarios array
+        create_etm_file(file_path_no_scenarios, {
+          version: '1.0',
+          etm_version: 'latest'
         })
       end
 
       after do
-        FileUtils.rm_f(file_path_no_manifest)
+        FileUtils.rm_f(file_path_no_scenarios)
       end
 
       it 'returns a Failure result' do
         result = service.call
         expect(result).to be_failure
-        expect(result.failure).to include('manifest.json not found')
+        expect(result.failure).to include('No scenarios could be loaded')
       end
     end
 
@@ -293,17 +298,22 @@ describe SavedScenarioPacker::Load, type: :service do
       end
     end
 
-    context 'when dump file is missing for a scenario' do
+    context 'when engine dump is missing for a scenario' do
       let(:file_path_partial) { Rails.root.join('tmp', 'test_dump_partial.etm') }
       let(:service) { described_class.new(file_path_partial.to_s, http_client, admin_user) }
 
       before do
-        # Create ETM with manifest but only one dump file
-        create_etm_file(file_path_partial, {
-          'manifest.json' => manifest_data.to_json,
-          'dumps/scenario_123_saved_100.json' => dump_data_one.to_json
-          # Don't include scenario_124
-        })
+        # Create ETM with scenarios but second one missing engine_dump
+        partial_data = manifest_data.dup
+        partial_data[:scenarios] = partial_data.delete(:saved_scenarios).map.with_index do |scenario, index|
+          if index == 0
+            scenario.merge(engine_dump: dump_data_one)
+          else
+            scenario # No engine_dump for second scenario
+          end
+        end
+
+        create_etm_file(file_path_partial, partial_data)
       end
 
       after do
@@ -318,7 +328,7 @@ describe SavedScenarioPacker::Load, type: :service do
 
       it 'includes warnings' do
         result = service.call
-        expect(result.value!.warnings).to include(match(/Dump file not found for scenario 124/))
+        expect(result.value!.warnings).to include(match(/Engine dump not found for scenario 124/))
       end
     end
   end
@@ -353,10 +363,11 @@ describe SavedScenarioPacker::Load, type: :service do
       end
 
       before do
-        create_etm_file(file_path, {
-          'manifest.json' => manifest_data.to_json,
-          'dumps/scenario_123_saved_100.json' => dump_data_one.to_json
-        })
+        combined_data = manifest_data.dup
+        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
+          scenario.merge(engine_dump: dump_data_one)
+        end
+        create_etm_file(file_path, combined_data)
       end
 
       it 'falls back to admin user' do
@@ -403,10 +414,11 @@ describe SavedScenarioPacker::Load, type: :service do
       end
 
       before do
-        create_etm_file(file_path, {
-          'manifest.json' => manifest_data.to_json,
-          'dumps/scenario_123_saved_100.json' => dump_data_one.to_json
-        })
+        combined_data = manifest_data.dup
+        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
+          scenario.merge(engine_dump: dump_data_one)
+        end
+        create_etm_file(file_path, combined_data)
       end
 
       it 'skips the nonexistent collaborator' do
