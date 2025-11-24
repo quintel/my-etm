@@ -53,31 +53,65 @@ class SavedScenarioPacker::Dump
   end
 
   # Calls the engine streaming endpoint to get all dumps in a single request
+  # Uses Faraday's on_data callback to process NDJSON chunks incrementally
   def dump_scenarios_from_engine(scenarios)
     scenario_ids = scenarios.map(&:scenario_id)
+    dumps = []
+    buffer = ''.dup
+    parse_errors = []
 
-    response = http_client.post('/api/v3/scenarios/stream', ids: scenario_ids)
+    response = http_client.post('/api/v3/scenarios/stream') do |req|
+      req.headers['Content-Type'] = 'application/json'
+      req.body = { ids: scenario_ids }.to_json
 
+      # Stream chunks as they arrive and parse NDJSON incrementally
+      req.options.on_data = Proc.new do |chunk, _overall_bytes|
+        buffer << chunk
+
+        # Process complete lines (ending with newline)
+        while (nl_idx = buffer.index("\n"))
+          line = buffer.slice!(0..nl_idx).strip
+          next if line.empty?
+
+          begin
+            dumps << JSON.parse(line)
+          rescue JSON::ParserError => e
+            parse_errors << "Failed to parse NDJSON line: #{e.message}"
+          end
+        end
+      end
+    end
+
+    # Check response status
     unless response.success?
       return Failure("Failed to dump scenarios from ETEngine: #{response.status}")
     end
 
-    # Parse NDJSON stream and match dumps to SavedScenarios
-    parse_ndjson_stream(response.body, scenarios)
+    # Handle any trailing data in buffer
+    if buffer.strip.present?
+      begin
+        dumps << JSON.parse(buffer.strip)
+      rescue JSON::ParserError => e
+        parse_errors << "Failed to parse trailing NDJSON data: #{e.message}"
+      end
+    end
+
+    # Log parse errors if any
+    parse_errors.each { |error| Rails.logger.warn("SavedScenarioPacker::Dump - #{error}") }
+
+    # Match dumps to SavedScenarios and collect warnings
+    match_dumps_to_scenarios(dumps, scenarios)
   rescue StandardError => e
     Failure("Error dumping scenarios: #{e.message}")
   end
 
-  def parse_ndjson_stream(body, scenarios)
-    # Parse NDJSON stream - one JSON object per line
-    lines = body.is_a?(String) ? body.strip.split("\n") : []
-    dumps = lines.reject(&:empty?).map { |line| JSON.parse(line) }
-
+  # Match engine dumps to SavedScenarios by scenario_id
+  def match_dumps_to_scenarios(dumps, scenarios)
     engine_dumps = {}
     warnings = []
 
     scenarios.each do |saved_scenario|
-      dump = dumps.find { |d| d['id'] == saved_scenario.scenario_id }
+      dump = dumps.find { |d| d.dig('metadata', 'id') == saved_scenario.scenario_id }
 
       if dump
         engine_dumps[saved_scenario.id] = dump
@@ -96,8 +130,6 @@ class SavedScenarioPacker::Dump
         warnings: warnings
       ))
     end
-  rescue JSON::ParserError => e
-    Failure("Failed to parse JSON response: #{e.message}")
   end
 
   def create_etm_file(engine_result)

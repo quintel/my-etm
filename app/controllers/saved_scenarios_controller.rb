@@ -176,7 +176,7 @@ class SavedScenariosController < ApplicationController
 
     result = SavedScenarioPacker::Dump.new(
       saved_scenario_ids,
-      engine_client(Version.default),
+      streaming_engine_client(Version.default),
       current_user
     ).call
 
