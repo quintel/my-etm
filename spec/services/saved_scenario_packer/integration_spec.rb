@@ -48,7 +48,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
   let(:engine_dump_one) do
     {
-      'original_scenario_id' => 123,
+      'id' => 123,
       'area_code' => 'nl',
       'end_year' => 2050,
       'user_values' => { 'foo' => 100 },
@@ -58,7 +58,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
   let(:engine_dump_two) do
     {
-      'original_scenario_id' => 124,
+      'id' => 124,
       'area_code' => 'de',
       'end_year' => 2040,
       'user_values' => { 'bar' => 200 },
@@ -69,8 +69,8 @@ describe 'SavedScenarioPacker Integration', type: :service do
   before do
     # Mock ETEngine streaming dump API call
     streaming_body = "#{engine_dump_one.to_json}\n#{engine_dump_two.to_json}\n"
-    allow(http_client).to receive(:get)
-      .with('/api/v3/scenarios/dump', ids: [123, 124])
+    allow(http_client).to receive(:post)
+      .with('/api/v3/scenarios/stream', ids: [123, 124])
       .and_return(instance_double(Faraday::Response, success?: true, body: streaming_body, status: 200))
 
     # Mock ETEngine load_dump API calls to return new scenario IDs
@@ -173,9 +173,9 @@ describe 'SavedScenarioPacker Integration', type: :service do
       saved_scenario_one.update!(scenario_id: 125, scenario_id_history: [120, 121, 122, 123])
 
       # Mock the new dump
-      new_engine_dump = engine_dump_one.merge('original_scenario_id' => 125)
-      allow(http_client).to receive(:get)
-        .with('/api/v3/scenarios/dump', ids: [125])
+      new_engine_dump = engine_dump_one.merge('id' => 125)
+      allow(http_client).to receive(:post)
+        .with('/api/v3/scenarios/stream', ids: [125])
         .and_return(instance_double(Faraday::Response, success?: true, body: "#{new_engine_dump.to_json}\n", status: 200))
 
       allow(http_client).to receive(:post)
@@ -206,8 +206,8 @@ describe 'SavedScenarioPacker Integration', type: :service do
     it 'handles partial dump failures gracefully' do
       # Mock response with only one scenario (124 missing from stream)
       partial_streaming_body = "#{engine_dump_one.to_json}\n"
-      allow(http_client).to receive(:get)
-        .with('/api/v3/scenarios/dump', ids: [123, 124])
+      allow(http_client).to receive(:post)
+        .with('/api/v3/scenarios/stream', ids: [123, 124])
         .and_return(instance_double(Faraday::Response, success?: true, body: partial_streaming_body, status: 200))
 
       dump_service = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner)
@@ -253,36 +253,36 @@ describe 'SavedScenarioPacker Integration', type: :service do
     end
   end
 
-  describe 'manifest validation' do
-    it 'includes correct metadata in manifest' do
+  describe 'ETM file structure validation' do
+    it 'includes correct metadata and scenarios' do
       dump_service = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner)
       dump_result = dump_service.call
-      etm_path = dump_result.value!.file_path
+      file_path = dump_result.value!.file_path
 
-      # Read and verify manifest
-      files = extract_from_etm(etm_path)
-      manifest_content = files['manifest.json']
-      manifest = JSON.parse(manifest_content, symbolize_names: true)
+      # Read and verify file structure
+      data = extract_from_etm(file_path)
 
-      expect(manifest[:version]).to eq('1.0')
-      expect(manifest[:etm_version]).to eq('latest')
-      expect(manifest[:saved_scenarios].size).to eq(2)
+      expect(data[:version]).to eq('1.0')
+      expect(data[:etm_version]).to eq('latest')
+      expect(data[:scenarios].size).to eq(2)
 
-      nl_scenario = manifest[:saved_scenarios].find { |s| s[:title] == 'Netherlands 2050' }
+      nl_scenario = data[:scenarios].find { |s| s[:title] == 'Netherlands 2050' }
       expect(nl_scenario[:scenario_id]).to eq(123)
       expect(nl_scenario[:scenario_id_history]).to eq([120, 121, 122])
       expect(nl_scenario[:area_code]).to eq('nl')
       expect(nl_scenario[:owner][:email]).to eq(owner.email)
       expect(nl_scenario[:collaborators].size).to eq(1)
       expect(nl_scenario[:viewers].size).to eq(1)
+      expect(nl_scenario[:engine_dump]).to be_a(Hash)
+      expect(nl_scenario[:engine_dump][:id]).to eq(123)
     end
   end
 
   describe 'newline-delimited JSON handling in integration' do
     before do
       # Mock NDJSON streaming response from ETEngine
-      allow(http_client).to receive(:get)
-        .with('/api/v3/scenarios/dump', ids: [123])
+      allow(http_client).to receive(:post)
+        .with('/api/v3/scenarios/stream', ids: [123])
         .and_return(instance_double(
           Faraday::Response,
           success?: true,
