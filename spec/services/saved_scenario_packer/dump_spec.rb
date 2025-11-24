@@ -38,19 +38,19 @@ describe SavedScenarioPacker::Dump, type: :service do
 
   let(:engine_dump_one) do
     {
-      'id' => 123,
       'area_code' => 'nl',
       'end_year' => 2050,
-      'user_values' => { 'foo' => 100 }
+      'user_values' => { 'foo' => 100 },
+      'metadata' => { 'id' => 123 }
     }
   end
 
   let(:engine_dump_two) do
     {
-      'id' => 124,
       'area_code' => 'de',
       'end_year' => 2040,
-      'user_values' => { 'bar' => 200 }
+      'user_values' => { 'bar' => 200 },
+      'metadata' => { 'id' => 124 }
     }
   end
 
@@ -58,17 +58,11 @@ describe SavedScenarioPacker::Dump, type: :service do
     "#{engine_dump_one.to_json}\n#{engine_dump_two.to_json}\n"
   end
 
-  let(:successful_streaming_response) do
-    instance_double(Faraday::Response, success?: true, body: streaming_response_body, status: 200)
-  end
-
   let(:service) { described_class.new(saved_scenario_ids, http_client, current_user) }
 
   before do
-    # Mock successful ETEngine streaming API call
-    allow(http_client).to receive(:post)
-      .with('/api/v3/scenarios/stream', ids: [123, 124])
-      .and_return(successful_streaming_response)
+    # Mock successful ETEngine streaming API call using streaming helper
+    mock_streaming_response(http_client, '/api/v3/scenarios/stream', streaming_response_body)
   end
 
   after do
@@ -102,7 +96,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
     it 'fetches dumps from ETEngine using streaming endpoint' do
       service.call
-      expect(http_client).to have_received(:post).with('/api/v3/scenarios/stream', ids: [123, 124]).once
+      expect(http_client).to have_received(:post).with('/api/v3/scenarios/stream').once
     end
 
     describe 'ETM file contents' do
@@ -128,7 +122,7 @@ describe SavedScenarioPacker::Dump, type: :service do
       it 'includes engine dumps embedded in scenarios' do
         scenario = data[:scenarios].find { |s| s[:title] == 'Netherlands 2050' }
         expect(scenario[:engine_dump]).to be_a(Hash)
-        expect(scenario[:engine_dump][:id]).to eq(123)
+        expect(scenario[:engine_dump][:metadata][:id]).to eq(123)
         expect(scenario[:engine_dump][:area_code]).to eq('nl')
       end
     end
@@ -151,8 +145,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
     context 'when all ETEngine dumps fail' do
       before do
-        failed_response = instance_double(Faraday::Response, success?: false, status: 404)
-        allow(http_client).to receive(:post).and_return(failed_response)
+        mock_streaming_response(http_client, '/api/v3/scenarios/stream', '', status: 404)
       end
 
       it 'returns a Failure result' do
@@ -171,14 +164,8 @@ describe SavedScenarioPacker::Dump, type: :service do
         "#{engine_dump_one.to_json}\n"
       end
 
-      let(:partial_streaming_response) do
-        instance_double(Faraday::Response, success?: true, body: partial_response_body, status: 200)
-      end
-
       before do
-        allow(http_client).to receive(:post)
-          .with('/api/v3/scenarios/stream', ids: [123, 124])
-          .and_return(partial_streaming_response)
+        mock_streaming_response(http_client, '/api/v3/scenarios/stream', partial_response_body)
       end
 
       it 'still succeeds with partial data' do
@@ -215,23 +202,15 @@ describe SavedScenarioPacker::Dump, type: :service do
       data = extract_from_etm(file_path)
 
       scenario_one = data[:scenarios].find { |s| s[:saved_scenario_id] == saved_scenario_one.id }
-      expect(scenario_one[:engine_dump][:id]).to eq(123)
+      expect(scenario_one[:engine_dump][:metadata][:id]).to eq(123)
 
       scenario_two = data[:scenarios].find { |s| s[:saved_scenario_id] == saved_scenario_two.id }
-      expect(scenario_two[:engine_dump][:id]).to eq(124)
+      expect(scenario_two[:engine_dump][:metadata][:id]).to eq(124)
     end
 
     it 'handles empty lines in NDJSON stream' do
-      response_with_empty_lines = instance_double(
-        Faraday::Response,
-        success?: true,
-        body: "#{engine_dump_one.to_json}\n\n#{engine_dump_two.to_json}\n",
-        status: 200
-      )
-
-      allow(http_client).to receive(:post)
-        .with('/api/v3/scenarios/stream', ids: [123, 124])
-        .and_return(response_with_empty_lines)
+      ndjson_with_empty_lines = "#{engine_dump_one.to_json}\n\n#{engine_dump_two.to_json}\n"
+      mock_streaming_response(http_client, '/api/v3/scenarios/stream', ndjson_with_empty_lines)
 
       result = service.call
       expect(result).to be_success

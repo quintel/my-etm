@@ -86,6 +86,10 @@ class ApplicationController < ActionController::Base
     MyEtm::Auth.engine_client(current_user, version)
   end
 
+  def streaming_engine_client(version)
+    MyEtm::Auth.streaming_engine_client(current_user, version)
+  end
+
   # Internal: Renders a 404 page.
   #
   # thing - An optional noun, describing what thing could not be found. Leave
