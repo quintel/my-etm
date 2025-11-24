@@ -48,30 +48,26 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
   let(:engine_dump_one) do
     {
-      'id' => 123,
       'area_code' => 'nl',
       'end_year' => 2050,
       'user_values' => { 'foo' => 100 },
-      'metadata' => { 'title' => 'Netherlands 2050' }
+      'metadata' => { 'id' => 123, 'title' => 'Netherlands 2050' }
     }
   end
 
   let(:engine_dump_two) do
     {
-      'id' => 124,
       'area_code' => 'de',
       'end_year' => 2040,
       'user_values' => { 'bar' => 200 },
-      'metadata' => { 'title' => 'Germany 2040' }
+      'metadata' => { 'id' => 124, 'title' => 'Germany 2040' }
     }
   end
 
   before do
-    # Mock ETEngine streaming dump API call
+    # Mock ETEngine streaming dump API call using streaming helper
     streaming_body = "#{engine_dump_one.to_json}\n#{engine_dump_two.to_json}\n"
-    allow(http_client).to receive(:post)
-      .with('/api/v3/scenarios/stream', ids: [123, 124])
-      .and_return(instance_double(Faraday::Response, success?: true, body: streaming_body, status: 200))
+    mock_streaming_response(http_client, '/api/v3/scenarios/stream', streaming_body)
 
     # Mock ETEngine load_dump API calls to return new scenario IDs
     allow(http_client).to receive(:post)
@@ -173,10 +169,8 @@ describe 'SavedScenarioPacker Integration', type: :service do
       saved_scenario_one.update!(scenario_id: 125, scenario_id_history: [120, 121, 122, 123])
 
       # Mock the new dump
-      new_engine_dump = engine_dump_one.merge('id' => 125)
-      allow(http_client).to receive(:post)
-        .with('/api/v3/scenarios/stream', ids: [125])
-        .and_return(instance_double(Faraday::Response, success?: true, body: "#{new_engine_dump.to_json}\n", status: 200))
+      new_engine_dump = engine_dump_one.merge('metadata' => { 'id' => 125, 'title' => 'Netherlands 2050' })
+      mock_streaming_response(http_client, '/api/v3/scenarios/stream', "#{new_engine_dump.to_json}\n")
 
       allow(http_client).to receive(:post)
         .with('/api/v3/scenarios/load_dump', new_engine_dump)
@@ -206,9 +200,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
     it 'handles partial dump failures gracefully' do
       # Mock response with only one scenario (124 missing from stream)
       partial_streaming_body = "#{engine_dump_one.to_json}\n"
-      allow(http_client).to receive(:post)
-        .with('/api/v3/scenarios/stream', ids: [123, 124])
-        .and_return(instance_double(Faraday::Response, success?: true, body: partial_streaming_body, status: 200))
+      mock_streaming_response(http_client, '/api/v3/scenarios/stream', partial_streaming_body)
 
       dump_service = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner)
       dump_result = dump_service.call
@@ -274,21 +266,14 @@ describe 'SavedScenarioPacker Integration', type: :service do
       expect(nl_scenario[:collaborators].size).to eq(1)
       expect(nl_scenario[:viewers].size).to eq(1)
       expect(nl_scenario[:engine_dump]).to be_a(Hash)
-      expect(nl_scenario[:engine_dump][:id]).to eq(123)
+      expect(nl_scenario[:engine_dump][:metadata][:id]).to eq(123)
     end
   end
 
   describe 'newline-delimited JSON handling in integration' do
     before do
       # Mock NDJSON streaming response from ETEngine
-      allow(http_client).to receive(:post)
-        .with('/api/v3/scenarios/stream', ids: [123])
-        .and_return(instance_double(
-          Faraday::Response,
-          success?: true,
-          body: "#{engine_dump_one.to_json}\n",
-          status: 200
-        ))
+      mock_streaming_response(http_client, '/api/v3/scenarios/stream', "#{engine_dump_one.to_json}\n")
 
       allow(http_client).to receive(:post)
         .with('/api/v3/scenarios/load_dump', engine_dump_one)

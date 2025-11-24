@@ -101,6 +101,29 @@ module MyEtm
       client_for(user, engine, scopes: scopes)
     end
 
+    # Returns a Faraday client for ETEngine streaming endpoints (without JSON response middleware)
+    #
+    # Use this for endpoints that return NDJSON (newline-delimited JSON) streams,
+    # as the standard JSON response middleware will fail to parse streaming responses.
+    #
+    # If scopes are specified (e.g. from an access token) these scopes are granted
+    # Otherwise the configured app scopes are used
+    def streaming_engine_client(user, version = Version.default, scopes: [])
+      engine = OAuthApplication.find_by(uri: version.engine_url)
+      scopes = scopes.empty? ? engine.scopes : scopes
+
+      Faraday.new(engine.uri) do |conn|
+        conn.request(
+          :authorization,
+          "Bearer",
+          -> { user_jwt(user, scopes: scopes, client_uri: engine.uri) }
+        )
+        conn.request(:json)
+        # NOTE: No response(:json) middleware - streaming responses must be parsed manually
+        conn.response(:raise_error)
+      end
+    end
+
     # Returns a Faraday client for a version of ETModel
     def model_client(user, version = Version.default)
       model = OAuthApplication.find_by(uri: version.model_url)
