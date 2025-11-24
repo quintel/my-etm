@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
 require 'zstd-ruby'
-require 'rubygems/package'
-require 'stringio'
 require_relative 'result'
 
 # Dumps one or more saved scenarios including their ETEngine session scenario data and MyETM 'metadata'. The dump is
-# packaged as a .etm file (which is a TAR archive compressed with Zstandard).
+# packaged as a .etm file (JSON compressed with Zstandard).
 #
 # saved_scenario_ids - Array of SavedScenario IDs to dump
 # http_client        - Faraday HTTP client
@@ -58,8 +56,7 @@ class SavedScenarioPacker::Dump
   def dump_scenarios_from_engine(scenarios)
     scenario_ids = scenarios.map(&:scenario_id)
 
-    # Make single HTTP request with all scenario IDs
-    response = http_client.get('/api/v3/scenarios/dump', ids: scenario_ids)
+    response = http_client.post('/api/v3/scenarios/stream', ids: scenario_ids)
 
     unless response.success?
       return Failure("Failed to dump scenarios from ETEngine: #{response.status}")
@@ -76,12 +73,11 @@ class SavedScenarioPacker::Dump
     lines = body.is_a?(String) ? body.strip.split("\n") : []
     dumps = lines.reject(&:empty?).map { |line| JSON.parse(line) }
 
-    # Match dumps to SavedScenarios by original_scenario_id
     engine_dumps = {}
     warnings = []
 
     scenarios.each do |saved_scenario|
-      dump = dumps.find { |d| d['original_scenario_id'] == saved_scenario.scenario_id }
+      dump = dumps.find { |d| d['id'] == saved_scenario.scenario_id }
 
       if dump
         engine_dumps[saved_scenario.id] = dump
@@ -106,19 +102,19 @@ class SavedScenarioPacker::Dump
 
   def create_etm_file(engine_result)
     temp_dir_path = create_temp_dir
-    etm_path = File.join(temp_dir_path, generate_filename(engine_result.scenarios.count))
+    file_path = File.join(temp_dir_path, generate_filename(engine_result.scenarios.count))
 
-    # Create TAR archive in memory
-    tar_data = create_tar_archive(engine_result)
+    # Create combined JSON structure with manifest data and engine dumps
+    json_data = generate_combined_json(engine_result)
 
-    # Compress with Zstandard (using default compression level of 3, adjust if CPU usage is too high or speed too slow)
-    compressed_data = Zstd.compress(tar_data)
+    # Compress with Zstandard
+    compressed_data = Zstd.compress(json_data)
 
     # Write to file
-    File.binwrite(etm_path, compressed_data)
+    File.binwrite(file_path, compressed_data)
 
     Success(SavedScenarioPacker::DumpResult.new(
-      file_path: etm_path, # Keep field name for backward compat with result object
+      file_path: file_path,
       scenario_count: engine_result.scenarios.count,
       warnings: engine_result.warnings,
       temp_dir: temp_dir_path
@@ -127,34 +123,23 @@ class SavedScenarioPacker::Dump
     Failure("Failed to create ETM file: #{e.message}")
   end
 
-  def create_tar_archive(engine_result)
-    tar_io = StringIO.new
-
-    Gem::Package::TarWriter.new(tar_io) do |tar|
-      # Add manifest.json which contains the saved scenario info
-      manifest_content = generate_manifest(engine_result)
-      add_file_to_tar(tar, 'manifest.json', manifest_content)
-
-      # Add 'session' scenario dump
-      engine_result.dumps.each do |saved_scenario_id, dump_data|
-        filename = "dumps/scenario_#{dump_data['original_scenario_id']}_saved_#{saved_scenario_id}.json"
-        dump_content = JSON.pretty_generate(dump_data)
-        add_file_to_tar(tar, filename, dump_content)
-      end
-    end
-
-    tar_io.string
-  end
-
-  def add_file_to_tar(tar, filename, content)
-    tar.add_file_simple(filename, 0644, content.bytesize) do |io|
-      io.write(content)
-    end
-  end
-
-  def generate_manifest(engine_result)
+  def generate_combined_json(engine_result)
     manifest = SavedScenarioPacker::Manifest.new(engine_result.scenarios)
-    manifest.to_json
+    manifest_data = JSON.parse(manifest.to_json)
+
+    # Combine manifest scenarios with their engine dumps
+    combined_scenarios = manifest_data['saved_scenarios'].map do |scenario_data|
+      saved_scenario_id = scenario_data['saved_scenario_id']
+      engine_dump = engine_result.dumps[saved_scenario_id]
+
+      scenario_data.merge('engine_dump' => engine_dump)
+    end
+
+    # Create final structure
+    result = manifest_data.merge('scenarios' => combined_scenarios)
+    result.delete('saved_scenarios') # Remove old key
+
+    JSON.pretty_generate(result)
   end
 
   def create_temp_dir
