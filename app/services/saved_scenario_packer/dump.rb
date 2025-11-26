@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'zstd-ruby'
-require_relative 'result'
 
 # Dumps one or more saved scenarios including their ETEngine session scenario data and MyETM 'metadata'. The dump is
 # packaged as a .etm file (JSON compressed with Zstandard).
@@ -124,7 +123,7 @@ class SavedScenarioPacker::Dump
     if engine_dumps.empty?
       Failure('No scenarios could be dumped from ETEngine')
     else
-      Success(SavedScenarioPacker::EngineDumpsResult.new(
+      Success(SavedScenarioPacker::Results::EngineDumpsResult.new(
         scenarios: scenarios.select { |ss| engine_dumps.key?(ss.id) },
         dumps: engine_dumps,
         warnings: warnings
@@ -145,7 +144,7 @@ class SavedScenarioPacker::Dump
     # Write to file
     File.binwrite(file_path, compressed_data)
 
-    Success(SavedScenarioPacker::DumpResult.new(
+    Success(SavedScenarioPacker::Results::DumpResult.new(
       file_path: file_path,
       scenario_count: engine_result.scenarios.count,
       warnings: engine_result.warnings,
