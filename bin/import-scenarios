@@ -1,0 +1,221 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Load Rails environment first
+require File.expand_path('../config/environment', __dir__)
+
+# Setup
+FileInfo = Struct.new(:path) do
+  def name
+    File.basename(path)
+  end
+end
+
+EXPECTED_FILE_PATTERN = 'scenarios'
+
+prompt = TTY::Prompt.new
+source_dir = File.expand_path('~/Downloads')
+files = []
+owner_email = nil
+
+def help!(prompt)
+  pastel = Pastel.new
+
+  prompt.say(<<~HELP)
+    #{pastel.bold('Usage:')} bin/import-scenarios [options] [file-or-directory]
+
+    import-scenarios looks for files ending in .etm in your Downloads
+    directory. Alternatively, provide a path to a scenario dump file
+    or different directory.
+
+    #{pastel.bold('Options:')}
+      --user EMAIL    Set a specific user as owner of loaded scenarios
+                      (defaults to first admin user)
+
+    #{pastel.yellow('# Looks in ~/Downloads for suitable files:')}
+    #{pastel.bold('bin/import-scenarios')}
+
+    #{pastel.yellow('# Looks in db/dumps for suitable files:')}
+    #{pastel.bold('bin/import-scenarios db/dumps')}
+
+    #{pastel.yellow('# Loads the specified scenario dump file:')}
+    #{pastel.bold('bin/import-scenarios ~/Downloads/2_scenarios_development_20250126.etm')}
+
+    #{pastel.yellow('# Set specific user as owner:')}
+    #{pastel.bold('bin/import-scenarios --user your.email@quintel.com')}
+  HELP
+
+  exit(0)
+end
+
+# Parse arguments
+while ARGV.any?
+  arg = ARGV.shift
+
+  case arg
+  when 'help', '--help', '-h'
+    help!(prompt)
+  when '--user', '-u'
+    owner_email = ARGV.shift
+    unless owner_email
+      prompt.error('--user flag requires an email address')
+      exit(1)
+    end
+  when /^--user=(.+)$/
+    owner_email = $1
+  else
+    # It's a file or directory
+    if File.directory?(arg)
+      source_dir = File.expand_path(arg)
+    elsif File.exist?(arg)
+      files = [FileInfo.new(arg)]
+    else
+      prompt.error("No such file: #{arg}")
+      exit(1)
+    end
+  end
+end
+
+if files.none?
+  # If there are no files specified in ARGV, search for them in the source dir.
+  files = Dir.glob(source_dir + '/*.etm')
+    .sort_by { |path| File.mtime(path) }
+    .reverse
+    .map { |path| FileInfo.new(path) }
+end
+
+# Select file
+if files.none? || ARGV.first == 'help'
+  prompt.error('No .etm scenario dump files found')
+  prompt.say("\n")
+  help!(prompt)
+end
+
+file =
+  if files.length > 1
+    prompt.enum_select('Which scenario dump do you want to import?') do |menu|
+      files.each { |f| menu.choice(f.name, f) }
+      menu.choice('Cancel', :cancel)
+    end
+  else
+    prompt.say("Found one scenario dump file: #{files.first.name}")
+    files.first
+  end
+
+exit if file == :cancel
+
+# Sanity check
+unless file.name.include?(EXPECTED_FILE_PATTERN)
+  prompt.error(
+    'The filename suggests this might not be a scenario dump file. ' \
+    'Expected filename to contain "scenarios".'
+  )
+end
+
+prompt.warn('Importing will load scenarios into your database and trigger ETEngine.')
+
+unless prompt.yes?('Happy to proceed?')
+  prompt.say('Exiting without performing the import.')
+  exit
+end
+
+# Import scenarios
+
+# Find and display the user who will own the scenarios
+owner = if owner_email
+  user = User.find_by(email: owner_email)
+  unless user
+    prompt.error("User not found: #{owner_email}")
+    exit(1)
+  end
+  user
+else
+  User.find_by(admin: true) || User.first
+end
+
+unless owner
+  prompt.error('No users found in database!')
+  exit(1)
+end
+
+prompt.say("Scenarios will be owned by: #{owner.email}")
+
+spinner = TTY::Spinner.new(
+  "[:spinner] Loading scenarios from #{file.name}...",
+  format: :dots
+)
+
+result = nil
+
+spinner.run do
+  begin
+    # Create HTTP client for ETEngine communication
+    http_client = MyEtm::Auth.engine_client(owner)
+
+    # Call the SavedScenarioPacker::Load service
+    service = SavedScenarioPacker::Load.new(file.path, http_client, owner)
+    result = service.call
+
+    if result.success?
+      spinner.success('done!')
+    else
+      spinner.error('failed!')
+    end
+  rescue StandardError => e
+    spinner.error("error: #{e.message}")
+    puts "\nFull error details:"
+    puts e.class
+    puts e.message
+    puts e.backtrace.first(10).join("\n")
+    exit(1)
+  end
+end
+
+# Display results
+if result.success?
+  load_data = result.value!
+  saved_scenarios = load_data.saved_scenarios
+  scenario_mappings = load_data.scenario_mappings
+
+  prompt.say("\n")
+  prompt.ok("Successfully loaded #{saved_scenarios.size} scenario(s)!")
+  prompt.say("\n")
+
+  # Show scenario titles
+  if saved_scenarios.any?
+    prompt.say('Loaded scenarios:')
+    saved_scenarios.each_with_index do |scenario, idx|
+      prompt.say("  #{idx + 1}. #{scenario.title}")
+    end
+    prompt.say("\n")
+  end
+
+  # Show ID mappings
+  if scenario_mappings.any?
+    prompt.say('Scenario ID mappings:')
+    scenario_mappings.each do |mapping|
+      original_id = mapping[:original_scenario_id]
+      new_id = mapping[:new_scenario_id]
+      prompt.say("  ETEngine #{original_id} → #{new_id}")
+    end
+    prompt.say("\n")
+  end
+
+  # Show warnings if any
+  if load_data.warnings.any?
+    prompt.warn('Warnings:')
+    load_data.warnings.each do |warning|
+      prompt.warn("  - #{warning}")
+    end
+    prompt.say("\n")
+  end
+else
+  prompt.error("\nFailed to load scenarios: #{result.failure}")
+  exit(1)
+end
+
+# Cleanup
+if prompt.yes?("Do you want to remove the scenario dump file? (#{file.name})")
+  File.unlink(file.path)
+  prompt.ok('File removed.')
+end

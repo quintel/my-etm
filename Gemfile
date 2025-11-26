@@ -97,6 +97,10 @@ group :development, :test do
   gem "factory_bot_rails"
   gem 'shoulda-matchers'
   gem "rails-controller-testing"
+
+  # Import scenarios script
+  gem 'tty-prompt'
+  gem 'tty-spinner'
 end
 
 # Use console on exceptions pages [https://github.com/rails/web-console]
