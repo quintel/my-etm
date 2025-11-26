@@ -7,11 +7,7 @@ module Filterable
   private
 
   def store_filters(resource)
-    unless session.key?(session_key_for(resource))
-      session[session_key_for(resource)] = {}
-    end
-
-    session[session_key_for(resource)].merge!(filter_params_for(resource))
+    session[session_key_for(resource)] = filter_params_for(resource)
   end
 
   def filter_params_for(resource)

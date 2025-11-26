@@ -201,6 +201,13 @@ en:
     owners: Owners
     collaborators: Collaborators
     viewers: Viewers
+    select_all: Select all
+    export: Export selected
+    filters:
+      more: More filters
+      version: Filter by version
+      area_code: Filter by area
+      end_year: Filter by end year
   scenario:
     create_description: Click here to create one.
     discard_changes: Discard changes
