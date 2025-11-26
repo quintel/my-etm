@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'zstd-ruby'
-require_relative 'result'
 
 # Loads a saved scenario dump file and restores both ETEngine scenarios and MyETM metadata.
 #
@@ -45,7 +44,7 @@ class SavedScenarioPacker::Load
     data = JSON.parse(json_data, symbolize_names: true)
     scenarios_data = data[:scenarios] || []
 
-    Success(SavedScenarioPacker::ParsedManifestResult.new(
+    Success(SavedScenarioPacker::Results::ParsedManifestResult.new(
       manifest: data,
       scenarios_data: scenarios_data
     ))
@@ -73,7 +72,7 @@ class SavedScenarioPacker::Load
     if mappings.empty?
       Failure('No scenarios could be loaded to ETEngine')
     else
-      Success(SavedScenarioPacker::LoadedScenariosResult.new(
+      Success(SavedScenarioPacker::Results::LoadedScenariosResult.new(
         mappings: mappings,
         warnings: warnings
       ))
@@ -157,7 +156,7 @@ class SavedScenarioPacker::Load
       # Log all warnings
       warnings.each { |warning| Rails.logger.warn("Load warning: #{warning}") }
 
-      Success(SavedScenarioPacker::LoadResult.new(
+      Success(SavedScenarioPacker::Results::LoadResult.new(
         saved_scenarios: saved_scenarios,
         scenario_mappings: load_result.mappings,
         warnings: warnings

@@ -106,7 +106,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
       expect(dump_result).to be_success
       dump_data = dump_result.value!
 
-      expect(dump_data).to be_a(SavedScenarioPacker::DumpResult)
+      expect(dump_data).to be_a(SavedScenarioPacker::Results::DumpResult)
       expect(dump_data.scenario_count).to eq(2)
       expect(File.exist?(dump_data.file_path)).to be true
 
@@ -117,7 +117,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
       expect(load_result).to be_success
       load_data = load_result.value!
 
-      expect(load_data).to be_a(SavedScenarioPacker::LoadResult)
+      expect(load_data).to be_a(SavedScenarioPacker::Results::LoadResult)
       expect(load_data.saved_scenarios.size).to eq(2)
 
       # Phase 3: Verify data integrity
