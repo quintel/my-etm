@@ -15,7 +15,11 @@
           <%= heroicon 'magnifying-glass', options: {class: 'w-5 h-5 ml-2 my-auto'} %>
         </div>
         <div>
-          <%= render(SavedScenarios::Filters::FilterComponent.new(form: form, area_codes: area_codes))%>
+          <%= render(SavedScenarios::Filters::FilterComponent.new(
+            versions: versions,
+            area_codes: area_codes,
+            end_years: end_years))
+          %>
         </div>
       </div>
     <% end %>

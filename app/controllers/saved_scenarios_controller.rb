@@ -20,6 +20,8 @@ class SavedScenariosController < ApplicationController
   def index
     @pagy_saved_scenarios, @saved_scenarios = pagy(ordered_user_saved_scenarios)
     @area_codes = area_codes_for_filter
+    @end_years = @saved_scenarios.pluck(:end_year).tally
+    @versions = @saved_scenarios.map(&:version).uniq
 
     respond_to do |format|
       format.html
@@ -168,31 +170,6 @@ class SavedScenariosController < ApplicationController
     redirect_back(fallback_location: discarded_path)
   end
 
-  # POST /saved_scenarios/batch_dump
-  #
-  # Creates a dump of multiple saved scenarios as a ZIP file
-  def batch_dump
-    authorize! :destroy, SavedScenario
-
-    result = SavedScenarioPacker::Dump.new(
-      saved_scenario_ids,
-      streaming_engine_client(Version.default),
-      current_user
-    ).call
-
-    if result.success?
-      send_file(
-        result.value!,
-        filename: File.basename(result.value!),
-        type: 'application/zip',
-        disposition: 'attachment'
-      )
-    else
-      flash[:alert] = result.failure
-      redirect_to saved_scenarios_path
-    end
-  end
-
   private
 
   def user_saved_scenarios
@@ -239,9 +216,5 @@ class SavedScenariosController < ApplicationController
     end
 
     area_codes = area_codes.sort_by { |_k, v| v }.reverse
-  end
-
-  def saved_scenario_ids
-    params.require(:saved_scenario_ids).map(&:to_i)
   end
 end
