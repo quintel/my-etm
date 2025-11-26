@@ -39,7 +39,7 @@ def help!(prompt)
     #{pastel.bold('bin/import-scenarios db/dumps')}
 
     #{pastel.yellow('# Loads the specified scenario dump file:')}
-    #{pastel.bold('bin/import-scenarios ~/Downloads/2_scenarios_development_20250126.etm')}
+    #{pastel.bold('bin/import-scenarios ~/Downloads/2_scenarios_development_26012025.etm')}
 
     #{pastel.yellow('# Set specific user as owner:')}
     #{pastel.bold('bin/import-scenarios --user your.email@quintel.com')}
