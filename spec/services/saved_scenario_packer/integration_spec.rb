@@ -95,7 +95,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
       count = saved_scenario_ids.size
       env_segment = Rails.env.production? ? 'pro' : Rails.env
 
-      expect(basename).to match(/\A#{count}_scenarios_#{env_segment}_\d{8}_\d{6}\.etm\z/)
+      expect(basename).to match(/\A#{count}_scenarios_#{env_segment}_\d{8}\.etm\z/)
     end
 
     it 'successfully dumps and loads scenarios maintaining data integrity' do
