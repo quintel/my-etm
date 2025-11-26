@@ -118,7 +118,7 @@ describe SavedScenarioPacker::Load, type: :service do
       result = service.call
       load_result = result.value!
 
-      expect(load_result).to be_a(SavedScenarioPacker::LoadResult)
+      expect(load_result).to be_a(SavedScenarioPacker::Results::LoadResult)
       expect(load_result.saved_scenarios).to be_an(Array)
       expect(load_result.saved_scenarios.size).to eq(2)
       expect(load_result.scenario_mappings).to be_an(Array)

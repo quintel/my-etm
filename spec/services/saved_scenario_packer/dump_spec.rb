@@ -80,7 +80,7 @@ describe SavedScenarioPacker::Dump, type: :service do
       result = service.call
       dump_result = result.value!
 
-      expect(dump_result).to be_a(SavedScenarioPacker::DumpResult)
+      expect(dump_result).to be_a(SavedScenarioPacker::Results::DumpResult)
       expect(dump_result.file_path).to be_a(String)
       expect(dump_result.file_path).to end_with('.etm')
       expect(dump_result.scenario_count).to eq(2)
