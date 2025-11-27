@@ -91,7 +91,7 @@ describe SavedScenarioPacker::Dump, type: :service do
     it 'creates an ETM file with the expected naming pattern' do
       result = service.call
       filename = File.basename(result.value!.file_path)
-      expect(filename).to match(/2_scenarios_test_\d{8}\.etm/)
+      expect(filename).to match(/\d{12}_test_2\.etm/)
     end
 
     it 'fetches dumps from ETEngine using streaming endpoint' do

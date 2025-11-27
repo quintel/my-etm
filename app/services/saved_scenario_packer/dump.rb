@@ -180,9 +180,9 @@ class SavedScenarioPacker::Dump
   end
 
   def generate_filename(count)
-    date = Time.current.strftime('%d%m%Y')
+    date = Time.current.strftime('%Y%m%d%H%M')
     env = Rails.env.production? ? 'pro' : Rails.env
-    "#{count}_scenarios_#{env}_#{date}.etm"
+    "#{date}_#{env}_#{count}.etm"
   end
 
   def cleanup_and_fail(error, result)
