@@ -3,11 +3,14 @@
     <%= hidden_field_tag "saved_scenario_ids", "", data: { batch_dump_target: "hidden" } %>
 
     <label class="inline-flex items-center ml-2 mt-3 mb-8">
-      <%= check_box_tag nil, "", false, data: { batch_dump_target: "selectAll", action: "batch-dump#selectAll", filtered_ids: filtered_ids }, class: "mr-4" %>
+      <%= check_box_tag nil, "", false, data: { batch_dump_target: "selectAll", action: "batch-dump#selectAll" },
+        class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-4" %>
       <%=t('saved_scenarios.select_all')%>
     </label>
 
     <%= turbo_frame_tag "saved_scenarios" do %>
+      <%= hidden_field_tag "filtered_ids", filtered_ids, data: { batch_dump_target: "filteredIds" } %>
+
       <%= render(PagyComponent.new(pagy_objects: pagy_admin_saved_scenarios)) do %>
         <div id="saved_scenarios_list">
           <% saved_scenarios.each do |saved_scenario| %>
@@ -21,6 +24,6 @@
       <% end %>
     <% end %>
 
-    <%= submit_tag t('saved_scenarios.export'), class: 'button button-primary mr-5' %>
+    <%= submit_tag t('saved_scenarios.export'), data: { batch_dump_target: "export", action: "batch-dump#validateVersion", turbo: false }, class: 'button button-primary mr-5' %>
   <% end %> 
 </div>

@@ -7,10 +7,14 @@ module Admin
     # GET /admin/saved_scenarios
     def index
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(admin_saved_scenarios)
-      @area_codes = area_codes_for_filter
-      @end_years = @saved_scenarios.pluck(:end_year).tally
-      @versions = @saved_scenarios.map(&:version).uniq
       @filtered_ids = admin_saved_scenarios.pluck(:id).join(",")
+      @filters = {
+        user: true,
+        featured: true,
+        area_codes: area_codes_for_filter,
+        end_years: admin_saved_scenarios.pluck(:end_year).tally,
+        versions: admin_saved_scenarios.map(&:version).uniq
+      }
 
       respond_to do |format|
         format.html
@@ -28,7 +32,6 @@ module Admin
 
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(filtered)
       @filtered_ids = filtered.pluck(:id).join(",")
-      puts ">>>>>>>>>>>> #{@filtered_ids}"
 
       respond_to do |format|
         format.html { render(
@@ -36,7 +39,7 @@ module Admin
           locals: {
             saved_scenarios: @saved_scenarios,
             pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios,
-            fileterd_ids: @filtered_ids
+            filtered_ids: @filtered_ids
           }
         ) }
         format.turbo_stream { render(:index) }
@@ -56,9 +59,10 @@ module Admin
       ).call
 
       if result.success?
+        dump = result.value!
         send_file(
-          result.value!,
-          filename: File.basename(result.value!),
+          dump.file_path,
+          filename: File.basename(dump.file_path),
           type: 'application/zip',
           disposition: 'attachment'
         )
@@ -71,9 +75,10 @@ module Admin
     private
 
     def admin_saved_scenarios
-      SavedScenario.available
-      .includes(:featured_scenario, :users)
-      .order(updated_at: :desc)
+      @admin_saved_scenarios ||= SavedScenario
+        .available
+        .includes(:featured_scenario, :users)
+        .order(updated_at: :desc)
     end
 
     # Make sure to group all dup area_codes for nl together

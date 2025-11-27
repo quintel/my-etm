@@ -3,9 +3,7 @@
 
 = render(partial: "block_right_with_filters", locals: {   |
   has_saved_scenarios: @saved_scenarios.present?,         |
-  versions: @versions,                                    |
-  area_codes: @area_codes,                                |
-  end_years: @end_years })                                |
+  filters: @filters })                                    |
 
 - if @saved_scenarios.present?
   = render(partial: "saved_scenarios", locals: {pagy_saved_scenarios: @pagy_saved_scenarios, saved_scenarios: @saved_scenarios})

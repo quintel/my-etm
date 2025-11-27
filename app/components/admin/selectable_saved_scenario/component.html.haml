@@ -1,6 +1,6 @@
 .transition.mb-2{ class: ('hidden' if @hidden), data: { id:@saved_scenario.id }}
   .flex.bg-midnight-200.rounded-md.p-2
-    = check_box_tag nil, @saved_scenario.id, false, class: "mr-2 mt-5", data: { action: "batch-dump#toggle", id: @saved_scenario.id }
+    = check_box_tag nil, @saved_scenario.id, false, class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-2 mt-5", data: { action: "batch-dump#toggle", id: @saved_scenario.id }
 
     = link_to @path, class: "flex-grow-1 mr-auto p-2 pr-4 rounded-md transition hover:bg-midnight-600 #{css_classes}" do
       .flex
