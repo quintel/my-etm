@@ -7,6 +7,10 @@ module Admin
     # GET /admin/saved_scenarios
     def index
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(admin_saved_scenarios)
+      @area_codes = area_codes_for_filter
+      @end_years = @saved_scenarios.pluck(:end_year).tally
+      @versions = @saved_scenarios.map(&:version).uniq
+      @filtered_ids = admin_saved_scenarios.pluck(:id).join(",")
 
       respond_to do |format|
         format.html
@@ -16,23 +20,51 @@ module Admin
 
     # Renders a partial of saved_scenarios based on turbo search and filters
     #
-    # GET /saved_scenarios/list
+    # GET admin/saved_scenarios/list
     def list
       filtered = filter!(SavedScenario)
         .available
         .includes(:featured_scenario, :users)
 
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(filtered)
+      @filtered_ids = filtered.pluck(:id).join(",")
+      puts ">>>>>>>>>>>> #{@filtered_ids}"
 
       respond_to do |format|
         format.html { render(
           partial: "saved_scenarios",
           locals: {
             saved_scenarios: @saved_scenarios,
-            pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios
+            pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios,
+            fileterd_ids: @filtered_ids
           }
         ) }
         format.turbo_stream { render(:index) }
+      end
+    end
+
+    # POST admin/saved_scenarios/batch_dump
+    #
+    # Creates a dump of multiple saved scenarios as a ZIP file
+    def batch_dump
+      authorize! :destroy, SavedScenario
+
+      result = SavedScenarioPacker::Dump.new(
+        saved_scenario_ids,
+        streaming_engine_client(Version.default),
+        current_user
+      ).call
+
+      if result.success?
+        send_file(
+          result.value!,
+          filename: File.basename(result.value!),
+          type: 'application/zip',
+          disposition: 'attachment'
+        )
+      else
+        flash[:alert] = result.failure
+        redirect_to admin_saved_scenarios_path
       end
     end
 
@@ -42,6 +74,24 @@ module Admin
       SavedScenario.available
       .includes(:featured_scenario, :users)
       .order(updated_at: :desc)
+    end
+
+    # Make sure to group all dup area_codes for nl together
+    def area_codes_for_filter
+      area_codes = admin_saved_scenarios.pluck(:area_code).tally
+
+      dups = area_codes.select { |k, _v| SavedScenario::AREA_DUPS.include?(k) }
+
+      if dups.size > 1
+        area_codes = area_codes.except(*dups.keys)
+        area_codes[dups.keys.first] = dups.sum { |_k, v| v }
+      end
+
+      area_codes = area_codes.sort_by { |_k, v| v }.reverse
+    end
+
+    def saved_scenario_ids
+      params.require(:saved_scenario_ids).split(",").map(&:to_i)
     end
   end
 end

@@ -1,7 +1,11 @@
 - content_for :title, "#{t('saved_scenarios.title')} - #{t('meta.title')}"
 - content_for :menu_title, t('saved_scenarios.title')
 
-= render(partial: "block_right_with_filters", locals: { has_saved_scenarios: @saved_scenarios.present?, area_codes: @area_codes})
+= render(partial: "block_right_with_filters", locals: {   |
+  has_saved_scenarios: @saved_scenarios.present?,         |
+  versions: @versions,                                    |
+  area_codes: @area_codes,                                |
+  end_years: @end_years })                                |
 
 - if @saved_scenarios.present?
   = render(partial: "saved_scenarios", locals: {pagy_saved_scenarios: @pagy_saved_scenarios, saved_scenarios: @saved_scenarios})

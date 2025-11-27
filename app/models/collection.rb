@@ -107,13 +107,27 @@ class Collection < ApplicationRecord
   end
 
   def as_json(options = {})
-    options[:except] ||= %i[area_code end_year user_id]
+    options[:except] ||= %i[area_code end_year user_id version_id]
 
-    super(options).merge(
+    extra_attrs = {
+      "version" => version.tag,
       "discarded" => discarded_at.present?,
       "owner" => user.as_json(only: %i[id name]),
-      "scenario_ids" => latest_scenario_ids
-    )
+      "saved_scenario_ids" => saved_scenarios.pluck(:id),
+      "scenario_ids" => scenarios.pluck(:scenario_id),
+      "collections_app_url" => CollectionUrlBuilder.collections_app_url(self)
+    }
+
+    if interpolated?
+      extra_attrs = extra_attrs.merge(
+        "interpolation_params" => {
+          "area_code" => area_code,
+          "end_years" => CreateInterpolatedCollection::DEFAULT_YEARS + [end_year] # Future-proofing for possible custom years
+        }
+      )
+    end
+
+    super(options).merge(extra_attrs)
   end
 
   # Public: Updates the saved scenarios associated with this collection if any,

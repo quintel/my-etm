@@ -20,6 +20,8 @@ class SavedScenariosController < ApplicationController
   def index
     @pagy_saved_scenarios, @saved_scenarios = pagy(ordered_user_saved_scenarios)
     @area_codes = area_codes_for_filter
+    @end_years = @saved_scenarios.pluck(:end_year).tally
+    @versions = @saved_scenarios.map(&:version).uniq
 
     respond_to do |format|
       format.html

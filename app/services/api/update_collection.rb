@@ -12,6 +12,7 @@ module Api
         optional(:version).filled(:string)
         optional(:area_code).filled(:string)
         optional(:end_year).filled(:integer)
+        optional(:discarded).filled(:bool)
         optional(:scenario_ids).filled(min_size?: 1, max_size?: 100).each(:integer, gt?: 0)
         optional(:saved_scenario_ids).filled(min_size?: 1, max_size?: 100).each(:integer, gt?: 0)
       end
@@ -19,10 +20,12 @@ module Api
 
     def call(collection:, params:)
       params = yield validate(params)
+      discarded = params.delete(:discarded)
       scenario_ids = params.delete(:scenario_ids)
       saved_scenario_ids = params.delete(:saved_scenario_ids)
 
       collection.attributes = params
+      collection.discarded_at = discarded ? Time.current : nil unless discarded.nil?
 
       Collection.transaction do
         update_scenarios(collection, scenario_ids.uniq) if scenario_ids&.any?

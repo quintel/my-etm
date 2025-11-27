@@ -12,6 +12,7 @@ module Api
         optional(:area_code).filled(:string)
         optional(:end_year).filled(:integer)
         required(:version).filled(:string)
+        optional(:interpolation).filled(:bool)
         optional(:scenario_ids).filled(min_size?: 1, max_size?: 100).each(:integer, gt?: 0)
         optional(:saved_scenario_ids).filled(min_size?: 1, max_size?: 100).each(:integer, gt?: 0)
       end
@@ -34,8 +35,15 @@ module Api
         collection.scenarios.build(scenario_id:)
       end
 
-      saved_scenario_ids&.uniq&.each do |saved_scenario_id|
-        collection.collection_saved_scenarios.build(saved_scenario_id:)
+      if saved_scenario_ids&.any?
+        collection.saved_scenario_ids = saved_scenario_ids
+
+        # If a transition path is created via this route we make sure to fill area_code and end_year
+        if collection.interpolated?
+          saved_scenario = SavedScenario.find_by(id: saved_scenario_ids.uniq.last)
+          collection.area_code = saved_scenario.area_code if collection.area_code.blank?
+          collection.end_year = saved_scenario.end_year if collection.end_year.blank?
+        end
       end
 
       if collection.save

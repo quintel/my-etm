@@ -6,9 +6,7 @@ module CollectionsHelper
   #
   # Returns a string.
   def collection_url(collection)
-    "#{collection.version.collections_url}/#{collection.redirect_slug}?" \
-      "locale=#{I18n.locale}&" \
-      "title=#{ERB::Util.url_encode(collection.title)}"
+    CollectionUrlBuilder.collections_app_url(collection)
   end
 
   def can_use_as_myc_scenario?(saved_scenario)
