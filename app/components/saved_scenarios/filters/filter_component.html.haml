@@ -1,44 +1,58 @@
-%details
-  %summary.cursor-pointer.text-sm.text-gray-400
-    #{t('saved_scenarios.filters.more')}
-  .ml-1.border-l
-    .ml-2
-      .mt-2.pr-5
-        - if versions.count > 1
-          %label.mb-2.text-sm.text-gray-400{ for: 'versions' }
-            #{t('saved_scenarios.filters.version')}
-          = select_tag(                                                                       |
-            'versions[]',                                                                     |
-            options_for_select(versions.map { |v| [v.titleize, v.id] }),                      |
-            multiple: true, size: versions.count,                                             |
-            id: 'versions',                                                                   |
-            data: { action: 'change->search-form#search' },                                   |
-            class: 'w-full rounded-md border-gray-200 text-sm p-2' )                          |
+.pr-5
+  - if filters[:user].present?
+    .flex.text-midnight-800
+      = tag.input type: 'text',                                                           |
+        name: 'user',                                                                     |
+        value: '',                                                                        |
+        placeholder: t('saved_scenarios.filters.user'),                                   |
+        autocomplete: 'off',                                                              |
+        data: { action: 'input->search-form#search' },                                    |
+        class: 'p-2 text-sm'                                                              |
+      = heroicon "magnifying-glass", options: { class: "w-5 h-5 ml-2 my-auto" }
 
-      .mt-2.pr-5
-        - if area_codes.count > 1
-          %label.mb-2.text-sm.text-gray-400{ for: 'area_codes' }
-            #{t('saved_scenarios.filters.area_code')}
-          = select_tag(                                                                       |
-              'area_codes[]',                                                                 |
-              options_for_select(                                                             |
-                area_codes.map { |code, n| ["#{t("areas.#{code}")} (#{n})", code] }           |
-              ),                                                                              |
-              multiple: true, size: area_codes.count,                                         |
-              id: 'area_codes',                                                               |
-              data: { action: 'change->search-form#search' },                                 |
-              class: 'w-full rounded-md border-gray-200 text-sm p-2' )                        |
+  - if filters[:versions].present? && filters[:versions].count > 1
+    .mt-2
+      %label.mb-2.text-sm.text-gray-400{ for: 'version' }
+        #{t('saved_scenarios.filters.version')}
+      = select_tag(                                                                       |
+        'version',                                                                        |
+        options_for_select([[t('saved_scenarios.filters.none'), '']]                      |
+          + filters[:versions].map { |v| [v.titleize, v.id] }),                           |
+        id: 'version',                                                                    |
+        data: { action: 'change->search-form#search' },                                   |
+        class: 'w-full rounded-md border-gray-200 text-sm p-2' )                          |
 
-      .mt-2.pr-5
-        - if end_years.count > 1
-          %label.mb-2.text-sm.text-gray-400{ for: 'end_years' }
-            #{t('saved_scenarios.filters.end_year')}
-          = select_tag(                                                                       |
-              'end_years[]',                                                                  |
-              options_for_select(                                                             |
-                end_years.map { |year, n| ["#{year} (#{n})", year] }                          |
-              ),                                                                              |
-              multiple: true, size: end_years.count,                                          |
-              id: 'end_years',                                                                |
-              data: { action: 'change->search-form#search' },                                 |
-              class: 'w-full rounded-md border-gray-200 text-sm p-2' )                        |
+  - if filters[:end_years].present? && filters[:end_years].count > 1
+    .mt-2
+      %label.mb-2.text-sm.text-gray-400{ for: 'end_years' }
+        #{t('saved_scenarios.filters.end_year')}
+      = select_tag(                                                                       |
+          'end_years[]',                                                                  |
+          options_for_select(                                                             |
+            filters[:end_years].map { |year, n| ["#{year} (#{n})", year] }                |
+          ),                                                                              |
+          multiple: true, size: filters[:end_years].count,                                |
+          id: 'end_years',                                                                |
+          data: { action: 'change->search-form#search' },                                 |
+          class: 'w-full rounded-md border-gray-200 text-sm p-2' )                        |
+
+  - if filters[:area_codes].present? && filters[:area_codes].count > 1
+    .mt-2
+      %label.mb-2.text-sm.text-gray-400{ for: 'area_codes' }
+        #{t('saved_scenarios.filters.area_code')}
+      = select_tag(                                                                       |
+          'area_codes[]',                                                                 |
+          options_for_select(                                                             |
+            filters[:area_codes].map { |code, n| ["#{t("areas.#{code}")} (#{n})", code] } |
+          ),                                                                              |
+          multiple: true, size: filters[:area_codes].count,                               |
+          id: 'area_codes',                                                               |
+          data: { action: 'change->search-form#search' },                                 |
+          class: 'w-full rounded-md border-gray-200 text-sm p-2' )                        |
+
+  - if filters[:featured].present?
+    .mt-2
+      = check_box_tag 'featured', "1", false,                                             |
+        data: { action: 'change->search-form#search' },                                   |
+        class: 'rounded-md border-midnight-400 !checked:bg-midnight-920 mr-4'             |
+      = label_tag 'featured', t('saved_scenarios.filters.featured'), class: 'text-sm'
