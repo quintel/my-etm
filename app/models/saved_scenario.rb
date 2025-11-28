@@ -14,7 +14,7 @@ class SavedScenario < ApplicationRecord
   AUTO_DELETES_AFTER = 60.days
 
   # Used by Fiterable Concern
-  FILTER_PARAMS = [ :title, :user, :version, :featured, area_codes: [], end_years: [] ].freeze
+  FILTER_PARAMS = [ :search, :version, :featured, area_codes: [], end_years: [] ].freeze
 
   # Area codes to be treated the same for Filterable
   AREA_DUPS = %w[nl nl2019 nl2023].freeze
@@ -35,6 +35,11 @@ class SavedScenario < ApplicationRecord
 
   scope :by_title, ->(title) { where("title LIKE ?", "%#{title}%") }
   scope :by_user, ->(user) { joins(:users).where("name LIKE ?", "%#{user}%") }
+  scope :by_search, ->(search) {
+    left_joins(:users)
+      .where("saved_scenarios.title LIKE ? OR users.name LIKE ?", "%#{search}%", "%#{search}%")
+      .group("saved_scenarios.id")
+  }
   scope :featured, -> { joins(:featured_scenario) }
 
   # Returns all saved scenarios whose areas are avaliable.
@@ -49,15 +54,14 @@ class SavedScenario < ApplicationRecord
     scenarios = order(created_at: :desc)
 
     raw_codes = filters["area_codes"] || []
-    area_codes = raw_codes.flat_map { |area| AREA_DUPS.include?(area) ? AREA_DUPS : [area] }.uniq
- 
+    area_codes = raw_codes.flat_map { |area| AREA_DUPS.include?(area) ? AREA_DUPS : [ area ] }.uniq
+
     scenarios = scenarios.featured if filters["featured"].present?
     scenarios = scenarios.where(version: filters["version"]) if filters["version"].present?
     scenarios = scenarios.where(end_year: filters["end_years"]) if filters["end_years"].present?
     scenarios = scenarios.where(area_code: area_codes) if area_codes.present?
-    scenarios = scenarios.by_user(filters["user"]) if filters["user"].present?
-    scenarios = scenarios.by_title(filters["title"]) if filters["title"].present?
-    
+    scenarios = scenarios.by_search(filters["search"]) if filters["search"].present?
+
     scenarios
   end
 

@@ -1,0 +1,14 @@
+<div class="transition mb-2 <%= css_classes %>" data-id="<%= @saved_scenario.id %>">
+  <div class="flex items-center">
+    <%= check_box_tag nil, @saved_scenario.id, false,
+        class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-2 self-center",
+        data: { action: "batch-dump#toggle", id: @saved_scenario.id } %>
+
+    <div class="flex-grow">
+      <%= render(SavedScenarios::Row::Component.new(
+        path: @path,
+        saved_scenario: @saved_scenario
+      )) %>
+    </div>
+  </div>
+</div>

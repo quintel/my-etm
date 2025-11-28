@@ -7,7 +7,7 @@
         <span class="text-midnight-400"> #<%= @saved_scenario.version.tag %></span>
       </div>
       <div class="text-sm text-midnight-400">
-        <span><%= t("areas.#{@saved_scenario.area_code}") %></span>
+        <span><%= t("areas.#{@saved_scenario.area_code}", default: @saved_scenario.area_code.upcase) %></span>
         <span><%= @saved_scenario.end_year %></span>
       </div>
     </div>

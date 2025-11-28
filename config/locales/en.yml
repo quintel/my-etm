@@ -204,11 +204,13 @@ en:
     select_all: Select all
     export: Export selected
     filters:
+      title: Filters
+      search: Search by title or user
+      clear: Clear filters
       version: Filter by version
       area_code: Filter by area
       end_year: Filter by end year
-      featured: Featured
-      user: Filter by user
+      featured: Filter by featured
       none: None
   scenario:
     create_description: Click here to create one.
