@@ -7,7 +7,6 @@ module Admin
     # GET /admin/saved_scenarios
     def index
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(admin_saved_scenarios)
-      @filtered_ids = admin_saved_scenarios.pluck(:id)
       @filters = {
         featured: true,
         area_codes: area_codes_for_filter,
@@ -30,18 +29,17 @@ module Admin
         .includes(:featured_scenario, :users)
 
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(filtered)
-      @filtered_ids = filtered.pluck(:id)
 
       respond_to do |format|
         format.html { render(
           partial: "saved_scenarios",
           locals: {
             saved_scenarios: @saved_scenarios,
-            pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios,
-            filtered_ids: @filtered_ids
+            pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios
           }
         ) }
         format.turbo_stream { render(:index) }
+        format.json { render json: { scenario_ids: filtered.pluck(:id, :version_id).map { |id, v_id| { id: id, version_id: v_id } } } }
       end
     end
 

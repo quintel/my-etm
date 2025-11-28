@@ -2,7 +2,7 @@
   <div class="flex items-center">
     <%= check_box_tag nil, @saved_scenario, false,
         class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-2 self-center",
-        data: { action: "batch-dump#toggle", id: @saved_scenario.id } %>
+        data: { action: "batch-dump#toggle", id: @saved_scenario.id, version_id: @saved_scenario.version_id } %>
 
     <div class="flex-grow">
       <%= render(SavedScenarios::Row::Component.new(
