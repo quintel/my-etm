@@ -7,7 +7,7 @@ module Admin
     # GET /admin/saved_scenarios
     def index
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(admin_saved_scenarios)
-      @filtered_ids = admin_saved_scenarios.pluck(:id).join(",")
+      @filtered_ids = admin_saved_scenarios.pluck(:id)
       @filters = {
         featured: true,
         area_codes: area_codes_for_filter,
@@ -30,7 +30,7 @@ module Admin
         .includes(:featured_scenario, :users)
 
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(filtered)
-      @filtered_ids = filtered.pluck(:id).join(",")
+      @filtered_ids = filtered.pluck(:id)
 
       respond_to do |format|
         format.html { render(
@@ -93,7 +93,7 @@ module Admin
     end
 
     def saved_scenario_ids
-      params.require(:saved_scenario_ids).split(",").map(&:to_i)
+      params.permit(saved_scenario_ids: [])[:saved_scenario_ids]&.map(&:to_i) || []
     end
   end
 end

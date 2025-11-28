@@ -2,117 +2,103 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="batch-dump"
 export default class extends Controller {
-  static targets = [
-    "hidden",
-    "selectAll",
-    "filteredIds",
-    "export",
-    "warning",
-  ];
-
-  static values = { selected: Array };
+  static targets = ["selectAll", "export", "warning"];
+  static values = { selected: { type: Array, default: [] } };
 
   connect() {
-    // Only initialize if we have the targets
-    if (!this.hasHiddenTarget || !this.hasFilteredIdsTarget) {
-      return;
-    }
-
-    this.selectedValue = this.selectedValue || [];
-
-    this.validateSelections();
     this.restoreSelections();
+    this.validateSelections();
 
-    // Listen for Turbo frame loads to restore selected checkboxes
-    this.boundTurboFrame = this.turboFrameReloaded.bind(this);
-    document.addEventListener("turbo:frame-load", this.boundTurboFrame);
+    // Listen for Turbo frame loads
+    this.element.addEventListener("turbo:frame-load", () => this.handleFrameReload());
+
+    // Sync hidden inputs before form submission
+    this.element.addEventListener("submit", () => this.syncHiddenInputs());
   }
 
-  disconnect() {
-    if (this.boundTurboFrame) {
-      document.removeEventListener("turbo:frame-load", this.boundTurboFrame);
-    }
-  }
-
-  // When checking "Select All", set the hidden field to all filtered ids
-  // When unchecking "Select All" if still marked then clear the hidden field
+  // When checking "Select All", select all filtered ids
   selectAll(event) {
-    this.hiddenTarget.value = (event.target.checked) ? this.filteredIdsTarget.value : "";
-    this.validateSelections();
+    this.selectedValue = event.target.checked ? this.filteredIds : [];
     this.restoreSelections();
+    this.validateSelections();
   }
 
-  // When checking/unchecking a checkbox update the hidden field
+  // Toggle individual checkbox
   toggle(event) {
-    const id = event.target.dataset.id;
-    const selected = this.hiddenTarget.value ? this.hiddenTarget.value.split(",") : [];
+    const id = String(event.target.dataset.id);
 
     if (event.target.checked) {
-      if (!selected.includes(id))
-        selected.push(id);
+      if (!this.selectedValue.includes(id)) {
+        this.selectedValue = [...this.selectedValue, id];
+      }
     } else {
-      const index = selected.indexOf(id);
-      if (index !== -1)
-        selected.splice(index, 1);
+      this.selectedValue = this.selectedValue.filter(selectedId => selectedId !== id);
     }
 
-    this.hiddenTarget.value = selected.join(",");
     this.validateSelections();
   }
 
   validateSelections() {
-    // Enable/disable the export button based on whether there are selected ids
-    this.exportTarget.disabled = !this.hiddenTarget.value;
+    // Enable/disable export button
+    this.exportTarget.disabled = this.selectedValue.length === 0;
 
-    // Update the "Select All" checkbox so it stays checked only when all filtered ids are selected
-    this.selectAllTarget.checked = this.checkSameIds(this.hiddenTarget.value, this.filteredIdsTarget.value);
+    // Update "Select All" checkbox state
+    if (this.hasSelectAllTarget) {
+      const allSelected = this.filteredIds.length > 0 &&
+                         this.filteredIds.every(id => this.selectedValue.includes(id));
+      this.selectAllTarget.checked = allSelected;
+    }
   }
 
   // Prevent export if there are multiple versions and "None" is selected
   validateVersion(event) {
-    // If only one version the filter is not pressent
     const versionSelect = document.getElementById('version');
-    if (!versionSelect) return true
+    if (!versionSelect) return true;
 
-    // more than 1 version (plus the 'None' option) AND None selected → block
     if (versionSelect.options.length > 2 && versionSelect.value === "") {
-      event.preventDefault()
-      alert("Please select a version before exporting.")
+      event.preventDefault();
+      alert("Please select a version before exporting.");
     }
   }
 
-  // Restore the selected checkboxes based on the hidden field
+  // Restore checkbox states from selected IDs
   restoreSelections() {
-    const selected = this.hiddenTarget.value.split(",");
-
     this.element.querySelectorAll("#saved_scenarios_list input[type='checkbox']").forEach(cb => {
-      const id = cb.dataset.id;
-      cb.checked = selected.includes(id);
-    })
+      cb.checked = this.selectedValue.includes(String(cb.dataset.id));
+    });
   }
 
-  // Necessary actions when the turbo frame is reloaded due to pages/filters
-  turboFrameReloaded() {
-    this.hiddenTarget.value = this.getIntersectingIds(this.hiddenTarget.value, this.filteredIdsTarget.value);
-    this.validateSelections();
+  // Handle Turbo frame reload (pagination/filtering)
+  handleFrameReload() {
+    // Keep only selected IDs that are still in the filtered set
+    this.selectedValue = this.selectedValue.filter(id => this.filteredIds.includes(id));
     this.restoreSelections();
+    this.validateSelections();
   }
 
-  // Helper method to get intersecting ids from two comma-separated list
-  getIntersectingIds(a, b) {
-    const arrA = a.split(",");
-    const setB = new Set(b.split(","));
+  // Create hidden inputs just before form submission
+  syncHiddenInputs() {
+    // Remove any existing hidden inputs
+    this.element.querySelectorAll('input[name="saved_scenario_ids[]"]').forEach(input => input.remove());
 
-    return arrA.filter(id => setB.has(id)).join(",");
+    // Create hidden input for each selected ID
+    const fragment = document.createDocumentFragment();
+    this.selectedValue.forEach(id => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'saved_scenario_ids[]';
+      input.value = id;
+      fragment.appendChild(input);
+    });
+    this.element.appendChild(fragment);
   }
 
-  // Helper method to check if same ids in two comma-separated lists
-  checkSameIds(a, b) {
-    const setA = new Set(a.split(","));
-    const setB = new Set(b.split(","));
+  // Get filtered IDs from turbo frame data attribute
+  get filteredIds() {
+    const turboFrame = document.getElementById('saved_scenarios');
+    if (!turboFrame) return [];
 
-    if (setA.size !== setB.size) return false;
-
-    return [...setA].every(v => setB.has(v));
+    const data = turboFrame.dataset.batchDumpFilteredIds;
+    return data ? JSON.parse(data).map(String) : [];
   }
 }
