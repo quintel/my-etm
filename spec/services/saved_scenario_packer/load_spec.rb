@@ -370,15 +370,67 @@ describe SavedScenarioPacker::Load, type: :service do
         create_etm_file(file_path, combined_data)
       end
 
-      it 'falls back to admin user' do
+      it 'creates a pending owner' do
+        result = service.call
+        scenario = result.value!.saved_scenarios.first
+        owner_ssu = scenario.owners.first
+
+        expect(owner_ssu.user).to be_nil
+        expect(owner_ssu.user_email).to eq('nonexistent@example.com')
+        expect(owner_ssu.pending?).to be true
+      end
+
+      it 'includes a warning' do
+        expect(Rails.logger).to receive(:warn).with(/Owner not found.*nonexistent@example.com.*creating pending/)
+        service.call
+      end
+    end
+
+    context 'when owner is nil in dump' do
+      let(:manifest_data) do
+        {
+          version: '1.0',
+          source_environment: 'test',
+          created_at: Time.current.iso8601,
+          etm_version: 'latest',
+          saved_scenarios: [
+            {
+              saved_scenario_id: 100,
+              scenario_id: 123,
+              scenario_id_history: [],
+              title: 'Test Scenario',
+              description: 'Test',
+              area_code: 'nl',
+              end_year: 2050,
+              private: false,
+              version_tag: 'latest',
+              owner: nil,
+              collaborators: [],
+              viewers: [],
+              created_at: 1.day.ago.iso8601,
+              updated_at: 1.hour.ago.iso8601
+            }
+          ]
+        }
+      end
+
+      before do
+        combined_data = manifest_data.dup
+        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
+          scenario.merge(engine_dump: dump_data_one)
+        end
+        create_etm_file(file_path, combined_data)
+      end
+
+      it 'assigns admin user as owner' do
         result = service.call
         scenario = result.value!.saved_scenarios.first
 
         expect(scenario.owners.first.user).to eq(admin_user)
       end
 
-      it 'includes a warning' do
-        expect(Rails.logger).to receive(:warn).with(/Owner not found.*nonexistent@example.com/)
+      it 'does not include a warning for nil owner' do
+        expect(Rails.logger).not_to receive(:warn).with(/Owner not found/)
         service.call
       end
     end
@@ -421,15 +473,72 @@ describe SavedScenarioPacker::Load, type: :service do
         create_etm_file(file_path, combined_data)
       end
 
-      it 'skips the nonexistent collaborator' do
+      it 'creates a pending collaborator' do
         result = service.call
         scenario = result.value!.saved_scenarios.first
+        collab_ssu = scenario.collaborators.first
 
-        expect(scenario.collaborators).to be_empty
+        expect(collab_ssu.user).to be_nil
+        expect(collab_ssu.user_email).to eq('nonexistent@example.com')
+        expect(collab_ssu.pending?).to be true
       end
 
       it 'includes a warning' do
-        expect(Rails.logger).to receive(:warn).with(/Collaborator not found.*nonexistent@example.com/)
+        expect(Rails.logger).to receive(:warn).with(/Collaborator not found.*nonexistent@example.com.*creating pending/)
+        service.call
+      end
+    end
+
+    context 'when viewer user does not exist' do
+      let(:manifest_data) do
+        {
+          version: '1.0',
+          source_environment: 'test',
+          created_at: Time.current.iso8601,
+          etm_version: 'latest',
+          saved_scenarios: [
+            {
+              saved_scenario_id: 100,
+              scenario_id: 123,
+              scenario_id_history: [],
+              title: 'Test Scenario',
+              description: 'Test',
+              area_code: 'nl',
+              end_year: 2050,
+              private: false,
+              version_tag: 'latest',
+              owner: { email: owner_user.email, name: owner_user.name, role: 'owner' },
+              collaborators: [],
+              viewers: [
+                { email: 'nonexistent@example.com', name: 'Ghost', role: 'viewer' }
+              ],
+              created_at: 1.day.ago.iso8601,
+              updated_at: 1.hour.ago.iso8601
+            }
+          ]
+        }
+      end
+
+      before do
+        combined_data = manifest_data.dup
+        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
+          scenario.merge(engine_dump: dump_data_one)
+        end
+        create_etm_file(file_path, combined_data)
+      end
+
+      it 'creates a pending viewer' do
+        result = service.call
+        scenario = result.value!.saved_scenarios.first
+        viewer_ssu = scenario.viewers.first
+
+        expect(viewer_ssu.user).to be_nil
+        expect(viewer_ssu.user_email).to eq('nonexistent@example.com')
+        expect(viewer_ssu.pending?).to be true
+      end
+
+      it 'includes a warning' do
+        expect(Rails.logger).to receive(:warn).with(/Viewer not found.*nonexistent@example.com.*creating pending/)
         service.call
       end
     end

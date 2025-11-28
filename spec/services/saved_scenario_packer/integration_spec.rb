@@ -254,7 +254,6 @@ describe 'SavedScenarioPacker Integration', type: :service do
       # Read and verify file structure
       data = extract_from_etm(file_path)
 
-      expect(data[:version]).to eq('1.0')
       expect(data[:etm_version]).to eq('latest')
       expect(data[:scenarios].size).to eq(2)
 

@@ -9,10 +9,15 @@ export default class extends Controller {
     "export",
     "warning",
   ];
-  
+
   static values = { selected: Array };
 
   connect() {
+    // Only initialize if we have the targets
+    if (!this.hasHiddenTarget || !this.hasFilteredIdsTarget) {
+      return;
+    }
+
     this.selectedValue = this.selectedValue || [];
 
     this.validateSelections();
@@ -24,7 +29,9 @@ export default class extends Controller {
   }
 
   disconnect() {
-    document.removeEventListener("turbo:frame-load", this.boundTurboFrame);
+    if (this.boundTurboFrame) {
+      document.removeEventListener("turbo:frame-load", this.boundTurboFrame);
+    }
   }
 
   // When checking "Select All", set the hidden field to all filtered ids
@@ -50,7 +57,7 @@ export default class extends Controller {
     }
 
     this.hiddenTarget.value = selected.join(",");
-    this.validateSelections();  
+    this.validateSelections();
   }
 
   validateSelections() {

@@ -51,126 +51,158 @@ class SavedScenarioPacker::Dump
     Success(scenarios)
   end
 
-  # Calls the engine streaming endpoint to get all dumps in a single request
-  # Uses Faraday's on_data callback to process NDJSON chunks incrementally
   def dump_scenarios_from_engine(scenarios)
     scenario_ids = scenarios.map(&:scenario_id)
-    dumps = []
-    buffer = ''.dup
-    parse_errors = []
+    dumps, parse_errors = stream_scenarios_from_engine(scenario_ids)
 
-    response = http_client.post('/api/v3/scenarios/stream') do |req|
-      req.headers['Content-Type'] = 'application/json'
-      req.body = { ids: scenario_ids }.to_json
-
-      # Stream chunks as they arrive and parse NDJSON incrementally
-      req.options.on_data = Proc.new do |chunk, _overall_bytes|
-        buffer << chunk
-
-        # Process complete lines (ending with newline)
-        while (nl_idx = buffer.index("\n"))
-          line = buffer.slice!(0..nl_idx).strip
-          next if line.empty?
-
-          begin
-            dumps << JSON.parse(line)
-          rescue JSON::ParserError => e
-            parse_errors << "Failed to parse NDJSON line: #{e.message}"
-          end
-        end
-      end
-    end
-
-    # Check response status
-    unless response.success?
-      return Failure("Failed to dump scenarios from ETEngine: #{response.status}")
-    end
-
-    # Handle any trailing data in buffer
-    if buffer.strip.present?
-      begin
-        dumps << JSON.parse(buffer.strip)
-      rescue JSON::ParserError => e
-        parse_errors << "Failed to parse trailing NDJSON data: #{e.message}"
-      end
-    end
-
-    # Log parse errors if any
-    parse_errors.each { |error| Rails.logger.warn("SavedScenarioPacker::Dump - #{error}") }
-
-    # Match dumps to SavedScenarios and collect warnings
+    log_parse_errors(parse_errors)
     match_dumps_to_scenarios(dumps, scenarios)
   rescue StandardError => e
     Failure("Error dumping scenarios: #{e.message}")
   end
 
-  # Match engine dumps to SavedScenarios by scenario_id
+  def stream_scenarios_from_engine(scenario_ids)
+    dumps = []
+    buffer = ''.dup
+    parse_errors = []
+
+    response = post_streaming_request(scenario_ids, dumps, buffer, parse_errors)
+
+    return [dumps, parse_errors] unless response.success?
+
+    process_trailing_buffer(buffer, dumps, parse_errors)
+    [dumps, parse_errors]
+  end
+
+  def post_streaming_request(scenario_ids, dumps, buffer, parse_errors)
+    http_client.post('/api/v3/scenarios/stream') do |req|
+      req.headers['Content-Type'] = 'application/json'
+      req.body = { ids: scenario_ids }.to_json
+      req.options.on_data = build_ndjson_processor(dumps, buffer, parse_errors)
+    end
+  end
+
+  def build_ndjson_processor(dumps, buffer, parse_errors)
+    Proc.new do |chunk, _overall_bytes|
+      buffer << chunk
+      process_complete_lines(buffer, dumps, parse_errors)
+    end
+  end
+
+  def process_complete_lines(buffer, dumps, parse_errors)
+    while (nl_idx = buffer.index("\n"))
+      line = buffer.slice!(0..nl_idx).strip
+      next if line.empty?
+
+      parse_ndjson_line(line, dumps, parse_errors)
+    end
+  end
+
+  def parse_ndjson_line(line, dumps, parse_errors)
+    dumps << JSON.parse(line)
+  rescue JSON::ParserError => e
+    parse_errors << "Failed to parse NDJSON line: #{e.message}"
+  end
+
+  def process_trailing_buffer(buffer, dumps, parse_errors)
+    return unless buffer.strip.present?
+
+    dumps << JSON.parse(buffer.strip)
+  rescue JSON::ParserError => e
+    parse_errors << "Failed to parse trailing NDJSON data: #{e.message}"
+  end
+
+  def log_parse_errors(parse_errors)
+    parse_errors.each { |error| Rails.logger.warn("SavedScenarioPacker::Dump - #{error}") }
+  end
+
   def match_dumps_to_scenarios(dumps, scenarios)
+    engine_dumps, warnings = build_engine_dumps_map(dumps, scenarios)
+
+    return Failure('No scenarios could be dumped from ETEngine') if engine_dumps.empty?
+
+    Success(SavedScenarioPacker::Results::EngineDumpsResult.new(
+      scenarios: scenarios.select { |ss| engine_dumps.key?(ss.id) },
+      dumps: engine_dumps,
+      warnings: warnings
+    ))
+  end
+
+  def build_engine_dumps_map(dumps, scenarios)
     engine_dumps = {}
     warnings = []
 
     scenarios.each do |saved_scenario|
-      dump = dumps.find { |d| d.dig('metadata', 'id') == saved_scenario.scenario_id }
-
-      if dump
-        engine_dumps[saved_scenario.id] = dump
-      else
-        warnings << "Failed to dump scenario #{saved_scenario.scenario_id} for " \
-                    "saved scenario #{saved_scenario.id}: not found in engine response"
-      end
+      match_scenario_dump(saved_scenario, dumps, engine_dumps, warnings)
     end
 
-    if engine_dumps.empty?
-      Failure('No scenarios could be dumped from ETEngine')
+    [engine_dumps, warnings]
+  end
+
+  def match_scenario_dump(saved_scenario, dumps, engine_dumps, warnings)
+    dump = dumps.find { |d| d.dig('metadata', 'id') == saved_scenario.scenario_id }
+
+    if dump
+      engine_dumps[saved_scenario.id] = dump
     else
-      Success(SavedScenarioPacker::Results::EngineDumpsResult.new(
-        scenarios: scenarios.select { |ss| engine_dumps.key?(ss.id) },
-        dumps: engine_dumps,
-        warnings: warnings
-      ))
+      warnings << "Failed to dump scenario #{saved_scenario.scenario_id} for " \
+                  "saved scenario #{saved_scenario.id}: not found in engine response"
     end
   end
 
   def create_etm_file(engine_result)
     temp_dir_path = create_temp_dir
-    file_path = File.join(temp_dir_path, generate_filename(engine_result.scenarios.count))
+    file_path = build_file_path(temp_dir_path, engine_result.scenarios.count)
 
-    # Create combined JSON structure with manifest data and engine dumps
+    write_compressed_file(file_path, engine_result)
+
+    Success(build_dump_result(file_path, engine_result, temp_dir_path))
+  rescue StandardError => e
+    Failure("Failed to create ETM file: #{e.message}")
+  end
+
+  def build_file_path(temp_dir_path, scenario_count)
+    File.join(temp_dir_path, generate_filename(scenario_count))
+  end
+
+  def write_compressed_file(file_path, engine_result)
     json_data = generate_combined_json(engine_result)
-
-    # Compress with Zstandard
     compressed_data = Zstd.compress(json_data)
-
-    # Write to file
     File.binwrite(file_path, compressed_data)
+  end
 
-    Success(SavedScenarioPacker::Results::DumpResult.new(
+  def build_dump_result(file_path, engine_result, temp_dir_path)
+    SavedScenarioPacker::Results::DumpResult.new(
       file_path: file_path,
       scenario_count: engine_result.scenarios.count,
       warnings: engine_result.warnings,
       temp_dir: temp_dir_path
-    ))
-  rescue StandardError => e
-    Failure("Failed to create ETM file: #{e.message}")
+    )
   end
 
   def generate_combined_json(engine_result)
     manifest = SavedScenarioPacker::Manifest.new(engine_result.scenarios)
     manifest_data = JSON.parse(manifest.to_json)
 
-    # Combine manifest scenarios with their engine dumps
-    combined_scenarios = manifest_data['saved_scenarios'].map do |scenario_data|
+    combined_scenarios = merge_scenarios_with_dumps(manifest_data, engine_result)
+    final_structure = build_final_json_structure(manifest_data, combined_scenarios)
+
+    JSON.pretty_generate(final_structure)
+  end
+
+  def merge_scenarios_with_dumps(manifest_data, engine_result)
+    manifest_data['saved_scenarios'].map do |scenario_data|
       saved_scenario_id = scenario_data['saved_scenario_id']
       engine_dump = engine_result.dumps[saved_scenario_id]
 
       scenario_data.merge('engine_dump' => engine_dump)
     end
+  end
 
-    # Create final structure
+  def build_final_json_structure(manifest_data, combined_scenarios)
     result = manifest_data.merge('scenarios' => combined_scenarios)
-    result.delete('saved_scenarios') # Remove old key
-
-    JSON.pretty_generate(result)
+    result.delete('saved_scenarios')
+    result
   end
 
   def create_temp_dir
@@ -188,17 +220,22 @@ class SavedScenarioPacker::Dump
   def cleanup_and_fail(error, result)
     Rails.logger.error("SavedScenarioPacker::Dump failed: #{error}")
 
-    # Log warnings if any were collected
-    if result.success? && result.value!.respond_to?(:warnings)
-      result.value!.warnings.each { |warning| Rails.logger.warn(warning) }
-    end
-
-    # Clean up temp directory if it was created
-    if result.success? && result.value!.respond_to?(:temp_dir)
-      cleanup_temp_dir(result.value!.temp_dir)
-    end
+    log_result_warnings(result)
+    cleanup_result_temp_dir(result)
 
     Failure("Failed to create dump: #{error}")
+  end
+
+  def log_result_warnings(result)
+    return unless result.success? && result.value!.respond_to?(:warnings)
+
+    result.value!.warnings.each { |warning| Rails.logger.warn(warning) }
+  end
+
+  def cleanup_result_temp_dir(result)
+    return unless result.success? && result.value!.respond_to?(:temp_dir)
+
+    cleanup_temp_dir(result.value!.temp_dir)
   end
 
   def cleanup_temp_dir(temp_dir)

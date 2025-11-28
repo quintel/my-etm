@@ -4,9 +4,13 @@ require 'zstd-ruby'
 
 # Loads a saved scenario dump file and restores both ETEngine scenarios and MyETM metadata.
 #
-# file_path    - Path to the .etm file containing the dump
-# http_client - Faraday HTTP client configured for ETEngine API
-# user        - Current user (admin who is performing the load)
+# file_path             - Path to the .etm file containing the dump
+# http_client           - Faraday HTTP client configured for ETEngine API
+# user                  - Current user (admin who is performing the load)
+# on_duplicate_handler  - Optional callable for handling duplicate scenarios
+#                         Called with (saved_scenario, saved_scenario_data)
+#                         Should return :update or :create
+#                         If nil, defaults to :update (existing behavior)
 #
 # Returns Success(LoadResult) or Failure(error_message)
 class SavedScenarioPacker::Load
@@ -16,6 +20,7 @@ class SavedScenarioPacker::Load
   param :file_path
   param :http_client
   param :user
+  option :on_duplicate_handler, default: -> { nil }
 
   def call
     result = validate_etm_file(file_path)
@@ -36,17 +41,13 @@ class SavedScenarioPacker::Load
   end
 
   def extract_and_parse_manifest(path)
-    # Read and decompress the ETM file
     compressed_data = File.binread(path)
     json_data = Zstd.decompress(compressed_data)
-
-    # Parse JSON
     data = JSON.parse(json_data, symbolize_names: true)
-    scenarios_data = data[:scenarios] || []
 
     Success(SavedScenarioPacker::Results::ParsedManifestResult.new(
       manifest: data,
-      scenarios_data: scenarios_data
+      scenarios_data: data[:scenarios] || []
     ))
   rescue Zstd::Error => e
     Failure("Failed to decompress ETM file: #{e.message}")
@@ -83,58 +84,64 @@ class SavedScenarioPacker::Load
 
   def load_single_scenario(scenario_data)
     original_scenario_id = scenario_data[:scenario_id]
-    engine_dump = scenario_data[:engine_dump]
 
-    unless engine_dump
-      return Failure("Engine dump not found for scenario #{original_scenario_id}, skipping")
-    end
-
-    # Load the scenario to ETEngine
-    # Convert symbolized keys back to string keys for API
-    dump_data = JSON.parse(engine_dump.to_json)
-
-    response = http_client.post('/api/v3/scenarios/load_dump', dump_data)
-
-    unless response.success?
-      return Failure("Failed to load scenario #{original_scenario_id}: #{response.status}")
-    end
-
-    # Handle newline-delimited JSON stream response
-    parse_load_response(response.body, original_scenario_id)
-      .fmap do |new_scenario_id|
-        {
-          original_scenario_id: original_scenario_id,
-          new_scenario_id: new_scenario_id,
-          saved_scenario_data: scenario_data
-        }
-      end
+    validate_engine_dump(scenario_data, original_scenario_id)
+      .bind { |dump| post_scenario_to_engine(dump, original_scenario_id) }
+      .bind { |response| parse_load_response(response.body, original_scenario_id) }
+      .fmap { |new_id| build_scenario_mapping(original_scenario_id, new_id, scenario_data) }
   rescue StandardError => e
     Failure("Error loading scenario #{original_scenario_id}: #{e.message}")
   end
 
+  def validate_engine_dump(scenario_data, original_scenario_id)
+    engine_dump = scenario_data[:engine_dump]
+    return Failure("Engine dump not found for scenario #{original_scenario_id}, skipping") unless engine_dump
+
+    Success(JSON.parse(engine_dump.to_json))
+  end
+
+  def post_scenario_to_engine(dump_data, original_scenario_id)
+    response = http_client.post('/api/v3/scenarios/load_dump', dump_data)
+    return Failure("Failed to load scenario #{original_scenario_id}: #{response.status}") unless response.success?
+
+    Success(response)
+  end
+
+  def build_scenario_mapping(original_scenario_id, new_scenario_id, scenario_data)
+    {
+      original_scenario_id: original_scenario_id,
+      new_scenario_id: new_scenario_id,
+      saved_scenario_data: scenario_data
+    }
+  end
+
   def parse_load_response(body, original_scenario_id)
-    # Handle newline-delimited JSON stream response
-    parsed = if body.is_a?(Hash)
-      body
-    elsif body.is_a?(String)
-      lines = body.strip.split("\n")
-      parsed_objects = lines.map { |line| JSON.parse(line) }
-      # Last object should contain the scenario ID
-      parsed_objects.size == 1 ? parsed_objects.first : parsed_objects.reduce(&:merge)
-    else
-      return Failure("Unexpected response type for scenario #{original_scenario_id}")
-    end
-
-    # Extract scenario ID (handle both string and symbol keys)
-    new_scenario_id = parsed['id'] || parsed[:id]
-
-    unless new_scenario_id
-      return Failure("No scenario ID in response for #{original_scenario_id}")
-    end
-
-    Success(new_scenario_id)
+    parse_response_body(body, original_scenario_id)
+      .bind { |parsed| extract_scenario_id(parsed, original_scenario_id) }
   rescue JSON::ParserError => e
     Failure("Failed to parse JSON response for scenario #{original_scenario_id}: #{e.message}")
+  end
+
+  def parse_response_body(body, original_scenario_id)
+    return Success(body) if body.is_a?(Hash)
+    return parse_ndjson_body(body) if body.is_a?(String)
+
+    Failure("Unexpected response type for scenario #{original_scenario_id}")
+  end
+
+  def parse_ndjson_body(body)
+    lines = body.strip.split("\n")
+    parsed_objects = lines.map { |line| JSON.parse(line) }
+    result = parsed_objects.size == 1 ? parsed_objects.first : parsed_objects.reduce(&:merge)
+
+    Success(result)
+  end
+
+  def extract_scenario_id(parsed, original_scenario_id)
+    new_scenario_id = parsed['id'] || parsed[:id]
+    return Failure("No scenario ID in response for #{original_scenario_id}") unless new_scenario_id
+
+    Success(new_scenario_id)
   end
 
   def create_or_update_saved_scenarios(load_result)
@@ -169,12 +176,10 @@ class SavedScenarioPacker::Load
   def create_or_update_scenario(mapping)
     saved_scenario_data = mapping[:saved_scenario_data]
     new_scenario_id = mapping[:new_scenario_id]
-
-    # Find or create the saved scenario
     saved_scenario = SavedScenario.find_by(id: saved_scenario_data[:saved_scenario_id])
 
     if saved_scenario
-      update_existing_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
+      handle_duplicate_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
     else
       create_new_scenario(new_scenario_id, saved_scenario_data)
     end
@@ -182,20 +187,47 @@ class SavedScenarioPacker::Load
     Failure("Error creating/updating scenario: #{e.message}")
   end
 
+  def handle_duplicate_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
+    strategy = determine_duplicate_strategy(saved_scenario, saved_scenario_data)
+
+    case strategy
+    when :update
+      update_existing_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
+    when :create
+      create_new_scenario(new_scenario_id, saved_scenario_data)
+    else
+      Failure("Unknown duplicate handling strategy: #{strategy}")
+    end
+  end
+
+  def determine_duplicate_strategy(saved_scenario, saved_scenario_data)
+    return :update unless on_duplicate_handler
+
+    on_duplicate_handler.call(saved_scenario, saved_scenario_data)
+  end
+
   def update_existing_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
-    # Preserve existing scenario history and append the new ID
-    history = saved_scenario.scenario_id_history || []
-    history += saved_scenario_data[:scenario_id_history] || []
-    history << new_scenario_id unless history.include?(new_scenario_id)
+    history = build_scenario_history(
+      saved_scenario.scenario_id_history,
+      saved_scenario_data[:scenario_id_history],
+      new_scenario_id
+    )
 
     saved_scenario.update!(
       scenario_id: new_scenario_id,
-      scenario_id_history: history.uniq
+      scenario_id_history: history
     )
 
     Success(saved_scenario)
   rescue StandardError => e
     Failure("Failed to update existing scenario #{saved_scenario.id}: #{e.message}")
+  end
+
+  def build_scenario_history(existing_history, dump_history, new_scenario_id)
+    history = existing_history || []
+    history += dump_history || []
+    history << new_scenario_id unless history.include?(new_scenario_id)
+    history.uniq
   end
 
   def create_new_scenario(new_scenario_id, saved_scenario_data)
@@ -225,60 +257,72 @@ class SavedScenarioPacker::Load
   def assign_users_to_scenario(saved_scenario, saved_scenario_data)
     warnings = []
 
-    # Try to find the owner
-    owner_data = saved_scenario_data[:owner]
-    owner = owner_data ? User.find_by(email: owner_data[:email]) : nil
+    assign_owner(saved_scenario, saved_scenario_data[:owner], warnings)
+    assign_role_users(saved_scenario, saved_scenario_data[:collaborators], :scenario_collaborator, warnings)
+    assign_role_users(saved_scenario, saved_scenario_data[:viewers], :scenario_viewer, warnings)
 
-    if owner.nil? && owner_data
-      warnings << "Owner not found: #{owner_data[:email]}, using admin as fallback"
-    end
-
-    owner ||= user # Fallback to the admin who is loading
-
-    SavedScenarioUser.create!(
-      saved_scenario: saved_scenario,
-      user: owner,
-      role_id: User::Roles.index_of(:scenario_owner)
-    )
-
-    # Add collaborators
-    (saved_scenario_data[:collaborators] || []).each do |collab_data|
-      collab_user = User.find_by(email: collab_data[:email])
-
-      if collab_user.nil?
-        warnings << "Collaborator not found: #{collab_data[:email]}, skipping"
-        next
-      end
-
-      SavedScenarioUser.create!(
-        saved_scenario: saved_scenario,
-        user: collab_user,
-        role_id: User::Roles.index_of(:scenario_collaborator)
-      )
-    end
-
-    # Add viewers
-    (saved_scenario_data[:viewers] || []).each do |viewer_data|
-      viewer_user = User.find_by(email: viewer_data[:email])
-
-      if viewer_user.nil?
-        warnings << "Viewer not found: #{viewer_data[:email]}, skipping"
-        next
-      end
-
-      SavedScenarioUser.create!(
-        saved_scenario: saved_scenario,
-        user: viewer_user,
-        role_id: User::Roles.index_of(:scenario_viewer)
-      )
-    end
-
-    # Log warnings
-    warnings.each { |warning| Rails.logger.warn("User assignment warning: #{warning}") }
-
+    log_user_assignment_warnings(warnings)
     Success()
   rescue StandardError => e
     Failure("Failed to assign users: #{e.message}")
+  end
+
+  def assign_owner(saved_scenario, owner_data, warnings)
+    if owner_data && owner_data[:email]
+      owner_user = User.find_by(email: owner_data[:email])
+
+      if owner_user
+        SavedScenarioUser.create!(
+          saved_scenario: saved_scenario,
+          user: owner_user,
+          role_id: User::Roles.index_of(:scenario_owner)
+        )
+      else
+        warnings << "Owner not found: #{owner_data[:email]}, creating pending user"
+        SavedScenarioUser.create!(
+          saved_scenario: saved_scenario,
+          user_email: owner_data[:email],
+          role_id: User::Roles.index_of(:scenario_owner)
+        )
+      end
+    else
+      SavedScenarioUser.create!(
+        saved_scenario: saved_scenario,
+        user: user,
+        role_id: User::Roles.index_of(:scenario_owner)
+      )
+    end
+  end
+
+  def assign_role_users(saved_scenario, users_data, role, warnings)
+    return unless users_data
+
+    users_data.each do |user_data|
+      assign_role_user(saved_scenario, user_data, role, warnings)
+    end
+  end
+
+  def assign_role_user(saved_scenario, user_data, role, warnings)
+    found_user = User.find_by(email: user_data[:email])
+
+    if found_user
+      SavedScenarioUser.create!(
+        saved_scenario: saved_scenario,
+        user: found_user,
+        role_id: User::Roles.index_of(role)
+      )
+    else
+      warnings << "#{role.to_s.split('_').last.capitalize} not found: #{user_data[:email]}, creating pending user"
+      SavedScenarioUser.create!(
+        saved_scenario: saved_scenario,
+        user_email: user_data[:email],
+        role_id: User::Roles.index_of(role)
+      )
+    end
+  end
+
+  def log_user_assignment_warnings(warnings)
+    warnings.each { |warning| Rails.logger.warn("User assignment warning: #{warning}") }
   end
 
   def handle_failure(error)

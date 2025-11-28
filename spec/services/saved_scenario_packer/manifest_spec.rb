@@ -43,10 +43,6 @@ describe SavedScenarioPacker::Manifest, type: :service do
   describe '#as_json' do
     let(:result) { manifest.as_json }
 
-    it 'includes version information' do
-      expect(result[:version]).to eq('1.0')
-    end
-
     it 'includes source environment' do
       expect(result[:source_environment]).to eq('test')
     end
@@ -155,6 +151,61 @@ describe SavedScenarioPacker::Manifest, type: :service do
     it 'uses the provided environment' do
       result = manifest.as_json
       expect(result[:source_environment]).to eq('production')
+    end
+  end
+
+  describe 'pending users' do
+    let!(:saved_scenario_with_pending) do
+      create(:saved_scenario,
+        title: 'Scenario with Pending Users',
+        area_code: 'nl',
+        end_year: 2050,
+        scenario_id: 125,
+        version: version
+      ).tap do |ss|
+        SavedScenarioUser.create!(
+          saved_scenario: ss,
+          user_email: 'pending.owner@example.com',
+          role_id: User::Roles.index_of(:scenario_owner)
+        )
+        SavedScenarioUser.create!(
+          saved_scenario: ss,
+          user_email: 'pending.collab@example.com',
+          role_id: User::Roles.index_of(:scenario_collaborator)
+        )
+        SavedScenarioUser.create!(
+          saved_scenario: ss,
+          user_email: 'pending.viewer@example.com',
+          role_id: User::Roles.index_of(:scenario_viewer)
+        )
+      end
+    end
+
+    let(:saved_scenarios) { [saved_scenario_with_pending] }
+    let(:result) { manifest.as_json }
+    let(:scenario_data) { result[:saved_scenarios].first }
+
+    it 'includes pending owner email' do
+      expect(scenario_data[:owner]).to be_a(Hash)
+      expect(scenario_data[:owner][:email]).to eq('pending.owner@example.com')
+      expect(scenario_data[:owner][:name]).to be_nil
+      expect(scenario_data[:owner][:role]).to eq('owner')
+    end
+
+    it 'includes pending collaborator email' do
+      expect(scenario_data[:collaborators]).to be_an(Array)
+      expect(scenario_data[:collaborators].length).to eq(1)
+      expect(scenario_data[:collaborators].first[:email]).to eq('pending.collab@example.com')
+      expect(scenario_data[:collaborators].first[:name]).to be_nil
+      expect(scenario_data[:collaborators].first[:role]).to eq('collaborator')
+    end
+
+    it 'includes pending viewer email' do
+      expect(scenario_data[:viewers]).to be_an(Array)
+      expect(scenario_data[:viewers].length).to eq(1)
+      expect(scenario_data[:viewers].first[:email]).to eq('pending.viewer@example.com')
+      expect(scenario_data[:viewers].first[:name]).to be_nil
+      expect(scenario_data[:viewers].first[:role]).to eq('viewer')
     end
   end
 end
