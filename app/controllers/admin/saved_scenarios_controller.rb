@@ -12,7 +12,7 @@ module Admin
         featured: true,
         area_codes: area_codes_for_filter,
         end_years: admin_saved_scenarios.pluck(:end_year).tally,
-        versions: admin_saved_scenarios.map(&:version).uniq
+        versions: admin_saved_scenarios.joins(:version).pluck("version.tag", "version.id").uniq
       }
 
       respond_to do |format|
@@ -49,7 +49,6 @@ module Admin
     #
     # Creates a dump of multiple saved scenarios as a ZIP file
     def batch_dump
-
       result = SavedScenarioPacker::Dump.new(
         saved_scenario_ids,
         streaming_engine_client(Version.default),

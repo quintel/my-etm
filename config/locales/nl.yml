@@ -245,14 +245,12 @@ nl:
     select_all: Selecteer alles
     export: Geselecteerde exporteren
     filters:
-      title: Filters
       search: Zoeken op titel of gebruiker
       clear: Filters wissen
-      version: Filter op versien
-      area_code: Filter op gebied
-      end_year: Filter op eindjaar
-      featured: Filter op uitgelicht
-      none: Geen
+      area_code: Gebied
+      end_year: Eindjaar
+      featured: Uitgelicht
+      none: Kies een versie
   scenario:
     create_description: Klik hier om er één aan te maken.
     discard_changes: Verwijder wijzigingen
