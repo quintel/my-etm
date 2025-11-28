@@ -9,7 +9,6 @@ module Admin
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(admin_saved_scenarios)
       @filtered_ids = admin_saved_scenarios.pluck(:id).join(",")
       @filters = {
-        user: true,
         featured: true,
         area_codes: area_codes_for_filter,
         end_years: admin_saved_scenarios.pluck(:end_year).tally,
@@ -50,7 +49,6 @@ module Admin
     #
     # Creates a dump of multiple saved scenarios as a ZIP file
     def batch_dump
-      authorize! :destroy, SavedScenario
 
       result = SavedScenarioPacker::Dump.new(
         saved_scenario_ids,
@@ -63,8 +61,8 @@ module Admin
         send_file(
           dump.file_path,
           filename: File.basename(dump.file_path),
-          type: 'application/zip',
-          disposition: 'attachment'
+          type: "application/zip",
+          disposition: "attachment"
         )
       else
         flash[:alert] = result.failure
