@@ -103,10 +103,6 @@ describe SavedScenarioPacker::Dump, type: :service do
       let(:file_path) { service.call.value!.file_path }
       let(:data) { extract_from_etm(file_path) }
 
-      it 'includes version information' do
-        expect(data[:version]).to eq('1.0')
-      end
-
       it 'includes scenarios array' do
         expect(data[:scenarios]).to be_an(Array)
         expect(data[:scenarios].size).to eq(2)
@@ -155,7 +151,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
       it 'includes an error message about dump failure' do
         result = service.call
-        expect(result.failure).to include('Failed to dump scenarios from ETEngine')
+        expect(result.failure).to include('Failed to create dump: No scenarios could be dumped from ETEngine')
       end
     end
 

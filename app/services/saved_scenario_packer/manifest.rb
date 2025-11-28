@@ -13,7 +13,6 @@ class SavedScenarioPacker::Manifest
   # Returns a Hash suitable for JSON serialization
   def as_json
     {
-      version: '1.0',
       source_environment: source_environment,
       created_at: Time.current.iso8601,
       etm_version: version_tag,
@@ -54,11 +53,30 @@ class SavedScenarioPacker::Manifest
         end_year: saved_scenario.end_year,
         private: saved_scenario.private,
         version_tag: saved_scenario.version&.tag,
-        owner: user_data(owner_ssu&.user, 'owner'),
-        collaborators: collaborator_ssus.map { |ssu| user_data(ssu.user, 'collaborator') }.compact,
-        viewers: viewer_ssus.map { |ssu| user_data(ssu.user, 'viewer') }.compact,
+        owner: user_data_from_ssu(owner_ssu, 'owner'),
+        collaborators: collaborator_ssus.map { |ssu| user_data_from_ssu(ssu, 'collaborator') }.compact,
+        viewers: viewer_ssus.map { |ssu| user_data_from_ssu(ssu, 'viewer') }.compact,
         created_at: saved_scenario.created_at.iso8601,
         updated_at: saved_scenario.updated_at.iso8601
+      }
+    end
+  end
+
+  def user_data_from_ssu(saved_scenario_user, role = 'owner')
+    return nil unless saved_scenario_user
+
+    # Handle both coupled users and pending users
+    if saved_scenario_user.user
+      {
+        email: saved_scenario_user.user.email,
+        name: saved_scenario_user.user.name,
+        role: role
+      }
+    elsif saved_scenario_user.user_email
+      {
+        email: saved_scenario_user.user_email,
+        name: nil,
+        role: role
       }
     end
   end
