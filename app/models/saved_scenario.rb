@@ -33,14 +33,19 @@ class SavedScenario < ApplicationRecord
 
   serialize :scenario_id_history, coder: YAML, type: Array
 
-  scope :by_title, ->(title) { where("title LIKE ?", "%#{title}%") }
-  scope :by_user, ->(user) { joins(:users).where("name LIKE ?", "%#{user}%") }
+  scope :by_title,  ->(title) { where("title LIKE ?", "%#{title}%") }
+  scope :by_user,   ->(user) { joins(:users).where("name LIKE ?", "%#{user}%") }
   scope :by_search, ->(search) {
-    left_joins(:users)
-      .where("saved_scenarios.title LIKE ? OR users.name LIKE ?", "%#{search}%", "%#{search}%")
-      .group("saved_scenarios.id")
+    user_scenario_ids = SavedScenarioUser.select(:saved_scenario_id)
+      .joins(:user)
+      .where("users.name LIKE ?", "%#{search}%")
+
+    where("saved_scenarios.title LIKE ?", "%#{search}%")
+      .or(where(id: user_scenario_ids))
   }
-  scope :featured, -> { joins(:featured_scenario) }
+  scope :featured,  -> {
+    where(id: FeaturedScenario.select(:saved_scenario_id))
+  }
 
   # Returns all saved scenarios whose areas are avaliable.
   def self.available

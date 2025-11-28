@@ -1,33 +1,29 @@
-<div data-controller="batch-dump">
-  <%= form_with url: batch_dump_admin_saved_scenarios_path, method: :post, local: true do |form| %>
-    <%= hidden_field_tag "saved_scenario_ids", "", data: { batch_dump_target: "hidden" } %>
+<%= form_with url: batch_dump_admin_saved_scenarios_path, method: :post, local: true, data: { controller: "batch-dump" } do |form| %>
 
-    <%= turbo_frame_tag "saved_scenarios", data: { turbo_action: "replace" } do %>
-      <%= hidden_field_tag "filtered_ids", filtered_ids, data: { batch_dump_target: "filteredIds" } %>
+  <%= hidden_field_tag "saved_scenario_ids", [], multiple: true, data: { batch_dump_target: "hidden" } %>
 
-      <div id="saved_scenarios_list">
-        <% saved_scenarios.each do |saved_scenario| %>
-          <%= render(Admin::SelectableSavedScenario::Component.new(
-            form: form,
-            path: saved_scenario_path(saved_scenario),
-            saved_scenario: saved_scenario
-          )) %>
-        <% end %>
-      </div>
+  <%= turbo_frame_tag "saved_scenarios", data: { turbo_action: "replace" } do %>
+    <%= hidden_field_tag "filtered_ids", filtered_ids, multiple: true, data: { batch_dump_target: "filteredIds" } %>
 
-      <div class="flex items-center justify-between mt-6">
-        <div class="flex items-center gap-4">
-          <label class="inline-flex items-center">
-            <%= check_box_tag nil, "", false, data: { batch_dump_target: "selectAll", action: "batch-dump#selectAll" },
-              class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-2" %>
-            <%=t('saved_scenarios.select_all')%>
-          </label>
-          <%= submit_tag t('saved_scenarios.export'), data: { batch_dump_target: "export", action: "batch-dump#validateVersion", turbo: false }, class: 'button button-primary' %>
-        </div>
-        <div id="next_url">
-          <%= render(MorePagy::Component.new(pagy: pagy_admin_saved_scenarios)) %>
-        </div>
-      </div>
-    <% end %>
+    <div id="saved_scenarios_list"class="grid grid-rows-10 gap-y-2">
+      <% saved_scenarios.each do |saved_scenario| %>
+        <%= render(Admin::SelectableSavedScenario::Component.new(
+          form: form,
+          path: saved_scenario_path(saved_scenario),
+          saved_scenario: saved_scenario
+        )) %>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap gap-5 mt-auto mb-0">
+      <%= render(PagyComponent.new(pagy_objects: pagy_admin_saved_scenarios)) do %>
+        <label class="inline-flex items-center">
+          <%= check_box_tag nil, "", false, data: { batch_dump_target: "selectAll", action: "batch-dump#selectAll" },
+            class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-2" %>
+          <%=t('saved_scenarios.select_all')%>
+        </label>
+        <%= submit_tag t('saved_scenarios.export'), data: { batch_dump_target: "export", action: "batch-dump#validateVersion", turbo: false }, class: 'button button-primary' %>
+      <% end %>
+    </div>
   <% end %>
-</div>
+<% end %>
