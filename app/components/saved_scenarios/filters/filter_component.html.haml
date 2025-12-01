@@ -11,21 +11,21 @@
       placeholder: t('saved_scenarios.filters.search'),                                 |
       autocomplete: 'off',                                                              |
       data: { action: 'input->search-form#search' },                                    |
-      class: 'p-2 text-sm'                                                    |
+      class: 'p-2 text-sm'                                                              |
     = heroicon "magnifying-glass", options: { class: "w-6 h-6 ml-2 my-auto" }
 
   - if filters[:versions].present? && filters[:versions].count > 1
-    = select_tag(                                                                       |
+    = select_tag(                                                                         |
         'version',                                                                        |
         options_for_select([[t('saved_scenarios.filters.none'), '']]                      |
           + filters[:versions]),                                                          |
         id: 'version',                                                                    |
         data: { action: 'change->search-form#search' },                                   |
-        class: 'w-full rounded-md text-sm p-2 text-midnight-450' )                          |
+        class: 'w-full rounded-md text-sm p-2 text-midnight-450' )                        |
 
   - if filters[:featured].present?
     %div
-      = check_box_tag 'featured', "1", false,                                             |
+      = check_box_tag 'featured', "1", false,                                               |
           data: { action: 'change->search-form#search' },                                   |
           class: 'rounded-md border-midnight-450 !checked:bg-midnight-920 mr-4'             |
       = label_tag 'featured', t('saved_scenarios.filters.featured'), class: 'text-sm text-midnight-450'
@@ -40,7 +40,7 @@
             = check_box_tag "end_years[]", year, false,                                   |
               id: "end_year_#{year}",                                                     |
               data: { action: 'change->search-form#search' },                             |
-              class: 'rounded-md border-midnight-450 mr-2'                  |
+              class: 'rounded-md border-midnight-450 mr-2'                                |
             = label_tag "end_year_#{year}", "#{year} (#{count})", class: 'text-sm text-midnight-450'
 
   - if filters[:area_codes].present? && filters[:area_codes].count > 1
@@ -53,5 +53,5 @@
             = check_box_tag "area_codes[]", code, false,                                  |
               id: "area_code_#{code}",                                                    |
               data: { action: 'change->search-form#search' },                             |
-              class: 'rounded-md border-midnight-450 mr-2'                  |
+              class: 'rounded-md border-midnight-450 mr-2'                                |
             = label_tag "area_code_#{code}", "#{t("areas.#{code}", default: code.upcase)} (#{count})", class: 'text-sm text-midnight-450'

@@ -15,11 +15,11 @@
       <% end %>
     </div>
 
-    <div class="flex flex-wrap gap-5 mt-auto mb-0">
+    <div class="flex flex-wrap gap-5 mt-5 mb-0">
       <%= render(PagyComponent.new(pagy_objects: pagy_admin_saved_scenarios)) do %>
         <label class="inline-flex items-center">
           <%= check_box_tag nil, "", false, data: { batch_dump_target: "selectAll", action: "batch-dump#selectAll" },
-            class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-2" %>
+            class: "rounded-md border-midnight-400 !checked:bg-midnight-920 ml-2 mr-2" %>
           <%=t('saved_scenarios.select_all')%>
         </label>
         <%= submit_tag t('saved_scenarios.export'), data: { batch_dump_target: "export", action: "batch-dump#validateVersion", turbo: false }, class: 'button button-primary' %>

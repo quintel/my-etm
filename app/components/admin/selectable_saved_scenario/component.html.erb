@@ -1,7 +1,7 @@
 <div class="transition <%= css_classes %>" data-id="<%= @saved_scenario.id %>">
   <div class="flex items-center">
     <%= check_box_tag nil, @saved_scenario, false,
-        class: "rounded-md border-midnight-400 !checked:bg-midnight-920 mr-2 self-center",
+        class: "rounded-md border-midnight-400 !checked:bg-midnight-920 ml-2 mr-2 self-center",
         data: { action: "batch-dump#toggle", id: @saved_scenario.id } %>
 
     <div class="flex-grow">
