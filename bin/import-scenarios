@@ -10,7 +10,7 @@ FileInfo = Struct.new(:path) do
   end
 end
 
-EXPECTED_FILE_PATTERN = /\A\d{12}_\w+_\d+\.etm\z/
+EXPECTED_FILE_PATTERN = /\A\d{12}_\w+.*\.etm\z/
 
 prompt = TTY::Prompt.new
 source_dir = File.expand_path('~/Downloads')
@@ -134,7 +134,7 @@ exit if file == :cancel
 unless file.name.match?(EXPECTED_FILE_PATTERN)
   prompt.error(
     'The filename suggests this might not be a scenario dump file. ' \
-    'Expected filename format: YYYYMMDDHHmm_env_count.etm'
+    'Expected filename format: YYYYMMDDHHmm_env.etm (or with tempfile suffix)'
   )
 end
 

@@ -151,32 +151,30 @@ class SavedScenarioPacker::Dump
   end
 
   def create_etm_file(engine_result)
-    temp_dir_path = create_temp_dir
-    file_path = build_file_path(temp_dir_path, engine_result.scenarios.count)
+    filename = generate_filename
+    tempfile = Tempfile.new([filename.chomp('.etm'), '.etm'])
+    tempfile.binmode
 
-    write_compressed_file(file_path, engine_result)
+    write_compressed_file(tempfile, engine_result)
+    tempfile.close
 
-    Success(build_dump_result(file_path, engine_result, temp_dir_path))
+    Success(build_dump_result(tempfile.path, engine_result))
   rescue StandardError => e
+    tempfile&.close
+    tempfile&.unlink
     Failure("Failed to create ETM file: #{e.message}")
   end
 
-  def build_file_path(temp_dir_path, scenario_count)
-    File.join(temp_dir_path, generate_filename(scenario_count))
-  end
-
-  def write_compressed_file(file_path, engine_result)
+  def write_compressed_file(file, engine_result)
     json_data = generate_combined_json(engine_result)
     compressed_data = Zstd.compress(json_data)
-    File.binwrite(file_path, compressed_data)
+    file.write(compressed_data)
   end
 
-  def build_dump_result(file_path, engine_result, temp_dir_path)
+  def build_dump_result(file_path, engine_result)
     SavedScenarioPacker::Results::DumpResult.new(
       file_path: file_path,
-      scenario_count: engine_result.scenarios.count,
-      warnings: engine_result.warnings,
-      temp_dir: temp_dir_path
+      warnings: engine_result.warnings
     )
   end
 
@@ -205,23 +203,16 @@ class SavedScenarioPacker::Dump
     result
   end
 
-  def create_temp_dir
-    dir = Rails.root.join('tmp', 'saved_scenario_dumps')
-    FileUtils.mkdir_p(dir)
-    dir
-  end
-
-  def generate_filename(count)
+  def generate_filename
     date = Time.current.strftime('%Y%m%d%H%M')
     env = Rails.env.production? ? 'pro' : Rails.env
-    "#{date}_#{env}_#{count}.etm"
+    "#{date}_#{env}.etm"
   end
 
   def cleanup_and_fail(error, result)
     Rails.logger.error("SavedScenarioPacker::Dump failed: #{error}")
 
     log_result_warnings(result)
-    cleanup_result_temp_dir(result)
 
     Failure("Failed to create dump: #{error}")
   end
@@ -230,17 +221,5 @@ class SavedScenarioPacker::Dump
     return unless result.success? && result.value!.respond_to?(:warnings)
 
     result.value!.warnings.each { |warning| Rails.logger.warn(warning) }
-  end
-
-  def cleanup_result_temp_dir(result)
-    return unless result.success? && result.value!.respond_to?(:temp_dir)
-
-    cleanup_temp_dir(result.value!.temp_dir)
-  end
-
-  def cleanup_temp_dir(temp_dir)
-    FileUtils.rm_rf(temp_dir) if temp_dir && Dir.exist?(temp_dir)
-  rescue StandardError => e
-    Rails.logger.error("Failed to cleanup temp directory: #{e.message}")
   end
 end

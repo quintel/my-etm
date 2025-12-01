@@ -95,7 +95,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
       count = saved_scenario_ids.size
       env_segment = Rails.env.production? ? 'pro' : Rails.env
 
-      expect(basename).to match(/\d{12}_test_#{count}\.etm/)
+      expect(basename).to match(/\d{12}_test\d{8}-\d+-\w+\.etm/)
     end
 
     it 'successfully dumps and loads scenarios maintaining data integrity' do
@@ -107,7 +107,6 @@ describe 'SavedScenarioPacker Integration', type: :service do
       dump_data = dump_result.value!
 
       expect(dump_data).to be_a(SavedScenarioPacker::Results::DumpResult)
-      expect(dump_data.scenario_count).to eq(2)
       expect(File.exist?(dump_data.file_path)).to be true
 
       # Phase 2: Load into new scenarios
@@ -207,7 +206,6 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
       expect(dump_result).to be_success
       dump_data = dump_result.value!
-      expect(dump_data.scenario_count).to eq(1)
       expect(dump_data.warnings).not_to be_empty
 
       # Load should work with partial data

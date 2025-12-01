@@ -83,7 +83,6 @@ describe SavedScenarioPacker::Dump, type: :service do
       expect(dump_result).to be_a(SavedScenarioPacker::Results::DumpResult)
       expect(dump_result.file_path).to be_a(String)
       expect(dump_result.file_path).to end_with('.etm')
-      expect(dump_result.scenario_count).to eq(2)
       expect(dump_result.warnings).to be_empty
       expect(File.exist?(dump_result.file_path)).to be true
     end
@@ -91,7 +90,7 @@ describe SavedScenarioPacker::Dump, type: :service do
     it 'creates an ETM file with the expected naming pattern' do
       result = service.call
       filename = File.basename(result.value!.file_path)
-      expect(filename).to match(/\d{12}_test_2\.etm/)
+      expect(filename).to match(/\d{12}_test\d{8}-\d+-\w+\.etm/)
     end
 
     it 'fetches dumps from ETEngine using streaming endpoint' do
@@ -175,7 +174,6 @@ describe SavedScenarioPacker::Dump, type: :service do
 
         expect(dump_result.warnings).not_to be_empty
         expect(dump_result.warnings.first).to include('Failed to dump scenario 124')
-        expect(dump_result.scenario_count).to eq(1)
       end
 
       it 'only includes successfully dumped scenarios' do
@@ -210,7 +208,6 @@ describe SavedScenarioPacker::Dump, type: :service do
 
       result = service.call
       expect(result).to be_success
-      expect(result.value!.scenario_count).to eq(2)
     end
   end
 
