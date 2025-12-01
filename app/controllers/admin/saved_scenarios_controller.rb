@@ -11,7 +11,7 @@ module Admin
       @filters = {
         featured: true,
         area_codes: area_codes_for_filter,
-        end_years: admin_saved_scenarios.pluck(:end_year).tally,
+        end_years: admin_saved_scenarios.group(:end_year).count,
         versions: admin_saved_scenarios.joins(:version).pluck("version.tag", "version.id").uniq
       }
 
@@ -47,7 +47,7 @@ module Admin
 
     # POST admin/saved_scenarios/batch_dump
     #
-    # Creates a dump of multiple saved scenarios as a ZIP file
+    # Creates a dump of multiple saved scenarios as an ETM file (Zstandard-compressed JSON)
     def batch_dump
       result = SavedScenarioPacker::Dump.new(
         saved_scenario_ids,
@@ -60,7 +60,7 @@ module Admin
         send_file(
           dump.file_path,
           filename: File.basename(dump.file_path),
-          type: "application/zip",
+          type: "application/x-etm",
           disposition: "attachment"
         )
       else
@@ -80,7 +80,7 @@ module Admin
 
     # Make sure to group all dup area_codes for nl together
     def area_codes_for_filter
-      area_codes = admin_saved_scenarios.pluck(:area_code).tally
+      area_codes = admin_saved_scenarios.group(:area_code).count
 
       dups = area_codes.select { |k, _v| SavedScenario::AREA_DUPS.include?(k) }
 

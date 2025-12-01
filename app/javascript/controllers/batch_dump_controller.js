@@ -70,7 +70,7 @@ export default class extends Controller {
 
   // Prevent export if there are multiple versions and "None" is selected
   validateVersion(event) {
-    // If only one version the filter is not pressent
+    // If only one version the filter is not present
     const versionSelect = document.getElementById('version');
     if (!versionSelect) return true
 

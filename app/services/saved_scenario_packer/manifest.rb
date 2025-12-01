@@ -81,13 +81,4 @@ class SavedScenarioPacker::Manifest
     end
   end
 
-  def user_data(user, role = 'owner')
-    return nil unless user
-
-    {
-      email: user.email,
-      name: user.name,
-      role: role
-    }
-  end
 end
