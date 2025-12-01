@@ -2,7 +2,7 @@
 
   <%= hidden_field_tag "saved_scenario_ids", [], multiple: true, data: { batch_dump_target: "hidden" } %>
 
-  <%= turbo_frame_tag "saved_scenarios", data: { turbo_action: "replace" } do %>
+  <%= turbo_frame_tag "saved_scenarios" do %>
     <%= hidden_field_tag "filtered_ids", filtered_ids, multiple: true, data: { batch_dump_target: "filteredIds" } %>
 
     <div id="saved_scenarios_list"class="grid grid-rows-10 gap-y-2">
