@@ -5,22 +5,27 @@ export default class extends Controller {
   static targets = [
     "hidden",
     "selectAll",
-    "filteredIds",
+    "filtered",
     "export",
     "warning",
   ];
 
-  static values = { selected: Array };
+  static values = { 
+    selectedIds: Array,
+    filteredIds: Array
+  };
 
   connect() {
     // Only initialize if we have the targets
-    if (!this.hasHiddenTarget || !this.hasFilteredIdsTarget) {
+    if (!this.filteredTarget) {
       return;
     }
 
-    this.selectedValue = this.selectedValue || [];
+    // Make sure the stimulus values are properly initialized
+    this.filteredIdsValue = JSON.parse(this.filteredTarget.value);
+    this.selectedIdsValue = this.selectedIdsValue || [];
 
-    this.validateSelections();
+    this.updateSelections();
     this.restoreSelections();
 
     // Listen for Turbo frame loads to restore selected checkboxes
@@ -34,38 +39,37 @@ export default class extends Controller {
     }
   }
 
-  // When checking "Select All", set the hidden field to all filtered ids
-  // When unchecking "Select All" if still marked then clear the hidden field
+  // When checking "Select All", set selected ids to all filtered ids
+  // When unchecking "Select All" if still marked then clear all selected ids
   selectAll(event) {
-    this.hiddenTarget.value = (event.target.checked) ? this.filteredIdsTarget.value : "";
-    this.validateSelections();
+    this.selectedIdsValue = (event.target.checked) ? this.filteredIdsValue : [];
+    this.updateSelections();
     this.restoreSelections();
   }
 
-  // When checking/unchecking a checkbox update the hidden field
+  // When checking/unchecking a checkbox update the selected ids
   toggle(event) {
-    const id = event.target.dataset.id;
-    const selected = this.hiddenTarget.value ? this.hiddenTarget.value.split(",") : [];
+    const id = Number(event.target.dataset.id);
 
     if (event.target.checked) {
-      if (!selected.includes(id))
-        selected.push(id);
+      if (!this.selectedIdsValue.includes(id))
+        this.selectedIdsValue = [...this.selectedIdsValue, id]
     } else {
-      const index = selected.indexOf(id);
-      if (index !== -1)
-        selected.splice(index, 1);
+      this.selectedIdsValue = this.selectedIdsValue.filter(val => val !== id)
     }
 
-    this.hiddenTarget.value = selected.join(",");
-    this.validateSelections();
+    this.updateSelections();
   }
 
-  validateSelections() {
+  updateSelections() {
+    // Make sure the hidden value is aligned for the form submission
+    this.hiddenTarget.value = JSON.stringify(this.selectedIdsValue);
+
     // Enable/disable the export button based on whether there are selected ids
-    this.exportTarget.disabled = !this.hiddenTarget.value;
+    this.exportTarget.disabled = !this.selectedIdsValue;
 
     // Update the "Select All" checkbox so it stays checked only when all filtered ids are selected
-    this.selectAllTarget.checked = this.checkSameIds(this.hiddenTarget.value, this.filteredIdsTarget.value);
+    this.selectAllTarget.checked = this.checkSameIds(this.selectedIdsValue, this.filteredIdsValue);
   }
 
   // Prevent export if there are multiple versions and "None" is selected
@@ -83,36 +87,29 @@ export default class extends Controller {
 
   // Restore the selected checkboxes based on the hidden field
   restoreSelections() {
-    const selected = this.hiddenTarget.value.split(",");
-
     this.element.querySelectorAll("#saved_scenarios_list input[type='checkbox']").forEach(cb => {
-      const id = cb.dataset.id;
-      cb.checked = selected.includes(id);
+      cb.checked = this.selectedIdsValue.includes(Number(cb.dataset.id));
     })
   }
 
   // Necessary actions when the turbo frame is reloaded due to pages/filters
   turboFrameReloaded() {
-    this.hiddenTarget.value = this.getIntersectingIds(this.hiddenTarget.value, this.filteredIdsTarget.value);
-    this.validateSelections();
+    this.filteredIdsValue = JSON.parse(this.filteredTarget.value)
+    
+    // Make sure the selected ids do not contain any filtered out ids when new filters are applied
+    this.selectedIdsValue = this.selectedIdsValue.filter(id => this.filteredIdsValue.includes(id));
+    
+    this.updateSelections();
     this.restoreSelections();
   }
 
-  // Helper method to get intersecting ids from two comma-separated list
-  getIntersectingIds(a, b) {
-    const arrA = a.split(",");
-    const setB = new Set(b.split(","));
-
-    return arrA.filter(id => setB.has(id)).join(",");
-  }
-
-  // Helper method to check if same ids in two comma-separated lists
+  // Helper method to check if same ids in two arrays (disregarding order)
   checkSameIds(a, b) {
-    const setA = new Set(a.split(","));
-    const setB = new Set(b.split(","));
+    const setA = new Set(a);
+    const setB = new Set(b);
 
     if (setA.size !== setB.size) return false;
 
-    return [...setA].every(v => setB.has(v));
+    return [...setA].every(id => setB.has(id));
   }
 }

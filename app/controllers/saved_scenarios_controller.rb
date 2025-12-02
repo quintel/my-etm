@@ -21,7 +21,7 @@ class SavedScenariosController < ApplicationController
     @pagy_saved_scenarios, @saved_scenarios = pagy(ordered_user_saved_scenarios)
     @filters = {
       area_codes: area_codes_for_filter,
-      end_years: user_saved_scenarios.group(:end_year).count,
+      end_years: user_saved_scenarios.pluck(:end_year).tally,
       versions: user_saved_scenarios.map(&:version).uniq
     }
 

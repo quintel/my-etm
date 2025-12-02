@@ -7,11 +7,11 @@ module Admin
     # GET /admin/saved_scenarios
     def index
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(admin_saved_scenarios)
-      @filtered_ids = admin_saved_scenarios.pluck(:id).join(",")
+      @filtered_ids = admin_saved_scenarios.pluck(:id)
       @filters = {
         featured: true,
         area_codes: area_codes_for_filter,
-        end_years: admin_saved_scenarios.group(:end_year).count,
+        end_years: admin_saved_scenarios.pluck(:end_year).tally,
         versions: admin_saved_scenarios.joins(:version).pluck("version.tag", "version.id").uniq
       }
 
@@ -30,7 +30,7 @@ module Admin
         .includes(:featured_scenario, :users)
 
       @pagy_admin_saved_scenarios, @saved_scenarios = pagy(filtered)
-      @filtered_ids = filtered.pluck(:id).join(",")
+      @filtered_ids = filtered.pluck(:id)
 
       respond_to do |format|
         format.html { render(
@@ -80,7 +80,7 @@ module Admin
 
     # Make sure to group all dup area_codes for nl together
     def area_codes_for_filter
-      area_codes = admin_saved_scenarios.group(:area_code).count
+      area_codes = admin_saved_scenarios.pluck(:area_code).tally
 
       dups = area_codes.select { |k, _v| SavedScenario::AREA_DUPS.include?(k) }
 
