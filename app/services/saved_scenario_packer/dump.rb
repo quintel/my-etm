@@ -75,8 +75,9 @@ class SavedScenarioPacker::Dump
   end
 
   def post_streaming_request(scenario_ids, dumps, buffer, parse_errors)
-    http_client.post('/api/v3/scenarios/stream') do |req|
+    http_client.post('/api/v3/scenarios/export') do |req|
       req.headers['Content-Type'] = 'application/json'
+      req.headers['Accept'] = 'application/x-ndjson'
       req.body = { ids: scenario_ids }.to_json
       req.options.on_data = build_ndjson_processor(dumps, buffer, parse_errors)
     end

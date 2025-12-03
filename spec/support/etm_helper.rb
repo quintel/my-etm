@@ -26,7 +26,7 @@ module EtmHelper
   # @param status [Integer] HTTP status code (default: 200)
   #
   # @example
-  #   mock_streaming_response(http_client, '/api/v3/scenarios/stream', "#{json1}\n#{json2}\n", 200)
+  #   mock_streaming_response(http_client, '/api/v3/scenarios/export', "#{json1}\n#{json2}\n", 200)
   #
   def mock_streaming_response(http_client, endpoint, ndjson_body, status: 200)
     allow(http_client).to receive(:post).with(endpoint) do |&block|

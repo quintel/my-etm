@@ -67,7 +67,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
   before do
     # Mock ETEngine streaming dump API call using streaming helper
     streaming_body = "#{engine_dump_one.to_json}\n#{engine_dump_two.to_json}\n"
-    mock_streaming_response(http_client, '/api/v3/scenarios/stream', streaming_body)
+    mock_streaming_response(http_client, '/api/v3/scenarios/export', streaming_body)
 
     # Mock ETEngine load_dump API calls to return new scenario IDs
     allow(http_client).to receive(:post)
@@ -166,7 +166,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
       # Mock the new dump
       new_engine_dump = engine_dump_one.merge('metadata' => { 'id' => 125, 'title' => 'Netherlands 2050' })
-      mock_streaming_response(http_client, '/api/v3/scenarios/stream', "#{new_engine_dump.to_json}\n")
+      mock_streaming_response(http_client, '/api/v3/scenarios/export', "#{new_engine_dump.to_json}\n")
 
       allow(http_client).to receive(:post)
         .with('/api/v3/scenarios/load_dump', new_engine_dump)
@@ -196,7 +196,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
     it 'handles partial dump failures gracefully' do
       # Mock response with only one scenario (124 missing from stream)
       partial_streaming_body = "#{engine_dump_one.to_json}\n"
-      mock_streaming_response(http_client, '/api/v3/scenarios/stream', partial_streaming_body)
+      mock_streaming_response(http_client, '/api/v3/scenarios/export', partial_streaming_body)
 
       dump_service = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner)
       dump_result = dump_service.call
@@ -267,7 +267,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
   describe 'newline-delimited JSON handling in integration' do
     before do
       # Mock NDJSON streaming response from ETEngine
-      mock_streaming_response(http_client, '/api/v3/scenarios/stream', "#{engine_dump_one.to_json}\n")
+      mock_streaming_response(http_client, '/api/v3/scenarios/export', "#{engine_dump_one.to_json}\n")
 
       allow(http_client).to receive(:post)
         .with('/api/v3/scenarios/load_dump', engine_dump_one)

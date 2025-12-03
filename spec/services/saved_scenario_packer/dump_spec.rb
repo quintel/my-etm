@@ -62,7 +62,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
   before do
     # Mock successful ETEngine streaming API call using streaming helper
-    mock_streaming_response(http_client, '/api/v3/scenarios/stream', streaming_response_body)
+    mock_streaming_response(http_client, '/api/v3/scenarios/export', streaming_response_body)
   end
 
   after do
@@ -95,7 +95,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
     it 'fetches dumps from ETEngine using streaming endpoint' do
       service.call
-      expect(http_client).to have_received(:post).with('/api/v3/scenarios/stream').once
+      expect(http_client).to have_received(:post).with('/api/v3/scenarios/export').once
     end
 
     describe 'ETM file contents' do
@@ -140,7 +140,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
     context 'when all ETEngine dumps fail' do
       before do
-        mock_streaming_response(http_client, '/api/v3/scenarios/stream', '', status: 404)
+        mock_streaming_response(http_client, '/api/v3/scenarios/export', '', status: 404)
       end
 
       it 'returns a Failure result' do
@@ -160,7 +160,7 @@ describe SavedScenarioPacker::Dump, type: :service do
       end
 
       before do
-        mock_streaming_response(http_client, '/api/v3/scenarios/stream', partial_response_body)
+        mock_streaming_response(http_client, '/api/v3/scenarios/export', partial_response_body)
       end
 
       it 'still succeeds with partial data' do
@@ -204,7 +204,7 @@ describe SavedScenarioPacker::Dump, type: :service do
 
     it 'handles empty lines in NDJSON stream' do
       ndjson_with_empty_lines = "#{engine_dump_one.to_json}\n\n#{engine_dump_two.to_json}\n"
-      mock_streaming_response(http_client, '/api/v3/scenarios/stream', ndjson_with_empty_lines)
+      mock_streaming_response(http_client, '/api/v3/scenarios/export', ndjson_with_empty_lines)
 
       result = service.call
       expect(result).to be_success
