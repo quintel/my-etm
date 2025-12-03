@@ -75,7 +75,7 @@ module Admin
       @admin_saved_scenarios ||= SavedScenario
         .available
         .includes(:featured_scenario, :users)
-        .order(updated_at: :desc)
+        .order(created_at: :desc)
     end
 
     # Make sure to group all dup area_codes for nl together
