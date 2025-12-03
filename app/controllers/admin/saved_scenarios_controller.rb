@@ -89,11 +89,11 @@ module Admin
         area_codes[dups.keys.first] = dups.sum { |_k, v| v }
       end
 
-      area_codes = area_codes.sort_by { |_k, v| v }.reverse
+      area_codes.sort_by { |_k, v| v }.reverse
     end
 
     def saved_scenario_ids
-      params.require(:saved_scenario_ids).split(",").map(&:to_i)
+      params.require(:saved_scenario_ids).map(&:to_i)
     end
   end
 end

@@ -239,7 +239,7 @@ describe SavedScenarioPacker::Dump, type: :service do
   end
 
   describe 'temp file cleanup' do
-    context 'when an error occurs before ZIP creation' do
+    context 'when an error occurs before TAR creation' do
       before do
         allow(http_client).to receive(:post).and_raise(StandardError, 'Network error')
       end

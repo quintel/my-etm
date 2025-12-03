@@ -80,7 +80,6 @@ describe 'SavedScenarioPacker Integration', type: :service do
   end
 
   after do
-    # Clean up any created ZIP files
     FileUtils.rm_rf(Rails.root.join('tmp', 'saved_scenario_dumps'))
   end
 
@@ -93,7 +92,6 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
       basename = File.basename(dump_result.value!.file_path)
       count = saved_scenario_ids.size
-      env_segment = Rails.env.production? ? 'pro' : Rails.env
 
       expect(basename).to match(/\d{12}_test\d{8}-\d+-\w+\.etm/)
     end
@@ -162,7 +160,6 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
       load_service = SavedScenarioPacker::Load.new(dump_data.file_path, http_client, admin)
       load_result = load_service.call
-      first_load = load_result.value!
 
       # Update the scenario and dump again
       saved_scenario_one.update!(scenario_id: 125, scenario_id_history: [120, 121, 122, 123])

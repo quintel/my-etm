@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="batch-dump"
 export default class extends Controller {
   static targets = [
-    "hidden",
+    "hiddenContainer",
     "selectAll",
     "filtered",
     "export",
@@ -62,11 +62,13 @@ export default class extends Controller {
   }
 
   updateSelections() {
-    // Make sure the hidden value is aligned for the form submission
-    this.hiddenTarget.value = JSON.stringify(this.selectedIdsValue);
+    // Clear and recreate hidden fields for array submission
+    this.hiddenContainerTarget.innerHTML = this.selectedIdsValue
+      .map(id => `<input type="hidden" name="saved_scenario_ids[]" value="${id}">`)
+      .join('');
 
     // Enable/disable the export button based on whether there are selected ids
-    this.exportTarget.disabled = !this.selectedIdsValue;
+    this.exportTarget.disabled = !this.selectedIdsValue.length;
 
     // Update the "Select All" checkbox so it stays checked only when all filtered ids are selected
     this.selectAllTarget.checked = this.checkSameIds(this.selectedIdsValue, this.filteredIdsValue);

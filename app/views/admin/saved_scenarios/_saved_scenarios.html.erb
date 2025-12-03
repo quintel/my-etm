@@ -1,6 +1,6 @@
 <%= form_with url: batch_dump_admin_saved_scenarios_path, method: :post, local: true, data: { controller: "batch-dump" } do |form| %>
 
-  <%= hidden_field_tag "saved_scenario_ids", [], multiple: true, data: { batch_dump_target: "hidden" } %>
+  <span data-batch-dump-target="hiddenContainer"></span>
 
   <%= turbo_frame_tag "saved_scenarios" do %>
 
