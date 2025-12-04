@@ -1,19 +1,3 @@
-<span contenteditable="<%= @editable %>"
-      class="relative peer <%= css_classes %>"
-      data-controller="editable-title"
-      data-editable-title-url-value="<%= @path %>"
-      data-action="<%= actions %>"
-  >
+<span class="relative">
   <%= @title %>
 </span>
-<% if @editable %>
-  <span class="
-    inline-block
-    ml-2
-    invisible
-    peer-focus:invisible!
-    peer-hover:visible"
-  >
-    <%= heroicon 'pencil', options: { class: 'w-4 h-4 text-midnight-800' } %>
-  </span>
-<% end %>
