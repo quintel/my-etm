@@ -141,6 +141,7 @@ Rails.application.routes.draw do
         get :list
         post :list
         post :index
+        post :batch_dump
       end
     end
 

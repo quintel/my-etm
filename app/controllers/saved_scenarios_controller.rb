@@ -19,7 +19,11 @@ class SavedScenariosController < ApplicationController
   # GET /saved_scenarios
   def index
     @pagy_saved_scenarios, @saved_scenarios = pagy(ordered_user_saved_scenarios)
-    @area_codes = area_codes_for_filter
+    @filters = {
+      area_codes: area_codes_for_filter,
+      end_years: user_saved_scenarios.pluck(:end_year).tally,
+      versions: user_saved_scenarios.map(&:version).uniq
+    }
 
     respond_to do |format|
       format.html
@@ -171,7 +175,7 @@ class SavedScenariosController < ApplicationController
   private
 
   def user_saved_scenarios
-    current_user
+    @user_saved_scenarios ||= current_user
       .saved_scenarios
       .available
       .includes(:featured_scenario, :users)

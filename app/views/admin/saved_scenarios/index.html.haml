@@ -1,10 +1,14 @@
 - content_for :title, "All saved scenarios"
 - content_for :menu_title, "All saved scenarios"
 
-= render(partial: "block_right_sub_menu")
+= render(partial: "block_right_sub_menu", locals: { filters: @filters })
 = render(partial: "admin/block_right_menu")
 
 - if @saved_scenarios.present?
-  = render(partial: "saved_scenarios", locals: { pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios, saved_scenarios: @saved_scenarios })
+  = render(partial: "saved_scenarios", locals: {              |
+    pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios,  |
+    saved_scenarios: @saved_scenarios,                        |
+    filtered_ids: @filtered_ids })                            |
 - else
   = t('saved_scenarios.empty')
+  

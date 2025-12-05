@@ -305,6 +305,8 @@ GEM
     parser (3.3.5.0)
       ast (~> 2.4.1)
       racc
+    pastel (0.8.0)
+      tty-color (~> 0.5)
     prettier_print (1.2.1)
     psych (5.1.2)
       stringio
@@ -465,6 +467,18 @@ GEM
     thor (1.4.0)
     tilt (2.3.0)
     timeout (0.4.3)
+    tty-color (0.6.0)
+    tty-cursor (0.7.1)
+    tty-prompt (0.23.1)
+      pastel (~> 0.8)
+      tty-reader (~> 0.8)
+    tty-reader (0.9.0)
+      tty-cursor (~> 0.7)
+      tty-screen (~> 0.8)
+      wisper (~> 2.0)
+    tty-screen (0.8.2)
+    tty-spinner (0.9.3)
+      tty-cursor (~> 0.7)
     turbo-rails (2.0.11)
       actionpack (>= 6.0.0)
       railties (>= 6.0.0)
@@ -488,10 +502,12 @@ GEM
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    wisper (2.0.1)
     xpath (3.2.0)
       nokogiri (~> 1.8)
     yaml (0.4.0)
     zeitwerk (2.6.18)
+    zstd-ruby (2.0.3)
 
 PLATFORMS
   aarch64-linux
@@ -554,10 +570,13 @@ DEPENDENCIES
   stackprof
   stimulus-rails
   tailwindcss-rails (~> 3.0)
+  tty-prompt
+  tty-spinner
   turbo-rails
   tzinfo-data
   view_component
   web-console
+  zstd-ruby
 
 BUNDLED WITH
    2.5.18

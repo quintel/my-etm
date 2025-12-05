@@ -92,6 +92,29 @@
       "note": ""
     },
     {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "ad090167589d02c48eb5fc88d70e42757eecac13333c3acfa9f2a664adde7207",
+      "check_name": "SendFile",
+      "message": "Model attribute used in file name",
+      "file": "app/controllers/admin/saved_scenarios_controller.rb",
+      "line": 61,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "send_file(SavedScenarioPacker::Dump.new(saved_scenario_ids, streaming_engine_client(Version.default), current_user).call.value!.file_path, :filename => File.basename(SavedScenarioPacker::Dump.new(saved_scenario_ids, streaming_engine_client(Version.default), current_user).call.value!.file_path), :type => \"application/x-etm\", :disposition => \"attachment\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Admin::SavedScenariosController",
+        "method": "batch_dump"
+      },
+      "user_input": "Version.default",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Mass Assignment",
       "warning_code": 70,
       "fingerprint": "c5a12fec52b7486b1f03af60a467069403ceee15b891ff01fe883fbb91980479",

@@ -1,0 +1,279 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require File.expand_path('../config/environment', __dir__)
+
+# Setup
+FileInfo = Struct.new(:path) do
+  def name
+    File.basename(path)
+  end
+end
+
+EXPECTED_FILE_PATTERN = /\A\d{12}_\w+.*\.etm\z/
+
+prompt = TTY::Prompt.new
+source_dir = File.expand_path('~/Downloads')
+files = []
+owner_email = nil
+duplicate_strategy = 'update' # Default to 'update'. Can be 'update', 'create', or 'prompt'
+
+def help!(prompt)
+  pastel = Pastel.new
+
+  prompt.say(<<~HELP)
+    #{pastel.bold('Usage:')} bin/import-scenarios [options] [file-or-directory]
+
+    import-scenarios looks for .etm files in your Downloads directory by default.
+    Alternatively, provide a path to a scenario dump file or different directory.
+
+    #{pastel.bold('Options:')}
+      --user EMAIL          Set a specific user as owner of loaded scenarios
+                            (defaults to first admin user)
+      --on-dup MODE         How to handle duplicate scenario IDs
+                            (update, create, or prompt; defaults to update)
+
+    #{pastel.yellow('# Looks in ~/Downloads for .etm files:')}
+    #{pastel.bold('bin/import-scenarios')}
+
+    #{pastel.yellow('# Looks in db/dumps for .etm files:')}
+    #{pastel.bold('bin/import-scenarios db/dumps')}
+
+    #{pastel.yellow('# Loads the specified .etm file:')}
+    #{pastel.bold('bin/import-scenarios ~/Downloads/2_scenarios_development_26012025.etm')}
+
+    #{pastel.yellow('# Specify user as owner by email:')}
+    #{pastel.bold('bin/import-scenarios --user your.email@quintel.com')}
+
+    #{pastel.yellow('# Prompt for each duplicate scenario:')}
+    #{pastel.bold('bin/import-scenarios --on-dup prompt')}
+
+    #{pastel.yellow('# Always create new scenarios (never update existing):')}
+    #{pastel.bold('bin/import-scenarios --on-dup create')}
+
+    By default, duplicate scenarios are updated with new data.
+
+  HELP
+
+  exit(0)
+end
+
+# Parse arguments
+while ARGV.any?
+  arg = ARGV.shift
+
+  case arg
+  when 'help', '--help', '-h'
+    help!(prompt)
+  when '--user', '-u'
+    owner_email = ARGV.shift
+    unless owner_email
+      prompt.error('--user flag requires an email address')
+      exit(1)
+    end
+  when /^--user=(.+)$/
+    owner_email = $1
+  when '--on-dup'
+    duplicate_strategy = ARGV.shift
+    unless duplicate_strategy
+      prompt.error('--on-dup flag requires a mode (update, create, or prompt)')
+      exit(1)
+    end
+    unless %w[update create prompt].include?(duplicate_strategy)
+      prompt.error("Invalid --on-dup mode: #{duplicate_strategy}. Must be update, create, or prompt")
+      exit(1)
+    end
+  when /^--on-dup=(.+)$/
+    duplicate_strategy = $1
+    unless %w[update create prompt].include?(duplicate_strategy)
+      prompt.error("Invalid --on-dup mode: #{duplicate_strategy}. Must be update, create, or prompt")
+      exit(1)
+    end
+  else
+    # It's a file or directory
+    if File.directory?(arg)
+      source_dir = File.expand_path(arg)
+    elsif File.exist?(arg)
+      files = [FileInfo.new(arg)]
+    else
+      prompt.error("No such file: #{arg}")
+      exit(1)
+    end
+  end
+end
+
+if files.none?
+  # If there are no files specified in ARGV, search for them in the source dir.
+  files = Dir.glob(source_dir + '/*.etm')
+    .sort_by { |path| File.mtime(path) }
+    .reverse
+    .map { |path| FileInfo.new(path) }
+end
+
+# Select file
+if files.none? || ARGV.first == 'help'
+  prompt.error('No .etm scenario dump files found')
+  prompt.say("\n")
+  help!(prompt)
+end
+
+file =
+  if files.length > 1
+    prompt.enum_select('Which scenario dump do you want to import?') do |menu|
+      files.each { |f| menu.choice(f.name, f) }
+      menu.choice('Cancel', :cancel)
+    end
+  else
+    prompt.say("Found one scenario dump file: #{files.first.name}")
+    files.first
+  end
+
+exit if file == :cancel
+
+# Sanity check
+unless file.name.match?(EXPECTED_FILE_PATTERN)
+  prompt.error(
+    'The filename suggests this might not be a scenario dump file. ' \
+    'Expected filename format: YYYYMMDDHHmm_env.etm (or with tempfile suffix)'
+  )
+end
+
+prompt.warn('Importing will load scenarios into your database. Make sure ETEngine and MyETM are running.')
+
+unless prompt.yes?('Happy to proceed?')
+  prompt.say('Exiting without performing the import.')
+  exit
+end
+
+# Import scenarios
+
+# Find and display the user who will own the scenarios
+owner = if owner_email
+  user = User.find_by(email: owner_email)
+  unless user
+    prompt.error("User not found: #{owner_email}")
+    exit(1)
+  end
+  user
+else
+  User.find_by(admin: true) || User.first
+end
+
+unless owner
+  prompt.error('No users found in database!')
+  exit(1)
+end
+
+prompt.say("Scenarios will be owned by: #{owner.email}")
+
+spinner = TTY::Spinner.new(
+  "[:spinner] Loading scenarios from #{file.name}...",
+  format: :dots
+)
+
+result = nil
+
+spinner.run do
+  begin
+    # Create HTTP client for ETEngine communication
+    http_client = MyEtm::Auth.engine_client(owner)
+
+    # Define handler for duplicate scenarios
+    duplicate_handler = lambda do |existing_scenario, scenario_data|
+      # If a strategy was specified via command line, use it
+      if duplicate_strategy && duplicate_strategy != 'prompt'
+        return duplicate_strategy == 'update' ? :update : :create
+      end
+
+      spinner.stop
+      spinner.clear_line
+
+      pastel = Pastel.new
+      prompt.warn("\nDuplicate scenario found!")
+      prompt.say("  Existing: #{pastel.bold(existing_scenario.title)} (ID: #{existing_scenario.id})")
+      prompt.say("  Importing: #{pastel.bold(scenario_data[:title])}")
+      prompt.say("\n")
+
+      choice = prompt.select('How would you like to handle this?', default: 1) do |menu|
+        menu.choice 'Update existing scenario with new data', :update
+        menu.choice 'Create as a new scenario (new ID will be assigned)', :create
+      end
+
+      spinner.update(title: "[:spinner] Loading scenarios from #{file.name}...")
+      spinner.auto_spin
+
+      choice
+    end
+
+    # Call the SavedScenarioPacker::Load service
+    service = SavedScenarioPacker::Load.new(
+      file.path,
+      http_client,
+      owner,
+      on_duplicate_handler: duplicate_handler
+    )
+    result = service.call
+
+    if result.success?
+      spinner.success('done!')
+    else
+      spinner.error('failed!')
+    end
+  rescue StandardError => e
+    spinner.error("error: #{e.message}")
+    puts "\nFull error details:"
+    puts e.class
+    puts e.message
+    puts e.backtrace.first(10).join("\n")
+    exit(1)
+  end
+end
+
+# Display results
+if result.success?
+  load_data = result.value!
+  saved_scenarios = load_data.saved_scenarios
+  scenario_mappings = load_data.scenario_mappings
+
+  prompt.say("\n")
+  prompt.ok("Successfully loaded #{saved_scenarios.size} scenario(s)!")
+  prompt.say("\n")
+
+  # Show scenario titles
+  if saved_scenarios.any?
+    prompt.say('Loaded scenarios:')
+    saved_scenarios.each_with_index do |scenario, idx|
+      prompt.say("  #{idx + 1}. #{scenario.title}")
+    end
+    prompt.say("\n")
+  end
+
+  # Show ID mappings
+  if scenario_mappings.any?
+    prompt.say('Scenario ID mappings:')
+    scenario_mappings.each do |mapping|
+      original_id = mapping[:original_scenario_id]
+      new_id = mapping[:new_scenario_id]
+      prompt.say("  ETEngine #{original_id} → #{new_id}")
+    end
+    prompt.say("\n")
+  end
+
+  # Show warnings if any
+  if load_data.warnings.any?
+    prompt.warn('Warnings:')
+    load_data.warnings.each do |warning|
+      prompt.warn("  - #{warning}")
+    end
+    prompt.say("\n")
+  end
+else
+  prompt.error("\nFailed to load scenarios: #{result.failure}")
+  exit(1)
+end
+
+# Cleanup
+if prompt.yes?("Do you want to remove the scenario dump file? (#{file.name})")
+  File.unlink(file.path)
+  prompt.ok('File removed.')
+end

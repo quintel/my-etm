@@ -14,10 +14,10 @@ class SavedScenario < ApplicationRecord
   AUTO_DELETES_AFTER = 60.days
 
   # Used by Fiterable Concern
-  FILTER_PARAMS = [ :title, area_codes: {} ].freeze
+  FILTER_PARAMS = [ :search, :version, :featured, area_codes: [], end_years: [] ].freeze
 
   # Area codes to be treated the same for Filterable
-  AREA_DUPS = %w[ nl nl2019 nl2023 ]
+  AREA_DUPS = %w[nl nl2019 nl2023].freeze
 
   has_one :featured_scenario, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy
@@ -33,7 +33,19 @@ class SavedScenario < ApplicationRecord
 
   serialize :scenario_id_history, coder: YAML, type: Array
 
-  scope :by_title, ->(title) { where("title LIKE ?", "%#{title}%") }
+  scope :by_title,  ->(title) { where("title LIKE ?", "%#{title}%") }
+  scope :by_user,   ->(user) { joins(:users).where("name LIKE ?", "%#{user}%") }
+  scope :by_search, ->(search) {
+    user_scenario_ids = SavedScenarioUser.select(:saved_scenario_id)
+      .joins(:user)
+      .where("users.name LIKE ?", "%#{search}%")
+
+    where("saved_scenarios.title LIKE ?", "%#{search}%")
+      .or(where(id: user_scenario_ids))
+  }
+  scope :featured,  -> {
+    where(id: FeaturedScenario.select(:saved_scenario_id))
+  }
 
   # Returns all saved scenarios whose areas are avaliable.
   def self.available
@@ -46,12 +58,14 @@ class SavedScenario < ApplicationRecord
   def self.filter(filters)
     scenarios = order(created_at: :desc)
 
-    area_codes = filters["area_codes"]&.flat_map do |area, picked|
-      AREA_DUPS.include?(area) ? AREA_DUPS : area if picked == "1"
-    end.compact
+    raw_codes = filters["area_codes"] || []
+    area_codes = raw_codes.flat_map { |area| AREA_DUPS.include?(area) ? AREA_DUPS : [ area ] }.uniq
 
-    scenarios = scenarios.by_title(filters["title"]) if filters["title"].present?
+    scenarios = scenarios.featured if filters["featured"].present?
+    scenarios = scenarios.where(version: filters["version"]) if filters["version"].present?
+    scenarios = scenarios.where(end_year: filters["end_years"]) if filters["end_years"].present?
     scenarios = scenarios.where(area_code: area_codes) if area_codes.present?
+    scenarios = scenarios.by_search(filters["search"]) if filters["search"].present?
 
     scenarios
   end

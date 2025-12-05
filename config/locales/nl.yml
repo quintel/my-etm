@@ -242,6 +242,15 @@ nl:
     viewers: Gasts
     owners: Eigenaars
     collaborators: Bewerkers
+    select_all: Selecteer alles
+    export: Geselecteerde exporteren
+    filters:
+      search: Zoeken op titel of gebruiker
+      clear: Filters wissen
+      area_code: Gebied
+      end_year: Eindjaar
+      featured: Uitgelicht
+      none: Kies een versie
   scenario:
     create_description: Klik hier om er één aan te maken.
     discard_changes: Verwijder wijzigingen

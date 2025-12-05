@@ -1,0 +1,61 @@
+.flex.flex-col.gap-5.overflow-x-hidden.pr-5
+  .flex.justify-right.items-center.gap-5
+    = link_to t('saved_scenarios.filters.clear'), '#',
+      class: 'text-xs text-midnight-600 hover:text-midnight-600 underline',
+      data: { action: 'click->search-form#clear' }
+
+  .flex.text-midnight-450
+    = tag.input type: 'text',                                                           |
+      name: 'search',                                                                   |
+      value: '',                                                                        |
+      placeholder: t('saved_scenarios.filters.search'),                                 |
+      autocomplete: 'off',                                                              |
+      data: { action: 'input->search-form#search' },                                    |
+      class: 'p-2 text-sm'                                                              |
+    = heroicon "magnifying-glass", options: { class: "w-6 h-6 ml-2 my-auto" }
+
+  - if filters[:versions].present? && filters[:versions].count > 1
+    = select_tag(                                                                         |
+        'version',                                                                        |
+        options_for_select([[t('saved_scenarios.filters.none'), '']]                      |
+          + filters[:versions]),                                                          |
+        id: 'version',                                                                    |
+        autocomplete: 'off',                                                              |
+        data: { action: 'change->search-form#search' },                                   |
+        class: 'w-full rounded-md text-sm p-2 text-midnight-450' )                        |
+
+  - if filters[:featured].present?
+    %div
+      = check_box_tag 'featured', "1", false,                                               |
+          autocomplete: 'off',                                                              |
+          data: { action: 'change->search-form#search' },                                   |
+          class: 'rounded-md border-midnight-450 !checked:bg-midnight-920 mr-4'             |
+      = label_tag 'featured', t('saved_scenarios.filters.featured'), class: 'text-sm text-midnight-450'
+
+  - if filters[:end_years].present? && filters[:end_years].count > 1
+    %details
+      %summary.cursor-pointer.text-sm.text-midnight-450
+        #{t('saved_scenarios.filters.end_year')}
+      .mt-2.space-y-1
+        - filters[:end_years].sort.reverse.each do |year, count|
+          .flex.items-center
+            = check_box_tag "end_years[]", year, false,                                   |
+              id: "end_year_#{year}",                                                     |
+              autocomplete: 'off',                                                        |
+              data: { action: 'change->search-form#search' },                             |
+              class: 'rounded-md border-midnight-450 mr-2'                                |
+            = label_tag "end_year_#{year}", "#{year} (#{count})", class: 'text-sm text-midnight-450'
+
+  - if filters[:area_codes].present? && filters[:area_codes].count > 1
+    %details
+      %summary.cursor-pointer.text-sm.text-midnight-450
+        #{t('saved_scenarios.filters.area_code')}
+      .mt-2.space-y-1
+        - filters[:area_codes].sort.each do |code, count|
+          .flex.items-center
+            = check_box_tag "area_codes[]", code, false,                                  |
+              id: "area_code_#{code}",                                                    |
+              autocomplete: 'off',                                                        |
+              data: { action: 'change->search-form#search' },                             |
+              class: 'rounded-md border-midnight-450 mr-2'                                |
+            = label_tag "area_code_#{code}", "#{t("areas.#{code}", default: code.upcase)} (#{count})", class: 'text-sm text-midnight-450'
