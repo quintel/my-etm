@@ -7,111 +7,125 @@ export default class extends Controller {
     "selectAll",
     "filtered",
     "export",
-    "warning",
+    "checkbox",
   ];
 
-  static values = { 
-    selectedIds: Array,
-    filteredIds: Array
+  static values = {
+    filteredIds: Array,
+    selectedIds: Array
   };
 
   connect() {
-    // Only initialize if we have the targets
-    if (!this.filteredTarget) {
-      return;
-    }
+    if (!this.hasFilteredTarget) return;
 
-    // Make sure the stimulus values are properly initialized
     this.filteredIdsValue = JSON.parse(this.filteredTarget.value);
     this.selectedIdsValue = this.selectedIdsValue || [];
 
-    this.updateSelections();
-    this.restoreSelections();
+    this.restoreCheckboxState();
+    this.syncState();
 
-    // Listen for Turbo frame loads to restore selected checkboxes
     this.boundTurboFrame = this.turboFrameReloaded.bind(this);
     document.addEventListener("turbo:frame-load", this.boundTurboFrame);
   }
 
   disconnect() {
-    if (this.boundTurboFrame) {
-      document.removeEventListener("turbo:frame-load", this.boundTurboFrame);
-    }
+    document.removeEventListener("turbo:frame-load", this.boundTurboFrame);
   }
 
-  // When checking "Select All", set selected ids to all filtered ids
-  // When unchecking "Select All" if still marked then clear all selected ids
+  // Get currently checked IDs from checkbox targets
+  get checkedIds() {
+    return this.checkboxTargets
+      .filter(cb => cb.checked)
+      .map(cb => Number(cb.dataset.batchDumpIdParam));
+  }
+
   selectAll(event) {
-    this.selectedIdsValue = (event.target.checked) ? this.filteredIdsValue : [];
-    this.updateSelections();
-    this.restoreSelections();
-  }
-
-  // When checking/unchecking a checkbox update the selected ids
-  toggle(event) {
-    const id = Number(event.target.dataset.id);
-
     if (event.target.checked) {
-      if (!this.selectedIdsValue.includes(id))
-        this.selectedIdsValue = [...this.selectedIdsValue, id]
+      // Select all filtered IDs (across all pages)
+      this.selectedIdsValue = [...this.filteredIdsValue];
     } else {
-      this.selectedIdsValue = this.selectedIdsValue.filter(val => val !== id)
+      // Deselect all
+      this.selectedIdsValue = [];
     }
 
-    this.updateSelections();
+    this.restoreCheckboxState();
+    this.syncState();
   }
 
-  updateSelections() {
-    // Clear and recreate hidden fields for array submission
+  // Wwhen any individual checkbox is toggled
+  toggle() {
+    this.updateSelectedIds();
+    this.syncState();
+  }
+
+  // Update the stored selectedIds from current checkbox state
+  updateSelectedIds() {
+    this.selectedIdsValue = this.checkedIds;
+  }
+
+  // Restore checkbox state from stored selectedIds (after turbo frame reload)
+  restoreCheckboxState() {
+    this.checkboxTargets.forEach(cb => {
+      const id = Number(cb.dataset.batchDumpIdParam);
+      cb.checked = this.selectedIdsValue.includes(id);
+    });
+  }
+
+  // Sync all derived state from checkbox values
+  syncState() {
+    this.syncHiddenFields();
+    this.syncSelectAllState();
+    this.syncExportButton();
+  }
+
+  // Update hidden fields for form submission
+  syncHiddenFields() {
     this.hiddenContainerTarget.innerHTML = this.selectedIdsValue
       .map(id => `<input type="hidden" name="saved_scenario_ids[]" value="${id}">`)
       .join('');
+  }
 
-    // Enable/disable the export button based on whether there are selected ids
-    this.exportTarget.disabled = !this.selectedIdsValue.length;
+  // Update "Select All" checkbox to reflect current state
+  syncSelectAllState() {
+    this.selectAllTarget.checked =
+      this.selectedIdsValue.length > 0 &&
+      this.checkSameIds(this.selectedIdsValue, this.filteredIdsValue);
+  }
 
-    // Update the "Select All" checkbox so it stays checked only when all filtered ids are selected
-    this.selectAllTarget.checked = this.checkSameIds(this.selectedIdsValue, this.filteredIdsValue);
+  // Enable/disable export button based on selection
+  syncExportButton() {
+    this.exportTarget.disabled = this.selectedIdsValue.length === 0;
   }
 
   // Prevent export if there are multiple versions and "None" is selected
   validateVersion(event) {
-    // If only one version the filter is not present
     const versionSelect = document.getElementById('version');
-    if (!versionSelect) return true
+    if (!versionSelect) return;
 
-    // more than 1 version (plus the 'None' option) AND None selected → block
     if (versionSelect.options.length > 2 && versionSelect.value === "") {
-      event.preventDefault()
-      alert("Please select a version before exporting.")
+      event.preventDefault();
+      alert("Please select a version before exporting.");
     }
   }
 
-  // Restore the selected checkboxes based on the hidden field
-  restoreSelections() {
-    this.element.querySelectorAll("#saved_scenarios_list input[type='checkbox']").forEach(cb => {
-      cb.checked = this.selectedIdsValue.includes(Number(cb.dataset.id));
-    })
-  }
-
-  // Necessary actions when the turbo frame is reloaded due to pages/filters
+  // Handle turbo frame reloads (pagination/filtering)
   turboFrameReloaded() {
-    this.filteredIdsValue = JSON.parse(this.filteredTarget.value)
-    
-    // Make sure the selected ids do not contain any filtered out ids when new filters are applied
-    this.selectedIdsValue = this.selectedIdsValue.filter(id => this.filteredIdsValue.includes(id));
-    
-    this.updateSelections();
-    this.restoreSelections();
+    this.filteredIdsValue = JSON.parse(this.filteredTarget.value);
+
+    // Remove any selected IDs that are no longer in the filtered set
+    this.selectedIdsValue = this.selectedIdsValue.filter(id =>
+      this.filteredIdsValue.includes(id)
+    );
+
+    // Restore checkbox state for the new elements
+    this.restoreCheckboxState();
+    this.syncState();
   }
 
   // Helper method to check if same ids in two arrays (disregarding order)
   checkSameIds(a, b) {
-    const setA = new Set(a);
+    if (a.length !== b.length) return false;
     const setB = new Set(b);
-
-    if (setA.size !== setB.size) return false;
-
-    return [...setA].every(id => setB.has(id));
+    return a.every(id => setB.has(id));
   }
 }

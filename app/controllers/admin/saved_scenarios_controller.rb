@@ -93,7 +93,7 @@ module Admin
     end
 
     def saved_scenario_ids
-      params.require(:saved_scenario_ids).map(&:to_i)
+      params.require(:saved_scenario_ids)
     end
   end
 end
