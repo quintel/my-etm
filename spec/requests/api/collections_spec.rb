@@ -151,7 +151,8 @@ RSpec.describe "API::Collections", type: :request, api: true do
         end_year: 2050,
         scenario_ids: [1, 2, 3],
         title: 'My collection',
-        version: Version.default.tag
+        version: Version.default.tag,
+        interpolation: false
       }
     end
 
@@ -440,7 +441,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
       it 'does not insert a saved_scenario' do
         expect { request }.not_to change { collection.reload.latest_scenario_ids }
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['scenarios']).to include('interpolated collections cannot have more than 1 saved scenario')
+        expect(JSON.parse(response.body)['scenarios']).to include('interpolated collections must have exactly 1 saved scenario')
       end
     end
 
