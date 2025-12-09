@@ -68,7 +68,7 @@ RSpec.describe Collection, type: :model do
 
   describe 'number of scenarios' do
     let(:user) { create(:user) }
-    let(:myc) { create(:collection, user: user, scenarios_count: 7) }
+    let(:myc) { create(:collection, user: user, scenarios_count: 6) }
 
     context 'with more than 6 combined scenarios' do
       before do
@@ -77,7 +77,7 @@ RSpec.describe Collection, type: :model do
       end
 
       it 'is not valid' do
-        expect(myc).not_to be_valid
+        expect(myc.reload).not_to be_valid
       end
     end
   end
