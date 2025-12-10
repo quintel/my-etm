@@ -71,5 +71,33 @@ describe SavedScenario::Create, type: :service do
         expect(result.value.private).to be_truthy
       end
     end
+
+    context 'when private is explicitly set to false in params' do
+      let(:params) { { scenario_id: 1, area_code: :nl2019, end_year: 2050, title: 'Hey', private: false } }
+
+      before { user.update(private_scenarios: true) }
+
+      it 'sets the provided private parameter' do
+        expect(result.value.private).to be_falsey
+      end
+
+      it 'does not use the users default privacy setting' do
+        expect(result.value.private).not_to eq(user.private_scenarios)
+      end
+    end
+
+    context 'when private is explicitly set to true in params' do
+      let(:params) { { scenario_id: 1, area_code: :nl2019, end_year: 2050, title: 'Hey', private: true } }
+
+      before { user.update(private_scenarios: false) }
+
+      it 'sets the provided private parameter' do
+        expect(result.value.private).to be_truthy
+      end
+
+      it 'does not use the users default privacy setting' do
+        expect(result.value.private).not_to eq(user.private_scenarios)
+      end
+    end
   end
 end
