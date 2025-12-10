@@ -99,6 +99,7 @@ class SavedScenario < ApplicationRecord
     json.merge(
       "version" => version.tag,
       "title" => localized_title(:en),
+      "description" => description.to_plain_text.presence,
       "saved_scenario_users" => saved_scenario_users.map { |u| u.as_json(only: %i[user_id role]) }
     )
   end
