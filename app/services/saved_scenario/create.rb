@@ -21,11 +21,8 @@ class SavedScenario::Create
 
     # Sometimes we have to explicitly set the user again
     saved_scenario.user = user
-
-    protect
-
     saved_scenario.save
-    tag_new_version
+    enqueue_callbacks
 
     ServiceResult.success(saved_scenario)
   end
@@ -45,23 +42,23 @@ class SavedScenario::Create
       user: user,
       private: user.private_scenarios
     )
-    attributes['version'] = version
+    attributes["version"] = version
 
     attributes
   end
 
   # Stable version tag
   def version
-    Version.find_by(tag: saved_scenario_params['version']) || Version.default
+    Version.find_by(tag: saved_scenario_params["version"]) || Version.default
   end
 
-  def protect
-    ApiScenario::SetCompatibility.keep_compatible(http_client, scenario_id)
-  end
-
-  # Version history in Etengine
-  def tag_new_version
-    ApiScenario::VersionTags::Create.call(http_client, scenario_id, '')
+  def enqueue_callbacks
+    SavedScenarioCallbacksJob.perform_later(
+      scenario_id,
+      user.id,
+      version.tag,
+      [ :protect, :set_roles, :tag_version ]
+    )
   end
 
   def failure

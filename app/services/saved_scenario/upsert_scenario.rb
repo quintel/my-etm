@@ -24,39 +24,30 @@ class SavedScenario::UpsertScenario
       ss.scenario_id = scenario_id
 
       unless ss.valid?
-        unprotect
+        enqueue_callbacks(ss.scenario_id_history.last,
+          [ :unprotect ]) if ss.scenario_id_history.last
         return failure
       end
-
-      protect
-
-      set_roles
-
-      tag_new_version
 
       ss.save
       saved_scenario.scenario_id = scenario_id
     end
+
+    enqueue_callbacks
 
     ServiceResult.success(saved_scenario)
   end
 
   private
 
-  def protect
-    ApiScenario::SetCompatibility.keep_compatible(http_client, scenario_id)
-  end
-
-  def unprotect
-    ApiScenario::SetCompatibility.dont_keep_compatible(http_client, scenario_id)
-  end
-
-  def set_roles
-    ApiScenario::SetRoles.to_preset(http_client, scenario_id)
-  end
-
-  def tag_new_version
-    ApiScenario::VersionTags::Create.call(http_client, scenario_id, '')
+  def enqueue_callbacks(target_scenario_id = scenario_id,
+    operations = [ :protect, :set_roles, :tag_version ])
+    SavedScenarioCallbacksJob.perform_later(
+      target_scenario_id,
+      saved_scenario.users.first&.id,
+      saved_scenario.version.tag,
+      operations
+    )
   end
 
   def failure

@@ -22,10 +22,10 @@ class SavedScenario::Restore
       return ServiceResult.success(saved_scenario) if discarded_scenarios.empty?
       return failure unless ss.valid?
 
-      discarded_scenarios.each { |id| unprotect(id) }
-
       ss.save
       saved_scenario.scenario_id = scenario_id
+
+      discarded_scenarios.each { |id| enqueue_unprotect(id) }
     end
 
     ServiceResult.success(saved_scenario)
@@ -33,8 +33,13 @@ class SavedScenario::Restore
 
   private
 
-  def unprotect(scenario_id)
-    ApiScenario::SetCompatibility.dont_keep_compatible(http_client, scenario_id)
+  def enqueue_unprotect(scenario_id)
+    SavedScenarioCallbacksJob.perform_later(
+      scenario_id,
+      saved_scenario.users.first&.id,
+      saved_scenario.version.tag,
+      [ :unprotect ]
+    )
   end
 
   def failure
