@@ -6,10 +6,10 @@ module ApiScenario
     class Create
       include Service
 
-      def initialize(http_client, scenario_id, scenario_user, invitation_args = nil)
+      def initialize(http_client, scenario_id, scenario_users, invitation_args = nil)
         @http_client = http_client
         @scenario_id = scenario_id
-        @scenario_user = scenario_user
+        @scenario_users = normalize_to_array(scenario_users)
         @invitation_args = invitation_args
       end
 
@@ -17,7 +17,7 @@ module ApiScenario
         ServiceResult.success(
           @http_client.post(
             "/api/v3/scenarios/#{@scenario_id}/users",
-            { scenario_users: [ @scenario_user ] }
+            { scenario_users: @scenario_users }
           ).body
         )
       rescue Faraday::ResourceNotFound
@@ -27,6 +27,12 @@ module ApiScenario
       rescue Faraday::Error => e
         Sentry.capture_exception(e)
         ServiceResult.failure("Failed to create scenario user: #{e.message}")
+      end
+
+      private
+
+      def normalize_to_array(scenario_users)
+        scenario_users.is_a?(Array) ? scenario_users : [ scenario_users ]
       end
     end
   end
