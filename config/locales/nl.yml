@@ -197,7 +197,7 @@ nl:
     manage_description: Hier kun je beheren wie toegang heeft tot jouw scenario en
       op welke manier. Klik op 'Anderen uitnodigen' om iemand toegang te geven tot
       jouw scenario of gebruik bovenstaande tabel om gekoppelde gebruikers te beheren.<br/><br/>
-      Zie de <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/managing-scenarios/scenario-access-management/"
+      Zie de <a class="underline hover:text-midnight-800" href="https://docs.energytransitionmodel.com/main/user_manual/managing-scenarios/scenario-manage-access"
       target=\"_blank\"> documentatie</a> voor meer informatie.
     name: Naam
     nameless: Naamloze gebruiker
