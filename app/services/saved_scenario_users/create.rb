@@ -41,16 +41,18 @@ class SavedScenarioUsers::Create
       end
     end
 
-    # Return failure if ANY user failed (no partial success)
-    return ServiceResult.failure(errors) unless errors.empty?
-
-    # Enqueue background job to update ETEngine scenarios
+    # Enqueue background job to update ETEngine scenarios for successful users
     enqueue_callbacks(created_users) if created_users.any?
 
-    # Send invitation emails
+    # Send invitation emails for successful users
     send_invitation_emails(created_users)
 
-    ServiceResult.success(created_users)
+    # Return partial success if some users failed
+    if errors.any?
+      ServiceResult.failure(errors, value: created_users)
+    else
+      ServiceResult.success(created_users)
+    end
   end
 
   private
@@ -60,17 +62,19 @@ class SavedScenarioUsers::Create
       user_params.merge(saved_scenario: saved_scenario)
     )
 
-    return ServiceResult.failure(saved_scenario_user.errors.messages.keys) unless saved_scenario_user.valid?
+    unless saved_scenario_user.valid?
+      return ServiceResult.failure({ user_params[:user_email] => saved_scenario_user.errors.full_messages })
+    end
 
     saved_scenario_user.couple_existing_user
     saved_scenario_user.save!
 
     ServiceResult.success(saved_scenario_user)
   rescue ActiveRecord::RecordNotUnique
-    ServiceResult.failure([ "duplicate" ])
+    ServiceResult.failure({ user_params[:user_email] => [ "duplicate" ] })
   rescue StandardError => e
     Sentry.capture_exception(e)
-    ServiceResult.failure([ e.message ])
+    ServiceResult.failure({ user_params[:user_email] => [ e.message ] })
   end
 
   def enqueue_callbacks(created_users)

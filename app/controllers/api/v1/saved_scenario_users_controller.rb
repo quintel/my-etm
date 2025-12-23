@@ -29,9 +29,15 @@ module Api
           @saved_scenario.reload
           render json: result.value, status: :created
         else
-          # Convert array of key-value pairs back to hash if needed
-          errors = result.errors.is_a?(Array) && result.errors.first.is_a?(Array) ? result.errors.to_h : result.errors
-          render json: { errors: errors }, status: :unprocessable_entity
+          errors = result.errors
+
+          # Partial success: return both successes and errors
+          if result.value.present?
+            @saved_scenario.reload
+            render json: { success: result.value, errors: errors }, status: :unprocessable_entity
+          else
+            render json: { errors: errors }, status: :unprocessable_entity
+          end
         end
       end
 
@@ -47,15 +53,19 @@ module Api
           @saved_scenario.reload
           render json: result.value, status: :ok
         else
-          # Convert array of key-value pairs back to hash if needed
-          errors = result.errors.is_a?(Array) && result.errors.first.is_a?(Array) ? result.errors.to_h : result.errors
+          errors = result.errors
 
-          # For single user updates that fail, return errors as an array
-          errors = errors.values.flatten if errors.is_a?(Hash) && errors.size == 1 && bulk_user_params.size == 1
 
           # Return 404 for "not found" errors
           status = errors_include_not_found?(errors) ? :not_found : :unprocessable_entity
-          render json: { errors: errors }, status: status
+
+          # Partial success: return both successes and errors
+          if result.value.present?
+            @saved_scenario.reload
+            render json: { success: result.value, errors: errors }, status: status
+          else
+            render json: { errors: errors }, status: status
+          end
         end
       end
 
@@ -70,9 +80,14 @@ module Api
         if result.successful?
           render json: result.value, status: :ok
         else
-          # Convert array of key-value pairs back to hash if needed
-          errors = result.errors.is_a?(Array) && result.errors.first.is_a?(Array) ? result.errors.to_h : result.errors
-          render json: { errors: errors }, status: :unprocessable_entity
+          errors = result.errors
+
+          # Partial success: return both successes and errors
+          if result.value.present?
+            render json: { success: result.value, errors: errors }, status: :unprocessable_entity
+          else
+            render json: { errors: errors }, status: :unprocessable_entity
+          end
         end
       end
 
