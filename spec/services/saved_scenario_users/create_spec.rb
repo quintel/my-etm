@@ -88,9 +88,16 @@ RSpec.describe SavedScenarioUsers::Create, type: :service do
         expect { service.call }.to change(saved_scenario.saved_scenario_users, :count).by(1)
       end
 
-      it 'does not enqueue callbacks' do
+      it 'enqueues callbacks for successful users only' do
         service.call
-        expect(SavedScenarioUserCallbacksJob).not_to have_received(:perform_later)
+        expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later)
+      end
+
+      it 'returns partial success with both successes and errors' do # rubocop:disable RSpec/MultipleExpectations
+        result = service.call
+        expect(result).not_to be_successful
+        expect(result.value).not_to be_empty # Successful users
+        expect(result.errors).not_to be_empty # Failed users
       end
     end
 
@@ -109,9 +116,9 @@ RSpec.describe SavedScenarioUsers::Create, type: :service do
         expect { service.call }.to change(saved_scenario.saved_scenario_users, :count).by(1)
       end
 
-      it 'does not enqueue callbacks' do
+      it 'enqueues callbacks for successful users only' do
         service.call
-        expect(SavedScenarioUserCallbacksJob).not_to have_received(:perform_later)
+        expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later)
       end
     end
 

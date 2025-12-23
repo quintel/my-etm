@@ -42,25 +42,35 @@ class SavedScenarioUsers::Update
       end
     end
 
-    # Return failure if ANY user failed (no partial success)
-    return ServiceResult.failure(errors) unless errors.empty?
-
-    # Enqueue background job to update ETEngine scenarios
+    # Enqueue background job to update ETEngine scenarios for successful users
     enqueue_callbacks(updated_users) if updated_users.any?
 
-    ServiceResult.success(updated_users)
+    # Return partial success if some users failed
+    if errors.any?
+      ServiceResult.failure(errors, value: updated_users)
+    else
+      ServiceResult.success(updated_users)
+    end
   end
 
   private
 
   def update_user(user_params)
     saved_scenario_user = find_saved_scenario_user(user_params)
-    return ServiceResult.failure([ "Saved scenario user not found" ]) unless saved_scenario_user
+    identifier = user_params[:id] || user_params[:user_id] || user_params[:user_email]
+
+    unless saved_scenario_user
+      return ServiceResult.failure({
+        identifier => [ "Saved scenario user not found" ]
+      })
+    end
 
     saved_scenario_user.role_id = user_params[:role_id]
 
     unless saved_scenario_user.valid?
-      return ServiceResult.failure(saved_scenario_user.errors.messages.keys)
+      return ServiceResult.failure({
+        identifier => saved_scenario_user.errors.full_messages
+      })
     end
 
     saved_scenario_user.save!
@@ -68,7 +78,9 @@ class SavedScenarioUsers::Update
     ServiceResult.success(saved_scenario_user)
   rescue StandardError => e
     Sentry.capture_exception(e)
-    ServiceResult.failure([ e.message ])
+    ServiceResult.failure({
+      identifier => [ e.message ]
+    })
   end
 
   def find_saved_scenario_user(user_params)

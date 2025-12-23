@@ -41,20 +41,25 @@ class SavedScenarioUsers::Destroy
       end
     end
 
-    # Return failure if ANY user failed (no partial success)
-    return ServiceResult.failure(errors) unless errors.empty?
-
-    # Enqueue background job to update ETEngine scenarios
+    # Enqueue background job to update ETEngine scenarios for successful users
     enqueue_callbacks(destroyed_users) if destroyed_users.any?
 
-    ServiceResult.success(destroyed_users)
+    # Return partial success if some users failed
+    if errors.any?
+      ServiceResult.failure(errors, value: destroyed_users)
+    else
+      ServiceResult.success(destroyed_users)
+    end
   end
 
   private
 
   def destroy_user(user_params)
     saved_scenario_user = find_saved_scenario_user(user_params)
-    return ServiceResult.failure([ "User not found" ]) unless saved_scenario_user
+    unless saved_scenario_user
+      identifier = user_params[:id] || user_params[:user_id] || user_params[:user_email]
+      return ServiceResult.failure({ identifier => [ "User not found" ] })
+    end
 
     # Store the data we need before destroying
     user_data = {
@@ -68,7 +73,8 @@ class SavedScenarioUsers::Destroy
     ServiceResult.success(user_data)
   rescue StandardError => e
     Sentry.capture_exception(e)
-    ServiceResult.failure([ e.message ])
+    identifier = user_params[:id] || user_params[:user_id] || user_params[:user_email]
+    ServiceResult.failure({ identifier => [ e.message ] })
   end
 
   def find_saved_scenario_user(user_params)
