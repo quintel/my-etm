@@ -54,9 +54,6 @@ module Api
           render json: result.value, status: :ok
         else
           errors = result.errors
-
-
-          # Return 404 for "not found" errors
           status = errors_include_not_found?(errors) ? :not_found : :unprocessable_entity
 
           # Partial success: return both successes and errors

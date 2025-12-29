@@ -9,7 +9,7 @@ class SavedScenarioHistory < Dry::Struct
   attribute :user_name,        Dry::Types["strict.string"]
   attribute :scenario_id, Dry::Types["strict.integer"]
   attribute :description,     Dry::Types["strict.string"]
-  attribute :updated_at,  Dry::Types["strict.string"]
+  attribute :updated_at,  Dry::Types["strict.string"].optional
   attribute :frozen,      Dry::Types["strict.bool"]
 
   attr_reader :errors

@@ -78,6 +78,10 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :collections, only: %i[index show create update destroy]
       resources :saved_scenarios, only: %i[index show create update destroy] do
+        collection do
+          get 'by_scenario/:scenario_id', action: :by_scenario
+        end
+
         resources :users, only: %i[index create], controller: 'saved_scenario_users' do
           collection do
             put :update

@@ -1,19 +1,7 @@
 # frozen_string_literal: true
 
-# Creates new users for a SavedScenario.
-#
-# Accepts bulk user creation - multiple users can be created in one call.
-# The service will:
-# 1. Create and validate SavedScenarioUser records
-# 2. Save them to the database
-# 3. Enqueue background callbacks to update ETEngine scenarios
-# 4. Send invitation emails
-#
-# saved_scenario - The SavedScenario to add users to
-# user_params_array - Array of hashes with user details:
-#   - user_email: Email of the user to invite
-#   - role_id: Role ID for the user
-# invitee_name - Name of the user sending the invitation
+# Creates new users for a SavedScenario and synchronizes permissions to ETEngine.
+# Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Returns a ServiceResult with the created SavedScenarioUsers.
 class SavedScenarioUsers::Create
@@ -27,7 +15,7 @@ class SavedScenarioUsers::Create
   param :user
 
   def call
-    return ServiceResult.failure([ "No users provided" ]) if user_params_array.blank?
+    return ServiceResult.failure("No users provided") if user_params_array.blank?
 
     created_users = []
     errors = {}
@@ -41,18 +29,20 @@ class SavedScenarioUsers::Create
       end
     end
 
-    # Enqueue background job to update ETEngine scenarios for successful users
-    enqueue_callbacks(created_users) if created_users.any?
+    if created_users.any?
+      enqueue_callbacks(created_users)
+    end
 
-    # Send invitation emails for successful users
     send_invitation_emails(created_users)
 
-    # Return partial success if some users failed
     if errors.any?
       ServiceResult.failure(errors, value: created_users)
     else
       ServiceResult.success(created_users)
     end
+  rescue MyEtm::Auth::SyncError => e
+    Sentry.capture_exception(e)
+    raise
   end
 
   private
@@ -75,6 +65,25 @@ class SavedScenarioUsers::Create
   rescue StandardError => e
     Sentry.capture_exception(e)
     ServiceResult.failure({ user_params[:user_email] => [ e.message ] })
+  end
+
+  def sync_current_scenario!(created_users)
+    scenario_users = created_users.map do |saved_scenario_user|
+      {
+        user_email: saved_scenario_user.email,
+        role: User::ROLES[saved_scenario_user.role_id]
+      }
+    end
+
+    result = ApiScenario::Users::Create.call(
+      http_client,
+      saved_scenario.scenario_id,
+      scenario_users
+    )
+
+    return if result.successful?
+
+    raise MyEtm::Auth::SyncError, "Failed to sync users to ETEngine: #{result.errors}"
   end
 
   def enqueue_callbacks(created_users)

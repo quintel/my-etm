@@ -5,9 +5,6 @@ module SavedScenarioUsers
   # Provides methods to apply user operations to current and historical scenarios
   module EngineOperations
     # Applies user operations to the current scenario
-    # @param operation [Symbol] :create, :update, or :destroy
-    # @param scenario_users [Array<Hash>] Array of user hashes
-    # @return [ServiceResult]
     def apply_to_current_scenario(operation, scenario_users)
       api_service_class(operation).call(
         http_client,
@@ -17,16 +14,20 @@ module SavedScenarioUsers
     end
 
     # Applies user operations to all historical scenarios in background
-    # @param operation [Symbol] :create, :update, or :destroy
-    # @param scenario_users [Array<Hash>] Array of user hashes
-    # @return [void]
     def apply_to_historical_scenarios(operation, scenario_users)
       saved_scenario.scenario_id_history.each do |scenario_id|
-        api_service_class(operation).call(
+        result = api_service_class(operation).call(
           http_client,
           scenario_id,
           scenario_users
         )
+
+        # Log failures but continue processing other scenarios
+        unless result.successful?
+          Rails.logger.warn(
+            "Failed to #{operation} users on historical scenario #{scenario_id}: #{result.errors}"
+          )
+        end
       end
     end
 

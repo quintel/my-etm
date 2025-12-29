@@ -521,7 +521,7 @@ PLATFORMS
 DEPENDENCIES
   activerecord-session_store
   bootsnap
-  brakeman
+  brakeman (>= 7.1.2)
   cancancan (~> 3.0)
   capybara
   config

@@ -1,20 +1,6 @@
 # frozen_string_literal: true
 
-# Updates roles for SavedScenario users.
-#
-# Accepts bulk user updates - multiple users can be updated in one call.
-# The service will:
-# 1. Find and update SavedScenarioUser records
-# 2. Save them to the database
-# 3. Enqueue background callbacks to update ETEngine scenarios
-#
-# saved_scenario - The SavedScenario containing the users
-# user_params_array - Array of hashes with user details:
-#   - id: SavedScenarioUser ID (optional)
-#   - user_id: User ID (optional, alternative to id)
-#   - user_email: User email (optional, alternative to id/user_id)
-#   - role_id: New role ID for the user
-# user - The user performing the update
+# Updates roles for SavedScenario users and synchronizes permissions to ETEngine.
 #
 # Returns a ServiceResult with the updated SavedScenarioUsers.
 class SavedScenarioUsers::Update
@@ -27,7 +13,7 @@ class SavedScenarioUsers::Update
   param :user
 
   def call
-    return ServiceResult.failure([ "No users provided" ]) if user_params_array.blank?
+    return ServiceResult.failure("No users provided") if user_params_array.blank?
 
     updated_users = []
     errors = {}
@@ -42,15 +28,18 @@ class SavedScenarioUsers::Update
       end
     end
 
-    # Enqueue background job to update ETEngine scenarios for successful users
-    enqueue_callbacks(updated_users) if updated_users.any?
+    if updated_users.any?
+      enqueue_callbacks(updated_users)
+    end
 
-    # Return partial success if some users failed
     if errors.any?
       ServiceResult.failure(errors, value: updated_users)
     else
       ServiceResult.success(updated_users)
     end
+  rescue MyEtm::Auth::SyncError => e
+    Sentry.capture_exception(e)
+    raise
   end
 
   private
@@ -91,6 +80,25 @@ class SavedScenarioUsers::Update
     elsif user_params[:user_email]
       saved_scenario.saved_scenario_users.find_by(user_email: user_params[:user_email])
     end
+  end
+
+  def sync_current_scenario!(updated_users)
+    scenario_users = updated_users.map do |saved_scenario_user|
+      {
+        user_id: saved_scenario_user.user_id,
+        role: User::ROLES[saved_scenario_user.role_id]
+      }
+    end
+
+    result = ApiScenario::Users::Update.call(
+      http_client,
+      saved_scenario.scenario_id,
+      scenario_users
+    )
+
+    return if result.successful?
+
+    raise MyEtm::Auth::SyncError, "Failed to sync users to ETEngine: #{result.errors}"
   end
 
   def enqueue_callbacks(updated_users)

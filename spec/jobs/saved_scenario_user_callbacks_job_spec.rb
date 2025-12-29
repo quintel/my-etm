@@ -34,7 +34,8 @@ RSpec.describe SavedScenarioUserCallbacksJob, type: :job do
       expect(SavedScenarioUsers::PerformEngineCallbacks).to have_received(:call).with(
         http_client,
         saved_scenario,
-        operations: operations
+        operations: operations,
+        historical_only: false
       )
     end
 

@@ -7,12 +7,6 @@
 # - type: :create, :update, or :destroy
 # - scenario_users: Array of user hashes
 #
-# Example:
-#   operations = [
-#     { type: :create, scenario_users: [{ user_email: 'test@example.com', role: 'scenario_viewer' }] },
-#     { type: :update, scenario_users: [{ user_id: 123, role: 'scenario_owner' }] }
-#   ]
-#
 # Returns a ServiceResult.
 class SavedScenarioUsers::PerformEngineCallbacks
   extend Dry::Initializer
@@ -22,6 +16,7 @@ class SavedScenarioUsers::PerformEngineCallbacks
   param :http_client
   param :saved_scenario
   option :operations, default: proc { [] }
+  option :historical_only, default: proc { false }
 
   def call
     operations.each do |operation|
@@ -41,11 +36,26 @@ class SavedScenarioUsers::PerformEngineCallbacks
 
     return if scenario_users.blank?
 
-    # Apply to current scenario first
-    result = apply_to_current_scenario(operation_type, scenario_users)
-    return unless result.successful?
+    unless historical_only
+      result = apply_to_current_scenario(operation_type, scenario_users)
 
-    # Then apply to all historical scenarios
+      unless result.successful?
+        Rails.logger.error(
+          "Failed to #{operation_type} users on current scenario #{saved_scenario.scenario_id}: #{result.errors}"
+        )
+        Sentry.capture_message(
+          "SavedScenarioUserCallbacks failed for current scenario",
+          extra: {
+            saved_scenario_id: saved_scenario.id,
+            scenario_id: saved_scenario.scenario_id,
+            operation: operation_type,
+            errors: result.errors
+          }
+        )
+        return
+      end
+    end
+
     apply_to_historical_scenarios(operation_type, scenario_users)
   end
 end

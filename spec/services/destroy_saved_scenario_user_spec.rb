@@ -65,6 +65,10 @@ describe DestroySavedScenarioUser, type: :service do
   context 'when the API response is unsuccessful' do
     let(:api_result) { ServiceResult.failure([ 'Nope' ]) }
 
+    before do
+      allow(ApiScenario::Users::Destroy).to receive(:call).and_return(api_result)
+    end
+
     it 'returns a ServiceResult' do
       expect(result).to be_a(ServiceResult)
     end
@@ -74,7 +78,7 @@ describe DestroySavedScenarioUser, type: :service do
     end
 
     it 'returns the scenario error messages' do
-      expect(result.errors).to eq([ 'Nope' ])
+      expect(result.errors).to eq([ 'sync_failed' ])
     end
   end
 end

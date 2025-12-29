@@ -1,12 +1,7 @@
 # frozen_string_literal: true
 
-# Creates a new user for a SavedScenario based on the given existing saved_scenario_id and
-# then adds it to the current API scenario and all the old API scenarios in the history.
-#
-# saved_scenario  - The scenario to be updated
-# invitee_name    - The name of the user inviting this user.
-# settings        - Settings that contain info for the new user
-#
+# Creates a new user for a SavedScenario and synchronizes permissions to ETEngine.
+# Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Returns a ServiceResult with the resulting SavedScenarioUser.
 class CreateSavedScenarioUser
@@ -22,18 +17,19 @@ class CreateSavedScenarioUser
     return failure unless saved_scenario_user.valid?
     saved_scenario_user.couple_existing_user
 
-    return current_scenario_result if current_scenario_result.failure?
-
-    email_result = send_invitation_email
-    return email_result if email_result.failure?
-
-    return historical_scenarios_result if historical_scenarios_result.failure?
-
-    saved_scenario_user.save
+    ActiveRecord::Base.transaction do
+      sync_current_scenario!
+      saved_scenario_user.save!
+      send_invitation_email
+      enqueue_historical_sync
+    end
 
     ServiceResult.success(saved_scenario_user)
   rescue ActiveRecord::RecordNotUnique
     ServiceResult.failure("duplicate")
+  rescue MyEtm::Auth::SyncError => e
+    Sentry.capture_exception(e)
+    ServiceResult.failure([ "sync_failed" ])
   end
 
   private
@@ -49,15 +45,6 @@ class CreateSavedScenarioUser
   end
 
   def send_invitation_email
-    invitation_mail_for(saved_scenario_user)
-    ServiceResult.success
-  rescue StandardError => e
-    Rails.logger.error("Failed to send invitation email: #{e.message}")
-    ServiceResult.failure(["email_failed"])
-  end
-
-  # Sends an invitation email to the user notifying them they were added to a scenario.
-  def invitation_mail_for(saved_scenario_user)
     ScenarioInvitationMailer.invite_user(
       saved_scenario_user.email,
       invitee_name,
@@ -68,27 +55,33 @@ class CreateSavedScenarioUser
       },
       name: saved_scenario_user.name
     ).deliver_now
+  rescue StandardError => e
+    Rails.logger.error("Failed to send invitation email: #{e.message}")
+    Sentry.capture_exception(e)
   end
 
-  def current_scenario_result
-    @current_scenario_result ||= ApiScenario::Users::Create.call(
+  def sync_current_scenario!
+    result = ApiScenario::Users::Create.call(
       http_client, saved_scenario.scenario_id, api_user_params
     )
+
+    return if result.successful?
+
+    raise MyEtm::Auth::SyncError, "Failed to sync user to ETEngine: #{result.errors}"
   end
 
-  # Update historical scenarios. If one fails, just move on to the next
-  def api_response_historical_scenarios
-    saved_scenario.scenario_id_history.each do |scenario_id|
-      ApiScenario::Users::Create.call(
-        http_client, scenario_id, api_user_params
-      )
-    end
+  def enqueue_historical_sync
+    return if saved_scenario.scenario_id_history.blank?
 
-    ServiceResult.success
-  end
+    user_id = saved_scenario.users.first&.id
+    raise "No user found for SavedScenario #{saved_scenario.id}" unless user_id
 
-  def historical_scenarios_result
-    @historical_scenarios_result ||= api_response_historical_scenarios
+    SavedScenarioUserCallbacksJob.perform_later(
+      saved_scenario.id,
+      user_id,
+      saved_scenario.version.tag,
+      [ { type: :create, scenario_users: [ api_user_params ] } ]
+    )
   end
 
   def api_user_params

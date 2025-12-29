@@ -180,6 +180,8 @@ RSpec.describe SavedScenarioUsers::PerformEngineCallbacks, type: :service do
         allow(ApiScenario::Users::Create)
           .to receive(:call)
           .and_return(ServiceResult.failure('Error'))
+        allow(Rails.logger).to receive(:error)
+        allow(Sentry).to receive(:capture_message)
       end
 
       it 'does not apply to historical scenarios' do
@@ -187,6 +189,70 @@ RSpec.describe SavedScenarioUsers::PerformEngineCallbacks, type: :service do
 
         # Only called once for current scenario, not for historical
         expect(ApiScenario::Users::Create).to have_received(:call).once
+      end
+
+      it 'logs the error' do
+        service.call
+
+        expect(Rails.logger).to have_received(:error).with(
+          a_string_matching(/Failed to create users on current scenario 100/)
+        )
+      end
+
+      it 'sends error to Sentry' do
+        service.call
+
+        expect(Sentry).to have_received(:capture_message).with(
+          "SavedScenarioUserCallbacks failed for current scenario",
+          hash_including(
+            extra: hash_including(
+              saved_scenario_id: saved_scenario.id,
+              scenario_id: 100,
+              operation: :create
+            )
+          )
+        )
+      end
+    end
+
+    context 'when historical scenario operation fails' do
+      before do
+        allow(ApiScenario::Users::Create)
+          .to receive(:call)
+          .with(http_client, 100, anything)
+          .and_return(ServiceResult.success)
+        allow(ApiScenario::Users::Create)
+          .to receive(:call)
+          .with(http_client, 101, anything)
+          .and_return(ServiceResult.failure({ 'test@example.com' => [ 'User already exists' ] }))
+        allow(ApiScenario::Users::Create)
+          .to receive(:call)
+          .with(http_client, 102, anything)
+          .and_return(ServiceResult.success)
+        allow(Rails.logger).to receive(:warn)
+      end
+
+      it 'continues processing other historical scenarios' do
+        service.call
+
+        # Should be called for all scenarios despite failure on 101
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 100, anything)
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 101, anything)
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 102, anything)
+      end
+
+      it 'logs a warning for failed historical scenarios' do
+        service.call
+
+        expect(Rails.logger).to have_received(:warn).with(
+          a_string_matching(/Failed to create users on historical scenario 101/)
+        )
+      end
+
+      it 'returns success overall (idempotent behavior)' do
+        result = service.call
+
+        expect(result).to be_successful
       end
     end
 
