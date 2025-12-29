@@ -20,6 +20,7 @@ RSpec.describe SavedScenarioUsers::Update, type: :service do
 
   before do
     allow(SavedScenarioUserCallbacksJob).to receive(:perform_later)
+    allow(ApiScenario::Users::Update).to receive(:call).and_return(ServiceResult.success)
   end
 
   describe '#call' do

@@ -8,7 +8,7 @@ module Api
       # GET /saved_scenarios or /saved_scenarios.json
       def index
         base =
-          if params[:scope] == 'all'
+          if params[:scope] == "all"
             SavedScenario.accessible_by(current_ability)
           elsif current_user
             current_user
@@ -67,6 +67,20 @@ module Api
           render json: { message: "Scenario deleted successfully" }, status: :ok
         else
           render json: { error: "Failed to delete scenario" }, status: :unprocessable_entity
+        end
+      end
+
+      # GET /api/v1/saved_scenarios/by_scenario/:scenario_id
+      #
+      # Finds a SavedScenario by its ETEngine scenario_id.
+      # Used by ETEngine to check if a preset scenario has a SavedScenario.
+      def by_scenario
+        saved_scenario = SavedScenario.find_by(scenario_id: params[:scenario_id])
+
+        if saved_scenario
+          render json: { id: saved_scenario.id }
+        else
+          head :not_found
         end
       end
 

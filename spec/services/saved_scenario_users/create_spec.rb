@@ -19,6 +19,7 @@ RSpec.describe SavedScenarioUsers::Create, type: :service do
   before do
     allow(SavedScenarioUserCallbacksJob).to receive(:perform_later)
     allow(ScenarioInvitationMailer).to receive(:invite_user).and_call_original
+    allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
   end
 
   describe '#call' do

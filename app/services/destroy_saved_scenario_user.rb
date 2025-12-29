@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-# Destroys a user for a SavedScenario based on the given existing saved_scenario and
-# then removes them from the current API scenario and all the old API scenarios in the history.
-#
-# saved_scenario        - The saved scenario to be updated
-# saved_scenario_user   - The saved scenario user to be removed
-#
+# Removes a user from a SavedScenario and synchronizes permissions to ETEngine.
+# Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Returns a ServiceResult.
 class DestroySavedScenarioUser
@@ -17,15 +13,20 @@ class DestroySavedScenarioUser
   param :saved_scenario_user
 
   def call
-    return api_response if failure?
+    ActiveRecord::Base.transaction do
+      sync_current_scenario!
 
-    if saved_scenario_user.destroy
-      return historical_scenarios_result if historical_scenarios_result.failure?
+      unless saved_scenario_user.destroy
+        return ServiceResult.failure(saved_scenario_user.errors.map(&:type))
+      end
 
-      api_response
-    else
-      ServiceResult.failure(saved_scenario_user.errors.map(&:type))
+      enqueue_historical_sync
     end
+
+    ServiceResult.success(saved_scenario_user)
+  rescue MyEtm::Auth::SyncError => e
+    Sentry.capture_exception(e)
+    ServiceResult.failure([ "sync_failed" ])
   end
 
   private
@@ -38,31 +39,29 @@ class DestroySavedScenarioUser
     }
   end
 
-  # Destroy the user in ETEngine for the current scenario
-  def api_response
-    @api_response ||= ApiScenario::Users::Destroy.call(
+  def sync_current_scenario!
+    result = ApiScenario::Users::Destroy.call(
       http_client,
       saved_scenario.scenario_id,
       api_user_params
     )
+
+    return if result.successful?
+
+    raise MyEtm::Auth::SyncError, "Failed to sync user deletion to ETEngine: #{result.errors}"
   end
 
-  def failure?
-    api_response.failure?
-  end
+  def enqueue_historical_sync
+    return if saved_scenario.scenario_id_history.blank?
 
-  # Update historical scenarios. If one fails, just continue.
-  def api_response_historical_scenarios
-    saved_scenario.scenario_id_history.each do |scenario_id|
-      ApiScenario::Users::Destroy.call(
-        http_client, scenario_id, api_user_params
-      )
-    end
+    user_id = saved_scenario.users.first&.id
+    raise "No user found for SavedScenario #{saved_scenario.id}" unless user_id
 
-    ServiceResult.success
-  end
-
-  def historical_scenarios_result
-    @historical_scenarios_result = api_response_historical_scenarios
+    SavedScenarioUserCallbacksJob.perform_later(
+      saved_scenario.id,
+      user_id,
+      saved_scenario.version.tag,
+      [ { type: :destroy, scenario_users: [ api_user_params ] } ]
+    )
   end
 end

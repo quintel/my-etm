@@ -1,19 +1,7 @@
 # frozen_string_literal: true
 
-# Destroys users from a SavedScenario.
-#
-# Accepts bulk user deletion - multiple users can be deleted in one call.
-# The service will:
-# 1. Find SavedScenarioUser records
-# 2. Delete them from the database
-# 3. Enqueue background callbacks to update ETEngine scenarios
-#
-# saved_scenario - The SavedScenario containing the users
-# user_params_array - Array of hashes with user identifiers:
-#   - id: SavedScenarioUser ID (optional)
-#   - user_id: User ID (optional, alternative to id)
-#   - user_email: User email (optional, alternative to id/user_id)
-# user - The user performing the deletion
+# Destroys users from a SavedScenario and synchronizes permissions to ETEngine.
+# Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Returns a ServiceResult with the destroyed SavedScenarioUsers.
 class SavedScenarioUsers::Destroy
@@ -26,7 +14,7 @@ class SavedScenarioUsers::Destroy
   param :user
 
   def call
-    return ServiceResult.failure([ "No users provided" ]) if user_params_array.blank?
+    return ServiceResult.failure("No users provided") if user_params_array.blank?
 
     destroyed_users = []
     errors = {}
@@ -41,15 +29,18 @@ class SavedScenarioUsers::Destroy
       end
     end
 
-    # Enqueue background job to update ETEngine scenarios for successful users
-    enqueue_callbacks(destroyed_users) if destroyed_users.any?
+    if destroyed_users.any?
+      enqueue_callbacks(destroyed_users)
+    end
 
-    # Return partial success if some users failed
     if errors.any?
       ServiceResult.failure(errors, value: destroyed_users)
     else
       ServiceResult.success(destroyed_users)
     end
+  rescue MyEtm::Auth::SyncError => e
+    Sentry.capture_exception(e)
+    raise
   end
 
   private
@@ -85,6 +76,26 @@ class SavedScenarioUsers::Destroy
     elsif user_params[:user_email]
       saved_scenario.saved_scenario_users.find_by(user_email: user_params[:user_email])
     end
+  end
+
+  def sync_current_scenario!(destroyed_users)
+    scenario_users = destroyed_users.map do |user_data|
+      {
+        user_id: user_data[:user_id],
+        user_email: user_data[:user_email],
+        role: user_data[:role]
+      }
+    end
+
+    result = ApiScenario::Users::Destroy.call(
+      http_client,
+      saved_scenario.scenario_id,
+      scenario_users
+    )
+
+    return if result.successful?
+
+    raise MyEtm::Auth::SyncError, "Failed to sync users to ETEngine: #{result.errors}"
   end
 
   def enqueue_callbacks(destroyed_users)

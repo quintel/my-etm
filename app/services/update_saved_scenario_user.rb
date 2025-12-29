@@ -1,12 +1,7 @@
 # frozen_string_literal: true
 
-# Updates a role for a user for a SavedScenario based on the given existing saved_scenario and
-# then updates them for the current API scenario and all the old API scenarios in the history.
-#
-# saved_scenario        - The saved scenario to be updated
-# saved_scenario_user   - The saved scenario user to be updated
-# role_id               - Settings that contain update info for the user
-#
+# Updates a user's role for a SavedScenario and synchronizes permissions to ETEngine.
+# Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Returns a ServiceResult.
 class UpdateSavedScenarioUser
@@ -20,12 +15,22 @@ class UpdateSavedScenarioUser
 
   def call
     saved_scenario_user.role_id = role_id
+    return failure unless saved_scenario_user.valid?
 
-    return api_response if failure?
-    return failure unless saved_scenario_user.save
-    return historical_scenarios_result if historical_scenarios_result.failure?
+    ActiveRecord::Base.transaction do
+      sync_current_scenario!
+
+      unless saved_scenario_user.save
+        return failure
+      end
+
+      enqueue_historical_sync
+    end
 
     ServiceResult.success(saved_scenario_user)
+  rescue MyEtm::Auth::SyncError => e
+    Sentry.capture_exception(e)
+    ServiceResult.failure([ "sync_failed" ])
   end
 
   private
@@ -41,31 +46,29 @@ class UpdateSavedScenarioUser
     }
   end
 
-  # Update the user in ETEngine for the current scenario
-  def api_response
-    @api_response ||= ApiScenario::Users::Update.call(
+  def sync_current_scenario!
+    result = ApiScenario::Users::Update.call(
       http_client,
       saved_scenario.scenario_id,
       api_user_params
     )
+
+    return if result.successful?
+
+    raise MyEtm::Auth::SyncError, "Failed to sync user update to ETEngine: #{result.errors}"
   end
 
-  def failure?
-    api_response.failure?
-  end
+  def enqueue_historical_sync
+    return if saved_scenario.scenario_id_history.blank?
 
-  # Update historical scenarios. If one fails, just continue.
-  def api_response_historical_scenarios
-    saved_scenario.scenario_id_history.each do |scenario_id|
-      ApiScenario::Users::Update.call(
-        http_client, scenario_id, api_user_params
-      )
-    end
+    user_id = saved_scenario.users.first&.id
+    raise "No user found for SavedScenario #{saved_scenario.id}" unless user_id
 
-    ServiceResult.success
-  end
-
-  def historical_scenarios_result
-    @historical_scenarios_result = api_response_historical_scenarios
+    SavedScenarioUserCallbacksJob.perform_later(
+      saved_scenario.id,
+      user_id,
+      saved_scenario.version.tag,
+      [ { type: :update, scenario_users: [ api_user_params ] } ]
+    )
   end
 end
