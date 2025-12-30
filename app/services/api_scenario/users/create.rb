@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# Creates a new ScenarioUser for an ApiScenario
+# Creates ScenarioUser(s) for an ApiScenario
+# Expects scenario_users to be an array
 module ApiScenario
   module Users
     class Create
@@ -9,7 +10,7 @@ module ApiScenario
       def initialize(http_client, scenario_id, scenario_users, invitation_args = nil)
         @http_client = http_client
         @scenario_id = scenario_id
-        @scenario_users = normalize_to_array(scenario_users)
+        @scenario_users = scenario_users
         @invitation_args = invitation_args
       end
 
@@ -27,12 +28,6 @@ module ApiScenario
       rescue Faraday::Error => e
         Sentry.capture_exception(e)
         ServiceResult.failure("Failed to create scenario user: #{e.message}")
-      end
-
-      private
-
-      def normalize_to_array(scenario_users)
-        scenario_users.is_a?(Array) ? scenario_users : [ scenario_users ]
       end
     end
   end

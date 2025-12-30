@@ -57,7 +57,8 @@ class SavedScenario::Create
       scenario_id,
       user.id,
       version.tag,
-      [ :protect, :set_roles, :tag_version ]
+      [ :protect, :set_roles, :tag_version ],
+      saved_scenario_id: saved_scenario.id
     )
   end
 

@@ -9,22 +9,6 @@ RSpec.describe ApiScenario::Users::Destroy, type: :service do
   let(:response) { instance_double(Faraday::Response, body: response_body) }
 
   describe '#call' do
-    context 'with a single user hash' do
-      let(:scenario_user) { { user_email: 'test@example.com' } }
-      let(:service) { described_class.new(http_client, scenario_id, scenario_user) }
-
-      it 'normalizes single user to array and makes API call' do # rubocop:disable RSpec/MultipleExpectations
-        expect(http_client).to receive(:delete).with(
-          "/api/v3/scenarios/#{scenario_id}/users",
-          { scenario_users: [ scenario_user ] }
-        ).and_return(response)
-
-        result = service.call
-        expect(result).to be_successful
-        expect(result.value).to eq(response_body)
-      end
-    end
-
     context 'with an array of users' do
       let(:scenario_users) do
         [
@@ -48,8 +32,8 @@ RSpec.describe ApiScenario::Users::Destroy, type: :service do
     end
 
     context 'when scenario is not found' do
-      let(:scenario_user) { { user_email: 'test@example.com' } }
-      let(:service) { described_class.new(http_client, scenario_id, scenario_user) }
+      let(:scenario_users) { [ { user_email: 'test@example.com' } ] }
+      let(:service) { described_class.new(http_client, scenario_id, scenario_users) }
 
       it 'returns a failure result' do # rubocop:disable RSpec/MultipleExpectations
         allow(http_client).to receive(:delete).and_raise(Faraday::ResourceNotFound.new('not found'))
@@ -61,8 +45,8 @@ RSpec.describe ApiScenario::Users::Destroy, type: :service do
     end
 
     context 'when validation fails' do
-      let(:scenario_user) { { user_email: 'test@example.com' } }
-      let(:service) { described_class.new(http_client, scenario_id, scenario_user) }
+      let(:scenario_users) { [ { user_email: 'test@example.com' } ] }
+      let(:service) { described_class.new(http_client, scenario_id, scenario_users) }
 
       it 'returns a failure result with errors' do
         error_response = instance_double(Faraday::Response)

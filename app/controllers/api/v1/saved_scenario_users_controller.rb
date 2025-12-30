@@ -17,19 +17,19 @@ module Api
       end
 
       def create
-        result = SavedScenarioUsers::Create.call(
+        result = CreateSavedScenarioUser.call(
           engine_client,
           @saved_scenario,
-          bulk_user_params,
           current_user.name,
-          current_user
+          bulk_user_params,
+          user: current_user
         )
 
         if result.successful?
           @saved_scenario.reload
           render json: result.value, status: :created
         else
-          errors = result.errors
+          errors = normalize_errors(result.errors)
 
           # Partial success: return both successes and errors
           if result.value.present?
@@ -42,18 +42,19 @@ module Api
       end
 
       def update
-        result = SavedScenarioUsers::Update.call(
+        result = UpdateSavedScenarioUser.call(
           engine_client,
           @saved_scenario,
           bulk_user_params,
-          current_user
+          nil,
+          user: current_user
         )
 
         if result.successful?
           @saved_scenario.reload
           render json: result.value, status: :ok
         else
-          errors = result.errors
+          errors = normalize_errors(result.errors)
           status = errors_include_not_found?(errors) ? :not_found : :unprocessable_entity
 
           # Partial success: return both successes and errors
@@ -67,17 +68,17 @@ module Api
       end
 
       def destroy
-        result = SavedScenarioUsers::Destroy.call(
+        result = DestroySavedScenarioUser.call(
           engine_client,
           @saved_scenario,
           bulk_user_params,
-          current_user
+          user: current_user
         )
 
         if result.successful?
           render json: result.value, status: :ok
         else
-          errors = result.errors
+          errors = normalize_errors(result.errors)
 
           # Partial success: return both successes and errors
           if result.value.present?
@@ -89,6 +90,16 @@ module Api
       end
 
       private
+
+      def normalize_errors(errors)
+        # ServiceResult wraps hash errors in Array(), converting them to [[key, value], ...]
+        # Convert back to hash format for API response
+        if errors.is_a?(Array) && errors.first.is_a?(Array)
+          errors.to_h
+        else
+          errors
+        end
+      end
 
       def errors_include_not_found?(errors)
         return false unless errors.is_a?(Hash) || errors.is_a?(Array)
