@@ -4,8 +4,9 @@ RSpec.describe SavedScenarioUserCallbacksJob, type: :job do
   describe '#perform' do
     let(:user) { create(:user) }
     let(:version) { create(:version) }
-    let(:saved_scenario) { create(:saved_scenario, user: user, version: version) }
+    let(:saved_scenario) { create(:saved_scenario, user: user, version: version, scenario_id: 100) }
     let(:http_client) { instance_double(Faraday::Connection) }
+    let(:api_service) { instance_double(ApiScenario::Users::Create) }
     let(:operations) do
       [
         {
@@ -19,7 +20,7 @@ RSpec.describe SavedScenarioUserCallbacksJob, type: :job do
 
     before do
       allow(MyEtm::Auth).to receive(:engine_client).with(user, version).and_return(http_client)
-      allow(SavedScenarioUsers::PerformEngineCallbacks).to receive(:call)
+      allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
     end
 
     it 'finds the user, saved_scenario, and version' do
@@ -28,15 +29,30 @@ RSpec.describe SavedScenarioUserCallbacksJob, type: :job do
       expect(MyEtm::Auth).to have_received(:engine_client).with(user, version)
     end
 
-    it 'calls SavedScenarioUsers::PerformEngineCallbacks with correct arguments' do
+    it 'calls the API service to apply operations to current scenario' do
       described_class.perform_now(saved_scenario.id, user.id, version.tag, operations)
 
-      expect(SavedScenarioUsers::PerformEngineCallbacks).to have_received(:call).with(
+      expect(ApiScenario::Users::Create).to have_received(:call).with(
         http_client,
-        saved_scenario,
-        operations: operations,
-        historical_only: false
+        saved_scenario.scenario_id,
+        [ { user_email: 'test@example.com', role: 'scenario_viewer' } ]
       )
+    end
+
+    context 'with historical scenarios' do
+      let(:saved_scenario) do
+        create(:saved_scenario, user: user, version: version, scenario_id: 100,
+          scenario_id_history: [ 99, 98 ])
+      end
+
+      it 'applies operations to all historical scenarios' do
+        described_class.perform_now(saved_scenario.id, user.id, version.tag, operations)
+
+        expect(ApiScenario::Users::Create).to have_received(:call).exactly(3).times
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 100, anything)
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 99, anything)
+        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 98, anything)
+      end
     end
 
     context 'when version tag is not found' do

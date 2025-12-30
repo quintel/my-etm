@@ -6,7 +6,7 @@ class SavedScenarioCallbacksJob < ApplicationJob
   queue_as :default
 
   def perform(scenario_id, user_id, version_tag,
-    operations = [ :protect, :set_roles, :tag_version ])
+    operations = [ :protect, :set_roles, :tag_version ], saved_scenario_id: nil)
     user = User.find(user_id)
     version = Version.find_by(tag: version_tag) || Version.default
     http_client = MyEtm::Auth.engine_client(user, version)
@@ -14,7 +14,8 @@ class SavedScenarioCallbacksJob < ApplicationJob
     SavedScenario::PerformEngineCallbacks.call(
       http_client,
       scenario_id,
-      operations: operations.map(&:to_sym)
+      operations: operations.map(&:to_sym),
+      saved_scenario_id: saved_scenario_id
     )
   end
 end

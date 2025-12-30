@@ -70,20 +70,6 @@ module Api
         end
       end
 
-      # GET /api/v1/saved_scenarios/by_scenario/:scenario_id
-      #
-      # Finds a SavedScenario by its ETEngine scenario_id.
-      # Used by ETEngine to check if a preset scenario has a SavedScenario.
-      def by_scenario
-        saved_scenario = SavedScenario.find_by(scenario_id: params[:scenario_id])
-
-        if saved_scenario
-          render json: { id: saved_scenario.id }
-        else
-          head :not_found
-        end
-      end
-
       private
 
       # Only allow a list of trusted parameters through.

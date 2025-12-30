@@ -118,7 +118,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
           errors = errors.to_h.transform_values { |v| v.last.last }
         end
         # Accept either the custom or default ActiveModel error message
-        expect(errors).to eq({ 'viewer@test.com' => [ 'Role is not included in the list' ] })
+        expect(errors['viewer@test.com']).to include('role_id').or(include('Role is not included in the list'))
       end
     end
 

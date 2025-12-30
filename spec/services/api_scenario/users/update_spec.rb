@@ -9,22 +9,6 @@ RSpec.describe ApiScenario::Users::Update, type: :service do
   let(:response) { instance_double(Faraday::Response, body: response_body) }
 
   describe '#call' do
-    context 'with a single user hash' do
-      let(:scenario_user) { { user_id: 1, role: 'scenario_owner' } }
-      let(:service) { described_class.new(http_client, scenario_id, scenario_user) }
-
-      it 'normalizes single user to array and makes API call' do # rubocop:disable RSpec/MultipleExpectations
-        expect(http_client).to receive(:put).with(
-          "/api/v3/scenarios/#{scenario_id}/users",
-          { scenario_users: [ scenario_user ] }
-        ).and_return(response)
-
-        result = service.call
-        expect(result).to be_successful
-        expect(result.value).to eq(response_body)
-      end
-    end
-
     context 'with an array of users' do
       let(:scenario_users) do
         [
@@ -53,8 +37,8 @@ RSpec.describe ApiScenario::Users::Update, type: :service do
     end
 
     context 'when scenario is not found' do
-      let(:scenario_user) { { user_id: 1, role: 'scenario_owner' } }
-      let(:service) { described_class.new(http_client, scenario_id, scenario_user) }
+      let(:scenario_users) { [ { user_id: 1, role: 'scenario_owner' } ] }
+      let(:service) { described_class.new(http_client, scenario_id, scenario_users) }
 
       it 'returns a failure result' do # rubocop:disable RSpec/MultipleExpectations
         allow(http_client).to receive(:put).and_raise(Faraday::ResourceNotFound.new('not found'))
@@ -66,8 +50,8 @@ RSpec.describe ApiScenario::Users::Update, type: :service do
     end
 
     context 'when access is forbidden' do
-      let(:scenario_user) { { user_id: 1, role: 'scenario_owner' } }
-      let(:service) { described_class.new(http_client, scenario_id, scenario_user) }
+      let(:scenario_users) { [ { user_id: 1, role: 'scenario_owner' } ] }
+      let(:service) { described_class.new(http_client, scenario_id, scenario_users) }
 
       it 'returns a failure result' do # rubocop:disable RSpec/MultipleExpectations
         allow(http_client).to receive(:put).and_raise(Faraday::ForbiddenError.new('forbidden'))

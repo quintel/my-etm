@@ -2,7 +2,6 @@
 
 # Enqueues ETEngine callbacks after SavedScenarioUsers are created/updated/destroyed.
 # Processes both current and historical scenarios asynchronously to avoid circular dependencies.
-# Delegates to SavedScenarioUsers::PerformEngineCallbacks for the actual work.
 class SavedScenarioUserCallbacksJob < ApplicationJob
   queue_as :default
 
@@ -25,12 +24,57 @@ class SavedScenarioUserCallbacksJob < ApplicationJob
     version = Version.find_by(tag: version_tag) || Version.default
     http_client = MyEtm::Auth.engine_client(user, version)
 
-    # Process ALL scenarios (current + historical) asynchronously
-    SavedScenarioUsers::PerformEngineCallbacks.call(
-      http_client,
-      saved_scenario,
-      operations: operations,
-      historical_only: false
-    )
+    operations.each do |operation|
+      perform_operation(http_client, saved_scenario, operation)
+    end
+  rescue StandardError => e
+    Sentry.capture_exception(e)
+    Rails.logger.error("Failed to perform engine callbacks: #{e.message}")
+    raise
+  end
+
+  private
+
+  def perform_operation(http_client, saved_scenario, operation)
+    operation_type = operation[:type] || operation["type"]
+    scenario_users = operation[:scenario_users] || operation["scenario_users"]
+
+    return if scenario_users.blank?
+
+    # Apply to current scenario
+    result = apply_to_scenario(http_client, saved_scenario.scenario_id, operation_type,
+      scenario_users)
+
+    unless result.successful?
+      Rails.logger.error(
+        "Failed to #{operation_type} users on current scenario #{saved_scenario.scenario_id}: #{result.errors}"
+      )
+      Sentry.capture_message(
+        "SavedScenarioUserCallbacks failed for current scenario",
+        extra: {
+          saved_scenario_id: saved_scenario.id,
+          scenario_id: saved_scenario.scenario_id,
+          operation: operation_type,
+          errors: result.errors
+        }
+      )
+      return
+    end
+
+    # Apply to historical scenarios
+    saved_scenario.scenario_id_history.each do |scenario_id|
+      result = apply_to_scenario(http_client, scenario_id, operation_type, scenario_users)
+
+      unless result.successful?
+        Rails.logger.warn(
+          "Failed to #{operation_type} users on historical scenario #{scenario_id}: #{result.errors}"
+        )
+      end
+    end
+  end
+
+  def apply_to_scenario(http_client, scenario_id, operation_type, scenario_users)
+    api_service_class = ApiScenario::Users.const_get(operation_type.to_s.classify)
+    api_service_class.call(http_client, scenario_id, scenario_users)
   end
 end
