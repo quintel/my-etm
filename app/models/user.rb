@@ -68,9 +68,19 @@ class User < ApplicationRecord
   end
 
   def couple_saved_scenario_users
+    coupled_users = SavedScenarioUser
+      .where(user_email: email, user_id: nil)
+      .to_a
+
+    return if coupled_users.empty?
+
+    # Update SavedScenarioUsers to point to this user
     SavedScenarioUser
       .where(user_email: email, user_id: nil)
       .update_all(user_id: id, user_email: nil)
+
+    # Sync to ETEngine asynchronously
+    CoupleUsersToEngineJob.perform_later(id, email, coupled_users.map(&:saved_scenario_id).uniq)
   end
 
   # Finds or creates a user from a JWT token.
