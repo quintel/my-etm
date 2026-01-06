@@ -3,7 +3,7 @@
 class PasswordFieldComponent < InputComponent
   include CssClasses
 
-  DEFAULT_CLASSES = %w[!pr-12].freeze
+  DEFAULT_CLASSES = %w[w-full !pr-12].freeze
 
   def initialize(form:, name:, **attributes)
     super

@@ -13,11 +13,12 @@
   </div>
 
   <div class="mb-4">
-    <%= render(Login::FloatingFieldComponent.new(form: f, name: :password, type: :password, title: t('activerecord.attributes.user.password'))) do |c| %>
-      <% c.field do %>
+    <div class="floating-label-field flex flex-col">
+      <%= f.label :password, t('activerecord.attributes.user.password'), class: "pb-2 text-midnight-400 text-sm transition-all" %>
+      <div class="relative">
         <%= render(PasswordFieldComponent.new(form: f, name: :password, autocomplete: "current-password", class: "peer mb-1", placeholder: t('activerecord.attributes.user.password'), required: true)) %>
-      <% end %>
-    <% end %>
+      </div>
+    </div>
 
     <%= link_to t('.forgot_password'), new_password_path(resource_name), class: "text-sm p-1 -m-1 mt-2 inline-block hover:underline" %>
   </div>

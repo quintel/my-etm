@@ -18,12 +18,24 @@
     <%= render(Login::FloatingFieldComponent.new(form: f, name: :email, type: :email, title: t('activerecord.attributes.user.email'), autocomplete: "email", required: true)) %>
   </div>
 
-  <div class="mb-4">
-    <%= render(Login::FloatingFieldComponent.new(form: f, name: :password, type: :password, title: t('activerecord.attributes.user.password'))) do |c| %>
-      <% c.field do %>
-        <%= render(PasswordFieldComponent.new(form: f, name: :password, autocomplete: "new-password", class: "peer mb-1", placeholder: t('activerecord.attributes.user.password'), required: true)) %>
-      <% end %>
-    <% end %>
+  <div data-controller="password-confirmation" data-password-confirmation-mismatch-message-value="<%= t('activerecord.attributes.user.password_mismatch') %>">
+    <div class="mb-4">
+      <div class="floating-label-field flex flex-col">
+        <%= f.label :password, t('activerecord.attributes.user.password'), class: "pb-2 text-midnight-400 text-sm transition-all" %>
+        <div class="relative">
+          <%= render(PasswordFieldComponent.new(form: f, name: :password, autocomplete: "new-password", class: "peer mb-1", placeholder: t('activerecord.attributes.user.password'), required: true, data: { password_confirmation_target: "password", action: "input->password-confirmation#validate" })) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <div class="floating-label-field flex flex-col">
+        <%= f.label :password_confirmation, t('activerecord.attributes.user.password_confirmation'), class: "pb-2 text-midnight-400 text-sm transition-all" %>
+        <div class="relative">
+          <%= render(PasswordFieldComponent.new(form: f, name: :password_confirmation, autocomplete: "new-password", class: "peer mb-1", placeholder: t('activerecord.attributes.user.password_confirmation'), required: true, data: { password_confirmation_target: "confirmation", action: "input->password-confirmation#validate" })) %>
+        </div>
+      </div>
+    </div>
   </div>
 
 <%= recaptcha_v3(action: 'signup', script: true) if Settings.recaptcha&.site_key.present? && Settings.recaptcha&.secret_key.present? %>
@@ -33,9 +45,9 @@
 
 <p class="terms-agreement text-sm text-gray-600 mt-4 text-center">
   By signing up, you agree to our
-  <a href="https://energytransitionmodel.com/terms-of-service" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Terms of Service</a>
+  <a href="https://my.energytransitionmodel.com/terms" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Terms of Service</a>
   and
-  <a href="https://energytransitionmodel.com/privacy-policy" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Privacy Policy</a>.
+  <a href="https://my.energytransitionmodel.com/privacy" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">Privacy Policy</a>.
 </p>
 
 <%= render "devise/shared/links" %>

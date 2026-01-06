@@ -8,6 +8,7 @@ en:
         name: Your name
         password: Password
         password_confirmation: Re-enter password
+        password_mismatch: Passwords don't match
         unconfirmed_email: New e-mail address
   collections:
     all: View all collections
