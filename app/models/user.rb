@@ -79,7 +79,6 @@ class User < ApplicationRecord
       .where(user_email: email, user_id: nil)
       .update_all(user_id: id, user_email: nil)
 
-    # Sync to ETEngine asynchronously
     CoupleUsersToEngineJob.perform_later(id, email, coupled_users.map(&:saved_scenario_id).uniq)
   end
 

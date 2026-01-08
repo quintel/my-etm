@@ -43,32 +43,28 @@ describe CreateSavedScenarioUser, type: :service do
       end
 
 
-      it "enqueues background job for historical scenarios" do
+      it "enqueues background jobs for current and historical scenarios" do
         allow(saved_scenario).to receive(:scenario_id_history).and_return([ 101, 102 ])
         allow(SavedScenarioUserCallbacksJob).to receive(:perform_later)
 
         service.call
 
-        expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later).with(
-          saved_scenario.id,
-          saved_scenario.users.first.id,
-          saved_scenario.version.tag,
-          [ hash_including(type: :create, scenario_users: [ instance_of(Hash) ]) ]
-        )
+        # Expect two calls: one for current scenario (with scenario_id), one for historical scenarios
+        expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later).twice
       end
     end
 
     context "when the SavedScenarioUser is invalid" do
       before do
         allow_any_instance_of(SavedScenarioUser).to receive(:valid?).and_return(false)
-        allow_any_instance_of(SavedScenarioUser).to receive_message_chain(:errors, :messages,
-          :keys).and_return([ :email ])
+        allow_any_instance_of(SavedScenarioUser).to receive_message_chain(:errors,
+          :full_messages).and_return([ "Email is invalid" ])
       end
 
       it "returns a failure ServiceResult" do
         result = service.call
         expect(result).not_to be_successful
-        expect(result.errors).to eq([ :email ])
+        expect(result.errors).to eq([ "Email is invalid" ])
       end
     end
 

@@ -122,9 +122,19 @@ module Api
 
       def scenario_user_params(user_params)
         user = User.find(user_params[:user_id]) if user_params[:user_id].present?
+        role_sym = user_params.try(:[], :role).try(:to_sym)
+        role_id = User::ROLES.key(role_sym)
+
+        if role_id.nil? && role_sym.present?
+          Rails.logger.warn(
+            "Failed to find role_id for role: #{role_sym.inspect}. " \
+            "Valid roles: #{User::ROLES.values.inspect}"
+          )
+        end
+
         {
           id: user_params[:id]&.to_i,
-          role_id: User::ROLES.key(user_params.try(:[], :role).try(:to_sym)),
+          role_id: role_id,
           user_id: user&.id,
           user_email: user&.email || user_params.try(:[], :user_email)
         }

@@ -52,33 +52,13 @@ describe DestroySavedScenarioUser, type: :service do
     end
 
     it 'returns the scenario error messages' do
-      expect(result.errors).to eq([ :ownership ])
+      expect(result.errors).to eq([ "Last owner cannot be altered" ])
     end
 
     it 'does not change the owner of the the SavedScenario' do
       expect { result }.not_to change(
         saved_scenario.saved_scenario_users, :count
         )
-    end
-  end
-
-  context 'when the API response is unsuccessful' do
-    let(:api_result) { ServiceResult.failure([ 'Nope' ]) }
-
-    before do
-      allow(ApiScenario::Users::Destroy).to receive(:call).and_return(api_result)
-    end
-
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
-
-    it 'is not successful' do
-      expect(result).not_to be_successful
-    end
-
-    it 'returns the scenario error messages' do
-      expect(result.errors).to eq([ 'sync_failed' ])
     end
   end
 end

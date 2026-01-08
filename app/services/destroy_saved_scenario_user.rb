@@ -31,16 +31,12 @@ class DestroySavedScenarioUser
           errors[identifier] = result.errors
         end
       end
-
-      sync_current_scenario!(destroyed_users) if destroyed_users.any?
     end
 
+    enqueue_current_scenario_sync(destroyed_users) if destroyed_users.any?
     enqueue_historical_sync(destroyed_users) if destroyed_users.any?
 
     return_result(destroyed_users, errors)
-  rescue MyEtm::Auth::SyncError => e
-    Sentry.capture_exception(e)
-    ServiceResult.failure([ "sync_failed" ])
   end
 
   private
@@ -77,7 +73,7 @@ class DestroySavedScenarioUser
     }
 
     unless saved_scenario_user.destroy
-      return ServiceResult.failure(saved_scenario_user.errors.map(&:type))
+      return ServiceResult.failure(saved_scenario_user.errors.full_messages)
     end
 
     ServiceResult.success(user_data)
@@ -100,7 +96,10 @@ class DestroySavedScenarioUser
     user_params[:id] || user_params[:user_id] || user_params[:user_email] || saved_scenario_user&.id
   end
 
-  def sync_current_scenario!(destroyed_users)
+  def enqueue_current_scenario_sync(destroyed_users)
+    user_id = user&.id || saved_scenario.users.first&.id
+    return unless user_id
+
     scenario_users = destroyed_users.map do |user_data|
       {
         user_id: user_data[:user_id],
@@ -109,15 +108,13 @@ class DestroySavedScenarioUser
       }
     end
 
-    result = ApiScenario::Users::Destroy.call(
-      http_client,
-      saved_scenario.scenario_id,
-      scenario_users
+    SavedScenarioUserCallbacksJob.perform_later(
+      saved_scenario.id,
+      user_id,
+      saved_scenario.version.tag,
+      [ { type: :destroy, scenario_users: scenario_users,
+          scenario_id: saved_scenario.scenario_id } ]
     )
-
-    return if result.successful?
-
-    raise MyEtm::Auth::SyncError, "Failed to sync users to ETEngine: #{result.errors}"
   end
 
   def enqueue_historical_sync(destroyed_users)

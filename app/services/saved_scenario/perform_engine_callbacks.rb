@@ -16,7 +16,7 @@ class SavedScenario::PerformEngineCallbacks
   param :http_client
   param :scenario_id
   option :operations, default: proc { [ :protect, :set_roles, :tag_version ] }
-  option :saved_scenario_id, optional: true
+  option :saved_scenario, optional: true
 
   def call
     operations.each { |op| perform_operation(op) }
@@ -33,7 +33,7 @@ class SavedScenario::PerformEngineCallbacks
       ApiScenario::SetRoles.to_preset(
         http_client,
         scenario_id,
-        saved_scenario_id: saved_scenario_id
+        saved_scenario: saved_scenario
       )
     when :tag_version
       ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")

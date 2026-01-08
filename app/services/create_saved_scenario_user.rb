@@ -31,17 +31,13 @@ class CreateSavedScenarioUser
           errors[user_params[:user_email] || user_params["user_email"]] = result.errors
         end
       end
-
-      sync_current_scenario!(created_users) if created_users.any?
     end
 
+    enqueue_current_scenario_sync(created_users) if created_users.any?
     enqueue_historical_sync(created_users) if created_users.any?
     send_invitation_emails(created_users)
 
     return_result(created_users, errors)
-  rescue MyEtm::Auth::SyncError => e
-    Sentry.capture_exception(e)
-    ServiceResult.failure([ "sync_failed" ])
   end
 
   private
@@ -52,7 +48,7 @@ class CreateSavedScenarioUser
     )
 
     unless saved_scenario_user.valid?
-      return ServiceResult.failure(saved_scenario_user.errors.messages.keys)
+      return ServiceResult.failure(saved_scenario_user.errors.full_messages)
     end
 
     saved_scenario_user.couple_existing_user
@@ -66,20 +62,20 @@ class CreateSavedScenarioUser
     ServiceResult.failure([ e.message ])
   end
 
-  def sync_current_scenario!(created_users)
-    scenario_users = created_users.map do |user|
-      { user_email: user.email, role: User::ROLES[user.role_id] }
+  def enqueue_current_scenario_sync(created_users)
+    user_id = user&.id || saved_scenario.users.first&.id
+    return unless user_id
+
+    scenario_users = created_users.map do |u|
+      { user_email: u.email, role: User::ROLES[u.role_id] }
     end
 
-    result = ApiScenario::Users::Create.call(
-      http_client,
-      saved_scenario.scenario_id,
-      scenario_users
+    SavedScenarioUserCallbacksJob.perform_later(
+      saved_scenario.id,
+      user_id,
+      saved_scenario.version.tag,
+      [ { type: :create, scenario_users: scenario_users, scenario_id: saved_scenario.scenario_id } ]
     )
-
-    return if result.successful?
-
-    raise MyEtm::Auth::SyncError, "Failed to sync users to ETEngine: #{result.errors}"
   end
 
   def enqueue_historical_sync(created_users)

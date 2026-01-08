@@ -11,11 +11,13 @@ class SavedScenarioCallbacksJob < ApplicationJob
     version = Version.find_by(tag: version_tag) || Version.default
     http_client = MyEtm::Auth.engine_client(user, version)
 
+    saved_scenario = saved_scenario_id ? SavedScenario.find(saved_scenario_id) : nil
+
     SavedScenario::PerformEngineCallbacks.call(
       http_client,
       scenario_id,
       operations: operations.map(&:to_sym),
-      saved_scenario_id: saved_scenario_id
+      saved_scenario: saved_scenario
     )
   end
 end

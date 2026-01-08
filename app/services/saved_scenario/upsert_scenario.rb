@@ -55,7 +55,7 @@ class SavedScenario::UpsertScenario
     ApiScenario::SetRoles.to_preset(
       http_client,
       scenario_id,
-      saved_scenario_id: saved_scenario.id
+      saved_scenario: saved_scenario
     )
   end
 

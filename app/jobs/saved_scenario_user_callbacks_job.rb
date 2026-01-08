@@ -38,22 +38,22 @@ class SavedScenarioUserCallbacksJob < ApplicationJob
   def perform_operation(http_client, saved_scenario, operation)
     operation_type = operation[:type] || operation["type"]
     scenario_users = operation[:scenario_users] || operation["scenario_users"]
+    scenario_id = operation[:scenario_id] || operation["scenario_id"] || saved_scenario.scenario_id
 
     return if scenario_users.blank?
 
-    # Apply to current scenario
-    result = apply_to_scenario(http_client, saved_scenario.scenario_id, operation_type,
-      scenario_users)
+    # Apply to current scenario (or specific scenario if provided)
+    result = apply_to_scenario(http_client, scenario_id, operation_type, scenario_users)
 
     unless result.successful?
       Rails.logger.error(
-        "Failed to #{operation_type} users on current scenario #{saved_scenario.scenario_id}: #{result.errors}"
+        "Failed to #{operation_type} users on scenario #{scenario_id}: #{result.errors}"
       )
       Sentry.capture_message(
-        "SavedScenarioUserCallbacks failed for current scenario",
+        "SavedScenarioUserCallbacks failed",
         extra: {
           saved_scenario_id: saved_scenario.id,
-          scenario_id: saved_scenario.scenario_id,
+          scenario_id: scenario_id,
           operation: operation_type,
           errors: result.errors
         }
@@ -61,16 +61,18 @@ class SavedScenarioUserCallbacksJob < ApplicationJob
       return
     end
 
-    # Apply to historical scenarios
-    saved_scenario.scenario_id_history.each do |scenario_id|
-      result = apply_to_scenario(http_client, scenario_id, operation_type, scenario_users)
+    # Only apply to historical scenarios if no specific scenario_id was provided
+    return unless (operation[:scenario_id] || operation["scenario_id"]).nil?
+      saved_scenario.scenario_id_history.each do |historical_scenario_id|
+        result = apply_to_scenario(http_client, historical_scenario_id, operation_type,
+          scenario_users)
 
-      unless result.successful?
-        Rails.logger.warn(
-          "Failed to #{operation_type} users on historical scenario #{scenario_id}: #{result.errors}"
-        )
+        unless result.successful?
+          Rails.logger.warn(
+            "Failed to #{operation_type} users on historical scenario #{historical_scenario_id}: #{result.errors}"
+          )
+        end
       end
-    end
   end
 
   def apply_to_scenario(http_client, scenario_id, operation_type, scenario_users)
