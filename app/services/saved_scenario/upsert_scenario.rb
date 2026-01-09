@@ -52,11 +52,15 @@ class SavedScenario::UpsertScenario
   end
 
   def set_roles
-    ApiScenario::SetRoles.to_preset(http_client, scenario_id)
+    ApiScenario::SetRoles.to_preset(
+      http_client,
+      scenario_id,
+      saved_scenario: saved_scenario
+    )
   end
 
   def tag_new_version
-    ApiScenario::VersionTags::Create.call(http_client, scenario_id, '')
+    ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")
   end
 
   def failure

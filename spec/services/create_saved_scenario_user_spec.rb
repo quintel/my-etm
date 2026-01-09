@@ -43,27 +43,28 @@ describe CreateSavedScenarioUser, type: :service do
       end
 
 
-      it "updates historical scenarios" do
-        allow(saved_scenario).to receive(:scenario_id_history).and_return([101, 102])
-        allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
+      it "enqueues background jobs for current and historical scenarios" do
+        allow(saved_scenario).to receive(:scenario_id_history).and_return([ 101, 102 ])
+        allow(SavedScenarioUserCallbacksJob).to receive(:perform_later)
 
         service.call
 
-        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 101, instance_of(Hash))
-        expect(ApiScenario::Users::Create).to have_received(:call).with(http_client, 102, instance_of(Hash))
+        # Expect two calls: one for current scenario (with scenario_id), one for historical scenarios
+        expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later).twice
       end
     end
 
     context "when the SavedScenarioUser is invalid" do
       before do
         allow_any_instance_of(SavedScenarioUser).to receive(:valid?).and_return(false)
-        allow_any_instance_of(SavedScenarioUser).to receive_message_chain(:errors, :messages, :keys).and_return([:email])
+        allow_any_instance_of(SavedScenarioUser).to receive_message_chain(:errors,
+          :full_messages).and_return([ "Email is invalid" ])
       end
 
       it "returns a failure ServiceResult" do
         result = service.call
         expect(result).not_to be_successful
-        expect(result.errors).to eq([:email])
+        expect(result.errors).to eq([ "Email is invalid" ])
       end
     end
 
@@ -92,7 +93,7 @@ describe CreateSavedScenarioUser, type: :service do
       it 'returns a failure ServiceResult with "duplicate" error' do
         result = service.call
         expect(result).not_to be_successful
-        expect(result.errors).to eq(["duplicate"])
+        expect(result.errors).to eq([ "duplicate" ])
       end
     end
 

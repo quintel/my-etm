@@ -16,102 +16,128 @@ module Api
         render json: @saved_scenario.saved_scenario_users
       end
 
-      # TODO: Bundle and send all at once to the engine API!
-      # To complete these TODOs: Create bulk create, update and destroy service objects
       def create
-        handle_saved_scenario_users do |user_params|
-          CreateSavedScenarioUser.call(
-            engine_client, @saved_scenario, current_user.name, user_params
-          )
-        end
-        if errors.empty?
+        result = CreateSavedScenarioUser.call(
+          engine_client,
+          @saved_scenario,
+          current_user.name,
+          bulk_user_params,
+          user: current_user
+        )
+
+        if result.successful?
           @saved_scenario.reload
-          render json: @succesfull_users, status: :created
+          render json: result.value, status: :created
         else
-          render json: { success: @succesfull_users, errors: errors }, status: :unprocessable_entity
+          errors = normalize_errors(result.errors)
+
+          # Partial success: return both successes and errors
+          if result.value.present?
+            @saved_scenario.reload
+            render json: { success: result.value, errors: errors }, status: :unprocessable_entity
+          else
+            render json: { errors: errors }, status: :unprocessable_entity
+          end
         end
       end
 
-      # TODO: Bundle and send all at once to the engine API!
       def update
-        handle_saved_scenario_users do |user_params|
-          UpdateSavedScenarioUser.call(
-            engine_client,
-            @saved_scenario,
-            find_saved_scenario_user(user_params),
-            user_params[:role_id]&.to_i
-          )
-        end
-        if errors.empty?
+        result = UpdateSavedScenarioUser.call(
+          engine_client,
+          @saved_scenario,
+          bulk_user_params,
+          nil,
+          user: current_user
+        )
+
+        if result.successful?
           @saved_scenario.reload
-          render json: @succesfull_users, status: :ok
+          render json: result.value, status: :ok
         else
-          render json: { success: @succesfull_users, errors: errors }, status: :unprocessable_entity
+          errors = normalize_errors(result.errors)
+          status = errors_include_not_found?(errors) ? :not_found : :unprocessable_entity
+
+          # Partial success: return both successes and errors
+          if result.value.present?
+            @saved_scenario.reload
+            render json: { success: result.value, errors: errors }, status: status
+          else
+            render json: { errors: errors }, status: status
+          end
         end
       end
 
-      # TODO: Bundle and send all at once to the engine API!
       def destroy
-        handle_saved_scenario_users do |user_params|
-          DestroySavedScenarioUser.call(
-            engine_client,
-            @saved_scenario,
-            find_saved_scenario_user(user_params)
-          )
-        end
-        if errors.empty?
-          render json: @succesfull_users, status: :ok
+        result = DestroySavedScenarioUser.call(
+          engine_client,
+          @saved_scenario,
+          bulk_user_params,
+          user: current_user
+        )
+
+        if result.successful?
+          render json: result.value, status: :ok
         else
-          render json: { success: @succesfull_users, errors: errors }, status: :unprocessable_entity
+          errors = normalize_errors(result.errors)
+
+          # Partial success: return both successes and errors
+          if result.value.present?
+            render json: { success: result.value, errors: errors }, status: :unprocessable_entity
+          else
+            render json: { errors: errors }, status: :unprocessable_entity
+          end
         end
       end
 
       private
 
-      def permitted_params
-        params.permit(:saved_scenario_id, saved_scenario_users: [%i[id role user_id user_email]])
+      def normalize_errors(errors)
+        # ServiceResult wraps hash errors in Array(), converting them to [[key, value], ...]
+        # Convert back to hash format for API response
+        if errors.is_a?(Array) && errors.first.is_a?(Array)
+          errors.to_h
+        else
+          errors
+        end
       end
 
-      # TODO: Improve method
-      def handle_saved_scenario_users
-        @succesfull_users = permitted_params[:saved_scenario_users].filter_map do |user_params|
-          user_params = scenario_user_params(user_params)
-          result = yield user_params
-          if result.successful?
-            result.value
-          else
-            add_error(user_params[:user_email], result.errors)
-            nil
-          end
+      def errors_include_not_found?(errors)
+        return false unless errors.is_a?(Hash) || errors.is_a?(Array)
+
+        errors_str = errors.to_s.downcase
+        errors_str.include?("not found")
+      end
+
+      def permitted_params
+        params.permit(:saved_scenario_id, saved_scenario_users: [ %i[id role user_id user_email] ])
+      end
+
+      def bulk_user_params
+        return [] unless permitted_params[:saved_scenario_users]
+
+        permitted_params[:saved_scenario_users].map do |user_params|
+          scenario_user_params(user_params)
         end
       end
 
       def scenario_user_params(user_params)
         user = User.find(user_params[:user_id]) if user_params[:user_id].present?
+        role_sym = user_params.try(:[], :role).try(:to_sym)
+        role_id = User::ROLES.key(role_sym)
+
+        if role_id.nil? && role_sym.present?
+          Rails.logger.warn(
+            "Failed to find role_id for role: #{role_sym.inspect}. " \
+            "Valid roles: #{User::ROLES.values.inspect}"
+          )
+        end
+
         {
           id: user_params[:id]&.to_i,
-          role_id: User::ROLES.key(user_params.try(:[], :role).try(:to_sym)),
+          role_id: role_id,
           user_id: user&.id,
           user_email: user&.email || user_params.try(:[], :user_email)
         }
-      end
-
-      def find_saved_scenario_user(user_params)
-        if user_params[:id]
-          @saved_scenario.saved_scenario_users.find(user_params[:id])
-        elsif user_params[:user_id]
-          @saved_scenario.saved_scenario_users.find_by!(user_id: user_params[:user_id])
-        else
-          @saved_scenario.saved_scenario_users.find_by!(user_email: user_params[:user_email])
-        end
-      end
-
-      def errors
-        @errors ||= {}
-      end
-
-      def add_error(user_label, message)
-        errors[user_label] = message
       end
 
       def engine_client

@@ -8,7 +8,7 @@ module Api
       # GET /saved_scenarios or /saved_scenarios.json
       def index
         base =
-          if params[:scope] == 'all'
+          if params[:scope] == "all"
             SavedScenario.accessible_by(current_ability)
           elsif current_user
             current_user

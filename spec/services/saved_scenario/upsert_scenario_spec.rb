@@ -8,23 +8,29 @@ describe SavedScenario::UpsertScenario, type: :service do
   let(:result) { described_class.call(client, saved_scenario, 10) }
   let(:old_id) { 648_695 }
   let!(:saved_scenario) do
-    FactoryBot.create :saved_scenario,
-                      user: user,
-                      id: old_id
+    FactoryBot.create(:saved_scenario,
+      user: user,
+      id: old_id)
   end
 
   before do
     allow(client).to receive(:put).with(
-      '/api/v3/scenarios/10', scenario: { keep_compatible: true }
+      '/api/v3/scenarios/10', { scenario: { keep_compatible: true } }
     )
     allow(client).to receive(:put).with(
-      '/api/v3/scenarios/oops', scenario: { keep_compatible: false }
+      '/api/v3/scenarios/oops', { scenario: { keep_compatible: false } }
     )
     allow(client).to receive(:put).with(
-      '/api/v3/scenarios/10', scenario: { set_preset_roles: true }
+      '/api/v3/scenarios/10',
+      hash_including(
+        scenario: hash_including(
+          metadata: { saved_scenario_id: old_id },
+          preset_scenario_users: kind_of(Array)
+        )
+      )
     )
     allow(client).to receive(:post).with(
-      '/api/v3/scenarios/10/version', { :description => "" }
+      '/api/v3/scenarios/10/version', { description: "" }
     )
   end
 
@@ -40,7 +46,7 @@ describe SavedScenario::UpsertScenario, type: :service do
     describe '#value' do
       subject { result.value }
 
-      it { is_expected.to be_a SavedScenario }
+      it { is_expected.to be_a(SavedScenario) }
       it 'contains a new scenario' do
         expect(subject.scenario_id).not_to eq(old_id)
       end
@@ -58,7 +64,7 @@ describe SavedScenario::UpsertScenario, type: :service do
       expect { result }.to(
         change(saved_scenario, :scenario_id_history)
           .from([])
-          .to([648_695])
+          .to([ 648_695 ])
       )
     end
   end

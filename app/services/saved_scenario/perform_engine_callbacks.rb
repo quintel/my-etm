@@ -16,6 +16,7 @@ class SavedScenario::PerformEngineCallbacks
   param :http_client
   param :scenario_id
   option :operations, default: proc { [ :protect, :set_roles, :tag_version ] }
+  option :saved_scenario, optional: true
 
   def call
     operations.each { |op| perform_operation(op) }
@@ -29,7 +30,11 @@ class SavedScenario::PerformEngineCallbacks
     when :protect
       ApiScenario::SetCompatibility.keep_compatible(http_client, scenario_id)
     when :set_roles
-      ApiScenario::SetRoles.to_preset(http_client, scenario_id)
+      ApiScenario::SetRoles.to_preset(
+        http_client,
+        scenario_id,
+        saved_scenario: saved_scenario
+      )
     when :tag_version
       ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")
     when :unprotect
