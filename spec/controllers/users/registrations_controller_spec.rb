@@ -68,5 +68,31 @@ RSpec.describe Users::RegistrationsController, type: :request do
         end
       end
     end
+
+    context "when password confirmation does not match" do
+      let(:invalid_params) do
+        {
+          user: {
+            name: "John Doe",
+            email: "newuser@quintel.com",
+            password: "securepassword",
+            password_confirmation: "differentpassword"
+          }
+        }
+      end
+
+      before do
+        allow(Settings.recaptcha).to receive(:site_key).and_return(nil)
+        allow(Settings.recaptcha).to receive(:secret_key).and_return(nil)
+      end
+
+      it "does not create a user" do
+        expect {
+          post user_registration_path, params: invalid_params
+        }.not_to change(User, :count)
+
+        expect(response.body).to include("Re-enter password doesn&#39;t match Password")
+      end
+    end
   end
 end
