@@ -176,10 +176,10 @@ class Collection < ApplicationRecord
   end
 
   def validate_interpolated
-    # Ensure interpolated collections (AKA transition paths) have no saved scenarios
+    # Ensure interpolated collections (AKA transition paths) have one saved scenario
     active_saved_scenarios = collection_saved_scenarios.reject(&:marked_for_destruction?)
-    if self.interpolated? && active_saved_scenarios.size > 1
-      errors.add(:scenarios, "interpolated collections cannot have more than 1 saved scenario")
+    if self.interpolated? && active_saved_scenarios.size != 1
+      errors.add(:scenarios, "interpolated collections must have exactly 1 saved scenario")
     end
   end
 
