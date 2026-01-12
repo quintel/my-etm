@@ -44,6 +44,9 @@ module MyEtm
       g.test_framework  :rspec, fixture: false
     end
 
+    # Disable wrapping fields with errors in a div (breaks form styling)
+    config.action_view.field_error_proc = proc { |html_tag, _instance| html_tag }
+
     # Mail
     if (email_conf = Rails.root.join('config/email.yml')).file?
       email_env_conf = YAML.load_file(email_conf)[Rails.env]

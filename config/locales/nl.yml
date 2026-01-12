@@ -8,6 +8,7 @@ nl:
         name: Jouw naam
         password: Wachtwoord
         password_confirmation: Voer wachtwoord nogmaals in
+        password_mismatch: Wachtwoorden komen niet overeen
         unconfirmed_email: Nieuw e-mailadres
   collections:
     all: Bekijk alle collecties
