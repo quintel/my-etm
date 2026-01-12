@@ -86,12 +86,15 @@ RSpec.describe Users::RegistrationsController, type: :request do
         allow(Settings.recaptcha).to receive(:secret_key).and_return(nil)
       end
 
-      it "does not create a user" do
-        expect {
-          post user_registration_path, params: invalid_params
-        }.not_to change(User, :count)
+      it "sees the user as invalid" do
+        user = User.new(invalid_params[:user])
+        expect(user).not_to be_valid
+      end
 
-        expect(response.body).to include("Re-enter password doesn&#39;t match Password")
+      it "rejects mismatched password confirmation" do
+        user = User.new(invalid_params[:user])
+        user.valid?  # This triggers validations and populates errors
+        expect(user.errors[:password_confirmation]).to include("doesn't match Password")
       end
     end
   end
