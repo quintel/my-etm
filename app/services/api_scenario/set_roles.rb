@@ -15,7 +15,7 @@ module ApiScenario::SetRoles
     params = { scenario: {} }
 
     if saved_scenario
-      params[:scenario][:preset_scenario_users] = build_user_params(saved_scenario)
+      params[:scenario][:saved_scenario_users] = build_user_params(saved_scenario)
       params[:scenario][:metadata] = { saved_scenario_id: saved_scenario.id }
     else
       params[:scenario][:set_preset_roles] = true
