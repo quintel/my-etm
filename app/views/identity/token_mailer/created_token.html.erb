@@ -77,10 +77,11 @@
     .logo-container h2 {
       font-weight: 300;
       font-size: 16px;
+      display: inline-block;
+      vertical-align: middle;
     }
     .logo {
       height: 33px;
-      filter: brightness(0.25);
       display: inline-block;
       vertical-align: middle;
       margin-right: 4px;
@@ -94,7 +95,7 @@
         <%= email_inline_image_tag("header/logo-round-dark.png",
             class: "logo",
             alt: "ETM Logo") %>
-        <h2 style="display: inline-block;vertical-align: middle;"><%=I18n.t('meta.title')%></h2>
+        <h2><%=I18n.t('meta.title')%></h2>
       </div>
       <h1>You just created a new personal access token for the Energy Transition Model.</h1>
     </div>

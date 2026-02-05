@@ -74,20 +74,22 @@
     }
     .logo-container {
       height: 50px;
-      display: flex;
       color: #462c34;
-      align-items: center;
-      justify-content: center;
-      gap: 13px;
+      align-content: center;
+      vertical-align: middle;
       margin-bottom: 2rem;
     }
     .logo-container h2 {
       font-weight: 300;
       font-size: 16px;
+      display: inline-block;
+      vertical-align: middle;
     }
     .logo {
       height: 33px;
-      filter: brightness(0.25);
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 4px;
     }
     .dark {
       color: #462c34;
@@ -99,7 +101,7 @@
   <div class="container">
     <div class="header">
       <div class="logo-container">
-        <%= email_inline_image_tag("header/logo-round.png",
+        <%= email_inline_image_tag("header/logo-round-dark.png",
             class: "logo",
             alt: "ETM Logo") %>
         <h2><%=I18n.t('meta.title')%></h2>
