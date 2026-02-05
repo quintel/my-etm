@@ -62,11 +62,9 @@
     }
     .logo-container {
       height: 50px;
-      display: flex;
       color: #462c34;
-      align-items: center;
-      justify-content: center;
-      gap: 13px;
+      align-content: center;
+      vertical-align: middle;
       margin-bottom: 2rem;
     }
     .logo-container h2 {
@@ -76,6 +74,9 @@
     .logo {
       height: 33px;
       filter: brightness(0.25);
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 4px;
     }
   </style>
 </head>
@@ -83,22 +84,20 @@
   <div class="container">
     <div class="header">
       <div class="logo-container">
-        <%= email_inline_image_tag("header/logo-round.png",
+        <%= email_inline_image_tag("header/logo-round-dark.png",
             class: "logo",
             alt: "ETM Logo") %>
-        <h2><%=I18n.t('meta.title')%></h2>
+        <h2 style="display: inline-block;vertical-align: middle;"><%=I18n.t('meta.title')%></h2>
       </div>
       <h1>You just created a new personal access token for the Energy Transition Model.</h1>
     </div>
     <div class="info">
-      <p style="display:flex;flex-direction:column">
-        <span class="soft">Token name</span>
-        <%= @token.name %>
-        <span class="soft">Expires at</span>
-        <%= l(@access_token.expires_at, format: :long) %>
-        <span class="soft">Token permissions</span>
-        <%= token_permissions(@access_token).html_safe %>
-      </p>
+      <p class="soft">Token name</p>
+      <p><%= @token.name %></p>
+      <p class="soft">Expires at</p>
+      <p><%= l(@access_token.expires_at, format: :long) %></p>
+      <p class="soft">Token permissions</p>
+      <p><%= token_permissions(@access_token).html_safe %></p>
     </div>
     <div class="header">
       <p>
