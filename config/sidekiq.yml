@@ -1,0 +1,29 @@
+# Sidekiq configuration
+# https://github.com/mperham/sidekiq/wiki/Advanced-Options
+
+# Queue priority configuration
+# Higher numbers = higher priority (processed first)
+:queues:
+  - [mailers, 10]
+  - [default, 5]
+
+# Concurrency: number of threads processing jobs simultaneously
+# Adjust based on your server resources and database connection pool
+:concurrency: 5
+
+# How long to wait before timing out a job (in seconds)
+:timeout: 25
+
+# Logging
+:verbose: false
+:logfile: ./log/sidekiq.log
+
+# Production settings (can be overridden with REDIS_URL env var)
+:production:
+  :concurrency: 10
+  :timeout: 25
+
+# Development settings
+:development:
+  :concurrency: 2
+  :timeout: 25
