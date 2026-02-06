@@ -25,7 +25,7 @@ describe SavedScenario::UpsertScenario, type: :service do
       hash_including(
         scenario: hash_including(
           metadata: { saved_scenario_id: old_id },
-          preset_scenario_users: kind_of(Array)
+          saved_scenario_users: kind_of(Array)
         )
       )
     )

@@ -18,7 +18,7 @@ describe SavedScenario::Update, type: :service do
       hash_including(
         scenario: hash_including(
           metadata: { saved_scenario_id: saved_scenario.id },
-          preset_scenario_users: kind_of(Array)
+          saved_scenario_users: kind_of(Array)
         )
       )
     )
