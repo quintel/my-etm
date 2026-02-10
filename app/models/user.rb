@@ -67,6 +67,11 @@ class User < ApplicationRecord
     super(options.merge(except: Array(options[:except])))
   end
 
+  # Override Devise to send emails asynchronously via Sidekiq
+  def send_devise_notification(notification, *args)
+    devise_mailer.send(notification, self, *args).deliver_later(queue: :mailers)
+  end
+
   def couple_saved_scenario_users
     coupled_users = SavedScenarioUser
       .where(user_email: email, user_id: nil)
