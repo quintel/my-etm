@@ -107,7 +107,7 @@ class CreateSavedScenarioUser
           title: saved_scenario.title
         },
         name: saved_scenario_user.name
-      ).deliver_now
+      ).deliver_later(queue: :mailers)
     rescue StandardError => e
       Rails.logger.error("Failed to send invitation email to #{saved_scenario_user.email}: #{e.message}")
       Sentry.capture_exception(e)
