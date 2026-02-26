@@ -30,6 +30,11 @@ gem 'rake'
 gem "stackprof"
 gem "sentry-ruby"
 
+# OpenTelemetry gems for distributed tracing (sends to Grafana Cloud)
+gem 'opentelemetry-sdk'
+gem 'opentelemetry-exporter-otlp'
+gem 'opentelemetry-instrumentation-all'
+
 # Auth
 gem 'cancancan', '~> 3.0'
 gem 'devise', '~> 4.7'
