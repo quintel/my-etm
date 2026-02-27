@@ -29,6 +29,12 @@ gem 'rake'
 
 gem "stackprof"
 gem "sentry-ruby"
+gem 'sentry-opentelemetry'
+
+# OpenTelemetry gems for distributed tracing
+gem 'opentelemetry-sdk'
+gem 'opentelemetry-exporter-otlp'
+gem 'opentelemetry-instrumentation-all'
 
 # Auth
 gem 'cancancan', '~> 3.0'

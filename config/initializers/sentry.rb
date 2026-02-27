@@ -1,17 +1,16 @@
-Sentry.init do |config|
-  config.dsn = Settings.sentry_dsn
-  config.release = Settings.release
+if Settings.sentry_dsn
+  Sentry.init do |config|
+    config.dsn = Settings.sentry_dsn
+    config.release = Settings.release
+    config.enabled_environments = %w[production staging]
 
-  # Set traces_sample_rate to 1.0 to capture 100%
-  # of transactions for tracing.
-  # We recommend adjusting this value in production.
-  config.traces_sample_rate = 0.2
-  # or
-  config.traces_sampler = lambda do |context|
-    true
+    # Use OpenTelemetry for instrumentation instead of Sentry's native instrumentation
+    config.instrumenter = :otel
+
+    # Set traces_sample_rate to capture 20% of transactions for tracing
+    config.traces_sample_rate = 0.2
+
+    # Set profiles_sample_rate to profile 20% of sampled transactions
+    config.profiles_sample_rate = 0.2
   end
-  # Set profiles_sample_rate to profile 100%
-  # of sampled transactions.
-  # We recommend adjusting this value in production.
-  config.profiles_sample_rate = 0.2
 end
