@@ -12,7 +12,8 @@ RSpec.describe Api::CreateCollection do
       area_code: 'nl2019',
       end_year: 2050,
       scenario_ids: [10, 20],
-      version: Version.default.tag
+      version: Version.default.tag,
+      interpolation: false
     }
   end
 
