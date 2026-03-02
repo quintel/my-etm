@@ -206,11 +206,11 @@ If you have access to a production or staging MyETM instance:
 
 2. **Navigate to admin section**
    - Click "Admin" in the navigation
-   - Click "Saved Scenarios" in the admin menu
+   - Click "All Scenarios" in the admin menu
    - URL: `https://my.energytransitionmodel.com/admin/saved_scenarios`
 
 3. **Filter for scenarios**
-   - Check "Featured" to show only featured scenarios
+   - Check "Show Featured" to show only featured scenarios
    - Filter by version, end year, or area code as needed
 
 4. **Select scenarios to export**
@@ -218,7 +218,7 @@ If you have access to a production or staging MyETM instance:
    - Or click "Select all" to export all filtered scenarios
 
 5. **Export**
-   - Click the "Export" button
+   - Click the "Export selected" button
    - A `.etm` file will download (format: `YYYYMMDDHHMM_env.etm`)
 
 6. **Save the file**
@@ -363,8 +363,9 @@ Each `.etm` file contains:
 **From ETEngine:**
 - Slider values (user_values)
 - Custom hourly curves
-- Merit order configurations
+- User sortables
 - Area code, end year, privacy settings
+- Balanced values
 
 **From MyETM:**
 - Scenario title and description
@@ -376,9 +377,9 @@ Each `.etm` file contains:
 
 To create a `.etm` file from your local scenarios to share with your team:
 
-1. **Access MyETM admin:** http://localhost:3002/admin/saved_scenarios
+1. **Access MyETM admin:** https://my.energytransitionmodel.com/admin/saved_scenarios
 2. **Select scenarios** you want to export using checkboxes
-3. **Click "Export"** button
+3. **Click "Export selected"** button
 4. **Share the downloaded `.etm` file** with your team
 
 They can then import it using `bin/import-scenarios`.
