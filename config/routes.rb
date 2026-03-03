@@ -1,5 +1,3 @@
-require 'sidekiq/web'
-
 Rails.application.routes.draw do
   use_doorkeeper
   use_doorkeeper_openid_connect
@@ -8,10 +6,6 @@ Rails.application.routes.draw do
     sessions: 'users/sessions',
     registrations: 'users/registrations'
   }
-
-  authenticate :user, lambda { |u| u.admin? } do
-    mount Sidekiq::Web => '/sidekiq'
-  end
 
   get '/passthru/last', to: 'passthru#last', as: :back_to_etm
 

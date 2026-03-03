@@ -5,13 +5,6 @@
 class CoupleUsersToEngineJob < ApplicationJob
   queue_as :default
 
-  # Retry with exponential backoff
-  sidekiq_retry_in do |count|
-    [ 30, 120, 600 ][count]
-  end
-
-  sidekiq_options retry: 3
-
   retry_on Faraday::Error, wait: :exponentially_longer, attempts: 3
 
   def perform(user_id, user_email, saved_scenario_ids)
