@@ -66,15 +66,15 @@ Rails.application.configure do
   # config.cache_store = :mem_cache_store
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  config.active_job.queue_adapter = :sidekiq
+  config.active_job.queue_adapter = :solid_queue
   # config.active_job.queue_name_prefix = "my_etm_production"
 
   # Disable caching for Action Mailer templates even if Action Controller
   # caching is enabled.
   config.action_mailer.perform_caching = false
 
-  # Raise email delivery errors so they are caught by Sidekiq and sent to Sentry.
-  # Failed emails will automatically retry via Sidekiq's retry mechanism.
+  # Raise email delivery errors so they are caught by Solid Queue and sent to Sentry.
+  # Failed emails will automatically retry via Solid Queue's retry mechanism.
   config.action_mailer.raise_delivery_errors = true
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
