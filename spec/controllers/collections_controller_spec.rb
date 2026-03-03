@@ -364,7 +364,7 @@ describe CollectionsController do
       end
 
       it 'returns an error JSON response' do
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         json_response = JSON.parse(response.body)
         expect(json_response['errors']).to include("Title can't be blank")
       end
