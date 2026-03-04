@@ -9,7 +9,7 @@ Bundler.require(*Rails.groups)
 module MyEtm
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.2
+    config.load_defaults 8.0
 
     # Configuration for the application, engines, and railties goes here.
     config.autoload_paths << Rails.root.join("lib")
@@ -25,6 +25,9 @@ module MyEtm
     config.i18n.enforce_available_locales = true
     config.i18n.available_locales = %i[en nl]
     config.i18n.default_locale = :en
+
+    # Use a dedicated database for Solid Queue (see config/database.yml for connection details).
+    config.solid_queue.connects_to = { database: { writing: :queue } }
 
     config.active_support.deprecation = :log
 
