@@ -11,7 +11,7 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
-  create_table "action_text_rich_texts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "action_text_rich_texts", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "body", size: :long
     t.string "record_type", null: false
@@ -21,7 +21,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
   end
 
-  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
     t.bigint "record_id", null: false
@@ -31,7 +31,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
   end
 
-  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "key", null: false
     t.string "filename", null: false
     t.string "content_type"
@@ -43,13 +43,13 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "collection_saved_scenarios", primary_key: ["collection_id", "saved_scenario_id"], charset: "utf8mb3", force: :cascade do |t|
+  create_table "collection_saved_scenarios", primary_key: ["collection_id", "saved_scenario_id"], charset: "utf8mb3", collation: "utf8mb3_general_ci", force: :cascade do |t|
     t.bigint "collection_id", null: false
     t.bigint "saved_scenario_id", null: false
     t.integer "saved_scenario_order", default: 0, null: false
@@ -79,13 +79,13 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["version_id"], name: "index_collections_on_version_id"
   end
 
-  create_table "featured_scenario_users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "featured_scenario_users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "user_id"
     t.index ["user_id"], name: "index_featured_scenario_users_on_user_id"
   end
 
-  create_table "featured_scenarios", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "featured_scenarios", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "saved_scenario_id"
     t.bigint "owner_id"
     t.string "group"
@@ -95,7 +95,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["saved_scenario_id"], name: "index_featured_scenarios_on_saved_scenario_id"
   end
 
-  create_table "oauth_access_grants", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "oauth_access_grants", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "resource_owner_id", null: false
     t.bigint "application_id", null: false
     t.string "token", null: false
@@ -109,7 +109,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["token"], name: "index_oauth_access_grants_on_token", unique: true
   end
 
-  create_table "oauth_access_tokens", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "oauth_access_tokens", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "resource_owner_id"
     t.bigint "application_id"
     t.text "token", null: false
@@ -124,7 +124,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["resource_owner_id"], name: "index_oauth_access_tokens_on_resource_owner_id"
   end
 
-  create_table "oauth_applications", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "oauth_applications", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "uid", null: false
     t.string "secret", null: false
@@ -158,7 +158,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["user_id"], name: "index_personal_access_tokens_on_user_id"
   end
 
-  create_table "saved_scenario_users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "saved_scenario_users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "saved_scenario_id", null: false
     t.integer "role_id", null: false
     t.integer "user_id"
@@ -169,7 +169,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["user_email"], name: "index_saved_scenario_users_on_user_email"
   end
 
-  create_table "saved_scenarios", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "saved_scenarios", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "scenario_id", null: false
     t.text "scenario_id_history"
     t.string "title", null: false
@@ -185,7 +185,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["version_id"], name: "index_saved_scenarios_on_version_id"
   end
 
-  create_table "sessions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "sessions", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "session_id", null: false
     t.text "data"
     t.datetime "created_at", null: false
@@ -227,7 +227,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_21_085203) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
-  create_table "versions", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "versions", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "tag", null: false
     t.string "url_prefix"
     t.boolean "default", default: false

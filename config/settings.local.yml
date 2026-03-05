@@ -8,8 +8,3 @@ sentry_dsn: "https://60adefe39e63b5ed6dd418b3fc8b16ca@o187050.ingest.us.sentry.i
 # Sentry Sampling: 100% for development testing (ensures every request is traced)
 sentry_traces: "1.0"
 sentry_profiles: "1.0"
-
-# Grafana Cloud OpenTelemetry Configuration
-# Sends distributed traces to Grafana Cloud Tempo for visualization
-otel_exporter_otlp_endpoint: "https://otlp-gateway-prod-eu-west-2.grafana.net/otlp/v1/traces"
-grafana_cloud_otlp_auth: "MTUzOTYxMDpnbGNfZXlKdklqb2lNVFk0TVRVd09TSXNJbTRpT2lKdmRHVnNMV2R5WVdaaGJtRWlMQ0pySWpvaWVUVk5OakZRTjBsaE5uUkRTRzk1TURaallVc3pWalk1SWl3aWJTSTZleUp5SWpvaWNISnZaQzFsZFMxM1pYTjBMVElpZlgwPQ=="
