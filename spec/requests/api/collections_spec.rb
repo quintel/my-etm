@@ -205,7 +205,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
 
       it 'returns unprocessable entity' do
         request
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'does not create a collection' do
@@ -304,7 +304,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
 
       it 'returns unprocessable entity' do
         request
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
 
@@ -439,7 +439,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
 
       it 'does not insert a saved_scenario' do
         expect { request }.not_to change { collection.reload.latest_scenario_ids }
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(JSON.parse(response.body)['scenarios']).to include('interpolated collections cannot have more than 1 saved scenario')
       end
     end

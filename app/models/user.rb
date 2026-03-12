@@ -67,7 +67,7 @@ class User < ApplicationRecord
     super(options.merge(except: Array(options[:except])))
   end
 
-  # Override Devise to send emails asynchronously via Sidekiq
+  # Override Devise to send emails asynchronously via Solid Queue
   def send_devise_notification(notification, *args)
     devise_mailer.send(notification, self, *args).deliver_later(queue: :mailers)
   end

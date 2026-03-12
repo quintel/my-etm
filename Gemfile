@@ -1,7 +1,9 @@
 source "https://rubygems.org"
 
+ruby '~> 3.4.7'
+
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.2.1"
+gem "rails", "~> 8.1.0"
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 # Use mysql as the database for Active Record
@@ -38,8 +40,7 @@ gem 'doorkeeper-jwt'
 gem 'faraday'
 gem 'jwt'
 gem 'json-jwt'
-gem 'sidekiq'
-gem "sentry-sidekiq"
+gem 'solid_queue'
 gem 'http_accept_language'
 gem 'listen'
 gem 'config'

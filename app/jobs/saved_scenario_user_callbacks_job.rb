@@ -5,13 +5,6 @@
 class SavedScenarioUserCallbacksJob < ApplicationJob
   queue_as :default
 
-  # Retry with exponential backoff: 30s, 2m, 10m, 1h, 5h
-  sidekiq_retry_in do |count|
-    [ 30, 120, 600, 3600, 18000 ][count]
-  end
-
-  sidekiq_options retry: 5
-
   # Retry on network errors and other transient failures
   retry_on Faraday::Error, wait: :exponentially_longer, attempts: 5
 

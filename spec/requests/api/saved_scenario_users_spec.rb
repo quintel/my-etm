@@ -109,7 +109,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
       end
 
       it 'returns 422: unprocessable entity' do
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'returns an error' do
@@ -135,7 +135,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
       end
 
       it 'returns 422: unprocessable entity' do
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'returns an error' do
@@ -234,7 +234,7 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
       end
 
       it 'returns 422: unprocessable entity' do
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'returns an error' do
