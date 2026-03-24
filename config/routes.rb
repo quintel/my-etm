@@ -148,6 +148,10 @@ Rails.application.routes.draw do
     end
   end
 
+  authenticate :user, ->(user) { user.admin? } do
+    mount MissionControl::Jobs::Engine, at: '/admin/jobs'
+  end
+
   get :contact, to: 'static_pages#contact'
   post :send_message, to: 'static_pages#send_message'
   get :privacy, to: 'static_pages#privacy'
