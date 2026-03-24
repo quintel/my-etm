@@ -612,7 +612,7 @@ DEPENDENCIES
   zstd-ruby
 
 RUBY VERSION
-   ruby 3.4.7p58
+  ruby 4.0.2
 
 BUNDLED WITH
-   2.5.18
+  4.0.6

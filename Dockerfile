@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Base Stage: Ruby and dependencies
-ARG RUBY_VERSION=3.4.7-slim
+ARG RUBY_VERSION=4.0.2-slim
 FROM ruby:${RUBY_VERSION} AS base
 
 LABEL maintainer="dev@quintel.com"
