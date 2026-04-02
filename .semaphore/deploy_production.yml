@@ -26,6 +26,5 @@ blocks:
       secrets:
         - name: Docker Hub credentials
         - name: Production SSH settings
-        - name: MyETM credentials master.key
     run:
       when: branch = 'production'
