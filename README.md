@@ -102,15 +102,16 @@ you have to follow these steps to run MyETM.
    2. `cd etsource; bundle install`
 
 6. Create the database you specified in your "database.yml" file, and
-   1. run `bundle exec rake db:setup` to create the tables and add an
+   1. run `bundle exec rake db:prepare` to create the tables and an
       administrator account –– whose name and password will be output at the end –– OR
    2. run `bundle exec rake db:create` to create your database and
       contact the private Quintel slack channel to fill your database with records from staging server
 
-7. You're now ready-to-go! Fire up the Rails process with `rails s -p 3002` or better `bin/dev -p 3002`.
+7. Either way, log in with the auto generated administrator account first! You need to be an admin to set up your applications (see connecting ETEngine, ETModel and Collections below).
 
-8. If you run into an dataset error, check out this
-   [explanation](https://github.com/quintel/etsource#csv-documents "Explanation on etsource CSV files") on CSV files
+8. You're now ready to run MyETM! Fire up the Rails process with `bin/dev -p 3002`.
+
+9. If you run into an dataset error, check out this [explanation](https://github.com/quintel/etsource#csv-documents "Explanation on etsource CSV files") on CSV files
 
 
 ## Connecting to ETEngine, ETModel and Collections
@@ -154,8 +155,8 @@ This creates the database, runs migrations, and seeds an admin user. **Save the 
 
 ```
 +------------------------------------------------------------------------------+
-|         Created admin user 'Seeded Admin' with password: aBc123Xy         |
-|           and email: seeded_admin@localdevelopment.com.                   |
+|         Created admin user 'Seeded Admin' with password: aBc123Xy            |
+|           and email: seeded_admin@localdevelopment.com.                      |
 +------------------------------------------------------------------------------+
 ```
 
@@ -175,6 +176,13 @@ cd etengine
 bundle install
 bin/rails db:prepare
 ```
+
+This creates and initializes **three databases** for ETEngine:
+- `etengine_development` - Main application tables (scenarios, users, etc.)
+- `etengine_queue_development` - Background job processing (Solid Queue)
+- `etengine_cache_development` - Application caching (Solid Cache)
+
+**Note:** `db:prepare` automatically sets up all three databases. You should see a seeded admin user with a password - save this password!
 
 **Warning:** ETEngine requires ETSource to be cloned in the same parent directory. If you get errors about missing datasets, ensure etsource is cloned alongside etengine.
 
@@ -336,6 +344,67 @@ bin/rails db:seed
 # Save the password displayed!
 # You can then create an account with your own credentials and make yourself an admin if you like!
 ```
+
+#### Missing Database Tables
+
+**Problem:** Application fails with errors like "Table 'etengine_development.scenarios' doesn't exist" or "Unknown database" errors.
+
+**Root Causes:**
+- Database setup command was run in the wrong directory
+- Partial/incomplete database setup from a previous attempt
+- Running `db:create` without `db:schema:load` or `db:prepare`
+
+**Solutions:**
+
+1. **Verify you're in the correct application directory:**
+   ```bash
+   pwd  # Should show .../etengine, .../etmodel, or .../myetm
+   ```
+
+2. **Complete fresh database setup:**
+   ```bash
+   # Drop all databases and start fresh
+   bin/rails db:drop:all
+
+   # Create and set up all databases (primary + cache + queue)
+   bin/rails db:prepare
+
+   # Verify tables were created
+   bin/rails runner "puts Scenario.count rescue 'Error: scenarios table missing'"
+   ```
+
+3. **Manual verification (for ETEngine):**
+   ```bash
+   # Check that all 3 databases exist with tables
+   mysql -u root -e "
+   SELECT
+     'PRIMARY' as DB,
+     COUNT(*) as tables
+   FROM information_schema.TABLES
+   WHERE TABLE_SCHEMA='etengine_development'
+   UNION
+   SELECT 'QUEUE', COUNT(*)
+   FROM information_schema.TABLES
+   WHERE TABLE_SCHEMA='etengine_queue_development'
+   UNION
+   SELECT 'CACHE', COUNT(*)
+   FROM information_schema.TABLES
+   WHERE TABLE_SCHEMA='etengine_cache_development';
+   "
+   # Should show: PRIMARY=18, QUEUE=13, CACHE=3
+   ```
+
+**Understanding Multi-Database Architecture:**
+
+ETEngine and ETModel use **multiple databases** per application:
+- **Primary database:** Main application tables (scenarios, users, etc.)
+- **Queue database:** Background job management (Solid Queue)
+- **Cache database:** Application caching (Solid Cache)
+
+The `db:prepare` command automatically sets up ALL databases. If you see errors about missing tables:
+- Check you ran `bundle install` first
+- Ensure MySQL is running: `brew services start mysql`
+- Try the complete fresh setup above
 
 #### Duplicate Scenario Prompts
 
