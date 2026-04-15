@@ -119,10 +119,10 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     deep_merge (1.2.2)
-    devise (4.9.4)
+    devise (5.0.3)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
-      railties (>= 4.1.0)
+      railties (>= 7.0)
       responders
       warden (~> 1.2.3)
     diff-lcs (1.6.2)
@@ -570,7 +570,7 @@ DEPENDENCIES
   capybara
   config
   debug
-  devise (~> 4.7)
+  devise (~> 5.0)
   discard
   doorkeeper-jwt
   doorkeeper-openid_connect (~> 1.8.7)
