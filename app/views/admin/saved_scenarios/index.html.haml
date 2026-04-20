@@ -4,6 +4,17 @@
 = render(partial: "block_right_sub_menu", locals: { filters: @filters })
 = render(partial: "admin/block_right_menu")
 
+.bg-blue-50.border-l-4.border-blue-400.p-4.rounded-lg.mb-6
+  %p.text-sm.text-gray-700.mb-2
+    %strong= t('saved_scenarios.dump_load_info.title')
+  %p.text-sm.text-gray-700.mb-2
+    %strong= t('saved_scenarios.dump_load_info.export_label')
+    = t('saved_scenarios.dump_load_info.export_desc')
+  %p.text-sm.text-gray-700.mb-2
+    %strong= t('saved_scenarios.dump_load_info.import_label')
+    = t('saved_scenarios.dump_load_info.import_desc')
+    %code.bg-gray-100.px-2.py-1.rounded.text-xs bin/import-scenarios
+
 - if @saved_scenarios.present?
   = render(partial: "saved_scenarios", locals: {              |
     pagy_admin_saved_scenarios: @pagy_admin_saved_scenarios,  |

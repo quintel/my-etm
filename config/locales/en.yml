@@ -204,6 +204,12 @@ en:
     viewers: Viewers
     select_all: Select all
     export: Export selected
+    dump_load_info:
+      title: "Exporting and Importing Scenarios"
+      export_label: "Export:"
+      export_desc: "Select scenarios and click 'Export selected' to create a .etm file."
+      import_label: "Import:"
+      import_desc: "Use the command-line tool to import .etm files from your Downloads folder:"
     filters:
       search: Search by title or user
       clear: Clear filters
