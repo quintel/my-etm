@@ -245,6 +245,12 @@ nl:
     collaborators: Bewerkers
     select_all: Selecteer alles
     export: Geselecteerde exporteren
+    dump_load_info:
+      title: "Scenario's exporteren en importeren"
+      export_label: "Exporteren:"
+      export_desc: "Selecteer scenario's en klik op 'Geselecteerde exporteren' om een .etm-bestand te maken."
+      import_label: "Importeren:"
+      import_desc: "Gebruik de opdrachtregel om .etm-bestanden uit je Downloads-map te importeren:"
     filters:
       search: Zoeken op titel of gebruiker
       clear: Filters wissen
