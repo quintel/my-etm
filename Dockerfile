@@ -4,7 +4,7 @@
 ARG RUBY_VERSION=4.0.2-slim
 FROM ruby:${RUBY_VERSION} AS base
 
-LABEL maintainer="dev@quintel.com"
+LABEL maintainer="info@energytransitionmodel.com"
 
 # Set working directory
 WORKDIR /app
