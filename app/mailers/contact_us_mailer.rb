@@ -8,8 +8,8 @@ class ContactUsMailer < ActionMailer::Base
     @user_agent = user_agent
 
     mail(
-      to: Settings.feedback_email,
-      from: Settings.feedback_email,
+      to: Settings.mailer.from,
+      from: Settings.mailer.from,
       reply_to: message.email,
       subject: "ETM Feedback"
     )
