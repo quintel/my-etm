@@ -9,13 +9,13 @@
   = f.label :title, t('scenario.title'), class: 'text-sm text-gray-400 mb-2'
   = f.text_field :title, class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5', placeholder: t('collections.new.form.default_title')
 
-  = f.hidden_field :version, value: @versions.first.tag, data: { collections_target: 'hiddenVersion' }
+  = f.hidden_field :version, value: @versions.first&.tag, data: { collections_target: 'hiddenVersion' }
   - if @versions.count > 1
     = f.label :version, t('collections.new.form.version'), class: 'text-sm text-gray-400 mb-2'
     = select_tag nil,                                                                             |
       options_for_select(@versions.map { |v| [v.titleize, v.tag] }, @versions.first.tag),         |
       data: { action: 'collections#changeVersion', collections_target: 'versionSelect' },         |
-      class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'                              | 
+      class: 'appearance-none w-1/2 rounded-md border-gray-200 mb-5'                              |
 
   .mt-5
     .text-sm.text-gray-400{ data: { collections_target: 'sortableListLabel' } }= t('collections.edit.instructions')
