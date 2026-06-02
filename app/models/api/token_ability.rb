@@ -6,6 +6,9 @@ module Api
     include CanCan::Ability
 
     def initialize(token, user)
+      # Discard uses the same permissions as destroy (both are owner-only actions)
+      alias_action(:discard, to: :destroy)
+
       @scopes = extract_scopes(token)
       @user   = user
 
@@ -79,6 +82,7 @@ module Api
     end
 
     # Allow destroying saved scenarios and collections if the token has the delete scope.
+    # Note: :discard is aliased to :destroy, so destroy permissions apply to discard as well.
     def allow_delete
       if admin?
         can :destroy, SavedScenario

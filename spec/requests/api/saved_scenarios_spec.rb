@@ -643,4 +643,125 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
     end
   end
+
+  # ------------------------------------------------------------------------------------------------
+
+  describe 'PUT /api/v1/saved_scenarios/:id/discard' do
+    let!(:scenario) { create(:saved_scenario, user:) }
+
+    context 'when the scenario belongs to the user' do
+      let(:request) do
+        put "/api/v1/saved_scenarios/#{scenario.id}/discard",
+          as: :json,
+          headers: access_token_header(user, :delete)
+      end
+
+      it 'returns success' do
+        request
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'sets the discarded_at timestamp' do
+        expect { request }.to change { scenario.reload.discarded_at }.from(nil)
+      end
+
+      it 'does not remove the scenario from the database' do
+        expect { request }.not_to change(SavedScenario, :count)
+      end
+
+      it 'returns a success message' do
+        request
+        expect(JSON.parse(response.body)).to include('message' => 'Scenario discarded successfully')
+      end
+    end
+
+    context 'when discarding an already discarded scenario' do
+      before do
+        scenario.update(discarded_at: 1.day.ago)
+      end
+
+      let(:request) do
+        put "/api/v1/saved_scenarios/#{scenario.id}/discard",
+          as: :json,
+          headers: access_token_header(user, :delete)
+      end
+
+      it 'returns success' do
+        request
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'does not change the discarded_at timestamp' do
+        expect { request }.not_to change { scenario.reload.discarded_at }
+      end
+    end
+
+    context 'when the discard fails with validation errors' do
+      before do
+        allow_any_instance_of(SavedScenario).to receive(:save).and_return(false)
+        allow_any_instance_of(SavedScenario).to receive(:errors).and_return(
+          double(full_messages: ["Title can't be blank"])
+        )
+
+        put "/api/v1/saved_scenarios/#{scenario.id}/discard",
+          as: :json,
+          headers: access_token_header(user, :delete)
+      end
+
+      it 'returns unprocessable entity' do
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it 'returns validation error messages' do
+        expect(JSON.parse(response.body)).to include('errors' => ["Title can't be blank"])
+      end
+    end
+
+    context 'when the discard fails without specific errors' do
+      before do
+        allow_any_instance_of(SavedScenario).to receive(:save).and_return(false)
+        allow_any_instance_of(SavedScenario).to receive(:errors).and_return(
+          double(full_messages: [])
+        )
+
+        put "/api/v1/saved_scenarios/#{scenario.id}/discard",
+          as: :json,
+          headers: access_token_header(user, :delete)
+      end
+
+      it 'returns unprocessable entity' do
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it 'returns a fallback error message' do
+        expect(JSON.parse(response.body)).to include('errors' => ['Failed to discard scenario'])
+      end
+    end
+
+    context 'when missing the scenarios:delete scope' do
+      let(:request) do
+        put "/api/v1/saved_scenarios/#{scenario.id}/discard",
+          as: :json,
+          headers: access_token_header(user, :read)
+      end
+
+      it 'returns forbidden' do
+        request
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'when the scenario belongs to a different user' do
+      let(:request) do
+        put "/api/v1/saved_scenarios/#{scenario.id}/discard",
+          as: :json,
+          headers: access_token_header(create(:user), :delete)
+      end
+
+      it 'returns forbidden' do
+        request
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
 end
