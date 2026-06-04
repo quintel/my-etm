@@ -5,6 +5,9 @@ class Ability
   include CanCan::Ability
 
   def initialize(user)
+    # Discard uses the same permissions as destroy (both are owner-only actions)
+    alias_action(:discard, to: :destroy)
+
     can :manage, :all if user&.admin?
 
     can :read, SavedScenario, private: false

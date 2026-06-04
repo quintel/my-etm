@@ -3,7 +3,7 @@ module Api
     class SavedScenariosController < BaseController
       check_authorization
 
-      load_and_authorize_resource(class: SavedScenario, only: %i[index create show update destroy])
+      load_and_authorize_resource(class: SavedScenario, only: %i[index create show update destroy discard])
 
       # GET /saved_scenarios or /saved_scenarios.json
       def index
@@ -68,6 +68,24 @@ module Api
         else
           render json: { error: "Failed to delete scenario" }, status: :unprocessable_entity
         end
+      end
+
+      # PUT /saved_scenarios/1/discard
+      def discard
+        unless @saved_scenario.discarded?
+          @saved_scenario.discarded_at = Time.zone.now
+
+          # Use touch: false to preserve updated_at timestamp.
+          unless @saved_scenario.save(touch: false)
+            errors = @saved_scenario.errors.full_messages
+            errors = [ "Failed to discard scenario" ] if errors.empty?
+
+            render json: { errors: errors }, status: :unprocessable_content
+            return
+          end
+        end
+
+        render json: { message: "Scenario discarded successfully" }, status: :ok
       end
 
       private

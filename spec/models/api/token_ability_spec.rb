@@ -92,6 +92,11 @@ RSpec.describe Api::TokenAbility do
         expect(ability).not_to be_able_to(:destroy, private_saved_scenario)
       end
 
+      it "does not allow discarding any saved scenario" do
+        expect(ability).not_to be_able_to(:discard, public_saved_scenario)
+        expect(ability).not_to be_able_to(:discard, private_saved_scenario)
+      end
+
       it "does not allow destroying any collection" do
         expect(ability).not_to be_able_to(:destroy, user_collection)
       end
@@ -141,6 +146,10 @@ RSpec.describe Api::TokenAbility do
     describe "delete abilities" do
       it "does not allow destroying saved scenarios" do
         expect(ability).not_to be_able_to(:destroy, private_saved_scenario)
+      end
+
+      it "does not allow discarding saved scenarios" do
+        expect(ability).not_to be_able_to(:discard, private_saved_scenario)
       end
     end
   end
@@ -204,6 +213,10 @@ RSpec.describe Api::TokenAbility do
     describe "delete abilities" do
       it "does not allow destroying saved scenarios" do
         expect(ability).not_to be_able_to(:destroy, private_saved_scenario)
+      end
+
+      it "does not allow discarding saved scenarios" do
+        expect(ability).not_to be_able_to(:discard, private_saved_scenario)
       end
     end
   end
@@ -269,10 +282,20 @@ RSpec.describe Api::TokenAbility do
         expect(ability).to be_able_to(:destroy, private_saved_scenario)
       end
 
+      it "allows discarding saved scenarios in owner scope" do
+        expect(ability).to be_able_to(:discard, private_saved_scenario)
+      end
+
       it "does not allow destroying saved scenarios not in owner scope" do
         expect(ability).not_to be_able_to(:destroy, public_saved_scenario)
         expect(ability).not_to be_able_to(:destroy, other_public_saved_scenario)
         expect(ability).not_to be_able_to(:destroy, other_private_saved_scenario)
+      end
+
+      it "does not allow discarding saved scenarios not in owner scope" do
+        expect(ability).not_to be_able_to(:discard, public_saved_scenario)
+        expect(ability).not_to be_able_to(:discard, other_public_saved_scenario)
+        expect(ability).not_to be_able_to(:discard, other_private_saved_scenario)
       end
 
       it "allows destroying collections owned by the user" do
@@ -324,6 +347,13 @@ RSpec.describe Api::TokenAbility do
         expect(ability).to be_able_to(:destroy, private_saved_scenario)
         expect(ability).to be_able_to(:destroy, other_public_saved_scenario)
         expect(ability).to be_able_to(:destroy, other_private_saved_scenario)
+      end
+
+      it "allows discarding all saved scenarios" do
+        expect(ability).to be_able_to(:discard, public_saved_scenario)
+        expect(ability).to be_able_to(:discard, private_saved_scenario)
+        expect(ability).to be_able_to(:discard, other_public_saved_scenario)
+        expect(ability).to be_able_to(:discard, other_private_saved_scenario)
       end
 
       it "allows destroying all collections" do
