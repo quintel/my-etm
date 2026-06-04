@@ -75,6 +75,7 @@ module Api
         unless @saved_scenario.discarded?
           @saved_scenario.discarded_at = Time.zone.now
 
+          # Use touch: false to preserve updated_at timestamp.
           unless @saved_scenario.save(touch: false)
             errors = @saved_scenario.errors.full_messages
             errors = [ "Failed to discard scenario" ] if errors.empty?

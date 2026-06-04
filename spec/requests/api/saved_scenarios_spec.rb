@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'API::SavedScenarios', type: :request, api: true do
+RSpec.describe 'API::SavedScenarios', :api, type: :request do
   let(:user) { create(:user) }
   let(:client) { Faraday.new(url: 'http://testing') }
 
@@ -14,7 +14,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       let!(:user_ss2)    { create(:saved_scenario, user: user) }
       let!(:other_ss)    { create(:saved_scenario, private: true) }
       let!(:public_ss)   { create(:saved_scenario, private: false) }
-      let!(:discarded_ss){ create(:saved_scenario, user: user, discarded_at: 1.day.ago) }
+      let!(:discarded_ss) { create(:saved_scenario, user: user, discarded_at: 1.day.ago) }
 
       before do
         get '/api/v1/saved_scenarios',
@@ -28,7 +28,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       it 'returns only the current user’s saved scenarios' do
         returned_ids = response.parsed_body.map { |s| s['id'] }
-        expect(returned_ids).to match_array([user_ss1.id, user_ss2.id])
+        expect(returned_ids).to contain_exactly(user_ss1.id, user_ss2.id)
       end
 
       it 'does not contain scenarios from other users or public scenarios' do
@@ -123,12 +123,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
 
       it 'includes all scenarios the user is allowed to read (own + any public)' do
         returned_ids = response.parsed_body.map { |s| s['id'] }
-        expect(returned_ids).to match_array([
-          user_private_ss1.id,
-          user_private_ss2.id,
-          user_public_ss.id,
-          other_public_ss.id
-        ])
+        expect(returned_ids).to contain_exactly(user_private_ss1.id, user_private_ss2.id, user_public_ss.id, other_public_ss.id)
       end
 
       it 'excludes private scenarios of other users and any discarded ones' do
@@ -195,7 +190,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
         end
 
         it 'returns an error message' do
-          expect(JSON.parse(response.body)).to eq({ "errors" => ["Not found"] })
+          expect(JSON.parse(response.body)).to eq({ "errors" => [ "Not found" ] })
         end
       end
 
@@ -225,7 +220,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns an error message' do
-        expect(JSON.parse(response.body)).to eq({ "errors" => ["Saved scenario not found"] })
+        expect(JSON.parse(response.body)).to eq({ "errors" => [ "Saved scenario not found" ] })
       end
     end
 
@@ -254,7 +249,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns an error message' do
-        expect(JSON.parse(response.body)).to eq({ "errors" => ["Not found"] })
+        expect(JSON.parse(response.body)).to eq({ "errors" => [ "Not found" ] })
       end
     end
   end
@@ -700,7 +695,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       before do
         allow_any_instance_of(SavedScenario).to receive(:save).and_return(false)
         allow_any_instance_of(SavedScenario).to receive(:errors).and_return(
-          double(full_messages: ["Title can't be blank"])
+          double(full_messages: [ "Title can't be blank" ])
         )
 
         put "/api/v1/saved_scenarios/#{scenario.id}/discard",
@@ -713,7 +708,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns validation error messages' do
-        expect(JSON.parse(response.body)).to include('errors' => ["Title can't be blank"])
+        expect(JSON.parse(response.body)).to include('errors' => [ "Title can't be blank" ])
       end
     end
 
@@ -734,7 +729,7 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       end
 
       it 'returns a fallback error message' do
-        expect(JSON.parse(response.body)).to include('errors' => ['Failed to discard scenario'])
+        expect(JSON.parse(response.body)).to include('errors' => [ 'Failed to discard scenario' ])
       end
     end
 
@@ -761,6 +756,31 @@ RSpec.describe 'API::SavedScenarios', type: :request, api: true do
       it 'returns forbidden' do
         request
         expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'when the user is an admin' do
+      let(:admin) { create(:admin) }
+      let(:other_user_scenario) { create(:saved_scenario, user: create(:user)) }
+
+      let(:request) do
+        put "/api/v1/saved_scenarios/#{other_user_scenario.id}/discard",
+          as: :json,
+          headers: access_token_header(admin, :delete)
+      end
+
+      it 'allows admin to discard any scenario' do
+        request
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'sets the discarded_at timestamp' do
+        expect { request }.to change { other_user_scenario.reload.discarded_at }.from(nil)
+      end
+
+      it 'returns a success message' do
+        request
+        expect(JSON.parse(response.body)).to include('message' => 'Scenario discarded successfully')
       end
     end
   end
