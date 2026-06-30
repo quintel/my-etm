@@ -17,6 +17,10 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
+  # Allow the etm-stack cross-app parent domain so the shared etm_sso SSO cookie can be scoped to
+  # a dotted parent the browser accepts
+  config.hosts << ENV.fetch('ETM_HOST_PARENT', '.local.energytransitionmodel.com')
+
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?
