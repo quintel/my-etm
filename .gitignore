@@ -28,6 +28,7 @@
 /tmp/storage/*
 !/tmp/storage/
 !/tmp/storage/.keep
+config/settings.local.yml
 
 /public/assets
 
@@ -40,9 +41,6 @@
 **/.DS_Store
 
 /config/credentials/production.key
-
 /config/credentials/staging.key
-
 /config/credentials/development.key
-
 /config/credentials/test.key
