@@ -8,6 +8,10 @@ module Users
       # Devise yields the just-signed-in resource here; use it directly
       super do |resource|
         start_jwt_session(resource)
+        # The etm_session JWT cookie is now the session of record. Drop the Warden session Devise
+        # just persisted so the two can never drift: a stale Warden session outliving the JWT is
+        # what bounced the user between sign_in and /oauth/authorize forever.
+        sign_out(resource_name)
         if session["user_return_to"].to_s.start_with?("/oauth/authorize") && is_flashing_format?
           # Don't show the flash message when redirecting to an OAuth action.
           flash.delete(:notice)
@@ -35,6 +39,13 @@ module Users
     end
 
     private
+
+    # Devise's stock guard checks Warden, which we no longer persist. Base "already signed in" on
+    # the JWT cookie (current_user) instead, so a valid session skips the form and a lapsed one
+    # always shows it — the same source of truth Doorkeeper uses, so the two cannot loop.
+    def require_no_authentication
+      redirect_to(after_sign_in_path_for(current_user)) if current_user
+    end
 
     def access_token
       @access_token ||= if params[:access_token].present? && current_user
