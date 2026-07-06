@@ -98,7 +98,10 @@ Doorkeeper.configure do
   # Access token expiration time (default: 2 hours).
   # If you want to disable expiration, set this to `nil`.
   #
-  # access_token_expires_in 2.hours
+  # Kept short so that revoking a user's tokens on logout (RevokeUserSessions) takes effect across
+  # all apps (including the ETEngine API, which trusts the JWT until `exp`) within ~2 minutes.
+  # Personal access tokens set an explicit `expires_in` and are unaffected by this default.
+  access_token_expires_in 2.minutes
 
   # Assign custom TTL for access tokens. Will be used instead of access_token_expires_in
   # option if defined. In case the block returns `nil` value Doorkeeper fallbacks to

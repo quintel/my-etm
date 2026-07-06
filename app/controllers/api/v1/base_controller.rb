@@ -37,19 +37,38 @@ module Api
       def current_user
         return @current_user if defined?(@current_user)
 
-        if doorkeeper_token
-          @current_user = User.find(doorkeeper_token.resource_owner_id)
-        end
+        @current_user =
+          if doorkeeper_token
+            User.find(doorkeeper_token.resource_owner_id)
+          elsif session_token_claims
+            User.find_by(id: session_token_claims["sub"])
+          end
       end
 
       def current_ability
-        @current_ability ||= begin
+        @current_ability ||=
           if current_user
-            TokenAbility.new(doorkeeper_token, current_user)
+            TokenAbility.new(doorkeeper_token || session_token_claims, current_user)
           else
             GuestAbility.new
           end
-        end
+      end
+
+      # Claims of a self-issued identity JWT (the shared session cookie) presented as a bearer token
+      # but not stored as a Doorkeeper token. Verified locally against MyETM's signing key, so the
+      # cookie authenticates here exactly as it does at ETEngine. nil for Doorkeeper tokens (PATs,
+      # OAuth) and unauthenticated requests. TokenAbility reads scopes straight from this claims hash.
+      def session_token_claims
+        return @session_token_claims if defined?(@session_token_claims)
+
+        bearer = request.authorization.to_s[/\ABearer (.+)\z/, 1]
+        @session_token_claims = bearer && MyEtm::Auth.verify_jwt(bearer)
+      end
+
+      # The granted scopes, from a stored Doorkeeper token or, for the shared session cookie, the
+      # verified JWT claims. Used when forwarding the user's scopes to downstream engine calls.
+      def current_scopes
+        doorkeeper_token&.scopes || Array(session_token_claims&.dig("scopes"))
       end
 
       # Send a 404 response with an optional JSON body.

@@ -1,72 +1,72 @@
 # frozen_string_literal: true
 
 RSpec.describe MyEtm::Auth do
-  describe '.user_jwt' do
-    subject(:decoded_jwt) do
-      JWT.decode(
-        token,
-        described_class.signing_key.public_key,
-        true,
-        algorithm: 'RS256'
+  describe '.verify_jwt' do
+    let(:user) { create(:user) }
+
+    let(:token) do
+      key = described_class.signing_key
+      JWT.encode({ sub: user.id, scopes: %w[public] }, key, 'RS256', kid: key.to_jwk['kid'])
+    end
+
+    it 'returns the claims for a validly-signed token' do
+      expect(described_class.verify_jwt(token)['sub']).to eq(user.id)
+    end
+
+    it 'returns nil for a token signed by a different key' do
+      other_key = OpenSSL::PKey::RSA.new(2048)
+      bad_token = JWT.encode({ sub: user.id }, other_key, 'RS256')
+
+      expect(described_class.verify_jwt(bad_token)).to be_nil
+    end
+
+    it 'returns nil for garbage input' do
+      expect(described_class.verify_jwt('not-a-jwt')).to be_nil
+    end
+  end
+
+  describe '.client_token' do
+    let(:user) { create(:user) }
+    let(:application) do
+      OAuthApplication.create!(
+        name: 'Test App', uri: 'https://example.com', redirect_uri: 'https://example.com/cb',
+        owner: user, version: Version.default
       )
     end
 
-    let(:token) { described_class.user_jwt(user, scopes: scopes, client_uri: client_uri) }
-    let(:user) { create(:user) }
-    let(:scopes) { %w[read write] }
-    let(:client_uri) { 'https://example.com' }
-
-    let(:payload) { decoded_jwt[0] }
-    let(:header) { decoded_jwt[1] }
-
-    before do
-      Settings.etmodel_uri = 'http://etmodel.test'
+    let(:decoded) do
+      payload, = JWT.decode(
+        described_class.client_token(user, application), described_class.signing_key.public_key,
+        true, algorithm: 'RS256'
+      )
+      payload
     end
 
-    after do
-      Settings.reload!
+    it 'mints a real Doorkeeper access token scoped to the application' do
+      expect { described_class.client_token(user, application) }
+        .to change { Doorkeeper::AccessToken.count }.by(1)
     end
 
     it 'returns a JWT for the given user' do
-      expect(payload['user']).to eq(user.as_json(only: %i[admin email id name]))
+      expect(decoded['sub']).to eq(user.id)
     end
 
-    it 'includes the scopes in the JWT payload' do
-      expect(payload['scopes']).to eq(scopes)
+    it "uses the application's own scopes by default" do
+      application.update!(scopes: 'public scenarios:read')
+      expect(decoded['scopes']).to eq('public scenarios:read')
     end
 
-    it 'includes the issuer in the JWT payload' do
-      expect(payload['iss']).to eq(Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil))
+    it 'uses the given scopes when provided' do
+      payload, = JWT.decode(
+        described_class.client_token(user, application, scopes: ['scenarios:write']),
+        described_class.signing_key.public_key, true, algorithm: 'RS256'
+      )
+      expect(payload['scopes']).to eq('scenarios:write')
     end
 
-    it 'includes the audience in the JWT payload' do
-      expect(payload['aud']).to eq(client_uri)
-    end
-
-    it 'includes the expiration time in the JWT payload' do
-      expected_exp = (Time.now + 5.minutes).to_i
-      expect(payload['exp']).to be_within(1).of(expected_exp)
-    end
-
-    it 'includes the issued at time in the JWT payload' do
-      expected_iat = Time.now.to_i
-      expect(payload['iat']).to be_within(1).of(expected_iat)
-    end
-
-    it 'includes the subject in the JWT payload' do
-      expect(payload['sub']).to eq(user.id)
-    end
-
-    it 'includes the key ID in the JWT header' do
-      expect(header['kid']).to eq(described_class.signing_key.to_jwk['kid'])
-    end
-
-    context 'when client_uri is not provided' do
-      let(:client_uri) { nil }
-
-      it 'does not include an audience in the JWT payload' do
-        expect(payload['aud']).to eq(nil)
-      end
+    it 'does not create a refresh token' do
+      raw_token = described_class.client_token(user, application)
+      expect(Doorkeeper::AccessToken.by_token(raw_token).refresh_token).to be_nil
     end
   end
 end

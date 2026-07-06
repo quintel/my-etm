@@ -52,6 +52,22 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
       end
     end
 
+    context 'with a shared session cookie JWT (not a stored Doorkeeper token)' do
+      let!(:user_ss) { create(:saved_scenario, user: user) }
+
+      before do
+        get '/api/v1/saved_scenarios', as: :json, headers: session_token_header(user)
+      end
+
+      it 'authenticates via local JWT verification' do
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns the user’s saved scenarios' do
+        expect(response.parsed_body.map { |s| s['id'] }).to contain_exactly(user_ss.id)
+      end
+    end
+
     context 'with an access token with the correct scope, but the user does not exist' do
       let(:request) do
         get '/api/v1/saved_scenarios',

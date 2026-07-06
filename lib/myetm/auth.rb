@@ -2,7 +2,6 @@
 
 module MyEtm
   # Contains useful methods for authentication.
-  # TODO: go over this file!
   module Auth
     module_function
 
@@ -58,35 +57,36 @@ module MyEtm
       OpenSSL::PKey::RSA.new(signing_key_content)
     end
 
-    # Creates a new JWT for the given user, authorizing requests to the provided client.
-    def user_jwt(user = nil, scopes: [], client_uri: nil)
-      payload = {
-        iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
-        aud: client_uri,
-        exp: 5.minutes.from_now.to_i,
-        iat: Time.now.to_i,
-        scopes: scopes,
-        sub: user.id,
-        user: user.as_json(only: %i[id admin email name])
-      }
+    # Verifies a self-issued JWT (e.g. the shared session cookie) against our own signing key and its
+    # expiry, returning the claims hash or nil. Lets MyETM's own API accept the session cookie via
+    # local verification — the same self-contained-JWT path every other ETM app uses — instead of a
+    # Doorkeeper database lookup, which only finds persisted tokens (PATs, OAuth client tokens).
+    def verify_jwt(token)
+      payload, = JWT.decode(token, signing_key.public_key, true, algorithm: "RS256")
+      payload
+    rescue JWT::DecodeError
+      nil
+    end
 
-      key = signing_key
-      JWT.encode(payload, key, "RS256", typ: "JWT", kid: key.to_jwk["kid"])
+    # Mints a short-lived Doorkeeper access token scoped to the given client app and returns its JWT.
+    # Doorkeeper::JWT (configured in doorkeeper_jwt.rb) is the only JWT minter system-wide, so this is
+    # a real, persisted (if short-lived) token rather than a second, independently-signed JWT.
+    #
+    # If scopes are specified (e.g. from an access token) these scopes are granted; otherwise the
+    # configured app scopes are used.
+    def client_token(user, client_app, scopes: [])
+      scopes = scopes.empty? ? client_app.scopes : Array(scopes).join(" ")
+
+      Doorkeeper::AccessToken.create_for(
+        application: client_app, resource_owner: user, scopes: scopes,
+        expires_in: 5.minutes, use_refresh_token: false
+      ).token
     end
 
     # Returns a Faraday client for a user, which will send requests to the specified client app.
-    #
-    # If scopes are specified (e.g. from an access token) these scopes are granted
-    # Otherwise the configured app scopes are used
     def client_for(user, client_app, scopes: [])
-      scopes = scopes.empty? ? client_app.scopes : scopes
-
       Faraday.new(client_app.uri) do |conn|
-        conn.request(
-          :authorization,
-          "Bearer",
-          -> { user_jwt(user, scopes: scopes, client_uri: client_app.uri) }
-        )
+        conn.request(:authorization, "Bearer", -> { client_token(user, client_app, scopes: scopes) })
         conn.request(:json)
         conn.response(:json)
         conn.response(:raise_error)
@@ -114,11 +114,7 @@ module MyEtm
       scopes = scopes.empty? ? engine.scopes : scopes
 
       Faraday.new(engine.uri) do |conn|
-        conn.request(
-          :authorization,
-          "Bearer",
-          -> { user_jwt(user, scopes: scopes, client_uri: engine.uri) }
-        )
+        conn.request(:authorization, "Bearer", -> { client_token(user, engine, scopes: scopes) })
         conn.request(:json)
         # NOTE: No response(:json) middleware - streaming responses must be parsed manually
         conn.response(:raise_error)

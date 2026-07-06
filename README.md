@@ -122,6 +122,37 @@ After setting up MyETM, configure it to communicate with ETEngine and ETModel:
 4. Copy the generated configuration into `config/settings.local.yml` for both ETEngine and ETModel.
    Copy it into `.env.local` for Collections.
 
+### Cross-app single sign-on (SSO) in development
+
+Once signed in to one app, the other apps recognise the session and sign you in **silently** (no
+second login). This is driven by a shared JWT session cookie, `etm_session`, that MyETM mints and
+every other app reads as the browser session. Browsers only share a cookie across apps that sit
+under a **common parent domain**, so the apps must run on sibling subdomains of one parent. MyETM
+scopes the cookie to the parent given by `SSO_COOKIE_DOMAIN` (default `.energytransitionmodel.com`,
+i.e. production).
+
+Plain `localhost:3000`, `localhost:3001`, … are all the **same host** on different ports (cookies
+ignore the port), so there is no shared parent and silent SSO cannot work between them. You have two
+options:
+
+- **ETLauncher (recommended):** it already runs every app on a `*.local.energytransitionmodel.com`
+  subdomain and sets `SSO_COOKIE_DOMAIN=.local.energytransitionmodel.com`, so SSO works out of the box.
+- **Running the apps separately:** give them a shared parent domain via `/etc/hosts`. For example,
+  add:
+
+  ```text
+  127.0.0.1 myetm.etm.test etengine.etm.test etmodel.etm.test collections.etm.test
+  ```
+
+  Then:
+  1. Start MyETM with `SSO_COOKIE_DOMAIN=etm.test` (e.g. `SSO_COOKIE_DOMAIN=etm.test bin/dev -p 3002`).
+  2. Open each app at its `*.etm.test` host (e.g. `http://myetm.etm.test:3002`), not `localhost`.
+  3. In each client app's `config/settings.local.yml` (Collections: `.env.local`), set `client_uri`
+     and the MyETM `issuer` to the matching `*.etm.test` URLs so the OAuth `iss`/`aud` line up.
+
+> Silent SSO is a convenience only. If you skip this setup, every app still works — you simply log
+> in once per app. **Single logout** and the short access-token TTL behave correctly regardless.
+
 ---
 
 ## Database Setup and Importing Scenarios (Admin Only)

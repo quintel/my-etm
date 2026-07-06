@@ -1,8 +1,6 @@
 # syntax = docker/dockerfile:1
 
-# Development image: single stage, all gem groups (no BUNDLE_WITHOUT), source mounted,
-# assets compiled on the fly. Used by this repo's docker-compose.yml and by ETLauncher /
-# etm-stack via `build.context: ../MyETM`. The deploy build lives in Dockerfile.production.
+# Base Stage: Ruby and dependencies
 ARG RUBY_VERSION=4.0.2-slim
 FROM ruby:${RUBY_VERSION}
 
@@ -26,6 +24,7 @@ RUN apt-get update -yqq && \
 
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
+RUN bundle exec rails tailwindcss:build
 
 COPY . .
 

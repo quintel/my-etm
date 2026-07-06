@@ -43,12 +43,25 @@ class ApplicationController < ActionController::Base
     session[:active_version_tag] || Version.default.tag
   end
 
+  def current_user
+    return @current_user if defined?(@current_user)
+
+    @current_user = session_claims && User.find_by(id: session_claims["sub"])
+  end
+
   # How many items are in the trash?
   def trash_item_count
     current_user.saved_scenarios.discarded.count + current_user.collections.discarded.count
   end
 
   private
+
+  def session_claims
+    return @session_claims if defined?(@session_claims)
+
+    token = cookies[JwtSessionCookies::SESSION_COOKIE]
+    @session_claims = token.present? ? MyEtm::Auth.verify_jwt(token) : nil
+  end
 
   def require_user
     return if current_user
