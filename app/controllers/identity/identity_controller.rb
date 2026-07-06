@@ -6,7 +6,7 @@ module Identity
 
     included do
       # layout 'identity'
-      before_action :authenticate_user!
+      before_action :require_user
       before_action :set_back_url
     end
 

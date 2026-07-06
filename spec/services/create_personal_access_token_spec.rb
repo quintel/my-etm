@@ -75,6 +75,10 @@ RSpec.describe CreatePersonalAccessToken do
     it 'sets the expiry date to one from now' do
       expect(action.value!.oauth_access_token.expires_in).to eq(365.days.to_i)
     end
+
+    it 'is unaffected by the short global OAuth access_token_expires_in default' do
+      expect(action.value!.oauth_access_token.expires_in).to be > 2.minutes.to_i
+    end
   end
 
   context 'with scopes that are not valid' do

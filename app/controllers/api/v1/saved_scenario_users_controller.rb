@@ -144,7 +144,7 @@ module Api
         MyEtm::Auth.engine_client(
           current_user,
           @saved_scenario.version,
-          scopes: doorkeeper_token ? doorkeeper_token.scopes : []
+          scopes: current_scopes
         )
       end
     end

@@ -2,8 +2,12 @@
 
 module Users
   class SessionsController < Devise::SessionsController
+    include JwtSessionCookies
+
     def create
-      super do
+      # Devise yields the just-signed-in resource here; use it directly
+      super do |resource|
+        start_jwt_session(resource)
         if session["user_return_to"].to_s.start_with?("/oauth/authorize") && is_flashing_format?
           # Don't show the flash message when redirecting to an OAuth action.
           flash.delete(:notice)
@@ -12,25 +16,21 @@ module Users
     end
 
     def destroy
-      # current_user won't be available in the block as the sign out has already happened.
-      token = access_token
+      # current_user won't be available in the block as the sign out has already happened, so
+      # capture what we need first.
+      user       = current_user
+      return_app = access_token&.application
+
+      # Single logout: revoke every one of the user's tokens/grants across all client apps, so the
+      # short access-token TTL bounds how long any other app stays logged in.
+      RevokeUserSessions.call(user) if user
+      clear_jwt_session_cookies
 
       super do
-        if token
-          token.revoke if token.accessible?
-
-          # Don't set a flash when redirecting back to a client application.
-          if token.application
-            flash.delete(:notice) if is_flashing_format?
-            return redirect_to(token.application.uri, allow_other_host: true)
-          end
-        end
-
         # Turbo requires redirects be :see_other (303); so override Devise default (302)
-        return redirect_to(
-          after_sign_out_path_for(resource_name),
-          status: :see_other, allow_other_host: true
-        )
+        target = return_app ? validated_post_logout_uri(return_app) : after_sign_out_path_for(resource_name)
+        flash.delete(:notice) if return_app && is_flashing_format?
+        return redirect_to(target, status: :see_other, allow_other_host: true)
       end
     end
 
@@ -40,6 +40,14 @@ module Users
       @access_token ||= if params[:access_token].present? && current_user
         current_user.access_tokens.find_by(token: params[:access_token])
       end
+    end
+
+    # Returns a safe post-logout redirect target.
+    def validated_post_logout_uri(return_app)
+      requested = params[:post_logout_redirect_uri].presence
+      return requested if requested && OAuthApplication.exists?(uri: requested)
+
+      return_app.uri
     end
 
     def after_sign_out_path_for(...)

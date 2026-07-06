@@ -9,6 +9,9 @@ Rails.application.routes.draw do
 
   get '/passthru/last', to: 'passthru#last', as: :back_to_etm
 
+  # Refresh the shared JWT browser session (re-mints the access cookie before it expires).
+  post '/session/refresh', to: 'browser_sessions#refresh', as: :refresh_session
+
   namespace :identity do
     get '/', to: redirect('/identity/profile')
     get 'profile', to: 'settings#index', as: :profile

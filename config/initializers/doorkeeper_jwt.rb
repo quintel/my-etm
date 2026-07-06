@@ -10,13 +10,21 @@ Doorkeeper::JWT.configure do
 
     audience = if opts[:application].present?
       # Token is valid for all audiences within this version
-      opts[:application].version.urls.join(" ")
+      opts[:application].version.urls
+    elsif opts[:scopes].to_s.split.include?("roles")
+      # The shared browser-session cookie (JwtSessionCookies#start_jwt_session) carries the "roles"
+      # scope and no other app-less token does: it's valid for every ETM app, across all versions,
+      # since one cookie authenticates ETEngine, ETModel and Collections at once.
+      Version.all.flat_map(&:urls).uniq
     else
-      # For Personal Access Tokens all engines are a valid audience
-      Version.all.map(&:engine_url).join(" ")
+      # Personal Access Tokens: engine API access only.
+      Version.all.map(&:engine_url)
     end
 
-    scopes = opts[:application].present? ? opts[:application][:scopes] : opts[:scopes]
+    # opts[:scopes] is always this specific token's own granted scopes (Doorkeeper passes through
+    # `self.scopes` from the AccessToken being minted), whether or not it belongs to an application —
+    # not the application's own configured scope set, which could be broader than what was granted.
+    scopes = opts[:scopes]
     extras = opts[:expires_in].present? ? { exp: opts[:expires_in] + Time.now.to_i } : {}
 
     {
@@ -34,16 +42,16 @@ Doorkeeper::JWT.configure do
 
   # Optionally set additional headers for the JWT. See
   # https://tools.ietf.org/html/rfc7515#section-4.1
-  # JWK can be used to automatically verify RS* tokens client-side if token's kid matches a public kid in /oauth/discovery/keys
+  # Reuses Doorkeeper::OpenidConnect's own kid for this key, rather than independently deriving one:
+  # that's the kid /oauth/discovery/keys actually publishes, and every consumer verifies tokens by
+  # looking up this exact kid there.
   token_headers do |_opts|
-    key = OpenSSL::PKey::RSA.new(MyEtm::Auth.signing_key_content)
-    { kid: JWT::JWK.new(key)[:kid] }
+    { kid: Doorkeeper::OpenidConnect.signing_key.kid }
   end
 
-  # TODO: check if we need this now that we use the above KIDs!
-  # Use the application secret specified in the access grant token. Defaults to
-  # `false`. If you specify `use_application_secret true`, both `secret_key` and
-  # `secret_key_path` will be ignored.
+  # Must stay false: every ETM app verifies tokens against the one shared signing key (via kid, see
+  # token_headers above), including the shared browser-session cookie which isn't tied to a single
+  # OAuthApplication at all. Per-application secrets would break that shared verification model.
   use_application_secret false
 
   # Set the signing secret. This would be shared with any other applications
