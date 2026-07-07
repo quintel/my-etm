@@ -1,9 +1,12 @@
 class ApplicationController < ActionController::Base
+  include JwtSessionCookies
+
   helper :all
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps,
   # CSS nesting, and CSS :has.
   allow_browser versions: :modern
+  prepend_before_action :recover_jwt_session
   before_action :set_locale
   before_action :configure_sentry
   before_action :store_user_location!, if: :storable_location?
@@ -61,6 +64,27 @@ class ApplicationController < ActionController::Base
 
     token = cookies[JwtSessionCookies::SESSION_COOKIE]
     @session_claims = token.present? ? MyEtm::Auth.verify_jwt(token) : nil
+  end
+
+  # Slides the shared session server-side when the access JWT has expired but the 24h refresh cookie
+  # is still valid. Without this, a request arriving after the 10-minute access token lapsed is
+  # treated as logged out even though the user could be silently re-authenticated
+  def recover_jwt_session
+    return if session_claims
+    return if cookies[JwtSessionCookies::REFRESH_COOKIE].blank?
+
+    if renew_jwt_session
+      reset_session_identity
+    else
+      clear_jwt_session_cookies
+    end
+  end
+
+  # renew_jwt_session writes a new etm_session cookie during this request; clear the memoized claims
+  # and user so current_user re-reads the fresh cookie from the jar.
+  def reset_session_identity
+    remove_instance_variable(:@session_claims) if defined?(@session_claims)
+    remove_instance_variable(:@current_user) if defined?(@current_user)
   end
 
   def require_user
