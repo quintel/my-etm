@@ -57,13 +57,36 @@ module MyEtm
       OpenSSL::PKey::RSA.new(signing_key_content)
     end
 
-    # Verifies a self-issued JWT (e.g. the shared session cookie) against our own signing key and its
-    # expiry, returning the claims hash or nil. Lets MyETM's own API accept the session cookie via
-    # local verification — the same self-contained-JWT path every other ETM app uses — instead of a
-    # Doorkeeper database lookup, which only finds persisted tokens (PATs, OAuth client tokens).
+    # Verifies a self-issued JWT (e.g. the shared session cookie), returning the claims hash or nil.
+    # Lets MyETM's own UI and API accept the session cookie via local verification — the same
+    # self-contained-JWT path every other ETM app uses — instead of a Doorkeeper database lookup,
+    # which only finds persisted tokens (PATs, OAuth client tokens).
+    #
+    # This must enforce the same claim contract as Identity::TokenDecoder, which every other app
+    # uses: issuer, audience, expiry and subject. MyETM cannot use that gem (it is the provider, and
+    # the gem verifies against a JWKS that MyETM itself publishes), so the two implementations are
+    # kept in agreement by spec/requests/token_contract_spec.rb, which mints a real token and writes
+    # the fixture the gem's own spec/identity/token_contract_spec.rb verifies against.
+    #
+    # Checking `aud` is what stops a token minted for another app being replayed here: MyETM hands
+    # ETEngine short-lived tokens (see #client_token), and without this check any of them would
+    # authenticate as that user against MyETM's own UI and API.
     def verify_jwt(token)
-      payload, = JWT.decode(token, signing_key.public_key, true, algorithm: "RS256")
-      payload
+      payload, = JWT.decode(
+        token,
+        signing_key.public_key,
+        true,
+        algorithms: ["RS256"],
+        verify_iss: true,
+        iss: Settings.auth.issuer,
+        verify_aud: true,
+        aud: Settings.auth.issuer,
+        verify_expiration: true,
+        required_claims: %w[sub exp]
+      )
+
+      # required_claims only checks the key is present, not that it holds a value.
+      payload["sub"].present? ? payload : nil
     rescue JWT::DecodeError
       nil
     end

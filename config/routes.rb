@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  # Must be drawn before use_doorkeeper_openid_connect so it wins the route for this path. Serves
+  # the same JWKS as Doorkeeper's own controller plus a legacy `kid` entry; see the controller.
+  get '/oauth/discovery/keys', to: 'oauth/discovery#keys', as: :oauth_discovery_keys
+
   use_doorkeeper
   use_doorkeeper_openid_connect
 

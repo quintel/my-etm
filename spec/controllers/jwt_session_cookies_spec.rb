@@ -44,12 +44,12 @@ RSpec.describe JwtSessionCookies, type: :controller do
       expect(session_line).to match(/expires=/i)
     end
 
-    it "backs the refresh cookie with a revocable Doorkeeper token (single logout)" do
+    it "backs the refresh cookie with a revocable anchor token" do
       get :create_session, params: { user_id: user.id }
 
       token = Doorkeeper::AccessToken.by_refresh_token(response.cookies["etm_refresh"])
       expect(token.resource_owner_id).to eq(user.id)
-      expect { RevokeUserSessions.call(user) }.to change { token.reload.revoked? }.to(true)
+      expect { token.revoke }.to change { token.reload.revoked? }.to(true)
     end
   end
 

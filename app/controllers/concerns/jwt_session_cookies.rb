@@ -4,12 +4,18 @@
 #
 # Three cookies make up the session (all set by MyETM, the only app that holds the signing key and
 # can write the parent domain):
-#   - etm_session     : short-lived identity JWT, read by every subdomain app as the browser session.
+#   - etm_session     : short-lived identity JWT (the "access cookie"), read by every subdomain app
+#                       as the browser session.
 #   - etm_refresh     : opaque refresh token, host-only to MyETM so the long-lived secret never
-#                       reaches other subdomains. Backed by one of the user's Doorkeeper access
-#                       tokens, so RevokeUserSessions revokes it on logout (single logout).
+#                       reaches other subdomains. Backed by the user's *anchor token* — one
+#                       app-less Doorkeeper access token representing this one browser.
 #   - etm_session_exp : the access JWT's expiry (no PII, not HttpOnly) so client JS can refresh
 #                       shortly before expiry without reading the HttpOnly session cookie.
+#
+# Single logout works by clearing the access cookie: it is set on the parent domain, so removing it
+# signs the user out of ETModel, ETEngine and Collections in the same response. Revoking the anchor
+# token additionally stops the session being slid again. Both are scoped to this browser — see
+# #revoke_jwt_session.
 module JwtSessionCookies
   extend ActiveSupport::Concern
 
@@ -17,7 +23,13 @@ module JwtSessionCookies
   REFRESH_COOKIE     = "etm_refresh"
   SESSION_EXP_COOKIE = "etm_session_exp"
 
-  ACCESS_TTL  = 10.minutes
+  # How long the access cookie is valid. Since nothing reloads the page on refresh any more, this is
+  # purely a revocation-latency knob: it bounds how long a deleted account or a revoked admin role
+  # keeps working.
+  ACCESS_TTL = 15.minutes
+
+  # Idle timeout, not an absolute cap: renew_jwt_session mints a new token on every refresh, so
+  # created_at resets and an actively-used browser stays signed in indefinitely. Deliberate.
   REFRESH_TTL = 24.hours
   SESSION_SCOPES = "openid profile email roles scenarios:read scenarios:write scenarios:delete"
 
@@ -65,6 +77,22 @@ module JwtSessionCookies
       refresh_cookie_options.merge(value: access.refresh_token, httponly: true, expires: REFRESH_TTL)
     cookies[SESSION_EXP_COOKIE] =
       parent_cookie_options.merge(value: ACCESS_TTL.from_now.to_i.to_s, expires: ACCESS_TTL)
+  end
+
+  # Revokes the anchor token behind this browser's refresh cookie, so the session cannot be slid
+  # again after logout.
+  #
+  # Deliberately browser-scoped. The user's personal access tokens live in the same
+  # `user.access_tokens` association as the anchor token, so revoking by user — as this used to —
+  # destroyed every PAT the user owned the moment they signed out of the web UI, breaking their
+  # scripted API clients with no warning. Resolving the token from the refresh cookie makes PATs
+  # (and sessions on the user's other devices) untouchable by construction rather than by an
+  # exclusion clause someone can regress.
+  #
+  # "Sign out everywhere" and account deletion are separate, explicit actions and belong elsewhere.
+  def revoke_jwt_session
+    anchor = Doorkeeper::AccessToken.by_refresh_token(cookies[REFRESH_COOKIE])
+    anchor.revoke if anchor && !anchor.revoked?
   end
 
   def clear_jwt_session_cookies

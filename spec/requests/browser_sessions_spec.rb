@@ -25,13 +25,15 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
     expect(response.cookies["etm_session_exp"]).to be_present
   end
 
-  it "mints an access JWT carrying every in-scope app URL as audience" do
+  # MyETM's own URL is in the audience because its UI and API authenticate from this same cookie.
+  it "mints an access JWT carrying every in-scope app URL, and MyETM, as audience" do
     post "/session/refresh", headers: with_refresh(anchor.refresh_token)
 
     payload, = JWT.decode(
       response.cookies["etm_session"], MyEtm::Auth.signing_key.public_key, true, algorithm: "RS256"
     )
-    expect(payload["aud"]).to match_array(Version.all.flat_map(&:urls).uniq)
+    expect(payload["aud"])
+      .to match_array(Version.all.flat_map(&:urls).uniq + [Settings.auth.issuer])
     expect(payload["sub"]).to eq(user.id)
   end
 
@@ -44,12 +46,34 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
     expect(response.cookies["etm_refresh"]).not_to eq(old)
   end
 
+  # Several tabs slide the session at roughly the same moment. Whichever request arrives second was
+  # already in flight when the first rotated the token, so it presents a refresh token that has just
+  # been revoked — but the browser is plainly still signed in, and must stay that way.
+  it "keeps the session when the refresh token is stale but the access cookie is still live" do
+    stale = anchor.refresh_token
+    post "/session/refresh", headers: with_refresh(stale)
+    live_session = response.cookies["etm_session"]
+
+    post "/session/refresh", headers: { "Cookie" => "etm_refresh=#{stale}; etm_session=#{live_session}" }
+
+    expect(response).to have_http_status(:no_content)
+    expect(response.cookies["etm_session"]).to be_blank
+  end
+
+  it "returns 401 when the refresh token is stale and the access cookie has gone too" do
+    stale = anchor.refresh_token
+    post "/session/refresh", headers: with_refresh(stale)
+    post "/session/refresh", headers: with_refresh(stale)
+
+    expect(response).to have_http_status(:unauthorized)
+  end
+
   it "returns 401 when no refresh cookie is present" do
     post "/session/refresh"
     expect(response).to have_http_status(:unauthorized)
   end
 
-  it "returns 401 for a revoked refresh token (e.g. after RevokeUserSessions on logout)" do
+  it "returns 401 for a revoked refresh token (e.g. after the anchor token is revoked on logout)" do
     anchor.revoke
     post "/session/refresh", headers: with_refresh(anchor.refresh_token)
 

@@ -67,8 +67,8 @@ class ApplicationController < ActionController::Base
   end
 
   # Slides the shared session server-side when the access JWT has expired but the 24h refresh cookie
-  # is still valid. Without this, a request arriving after the 10-minute access token lapsed is
-  # treated as logged out even though the user could be silently re-authenticated
+  # is still valid. Without this, a request arriving after the access cookie lapsed (ACCESS_TTL)
+  # would be treated as logged out even though the user could be silently re-authenticated.
   def recover_jwt_session
     return if session_claims
     return if cookies[JwtSessionCookies::REFRESH_COOKIE].blank?
