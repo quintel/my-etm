@@ -9,15 +9,27 @@ Doorkeeper::JWT.configure do
     user = User.find(opts[:resource_owner_id])
 
     audience = if opts[:application].present?
-      # Token is valid for all audiences within this version
-      opts[:application].version.urls
+      # Token is valid for all audiences within this version, plus MyETM itself. MyETM is included
+      # because ETEngine re-presents the caller's token to MyETM (Api::V3::BaseController#my_etm_client
+      # forwards the incoming Authorization header verbatim), so a token minted here for ETEngine
+      # comes back to MyETM on the same request chain and must verify there.
+      #
+      # This widens the audience across first-party apps and is deliberate. The proper exit is that
+      # MyETM becomes the only caller of ETEngine's API and forwards on the user's behalf with its
+      # own credential, rather than passing the user's token through — do not narrow the audience
+      # while forwarding is in place, or these round-trip calls will start 401ing.
+      opts[:application].version.urls + [Settings.auth.issuer]
     elsif opts[:scopes].to_s.split.include?("roles")
       # The shared browser-session cookie (JwtSessionCookies#start_jwt_session) carries the "roles"
       # scope and no other app-less token does: it's valid for every ETM app, across all versions,
-      # since one cookie authenticates ETEngine, ETModel and Collections at once.
-      Version.all.flat_map(&:urls).uniq
+      # since one cookie authenticates ETEngine, ETModel and Collections at once — and MyETM, whose
+      # own UI and API authenticate from this same cookie (MyEtm::Auth.verify_jwt).
+      Version.all.flat_map(&:urls).uniq + [Settings.auth.issuer]
     else
-      # Personal Access Tokens: engine API access only.
+      # Personal Access Tokens: engine API access only. Deliberately excludes MyETM, so a leaked PAT
+      # cannot be used against the endpoints that manage the user's own tokens and account. (PATs
+      # still reach MyETM's API through Doorkeeper's stored-token lookup, which is a separate path
+      # and is scope-checked there.)
       Version.all.map(&:engine_url)
     end
 

@@ -30,11 +30,19 @@ module AuthorizationHelper
   # Bearer header carrying a self-signed JWT that is NOT stored as a Doorkeeper token — exercises
   # Api::V1::BaseController's local JWT-verification fallback (MyEtm::Auth.verify_jwt), the path used
   # when a token can't be resolved by value (e.g. after refresh-token rotation).
+  # Bearer header carrying a self-issued session JWT, minted with the full claim contract that
+  # MyEtm::Auth.verify_jwt enforces: issuer, an audience including MyETM, subject and expiry.
   def session_token_header(user, scopes: 'public scenarios:read scenarios:write')
     key = MyEtm::Auth.signing_key
     jwt = JWT.encode(
-      { sub: user.id, scopes: scopes.split, exp: 1.hour.from_now.to_i }, key, 'RS256',
-      kid: key.to_jwk['kid']
+      {
+        iss: Settings.auth.issuer,
+        aud: [Settings.auth.issuer],
+        sub: user.id,
+        scopes: scopes.split,
+        exp: 1.hour.from_now.to_i
+      },
+      key, 'RS256', kid: key.to_jwk['kid']
     )
     { 'Authorization' => "Bearer #{jwt}" }
   end

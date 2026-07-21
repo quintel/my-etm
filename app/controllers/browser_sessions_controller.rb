@@ -12,7 +12,10 @@ class BrowserSessionsController < ApplicationController
   skip_before_action :recover_jwt_session, only: :refresh
 
   def refresh
-    if renew_jwt_session
+    if renew_jwt_session || session_claims
+      # session_claims: the refresh token was stale but the access cookie is still live, so another
+      # tab rotated it while this request was in flight. The session is fine — say so, rather than
+      # clearing the cookies and signing the browser out for losing a race it didn't know it was in.
       head :no_content
     else
       clear_jwt_session_cookies

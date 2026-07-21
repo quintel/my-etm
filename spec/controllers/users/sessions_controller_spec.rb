@@ -35,9 +35,83 @@ RSpec.describe Users::SessionsController do
       expect(response).to redirect_to('https://example.com')
     end
 
-    it 'revokes the token' do
-      expect { delete(:destroy, params: { access_token: token.token }) }
-        .to change { token.reload.revoked? }.from(false).to(true)
+  end
+
+  # Logout is browser-scoped: it revokes the anchor token behind *this* browser's refresh cookie
+  # and nothing else. See JwtSessionCookies#revoke_jwt_session.
+  context 'when signing out with a browser session' do
+    let(:anchor) do
+      user.access_tokens.create!(
+        expires_in: JwtSessionCookies::ACCESS_TTL,
+        scopes: JwtSessionCookies::SESSION_SCOPES,
+        use_refresh_token: true
+      )
+    end
+
+    before do
+      sign_in(user)
+      request.cookies[JwtSessionCookies::REFRESH_COOKIE] = anchor.refresh_token
+    end
+
+    it 'revokes the anchor token for this browser' do
+      expect { delete(:destroy) }.to change { anchor.reload.revoked? }.from(false).to(true)
+    end
+
+    it 'leaves the personal access tokens of the same user alone' do
+      pat = CreatePersonalAccessToken.call(
+        user: user, params: { name: 'pipeline', permissions: :read }
+      ).value!
+
+      delete :destroy
+
+      expect(pat.oauth_access_token.reload.revoked?).to be(false)
+    end
+
+    it 'leaves the same user\'s session on another device alone' do
+      other_browser = user.access_tokens.create!(
+        expires_in: JwtSessionCookies::ACCESS_TTL,
+        scopes: JwtSessionCookies::SESSION_SCOPES,
+        use_refresh_token: true
+      )
+
+      delete :destroy
+
+      expect(other_browser.reload.revoked?).to be(false)
+    end
+  end
+
+  # #create deliberately drops the Warden session, so a real sign-out arrives carrying only the JWT
+  # cookies. The other examples here use Devise's sign_in helper, which leaves a Warden session the
+  # app never actually has; this context reproduces what the browser sends.
+  context 'when signing out with only the shared session cookies' do
+    let(:anchor) do
+      user.access_tokens.create!(
+        expires_in: JwtSessionCookies::ACCESS_TTL,
+        scopes: JwtSessionCookies::SESSION_SCOPES,
+        use_refresh_token: true
+      )
+    end
+
+    before do
+      request.cookies[JwtSessionCookies::SESSION_COOKIE] = anchor.token
+      request.cookies[JwtSessionCookies::REFRESH_COOKIE] = anchor.refresh_token
+    end
+
+    it 'revokes the anchor token' do
+      expect { delete(:destroy) }.to change { anchor.reload.revoked? }.from(false).to(true)
+    end
+
+    it 'clears the JWT session cookies' do
+      delete :destroy
+
+      expect(response.cookies['etm_session']).to be_blank
+      expect(response.cookies['etm_refresh']).to be_blank
+      expect(response.cookies['etm_session_exp']).to be_blank
+    end
+
+    it 'redirects to ETModel' do
+      delete :destroy
+      expect(response).to redirect_to(Settings.etmodel_uri)
     end
   end
 
@@ -76,14 +150,16 @@ RSpec.describe Users::SessionsController do
 
     before { sign_in(user) }
 
-    it 'revokes every one of the user\'s tokens, not just the one in params' do
+    # Logout no longer sweeps the user's tokens: the other apps are signed out by the parent-domain
+    # access cookie being cleared, not by revocation. Revoking by user is what used to destroy the
+    # user's personal access tokens as a side effect of a web logout.
+    it 'leaves tokens belonging to other applications alone' do
       token
       other_token
 
       delete :destroy, params: { access_token: token.token }
 
-      expect(token.reload.revoked?).to be(true)
-      expect(other_token.reload.revoked?).to be(true)
+      expect(other_token.reload.revoked?).to be(false)
     end
 
     it 'clears the JWT session cookies' do

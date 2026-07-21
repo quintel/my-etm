@@ -4,24 +4,58 @@ RSpec.describe MyEtm::Auth do
   describe '.verify_jwt' do
     let(:user) { create(:user) }
 
-    let(:token) do
-      key = described_class.signing_key
-      JWT.encode({ sub: user.id, scopes: %w[public] }, key, 'RS256', kid: key.to_jwk['kid'])
+    # The claim contract MyEtm::Auth.verify_jwt enforces, mirroring Identity::TokenDecoder.
+    let(:claims) do
+      {
+        iss: Settings.auth.issuer,
+        aud: [Settings.auth.issuer],
+        sub: user.id,
+        exp: 10.minutes.from_now.to_i,
+        scopes: %w[public]
+      }
     end
+
+    def sign(payload, signing_key: described_class.signing_key)
+      JWT.encode(payload, signing_key, 'RS256', kid: signing_key.to_jwk['kid'])
+    end
+
+    let(:token) { sign(claims) }
 
     it 'returns the claims for a validly-signed token' do
       expect(described_class.verify_jwt(token)['sub']).to eq(user.id)
     end
 
     it 'returns nil for a token signed by a different key' do
-      other_key = OpenSSL::PKey::RSA.new(2048)
-      bad_token = JWT.encode({ sub: user.id }, other_key, 'RS256')
-
-      expect(described_class.verify_jwt(bad_token)).to be_nil
+      expect(described_class.verify_jwt(sign(claims, signing_key: OpenSSL::PKey::RSA.new(2048))))
+        .to be_nil
     end
 
     it 'returns nil for garbage input' do
       expect(described_class.verify_jwt('not-a-jwt')).to be_nil
+    end
+
+    it 'returns nil for a token issued by someone else' do
+      expect(described_class.verify_jwt(sign(claims.merge(iss: 'https://evil.example')))).to be_nil
+    end
+
+    it 'returns nil for an expired token' do
+      expect(described_class.verify_jwt(sign(claims.merge(exp: 1.minute.ago.to_i)))).to be_nil
+    end
+
+    it 'returns nil when the subject is blank' do
+      expect(described_class.verify_jwt(sign(claims.merge(sub: nil)))).to be_nil
+    end
+
+    # The confused-deputy case: MyETM hands ETEngine short-lived tokens whose audience is ETEngine.
+    # Presented back here they must not authenticate, or ETEngine could act as any user at MyETM.
+    it 'returns nil for a token audienced at another app' do
+      expect(described_class.verify_jwt(sign(claims.merge(aud: ['https://engine.example.com']))))
+        .to be_nil
+    end
+
+    it 'accepts a token whose audience array includes MyETM' do
+      aud = ['https://engine.example.com', Settings.auth.issuer]
+      expect(described_class.verify_jwt(sign(claims.merge(aud: aud)))['sub']).to eq(user.id)
     end
   end
 
