@@ -102,7 +102,7 @@ Doorkeeper.configure do
   # session: JwtSessionCookies mints the anchor token with an explicit ACCESS_TTL, and personal
   # access tokens set their own expiry too, so both ignore this. Single logout does not depend on it
   # either — that works by clearing the parent-domain access cookie, which is immediate.
-  access_token_expires_in 2.minutes
+  # access_token_expires_in 2.minutes
 
   # Assign custom TTL for access tokens. Will be used instead of access_token_expires_in
   # option if defined. In case the block returns `nil` value Doorkeeper fallbacks to
