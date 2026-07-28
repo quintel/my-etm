@@ -19,9 +19,16 @@
 module JwtSessionCookies
   extend ActiveSupport::Concern
 
-  SESSION_COOKIE     = "etm_session"
-  REFRESH_COOKIE     = "etm_refresh"
-  SESSION_EXP_COOKIE = "etm_session_exp"
+  # Names carry a per-deployment suffix (Settings.auth.sso_cookie_suffix). Beta and production sit
+  # under one cookie domain with no common parent below it, so distinct names are the only thing
+  # keeping a beta sign-in from replacing production's session in the browser — with a token
+  # production rejects, leaving the user silently signed out there. Consumers derive the same names
+  # from the same environment variable; see Identity::COOKIE_SUFFIX in the identity gem.
+  def self.cookie_name(base) = "#{base}#{Settings.auth.sso_cookie_suffix}"
+
+  SESSION_COOKIE     = cookie_name("etm_session")
+  REFRESH_COOKIE     = cookie_name("etm_refresh")
+  SESSION_EXP_COOKIE = cookie_name("etm_session_exp")
 
   # How long the access cookie is valid. Since nothing reloads the page on refresh any more, this is
   # purely a revocation-latency knob: it bounds how long a deleted account or a revoked admin role

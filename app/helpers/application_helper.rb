@@ -1,4 +1,13 @@
 module ApplicationHelper
+  # Wires the session-keeper Stimulus controller, telling it which hint cookie this deployment
+  # writes. The client apps get the same pair from Identity::ApplicationHelper.
+  def session_keeper_attributes
+    {
+      controller: "session-keeper",
+      "session-keeper-exp-cookie-value": JwtSessionCookies::SESSION_EXP_COOKIE
+    }
+  end
+
   def notice_message
     if notice.is_a?(Hash)
       notice[:message] || notice["message"]

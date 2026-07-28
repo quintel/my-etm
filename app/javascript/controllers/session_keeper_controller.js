@@ -15,6 +15,10 @@ const REFRESH_URL = "/session/refresh";
 // provider and does not depend on the gem — so this stays a copy; keep the three behaviours below
 // (lead time, jitter, visibility re-schedule) aligned with it.
 export default class extends Controller {
+  // Which hint cookie to time off. Deployments sharing a cookie domain suffix their cookie names,
+  // so the name comes from the server rather than being assumed here.
+  static values = { expCookie: { type: String, default: "etm_session_exp" } };
+
   connect() {
     this.onVisible = () =>
       document.visibilityState === "visible" && this.schedule();
@@ -67,7 +71,9 @@ export default class extends Controller {
   }
 
   readExpiryMs() {
-    const match = document.cookie.match(/(?:^|;\s*)etm_session_exp=([^;]+)/);
+    const match = document.cookie.match(
+      new RegExp(`(?:^|;\\s*)${this.expCookieValue}=([^;]+)`)
+    );
     if (!match) return null;
 
     const exp = parseInt(decodeURIComponent(match[1]), 10);
