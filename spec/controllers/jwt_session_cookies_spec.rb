@@ -53,6 +53,28 @@ RSpec.describe JwtSessionCookies, type: :controller do
     end
   end
 
+  describe "cookie names" do
+    it "appends the deployment's suffix" do
+      allow(Settings.auth).to receive(:sso_cookie_suffix).and_return("_beta")
+
+      expect(described_class.cookie_name("etm_session")).to eq("etm_session_beta")
+    end
+
+    # A suffix that reached only some of the cookies would be worse than none: beta would write a
+    # distinct session cookie while still overwriting production's refresh or expiry cookie.
+    it "applies to all three cookies, none of them named literally" do
+      names = {
+        described_class::SESSION_COOKIE => "etm_session",
+        described_class::REFRESH_COOKIE => "etm_refresh",
+        described_class::SESSION_EXP_COOKIE => "etm_session_exp"
+      }
+
+      names.each do |name, base|
+        expect(name).to eq(described_class.cookie_name(base))
+      end
+    end
+  end
+
   describe "#clear_jwt_session_cookies" do
     it "removes the session cookies" do
       get :destroy_session

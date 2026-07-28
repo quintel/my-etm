@@ -36,6 +36,11 @@ auth:
   # shared by all ETM apps so they can read it. Defaults to production; override via
   # SSO_COOKIE_DOMAIN for ETLauncher or separate-app dev (e.g. etm.test via /etc/hosts).
   sso_cookie_domain: <%= ENV.fetch('SSO_COOKIE_DOMAIN', '.energytransitionmodel.com') %>
+  # Appended to the session cookie names, so deployments sharing a cookie domain don't share the
+  # session. Beta and production are both under energytransitionmodel.com with no common parent
+  # below it, so beta sets "_beta" and would otherwise sign production out in the same browser.
+  # Every consuming app must be given the same SSO_COOKIE_SUFFIX.
+  sso_cookie_suffix: <%= ENV.fetch('SSO_COOKIE_SUFFIX', '') %>
 
 # Optionally send error messages to the Sentry service by providing your
 # Sentry DSN:
