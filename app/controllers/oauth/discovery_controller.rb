@@ -15,8 +15,8 @@ module OAuth
   #
   # These are two names for one key, not two keys: same modulus, same exponent, same signatures.
   #
-  # TEMPORARY, paired with the `.split` in Identity::TokenDecoder#verify_audience!. Both go
-  # when the next major API break invalidates every pre-migration personal access token — a
+  # TEMPORARY(legacy-pat): paired with the `.split` in Identity::TokenDecoder#verify_audience!,
+  # Both go when the next major API break invalidates every pre-migration personal access token — a
   # forcing event, not a calendar date; PATs can be minted for up to 365 days, so any earlier
   # removal must be coordinated with a user-visible change. Removing #legacy_key and its call site
   # is the whole change. If the signing key is rotated before then, every pre-migration token dies
@@ -26,7 +26,7 @@ module OAuth
 
     def keys_response
       response = super
-      { keys: response[:keys] + [legacy_key] }
+      { keys: response[:keys] + [ legacy_key ] }
     end
 
     # The same public key under the `kid` that pre-migration tokens carry in their header.
