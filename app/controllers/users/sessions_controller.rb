@@ -3,13 +3,12 @@
 module Users
   class SessionsController < Devise::SessionsController
     include JwtSessionCookies
-    include EtmAppRedirects
 
     # Other ETM apps link here with the page the user was trying to reach. Devise resumes from
     # session["user_return_to"] after a successful sign-in, so stash it there; the POST that
     # follows no longer carries the query string.
     def new
-      if (target = validated_etm_url(params[:return_to]))
+      if (target = EtmAppRedirects.validate(params[:return_to]))
         session["user_return_to"] = target
       end
 
@@ -34,7 +33,7 @@ module Users
         # declared expected; #new origin-checked this URL, which is what makes that safe. Only
         # consume the stored location when it is one of ours, so Devise still handles its own
         # relative paths (notably /oauth/authorize) normally.
-        if (target = validated_etm_url(session["user_return_to"]))
+        if (target = EtmAppRedirects.validate(session["user_return_to"]))
           session.delete("user_return_to")
           return redirect_to(target, allow_other_host: true)
         end
@@ -85,7 +84,7 @@ module Users
 
     # Returns a safe post-logout redirect target, falling back to the app that initiated the logout.
     def validated_post_logout_uri(return_app)
-      validated_etm_url(params[:post_logout_redirect_uri]) || return_app.uri
+      EtmAppRedirects.validate(params[:post_logout_redirect_uri]) || return_app.uri
     end
 
     def after_sign_out_path_for(...)

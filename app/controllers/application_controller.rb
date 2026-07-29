@@ -46,6 +46,7 @@ class ApplicationController < ActionController::Base
     session[:active_version_tag] || Version.default.tag
   end
 
+  # Returns the currently logged in user, or nil if no user is logged in.
   def current_user
     return @current_user if defined?(@current_user)
 
