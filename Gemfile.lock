@@ -300,7 +300,7 @@ GEM
       railties (>= 7.1)
       stimulus-rails
       turbo-rails
-    msgpack (1.8.0)
+    msgpack (1.8.2)
     mysql2 (0.5.7)
       bigdecimal
     net-http (0.9.1)
