@@ -1,16 +1,69 @@
 require 'rails_helper'
 
 RSpec.describe "Api::V2::Collections", type: :request, api: true do
-  # TODO create this for all endpoints:
-  # include_examples 'resource_access'
+  let(:class_sym) { :collection }
+  let(:owner)     { create(:user) }
 
-  let(:user) { create(:user) }
+  # Action: index
+  describe 'GET /api/v2/collections' do
+    let(:path)      { "/api/v2/collections" }
 
-  describe 'GET /api/v2/collections/:id' do
-    # include examples on Class name, they can use the factories directly
-    # include_examples 'resource_access', url, Collection, user
-    #
-    # TODO: figure out how to structure this - handover user vs creating in example?
-    it_behaves_like 'single_serialisable', "/api/v1/collections/", :collection, user
+    it_behaves_like 'a collection of serialisable resources'
+    it_behaves_like 'a caller-scoped collection endpoint' do
+      let(:resource) { create(:collection, user: owner) }
+    end
   end
+
+  # Action: show
+  describe 'GET /api/v2/collections/:id' do
+    let(:resource) { create(:collection, user: owner) }
+    let(:path)     { "/api/v2/collections/#{resource.id}" }
+
+    it_behaves_like 'a read-protected resource'
+    it_behaves_like 'a single serialisable resource'
+  end
+
+
+  # Action: create
+  describe 'POST /api/v2/collections' do
+    let(:path)     { "/api/v2/collections" }
+    let(:required_strict_attribute) { :version }
+    let(:resource_attributes) do
+      {
+        area_code: 'nl',
+        end_year: 2050,
+        scenario_ids: [ 1, 2, 3 ],
+        title: 'My collection',
+        version: Version.default.tag
+      }
+    end
+
+    it_behaves_like 'a write-protected resource'
+    it_behaves_like 'a single createable resource'
+
+    # persistant and owned
+    # it_behaves_like 'a persistant resource'
+  end
+
+  # Action: update
+  describe 'PUT /api/v2/collection/:id' do
+    let(:resource) { create(:collection, user: owner) }
+    let(:path)     { "/api/v2/collections/#{resource.id}" }
+
+    # TODO: can move into do for updateable
+    let(:unupdateable_attribute) { :version }
+    let(:strict_attribute) { :end_year }
+    let(:resource_attributes) do
+      { title: 'My new collection' }
+    end
+
+    it_behaves_like 'a write-protected resource'
+    it_behaves_like 'a single updateable resource'
+
+    # persistant and owned
+    # it_behaves_like 'a persistant resource'
+  end
+
+  # Action: delete
+  # TODO: add other controller actions
 end

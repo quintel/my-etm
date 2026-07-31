@@ -3,7 +3,7 @@ module Api
     class CollectionsController < BaseController
       include Api::V2::Serialisable
 
-      # TODO: check this out
+      # TODO: @Louis hook in here for resource auth
       load_and_authorize_resource(class: Collection, only: %i[index show])
 
       # GET api/v2/collections

@@ -23,8 +23,13 @@ module Api
 
       def render_error(status:, code:, detail:, source:);end
 
+
+
+      # TODO @Louis: hook auth logic to find current user and track token use
       # Track PAT use
       def track_token_use;end
+
+      def current_user;end
 
       def require_user;end
     end
