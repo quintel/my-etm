@@ -24,7 +24,7 @@
 #     let(:owner)    { create(:user) }
 #     let(:resource) { create(:collection, user: owner) }
 #     let(:path)     { "/api/v2/collections/#{resource.id}" }
-RSpec.shared_examples('a single serialisable resource') do
+RSpec.shared_examples('a serialisable resource') do
   before do
     get(path, headers: v2_session_cookie(owner), as: :json)
   end
@@ -55,7 +55,7 @@ end
 #         version: Version.default.tag
 #       }
 #     end
-RSpec.shared_examples('a single createable resource') do
+RSpec.shared_examples('a serialisable resource on create') do
   before do
     post(
       path,
@@ -67,7 +67,11 @@ RSpec.shared_examples('a single createable resource') do
 
   context 'with all valid attributes' do
     it 'contains resource details in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).to include('id')
+      expect(response.parsed_body['data'].keys).to include('id')
+    end
+
+    it 'does not contain an error field' do
+      expect(response.parsed_body.keys).not_to include('errors')
     end
   end
 
@@ -75,15 +79,15 @@ RSpec.shared_examples('a single createable resource') do
     let(:resource_attributes) { super().except(required_strict_attribute) }
 
     it 'does not contain missing attribute in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).not_to include(required_strict_attribute.to_s)
+      expect(response.parsed_body['data'].keys).not_to include(required_strict_attribute.to_s)
     end
 
     it 'does not contain a resource id in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).not_to include('id')
+      expect(response.parsed_body['data'].keys).not_to include('id')
     end
 
     it 'contains resource errors in the error field' do
-      expect(JSON.parse(response.body)['errors']).to include('missing')
+      expect(response.parsed_body['errors']).to include('missing')
     end
   end
 
@@ -96,15 +100,15 @@ RSpec.shared_examples('a single createable resource') do
     end
 
     it 'contains supplied resource details in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).to include(required_strict_attribute.to_s)
+      expect(response.parsed_body['data'].keys).to include(required_strict_attribute.to_s)
     end
 
     it 'does not contain a resource id in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).not_to include('id')
+      expect(response.parsed_body['data'].keys).not_to include('id')
     end
 
     it 'contains resource errors in the error field' do
-      expect(JSON.parse(response.body)['errors']).to include('invalid')
+      expect(response.parsed_body['errors']).to include('invalid')
     end
   end
 end
@@ -122,7 +126,7 @@ end
 #     let(:resource_attributes) do
 #       { title: 'My new collection' }
 #     end
-RSpec.shared_examples('a single updateable resource') do
+RSpec.shared_examples('a serialisable resource on update') do
   before do
     put(
       path,
@@ -134,7 +138,7 @@ RSpec.shared_examples('a single updateable resource') do
 
   context 'with all valid attributes' do
     it 'contains resource details in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).to include('id')
+      expect(response.parsed_body['data'].keys).to include('id')
     end
   end
 
@@ -143,15 +147,15 @@ RSpec.shared_examples('a single updateable resource') do
       let(:resource_attributes) { { unupdateable_attribute: :winnie_the_pooh } }
 
       it 'contains the original value of the attribute in the data field' do
-        expect(JSON.parse(response.body)['data'][unupdateable_attribute.to_s]).not_to eq(:winnie_the_pooh)
+        expect(response.parsed_body['data'][unupdateable_attribute.to_s]).not_to eq(:winnie_the_pooh)
       end
 
       it 'contains a resource id in the data field' do
-        expect(JSON.parse(response.body)['data'].keys).to include('id')
+        expect(response.parsed_body['data'].keys).to include('id')
       end
 
       it 'contains resource errors in the error field' do
-        expect(JSON.parse(response.body)['errors']).to include('invalid')
+        expect(response.parsed_body['errors']).to include('invalid')
       end
     end
 
@@ -164,16 +168,16 @@ RSpec.shared_examples('a single updateable resource') do
       end
 
       it 'contains the original value of the attribute in the data field' do
-        expect(JSON.parse(response.body)['data'][unupdateable_attribute.to_s]).not_to eq(:winnie_the_pooh)
+        expect(response.parsed_body['data'][unupdateable_attribute.to_s]).not_to eq(:winnie_the_pooh)
       end
 
       it 'contains the updated value of the other attribute in the data field' do
         key = resource_attributes.keys.excluding(unupdateable_attribute).first
-        expect(JSON.parse(response.body)['data'][key.to_s]).to eq(resource_attributes[key])
+        expect(response.parsed_body['data'][key.to_s]).to eq(resource_attributes[key])
       end
 
       it 'contains resource errors in the error field' do
-        expect(JSON.parse(response.body)['errors']).to include('invalid')
+        expect(response.parsed_body['errors']).to include('invalid')
       end
     end
   end
@@ -187,15 +191,15 @@ RSpec.shared_examples('a single updateable resource') do
     end
 
     it 'contains the original value of the attribute in the data field' do
-      expect(JSON.parse(response.body)['data'][strict_attribute.to_s]).not_to eq(:winnie_the_pooh)
+      expect(response.parsed_body['data'][strict_attribute.to_s]).not_to eq(:winnie_the_pooh)
     end
 
     it 'contains a resource id in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).to include('id')
+      expect(response.parsed_body['data'].keys).to include('id')
     end
 
     it 'contains resource errors in the error field' do
-      expect(JSON.parse(response.body)['errors']).to include('invalid')
+      expect(response.parsed_body['errors']).to include('invalid')
     end
   end
 
@@ -203,11 +207,11 @@ RSpec.shared_examples('a single updateable resource') do
     let(:resource_attributes) { { winnie_the_pooh: :winnie_the_pooh } }
 
     it 'does not contain unexisting attribute in the data field' do
-      expect(JSON.parse(response.body)['data'].keys).not_to include('winnie_the_pooh')
+      expect(response.parsed_body['data'].keys).not_to include('winnie_the_pooh')
     end
 
     it 'contains resource errors in the error field' do
-      expect(JSON.parse(response.body)['errors']).to include('invalid')
+      expect(response.parsed_body['errors']).to include('invalid')
     end
   end
 end
@@ -229,17 +233,43 @@ RSpec.shared_examples('a collection of serialisable resources') do
     let(:resources) { create_list(:class_sym, 5, user: owner) }
 
     it 'contains resource details in the data field' do
-      expect(JSON.parse(response.body)['data']).to include(resources.first.to_json)
+      expect(response.parsed_body['data']).to include(resources.first.to_json)
     end
 
     it 'contains exactly the amount of owned resources' do
-      expect(JSON.parse(response.body)['data'].count).to eq(resources.count)
+      expect(response.parsed_body['data'].count).to eq(resources.count)
     end
   end
 
   context 'with no owned resources' do
     it 'contains no data in the data field' do
-      expect(JSON.parse(response.body)['data'].count).to be_zero
+      expect(response.parsed_body['data'].count).to be_zero
+    end
+  end
+end
+
+# For delete endpoints
+#
+# Expects the following declared:
+#     let(:owner)    { create(:user) }
+#     let(:resource) { create(:collection, user: owner) }
+#     let(:path)     { "/api/v2/collections/#{resource.id}" }
+RSpec.shared_examples('a serialisable resource on delete') do
+  before do
+    delete(path, headers: v2_session_cookie(owner), as: :json)
+  end
+
+  context 'when the owner of the scenario' do
+    it 'puts an object in the data field' do
+      expect(response.parsed_body['data']).to be_a(Hash)
+    end
+
+    it 'contains resource details in the data field' do
+      expect(response.parsed_body['data']).to eq(resource.as_json)
+    end
+
+    it 'contains status in the status field' do
+      expect(response.parsed_body['status']).to eq('deleted')
     end
   end
 end

@@ -20,7 +20,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     let(:path)     { "/api/v2/collections/#{resource.id}" }
 
     it_behaves_like 'a read-protected resource'
-    it_behaves_like 'a single serialisable resource'
+    it_behaves_like 'a serialisable resource'
   end
 
 
@@ -39,10 +39,10 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     end
 
     it_behaves_like 'a write-protected resource'
-    it_behaves_like 'a single createable resource'
-
-    # persistant and owned
-    # it_behaves_like 'a persistant resource'
+    it_behaves_like 'a serialisable resource on create'
+    it_behaves_like 'a persistant resource on create' do
+      let(:resource_name) { :collections }
+    end
   end
 
   # Action: update
@@ -50,7 +50,6 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     let(:resource) { create(:collection, user: owner) }
     let(:path)     { "/api/v2/collections/#{resource.id}" }
 
-    # TODO: can move into do for updateable
     let(:unupdateable_attribute) { :version }
     let(:strict_attribute) { :end_year }
     let(:resource_attributes) do
@@ -58,12 +57,26 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     end
 
     it_behaves_like 'a write-protected resource'
-    it_behaves_like 'a single updateable resource'
-
-    # persistant and owned
-    # it_behaves_like 'a persistant resource'
+    it_behaves_like 'a serialisable resource on update'
+    it_behaves_like 'a persistant resource on update' do
+      let(:resource_name) { :collections }
+    end
   end
 
   # Action: delete
+  describe 'DELETE /api/v2/collection/:id' do
+    let(:resource) { create(:collection, user: owner) }
+    let(:path)     { "/api/v2/collections/#{resource.id}" }
+
+    it_behaves_like 'a delete-protected resource'
+    it_behaves_like 'a serialisable resource on delete'
+    it_behaves_like 'a persistant resource on delete' do
+      let(:resource_name) { :collections }
+    end
+  end
+
+
   # TODO: add other controller actions
+  # - discard
+  # - restore
 end
