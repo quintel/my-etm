@@ -78,7 +78,7 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v2 do
-      resources :collections, only: %i[index show]
+      resources :collections, only: %i[index show create update destroy]
     end
 
     namespace :v1 do

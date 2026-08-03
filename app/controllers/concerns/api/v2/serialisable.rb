@@ -8,6 +8,12 @@ module Api
         { data: resource.as_json, meta: meta }
       end
 
+      # Public: Serialises a response, based on the resource and result
+      #
+      def serialise_error(resource, errors)
+        serialise(resource, meta: {}).merge!(errors: errors)
+      end
+
       # collection
       # returns { data: [], meta: {} }
       def serialise_collection(resources);end
@@ -16,7 +22,7 @@ module Api
       # returns { data: [{status}], meta: {}, batch: {succeeded,failed,total} }
       def serialise_batch_update(results_or_resources);end
 
-      # serialise error for resource
+      # TODO: parse errors?
     end
   end
 end
