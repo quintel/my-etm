@@ -5,7 +5,7 @@ module Api
       # single
       # returns { data: {}, meta: {} }
       def serialise(resource, meta: {})
-        { data: resource.to_json, meta: meta }
+        { data: resource.as_json, meta: meta }
       end
 
       # collection

@@ -29,8 +29,12 @@ RSpec.shared_examples('a single serialisable resource') do
     get(path, headers: v2_session_cookie(owner), as: :json)
   end
 
+  it 'puts an object in the data field' do
+    expect(response.parsed_body['data']).to be_a(Hash)
+  end
+
   it 'contains resource details in the data field' do
-    expect(JSON.parse(response.body)['data']).to eq(resource.to_json)
+    expect(response.parsed_body['data']).to eq(resource.as_json)
   end
 end
 
