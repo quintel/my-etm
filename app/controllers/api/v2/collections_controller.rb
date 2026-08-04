@@ -3,8 +3,13 @@ module Api
     class CollectionsController < BaseController
       include Api::V2::Serialisable
 
-      # TODO: @Louis hook in here for resource auth
+      before_action :require_user, only: %i[index]
+
       load_and_authorize_resource(class: Collection, only: %i[index show update destroy])
+
+      before_action only: %i[create] do
+        authorize!(:create, Collection)
+      end
 
       # GET api/v2/collections
       def index
@@ -28,7 +33,7 @@ module Api
           params: collection_params.to_h.symbolize_keys
         ).either(
           ->(collection)   { render_created(serialise(collection)) },
-          ->(errors) { render_error(serialise_error(collection_params, errors)) }
+          ->(errors) { render_validation_errors(errors) }
         )
       end
 
@@ -40,7 +45,7 @@ module Api
           params: collection_params.to_h.symbolize_keys
         ).either(
           ->(collection)   { render_ok(serialise(collection)) },
-          ->(errors) { render_error(serialise_error(@collection, errors)) }
+          ->(errors) { render_validation_errors(errors) }
         )
       end
 

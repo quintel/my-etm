@@ -1,35 +1,125 @@
+# frozen_string_literal: true
+
 module Api
   module V2
     class BaseController < ActionController::API
       include ActionController::MimeResponds
 
+      check_authorization
+
       after_action :track_token_use
 
-      # TODO: add rescues
-      #
-      # TODO@Louis: I just copied this from the v1 base - should get an update
-      # to fix the 404 & 403's
-      rescue_from CanCan::AccessDenied do |e|
-        if e.subject.is_a?(SavedScenario) && !e.subject.private?
-          render status: :forbidden, json: { errors: [ "Scenario does not belong to you" ] }
-        elsif e.subject.is_a?(Collection)
-          render status: :forbidden, json: { errors: [ "Collection does not belong to you" ] }
-        else
-          render_not_found
-        end
+      rescue_from ActionController::ParameterMissing do |e|
+        render_error(
+          status: :bad_request,
+          code: ErrorCodes::PARAM_MISSING,
+          detail: "param is missing or the value is empty: #{e.param}",
+          source: { parameter: e.param.to_s }
+        )
       end
 
+      rescue_from ActiveRecord::RecordNotFound do |e|
+        render_error(status: :not_found, code: not_found_code(e.model), detail: not_found_detail(e.model))
+      end
+
+      rescue_from ActiveModel::RangeError do
+        render_error(status: :not_found, code: ErrorCodes::NOT_FOUND, detail: "Not found")
+      end
+
+      rescue_from CanCan::AccessDenied do |e|
+        render_denied(e.subject)
+      end
+
+      def process_action(*args)
+        super
+      rescue ActionDispatch::Http::Parameters::ParseError => e
+        render_error(status: :bad_request, code: ErrorCodes::PARSE_ERROR, detail: e.message)
+      end
 
       private
 
-      def render_not_found(body = { errors: [ "Not found" ] })
-        render json: body, status: :not_found
+      # Error shape: { "errors": [ { status, code, detail, source } ] }
+      def render_error(status:, code:, detail:, source: nil)
+        render json: { errors: [ error_object(status, code, detail, source) ] }, status: status
       end
 
-      def render_bad_params;end
+      # Every failing key at once, one error object each
+      def render_validation_errors(errors)
+        objects = errors.to_h.flat_map do |attribute, messages|
+          Array(messages).map do |message|
+            error_object(:unprocessable_content, ErrorCodes::VALIDATION_FAILED, message.to_s, { pointer: attribute.to_s })
+          end
+        end
 
-      def render_accepted;end
+        render json: { errors: objects }, status: :unprocessable_content
+      end
 
+      def error_object(status, code, detail, source)
+        object = { status: Rack::Utils.status_code(status), code: code.to_s, detail: detail }
+        object[:source] = source if source
+        object
+      end
+
+      # Hidden or refused, depending on access.
+      def render_denied(subject)
+        if subject.is_a?(Class) || current_ability.can?(:read, subject)
+          render_error(status: :forbidden, code: ErrorCodes::FORBIDDEN, detail: denied_detail(subject))
+        else
+          render_error(status: :not_found, code: ErrorCodes::NOT_FOUND, detail: "Not found")
+        end
+      end
+
+      def denied_detail(subject)
+        model = subject.is_a?(Class) ? subject : subject.class
+        "Not permitted to #{action_name} this #{model.name.underscore.humanize.downcase}"
+      end
+
+      def not_found_code(model)
+        model == "SavedScenario" ? ErrorCodes::SCENARIO_NOT_FOUND : ErrorCodes::NOT_FOUND
+      end
+
+      def not_found_detail(model)
+        model ? "#{model.underscore.humanize} not found" : "Not found"
+      end
+
+      # A v2 request authenticates from an `Authorization: Bearer` credential only
+      def current_token
+        return @current_token if defined?(@current_token)
+
+        credential = request.authorization.to_s[/\ABearer (.+)\z/, 1]
+        token = credential.present? ? Doorkeeper::AccessToken.by_token(credential) : nil
+
+        @current_token = token if token&.accessible?
+      end
+
+      def current_user
+        return @current_user if defined?(@current_user)
+
+        @current_user = User.find_by(id: current_token&.resource_owner_id)
+      end
+
+      def current_ability
+        @current_ability ||=
+          if current_user
+            Api::TokenAbility.new({ scopes: current_token.scopes.to_a }, current_user)
+          else
+            Api::GuestAbility.new
+          end
+      end
+
+      def require_user
+        return if current_user
+
+        render_error(status: :unauthorized, code: ErrorCodes::UNAUTHENTICATED, detail: "Not authenticated")
+      end
+
+      # PAT usage reporting
+      def track_token_use
+        return unless response.successful? && current_token
+        return unless PersonalAccessToken.prefixed?(current_token.token)
+
+        TrackPersonalAccessTokenUse.perform_later(current_token.id, Time.now.utc)
+      end
 
       def render_ok(response)
         render json: response, status: :ok
@@ -38,19 +128,6 @@ module Api
       def render_created(response)
         render json: response, status: :created
       end
-
-      def render_error(response, status: :unprocessable_entity)
-        render json: response, status:
-      end
-
-
-      # TODO @Louis: hook auth logic to find current user and track token use
-      # Track PAT use
-      def track_token_use;end
-
-      def current_user;end
-
-      def require_user;end
     end
   end
 end

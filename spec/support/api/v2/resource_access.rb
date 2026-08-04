@@ -20,7 +20,7 @@
 
 RSpec.shared_examples('a read-protected resource') do
   describe 'as a signed-out caller' do
-    it 'is hidden, not forbidden — a 403 would confirm it exists' do
+    it 'is hidden, not forbidden, because a 403 would confirm it exists' do
       get(path, as: :json)
 
       expect(response).to have_http_status(:not_found)
@@ -28,30 +28,22 @@ RSpec.shared_examples('a read-protected resource') do
     end
   end
 
-  describe 'on the cookie lane, as the owner' do
-    it 'is readable' do
-      get(path, headers: v2_session_cookie(owner), as: :json)
-
-      expect(response).to have_http_status(:ok)
-    end
-  end
-
-  describe 'on the PAT lane, as the owner' do
+  describe 'as the owner' do
     it 'is readable with the read scope' do
-      get(path, headers: v2_pat_header(owner, :read), as: :json)
+      get(path, headers: v2_bearer(owner, :read), as: :json)
 
       expect(response).to have_http_status(:ok)
     end
 
     it 'is hidden without the read scope' do
-      get(path, headers: v2_pat_header(owner, :public), as: :json)
+      get(path, headers: v2_bearer(owner, :public), as: :json)
 
       expect(response).to have_http_status(:not_found)
     end
 
     it 'is hidden once the token is revoked' do
-      headers = v2_pat_header(owner, :read)
-      revoke_v2_pat(headers)
+      headers = v2_bearer(owner, :read)
+      revoke_v2_bearer(headers)
 
       get(path, headers: headers, as: :json)
 
@@ -62,14 +54,8 @@ RSpec.shared_examples('a read-protected resource') do
   describe 'as a stranger' do
     let(:stranger) { create(:user) }
 
-    it 'is hidden on the cookie lane' do
-      get(path, headers: v2_session_cookie(stranger), as: :json)
-
-      expect(response).to have_http_status(:not_found)
-    end
-
-    it 'is hidden on the PAT lane, even with the read scope' do
-      get(path, headers: v2_pat_header(stranger, :read), as: :json)
+    it 'is hidden even with the read scope' do
+      get(path, headers: v2_bearer(stranger, :read), as: :json)
 
       expect(response).to have_http_status(:not_found)
     end
@@ -79,25 +65,16 @@ RSpec.shared_examples('a read-protected resource') do
     let(:admin) { create(:user, admin: true) }
 
     it 'is readable with the read scope' do
-      get(path, headers: v2_pat_header(admin, :read), as: :json)
+      get(path, headers: v2_bearer(admin, :read), as: :json)
 
       expect(response).to have_http_status(:ok)
     end
 
     it 'is still hidden without the read scope' do
-      get(path, headers: v2_pat_header(admin, :public), as: :json)
+      get(path, headers: v2_bearer(admin, :public), as: :json)
 
       expect(response).to have_http_status(:not_found)
     end
-  end
-
-  it 'reaches the same verdict on both lanes for the same caller' do
-    get(path, headers: v2_session_cookie(owner), as: :json)
-    cookie_status = response.status
-
-    get(path, headers: v2_pat_header(owner, :read), as: :json)
-
-    expect(response.status).to eq(cookie_status)
   end
 end
 
@@ -111,16 +88,16 @@ RSpec.shared_examples('a write-protected resource') do
     end
   end
 
-  describe 'on the PAT lane, as the owner' do
+  describe 'as the owner' do
     it 'is writable with the write scope' do
-      put(path, params: body, headers: v2_pat_header(owner, :write), as: :json)
+      put(path, params: body, headers: v2_bearer(owner, :write), as: :json)
 
       expect(response).not_to have_http_status(:not_found)
       expect(response).not_to have_http_status(:forbidden)
     end
 
     it 'is refused, not hidden, with only the read scope' do
-      put(path, params: body, headers: v2_pat_header(owner, :read), as: :json)
+      put(path, params: body, headers: v2_bearer(owner, :read), as: :json)
 
       expect(response).to have_http_status(:forbidden)
       expect(response.parsed_body.dig('errors', 0, 'code')).to eq('forbidden')
@@ -131,7 +108,7 @@ RSpec.shared_examples('a write-protected resource') do
     let(:stranger) { create(:user) }
 
     it 'is hidden even with the write scope' do
-      put(path, params: body, headers: v2_pat_header(stranger, :write), as: :json)
+      put(path, params: body, headers: v2_bearer(stranger, :write), as: :json)
 
       expect(response).to have_http_status(:not_found)
     end
@@ -149,15 +126,15 @@ RSpec.shared_examples('a delete-protected resource') do
     end
   end
 
-  describe 'on the PAT lane, as the owner' do
+  describe 'as the owner' do
     it 'is refused, not hidden, with only the write scope' do
-      delete(delete_path, headers: v2_pat_header(owner, :write), as: :json)
+      delete(delete_path, headers: v2_bearer(owner, :write), as: :json)
 
       expect(response).to have_http_status(:forbidden)
     end
 
     it 'is permitted with the delete scope' do
-      delete(delete_path, headers: v2_pat_header(owner, :delete), as: :json)
+      delete(delete_path, headers: v2_bearer(owner, :delete), as: :json)
 
       expect(response).not_to have_http_status(:not_found)
       expect(response).not_to have_http_status(:forbidden)
@@ -174,21 +151,15 @@ RSpec.shared_examples('a caller-scoped collection endpoint') do
     expect(response.parsed_body.dig('errors', 0, 'code')).to eq('unauthenticated')
   end
 
-  it 'is reachable on the cookie lane' do
-    get(path, headers: v2_session_cookie(owner), as: :json)
-
-    expect(response).to have_http_status(:ok)
-  end
-
-  it 'is reachable on the PAT lane with the read scope' do
-    get(path, headers: v2_pat_header(owner, :read), as: :json)
+  it 'is reachable with the read scope' do
+    get(path, headers: v2_bearer(owner, :read), as: :json)
 
     expect(response).to have_http_status(:ok)
   end
 
   it 'is unreachable once the token is revoked' do
-    headers = v2_pat_header(owner, :read)
-    revoke_v2_pat(headers)
+    headers = v2_bearer(owner, :read)
+    revoke_v2_bearer(headers)
 
     get(path, headers: headers, as: :json)
 

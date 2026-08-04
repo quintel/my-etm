@@ -26,7 +26,7 @@
 #     let(:path)     { "/api/v2/collections/#{resource.id}" }
 RSpec.shared_examples('a serialisable resource') do
   before do
-    get(path, headers: v2_session_cookie(owner), as: :json)
+    get(path, headers: v2_bearer(owner), as: :json)
   end
 
   it 'puts an object in the data field' do
@@ -59,7 +59,7 @@ RSpec.shared_examples('a serialisable resource on create') do
   before do
     post(
       path,
-      headers: v2_session_cookie(owner),
+      headers: v2_bearer(owner),
       params: { class_sym => resource_attributes },
       as: :json
     )
@@ -130,7 +130,7 @@ RSpec.shared_examples('a serialisable resource on update') do
   before do
     put(
       path,
-      headers: v2_session_cookie(owner),
+      headers: v2_bearer(owner),
       params: { class_sym => resource_attributes },
       as: :json
     )
@@ -226,7 +226,7 @@ end
 # class_sym is used to Factory create different sizes of user resources
 RSpec.shared_examples('a collection of serialisable resources') do
   before do
-    get(path, headers: v2_session_cookie(owner), as: :json)
+    get(path, headers: v2_bearer(owner), as: :json)
   end
 
   context 'with multiple owned resources' do
@@ -256,7 +256,7 @@ end
 #     let(:path)     { "/api/v2/collections/#{resource.id}" }
 RSpec.shared_examples('a serialisable resource on delete') do
   before do
-    delete(path, headers: v2_session_cookie(owner), as: :json)
+    delete(path, headers: v2_bearer(owner), as: :json)
   end
 
   context 'when the owner of the scenario' do

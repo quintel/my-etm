@@ -40,7 +40,7 @@ RSpec.shared_examples('a persistant resource on create') do
   subject do
     post(
       path,
-      headers: v2_session_cookie(owner),
+      headers: v2_bearer(owner),
       params: { class_sym => resource_attributes },
       as: :json
     )
@@ -78,7 +78,7 @@ RSpec.shared_examples('a persistant resource on update') do
   subject do
     put(
       path,
-      headers: v2_session_cookie(owner),
+      headers: v2_bearer(owner),
       params: { class_sym => resource_attributes },
       as: :json
     )
@@ -112,7 +112,7 @@ RSpec.shared_examples('a persistant resource on update') do
     subject do
       put(
         path,
-        headers: v2_session_cookie(other_user),
+        headers: v2_bearer(other_user),
         params: { class_sym => resource_attributes },
         as: :json
       )
@@ -136,7 +136,7 @@ end
 #
 RSpec.shared_examples('a persistant resource on delete') do
   subject do
-    delete(path, headers: v2_session_cookie(owner), as: :json)
+    delete(path, headers: v2_bearer(owner), as: :json)
   end
 
   context 'when the owner of the resource' do
@@ -147,7 +147,7 @@ RSpec.shared_examples('a persistant resource on delete') do
 
   context 'when not the owner of the resource' do
     subject do
-      delete(path, headers: v2_session_cookie(other_user), as: :json)
+      delete(path, headers: v2_bearer(other_user), as: :json)
     end
 
     let(:other_user) { create(:user) }
