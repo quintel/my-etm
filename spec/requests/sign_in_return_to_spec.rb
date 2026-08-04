@@ -5,27 +5,28 @@
 RSpec.describe 'Sign-in return_to', type: :request do
   let(:user) { create(:user, :confirmed_at, password: 'password') }
 
-  let!(:etmodel) do
-    OAuthApplication.create!(
-      name: 'ETModel', uri: 'https://etmodel.example.com',
-      redirect_uri: 'https://etmodel.example.com/auth/callback',
-      owner: user, version: Version.default
-    )
-  end
+  let(:model_url) { Version.default.model_url }
+  let(:collections_url) { Version.default.collections_url }
 
   def sign_in_with(return_to:)
     get '/identity/sign_in', params: { return_to: return_to }.compact
     post '/identity/sign_in', params: { user: { email: user.email, password: 'password' } }
   end
 
-  it 'returns the user to the page they came from at another ETM app' do
-    sign_in_with(return_to: 'https://etmodel.example.com/scenarios/123')
+  it 'returns the user to the page they came from at ETModel' do
+    sign_in_with(return_to: "#{model_url}/scenarios/123")
 
-    expect(response).to redirect_to('https://etmodel.example.com/scenarios/123')
+    expect(response).to redirect_to("#{model_url}/scenarios/123")
+  end
+
+  it 'returns the user to Collections' do
+    sign_in_with(return_to: "#{collections_url}/collections/7")
+
+    expect(response).to redirect_to("#{collections_url}/collections/7")
   end
 
   it 'starts the shared browser session even when returning to another app' do
-    sign_in_with(return_to: 'https://etmodel.example.com/scenarios/123')
+    sign_in_with(return_to: "#{model_url}/scenarios/123")
 
     expect(response.cookies['etm_session']).to be_present
   end
@@ -35,7 +36,7 @@ RSpec.describe 'Sign-in return_to', type: :request do
   describe 'rejecting targets that are not ETM apps' do
     [
       'https://evil.example.com/steal',
-      'https://etmodel.example.com.evil.example.com/steal',
+      'https://energytransitionmodel.com.evil.example.com/steal',
       'javascript:alert(1)',
       '//evil.example.com'
     ].each do |hostile|

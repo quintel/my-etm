@@ -26,10 +26,9 @@ module EtmAppRedirects
     nil
   end
 
-  # Deliberately not memoized: applications are registered while the process lives, and a sign-in
-  # costs one pluck per check.
+  # Deliberately not memoized: a sign-in costs one query per check.
   def app_origins
-    (OAuthApplication.pluck(:uri) + [ Settings.auth.issuer ])
+    (Version.all.flat_map(&:urls) + [ Settings.auth.issuer ])
       .filter_map { |uri| origin_of(uri) }
       .uniq
   end
