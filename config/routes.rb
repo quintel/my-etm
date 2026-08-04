@@ -8,7 +8,8 @@ Rails.application.routes.draw do
 
   devise_for :users, path: 'identity', sign_out_via: %i[get post delete], controllers: {
     sessions: 'users/sessions',
-    registrations: 'users/registrations'
+    registrations: 'users/registrations',
+    passwords: 'users/passwords'
   }
 
   get '/passthru/last', to: 'passthru#last', as: :back_to_etm

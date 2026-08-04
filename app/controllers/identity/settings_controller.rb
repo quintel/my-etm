@@ -57,6 +57,8 @@ module Identity
       @user = User.find(current_user.id)
 
       if @user.update_with_password(password_params)
+        reset_jwt_sessions(@user)
+
         redirect_to(
           identity_profile_path,
           notice: I18n.t("identity.settings.update_password.success")

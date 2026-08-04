@@ -29,6 +29,10 @@ module Users
         return
       end
 
+      # Warden's sign_out only resets Rails' own session, which the shared cookie is no part of.
+      # Revoking the anchors also stops any browser sliding the session while the hard delete queues.
+      revoke_all_jwt_sessions(resource)
+      clear_jwt_session_cookies
       Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name)
 
       Identity::DestroyUserJob.perform_later(@user.id)
@@ -41,12 +45,21 @@ module Users
 
     private
 
+    def authenticate_scope!
+      if current_user
+        self.resource = current_user
+      else
+        redirect_to(new_user_session_path)
+      end
+    end
+
     def recaptcha_enabled?
       Settings.recaptcha.site_key.present? && Settings.recaptcha.secret_key.present?
     end
 
+    # Goes to ETModel, as a sign-out does.
     def after_sign_out_path_for(...)
-      redirect_to root_path
+      Settings.etmodel_uri.presence || super
     end
 
     def update_resource(resource, params)

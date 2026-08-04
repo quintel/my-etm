@@ -15,12 +15,18 @@ RSpec.describe JwtSessionCookies, type: :controller do
       clear_jwt_session_cookies
       head :ok
     end
+
+    def revoke_all_sessions
+      revoke_all_jwt_sessions(User.find(params[:user_id]))
+      head :ok
+    end
   end
 
   before do
     routes.draw do
       get "create_session" => "anonymous#create_session"
       get "destroy_session" => "anonymous#destroy_session"
+      get "revoke_all_sessions" => "anonymous#revoke_all_sessions"
     end
     Version.default
   end
@@ -72,6 +78,36 @@ RSpec.describe JwtSessionCookies, type: :controller do
       names.each do |name, base|
         expect(name).to eq(described_class.cookie_name(base))
       end
+    end
+  end
+
+  describe "#revoke_all_jwt_sessions" do
+    def anchor_for(owner)
+      owner.access_tokens.create!(
+        expires_in: described_class::ACCESS_TTL,
+        scopes: described_class::SESSION_SCOPES,
+        use_refresh_token: true
+      )
+    end
+
+    it "revokes the user's sessions on every device" do
+      here = anchor_for(user)
+      elsewhere = anchor_for(user)
+
+      get :revoke_all_sessions, params: { user_id: user.id }
+
+      expect(here.reload.revoked?).to be(true)
+      expect(elsewhere.reload.revoked?).to be(true)
+    end
+
+    it "leaves the user's personal access tokens alone" do
+      pat = CreatePersonalAccessToken.call(
+        user: user, params: { name: "pipeline", permissions: :read }
+      ).value!
+
+      get :revoke_all_sessions, params: { user_id: user.id }
+
+      expect(pat.oauth_access_token.reload.revoked?).to be(false)
     end
   end
 
