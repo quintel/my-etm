@@ -41,7 +41,7 @@ module Api
           if doorkeeper_token
             User.find(doorkeeper_token.resource_owner_id)
           elsif session_token_claims
-            User.find_by(id: session_token_claims["sub"])
+            User.not_deleted.find_by(id: session_token_claims["sub"])
           end
       end
 

@@ -50,7 +50,7 @@ class ApplicationController < ActionController::Base
   def current_user
     return @current_user if defined?(@current_user)
 
-    @current_user = session_claims && User.find_by(id: session_claims["sub"])
+    @current_user = session_claims && User.not_deleted.find_by(id: session_claims["sub"])
   end
 
   # How many items are in the trash?

@@ -31,6 +31,8 @@ class User < ApplicationRecord
 
   scope :by_name, ->(name) { where("name LIKE ? OR email LIKE ?", "%#{name}%", "%#{name}%") }
 
+  # Deleting an account marks it here and queues the hard delete.
+  scope :not_deleted, -> { where(deleted_at: nil) }
 
   has_many :staff_applications, dependent: :destroy
   has_many :saved_scenario_users, dependent: :destroy

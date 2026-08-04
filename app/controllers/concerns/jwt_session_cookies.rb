@@ -95,11 +95,23 @@ module JwtSessionCookies
   # scripted API clients with no warning. Resolving the token from the refresh cookie makes PATs
   # (and sessions on the user's other devices) untouchable by construction rather than by an
   # exclusion clause someone can regress.
-  #
-  # "Sign out everywhere" and account deletion are separate, explicit actions and belong elsewhere.
   def revoke_jwt_session
     anchor = Doorkeeper::AccessToken.by_refresh_token(cookies[REFRESH_COOKIE])
     anchor.revoke if anchor && !anchor.revoked?
+  end
+
+  # Revokes every browser session the user has, here and on all their other devices.
+  def revoke_all_jwt_sessions(user)
+    user.access_tokens
+      .where(application_id: nil, revoked_at: nil)
+      .where.not(refresh_token: nil)
+      .find_each(&:revoke)
+  end
+
+  # Ends the user's sessions everywhere, then re-establishes this one.
+  def reset_jwt_sessions(user)
+    revoke_all_jwt_sessions(user)
+    start_jwt_session(user)
   end
 
   def clear_jwt_session_cookies
