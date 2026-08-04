@@ -173,22 +173,18 @@ RSpec.describe Users::SessionsController do
   context 'with a post_logout_redirect_uri' do
     before { sign_in(user) }
 
-    it 'honours a registered redirect URI' do
-      OAuthApplication.create!(
-        name: 'Registered', uri: 'https://registered.example.com',
-        redirect_uri: 'https://registered.example.com/auth/callback',
-        owner: user, version: Version.default
-      )
+    it 'honours a redirect URI belonging to an ETM app' do
+      target = Version.default.collections_url
 
       delete :destroy, params: {
         access_token: token.token,
-        post_logout_redirect_uri: 'https://registered.example.com'
+        post_logout_redirect_uri: target
       }
 
-      expect(response).to redirect_to('https://registered.example.com')
+      expect(response).to redirect_to(target)
     end
 
-    it 'rejects an unregistered redirect URI and falls back to the application URI' do
+    it 'rejects a redirect URI that is not an ETM app and falls back to the application URI' do
       delete :destroy, params: {
         access_token: token.token,
         post_logout_redirect_uri: 'https://evil.example.com'
