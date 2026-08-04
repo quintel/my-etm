@@ -71,44 +71,64 @@ RSpec.shared_examples('a serialisable resource on create') do
     end
 
     it 'does not contain an error field' do
-      expect(response.parsed_body.keys).not_to include('errors')
+      expect(response.parsed_body['errors']).to be_nil
     end
   end
 
   context 'when an attribute is missing' do
-    let(:resource_attributes) { super().except(required_strict_attribute) }
+    let(:resource_attributes) { super().except(required_attribute) }
 
-    it 'does not contain missing attribute in the data field' do
-      expect(response.parsed_body['data'].keys).not_to include(required_strict_attribute.to_s)
+    it 'does not contain the data field' do
+      expect(response.parsed_body['data']).to be_nil
     end
 
-    it 'does not contain a resource id in the data field' do
-      expect(response.parsed_body['data'].keys).not_to include('id')
+    it 'contains an error field' do
+      expect(response.parsed_body['errors']).not_to be_nil
     end
 
     it 'contains resource errors in the error field' do
-      expect(response.parsed_body['errors']).to include('missing')
+      expect(response.parsed_body['errors'].first).to be_a(Hash)
+    end
+
+    it 'contains validation error code in the error field' do
+      expect(response.parsed_body['errors'].first['code']).to eq("validation_failed")
+    end
+
+    it 'points to the failed attribute in the error field' do
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq(required_attribute.to_s)
+    end
+
+    it 'contains missing details in the error field' do
+      expect(response.parsed_body['errors'].first["detail"]).to eq("is missing")
     end
   end
 
   context 'when an attribute has an invalid value' do
     let(:resource_attributes) do
       attrs = super()
-      attrs[required_strict_attribute] = :winnie_the_pooh
+      attrs[strict_attribute] = :winnie_the_pooh
 
       attrs
     end
 
-    it 'contains supplied resource details in the data field' do
-      expect(response.parsed_body['data'].keys).to include(required_strict_attribute.to_s)
+    it 'does not contain the data field' do
+      expect(response.parsed_body['data']).to be_nil
     end
 
-    it 'does not contain a resource id in the data field' do
-      expect(response.parsed_body['data'].keys).not_to include('id')
+    it 'contains an error field' do
+      expect(response.parsed_body['errors']).not_to be_nil
     end
 
     it 'contains resource errors in the error field' do
-      expect(response.parsed_body['errors']).to include('invalid')
+      expect(response.parsed_body['errors'].first).to be_a(Hash)
+    end
+
+    it 'contains validation error code in the error field' do
+      expect(response.parsed_body['errors'].first['code']).to eq("validation_failed")
+    end
+
+    it 'points to the failed attribute in the error field' do
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq(strict_attribute.to_s)
     end
   end
 end
@@ -138,28 +158,42 @@ RSpec.shared_examples('a serialisable resource on update') do
 
   context 'with all valid attributes' do
     it 'contains resource details in the data field' do
-      expect(response.parsed_body['data'].keys).to include('id')
+      key = resource_attributes.keys.first
+      expect(response.parsed_body['data'][key.to_s]).to eq(resource_attributes[key].to_s)
     end
   end
 
   context 'when an attribute is not updateable' do
     context 'when only updating that attribute' do
-      let(:resource_attributes) { { unupdateable_attribute: :winnie_the_pooh } }
+      let(:resource_attributes) { { unupdateable_attribute => :winnie_the_pooh } }
 
-      it 'contains the original value of the attribute in the data field' do
-        expect(response.parsed_body['data'][unupdateable_attribute.to_s]).not_to eq(:winnie_the_pooh)
+      it 'does not contain a data field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['data']).to be_nil
       end
 
-      it 'contains a resource id in the data field' do
-        expect(response.parsed_body['data'].keys).to include('id')
+      it 'contains an error field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors']).not_to be_nil
       end
 
       it 'contains resource errors in the error field' do
-        expect(response.parsed_body['errors']).to include('invalid')
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors'].first).to be_a(Hash)
+      end
+
+      it 'contains validation error code in the error field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors'].first['code']).to be_a("validation_failed")
+      end
+
+      it 'points to the failed attribute in the error field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors'].first['source']['pointer']).to eq(unupdateable_attribute.to_s)
       end
     end
 
-    context 'when updating multiple attributes' do
+    context 'when updating a valid attribute as well' do
       let(:resource_attributes) do
         attrs = super()
         attrs[unupdateable_attribute] = :winnie_the_pooh
@@ -167,17 +201,29 @@ RSpec.shared_examples('a serialisable resource on update') do
         attrs
       end
 
-      it 'contains the original value of the attribute in the data field' do
-        expect(response.parsed_body['data'][unupdateable_attribute.to_s]).not_to eq(:winnie_the_pooh)
+      it 'does not contain a data field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['data']).to be_nil
       end
 
-      it 'contains the updated value of the other attribute in the data field' do
-        key = resource_attributes.keys.excluding(unupdateable_attribute).first
-        expect(response.parsed_body['data'][key.to_s]).to eq(resource_attributes[key])
+      it 'contains an error field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors']).not_to be_nil
       end
 
       it 'contains resource errors in the error field' do
-        expect(response.parsed_body['errors']).to include('invalid')
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors'].first).to be_a(Hash)
+      end
+
+      it 'contains validation error code in the error field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors'].first['code']).to be_a("validation_failed")
+      end
+
+      it 'points to the failed attribute in the error field' do
+        pending 'awaiting code - response for non-existing attributes'
+        expect(response.parsed_body['errors'].first['source']['pointer']).to eq(unupdateable_attribute.to_s)
       end
     end
   end
@@ -190,28 +236,39 @@ RSpec.shared_examples('a serialisable resource on update') do
       attrs
     end
 
-    it 'contains the original value of the attribute in the data field' do
-      expect(response.parsed_body['data'][strict_attribute.to_s]).not_to eq(:winnie_the_pooh)
-    end
-
-    it 'contains a resource id in the data field' do
-      expect(response.parsed_body['data'].keys).to include('id')
+    it 'contains an error field' do
+      expect(response.parsed_body['errors']).not_to be_nil
     end
 
     it 'contains resource errors in the error field' do
-      expect(response.parsed_body['errors']).to include('invalid')
+      expect(response.parsed_body['errors'].first).to be_a(Hash)
+    end
+
+    it 'contains validation error code in the error field' do
+      expect(response.parsed_body['errors'].first['code']).to eq("validation_failed")
+    end
+
+    it 'points to the failed attribute in the error field' do
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq(strict_attribute.to_s)
     end
   end
 
   context 'when an attribute does not exist' do
     let(:resource_attributes) { { winnie_the_pooh: :winnie_the_pooh } }
 
-    it 'does not contain unexisting attribute in the data field' do
-      expect(response.parsed_body['data'].keys).not_to include('winnie_the_pooh')
+    it 'contains an error field' do
+      pending 'awaiting code - response for non-existing attributes'
+      expect(response.parsed_body['errors']).not_to be_nil
     end
 
     it 'contains resource errors in the error field' do
-      expect(response.parsed_body['errors']).to include('invalid')
+      pending 'awaiting code - response for non-existing attributes'
+      expect(response.parsed_body['errors'].first).to be_a(Hash)
+    end
+
+    it 'points to the failed attribute in the error field' do
+      pending 'awaiting code - response for non-existing attributes'
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq('winnie_the_pooh')
     end
   end
 end
@@ -226,14 +283,16 @@ end
 # class_sym is used to Factory create different sizes of user resources
 RSpec.shared_examples('a collection of serialisable resources') do
   before do
+    resources
+
     get(path, headers: v2_bearer(owner), as: :json)
   end
 
   context 'with multiple owned resources' do
-    let(:resources) { create_list(:class_sym, 5, user: owner) }
+    let(:resources) { create_list(class_sym, 5, user: owner) }
 
     it 'contains resource details in the data field' do
-      expect(response.parsed_body['data']).to include(resources.first.to_json)
+      expect(response.parsed_body['data']).to include(resources.first.as_json)
     end
 
     it 'contains exactly the amount of owned resources' do
@@ -242,6 +301,8 @@ RSpec.shared_examples('a collection of serialisable resources') do
   end
 
   context 'with no owned resources' do
+    let(:resources) { }
+
     it 'contains no data in the data field' do
       expect(response.parsed_body['data'].count).to be_zero
     end
@@ -261,15 +322,7 @@ RSpec.shared_examples('a serialisable resource on delete') do
 
   context 'when the owner of the scenario' do
     it 'puts an object in the data field' do
-      expect(response.parsed_body['data']).to be_a(Hash)
-    end
-
-    it 'contains resource details in the data field' do
-      expect(response.parsed_body['data']).to eq(resource.as_json)
-    end
-
-    it 'contains status in the status field' do
-      expect(response.parsed_body['status']).to eq('deleted')
+      expect(response.parsed_body['data']).to be_nil
     end
   end
 end

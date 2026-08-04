@@ -53,7 +53,7 @@ RSpec.shared_examples('a persistant resource on create') do
   end
 
   context 'with invalid create params' do
-    let(:resource_attributes) { super().except(required_strict_attribute) }
+    let(:resource_attributes) { super().except(required_attribute) }
 
     it 'increases the users resource count by 1' do
       expect { subject }.not_to change { owner.public_send(resource_name).count }
@@ -84,9 +84,11 @@ RSpec.shared_examples('a persistant resource on update') do
     )
   end
 
+  before { resource }
+
   context 'with valid update params' do
     it 'updates the field' do
-      expect { subject }.to change { resource.public_send(resource_attributes.keys.first) }
+      expect { subject }.to change { resource.reload.public_send(resource_attributes.keys.first) }
     end
   end
 
@@ -98,9 +100,9 @@ RSpec.shared_examples('a persistant resource on update') do
         attrs
       end
 
-    it 'updates the field of the valid attirbute' do
+    it 'does not update the field of the valid attirbute' do
       key = resource_attributes.keys.excluding(strict_attribute).first
-      expect { subject }.to change { resource.public_send(key) }
+      expect { subject }.not_to change { resource.public_send(key) }
     end
 
     it 'does not update the field of the invalid attribute' do
@@ -138,6 +140,8 @@ RSpec.shared_examples('a persistant resource on delete') do
   subject do
     delete(path, headers: v2_bearer(owner), as: :json)
   end
+
+  before { resource }
 
   context 'when the owner of the resource' do
     it 'decreases the users resource count by 1' do

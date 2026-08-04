@@ -32,8 +32,8 @@ module Api
           user: current_user,
           params: collection_params.to_h.symbolize_keys
         ).either(
-          ->(collection)   { render_created(serialise(collection)) },
-          ->(errors) { render_validation_errors(errors) }
+          ->(collection) { render_created(serialise(collection)) },
+          ->(errors)     { render_validation_errors(errors) }
         )
       end
 
@@ -44,14 +44,19 @@ module Api
           collection: @collection,
           params: collection_params.to_h.symbolize_keys
         ).either(
-          ->(collection)   { render_ok(serialise(collection)) },
-          ->(errors) { render_validation_errors(errors) }
+          ->(collection) { render_ok(serialise(collection)) },
+          ->(errors)     { render_validation_errors(errors) }
         )
       end
 
       # DELETE api/v2/collections/:id
       def destroy
-        # TODO: missing Api::DestroyCollection
+        Api::V2::DestroyCollection.new.call(
+          collection: @collection
+        ).either(
+          ->(collection) { render_no_content },
+          ->(errors)     { render_validation_errors(errors) }
+        )
       end
 
       # PUT api/v2/collections/:id/discard

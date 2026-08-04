@@ -27,7 +27,9 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
   # Action: create
   describe 'POST /api/v2/collections' do
     let(:path)     { "/api/v2/collections" }
-    let(:required_strict_attribute) { :version }
+
+    let(:strict_attribute) { :end_year }
+    let(:required_attribute) { :title }
     let(:resource_attributes) do
       {
         area_code: 'nl',
@@ -47,7 +49,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
 
   # Action: update
   describe 'PUT /api/v2/collection/:id' do
-    let(:resource) { create(:collection, user: owner) }
+    let(:resource) { create(:collection, user: owner, interpolation: false) }
     let(:path)     { "/api/v2/collections/#{resource.id}" }
 
     let(:unupdateable_attribute) { :version }

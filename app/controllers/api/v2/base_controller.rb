@@ -38,11 +38,24 @@ module Api
 
       private
 
+      def render_ok(response)
+        render json: response, status: :ok
+      end
+
+      def render_created(response)
+        render json: response, status: :created
+      end
+
+      def render_no_content
+        render json: {}, satus: :no_content
+      end
+
       # Error shape: { "errors": [ { status, code, detail, source } ] }
       def render_error(status:, code:, detail:, source: nil)
         render json: { errors: [ error_object(status, code, detail, source) ] }, status: status
       end
 
+      # TODO: move into serialisable?
       # Every failing key at once, one error object each
       def render_validation_errors(errors)
         objects = errors.to_h.flat_map do |attribute, messages|
@@ -119,14 +132,6 @@ module Api
         return unless PersonalAccessToken.prefixed?(current_token.token)
 
         TrackPersonalAccessTokenUse.perform_later(current_token.id, Time.now.utc)
-      end
-
-      def render_ok(response)
-        render json: response, status: :ok
-      end
-
-      def render_created(response)
-        render json: response, status: :created
       end
     end
   end
