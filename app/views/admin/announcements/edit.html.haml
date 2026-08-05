@@ -17,12 +17,13 @@
 
     %div.mb-5
       = f.label :body_en, t('admin.announcements.body_en'), class: 'block text-sm font-medium text-gray-700 mb-1'
-      = f.text_area :body_en, rows: 3, class: 'field w-full'
+      = f.text_area :body_en, rows: 3, maxlength: Announcement::MAX_LENGTH, class: 'field w-full'
 
     %div.mb-5
       = f.label :body_nl, t('admin.announcements.body_nl'), class: 'block text-sm font-medium text-gray-700 mb-1'
-      = f.text_area :body_nl, rows: 3, class: 'field w-full'
+      = f.text_area :body_nl, rows: 3, maxlength: Announcement::MAX_LENGTH, class: 'field w-full'
 
+    %p.text-sm.text-gray-500.mb-1= t('admin.announcements.length', count: Announcement::MAX_LENGTH)
     %p.text-sm.text-gray-500.mb-5= t('admin.announcements.delay')
 
     = button_tag t('admin.announcements.submit'), class: button_classes('text-base', size: :lg, color: :success)

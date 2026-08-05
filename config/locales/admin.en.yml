@@ -16,6 +16,7 @@ en:
       active: Show this announcement
       body_en: Message (English)
       body_nl: Message (Dutch)
+      length: The banner is a single line, so keep the message under %{count} characters.
       delay: It can take up to five minutes before a change appears in the ETM.
       submit: Update
       success: The announcement was updated!
