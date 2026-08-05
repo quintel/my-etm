@@ -7,6 +7,19 @@ nl:
       collections: Alle collecties
       applications: ETM lokaal & applicaties
       featured_users: Uitgelichte gebruikers
+      announcements: Mededeling
+    announcements:
+      title: Mededeling
+      intro: >
+        Toont een bericht bovenaan elke pagina in de ETM. Gebruik dit voor gepland onderhoud of
+        andere korte mededelingen.
+      active: Toon deze mededeling
+      body_en: Bericht (Engels)
+      body_nl: Bericht (Nederlands)
+      length: De banner is één regel, houd het bericht daarom korter dan %{count} tekens.
+      delay: Het kan tot vijf minuten duren voordat een wijziging in de ETM zichtbaar is.
+      submit: Bijwerken
+      success: De mededeling is bijgewerkt!
     users:
       confirm: Bevestig
       edit:

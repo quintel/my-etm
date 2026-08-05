@@ -18,6 +18,12 @@
     active: controller_name == "featured_scenario_users"
   )) %>
   <%= render(SavedScenarios::NavItem::Component.new(
+    path: edit_admin_announcement_path,
+    title: t('admin.bar.announcements'),
+    icon: "megaphone",
+    active: controller_name == "announcements"
+  )) %>
+  <%= render(SavedScenarios::NavItem::Component.new(
     path: admin_saved_scenarios_path,
     title: t('admin.bar.scenarios'),
     icon: 'adjustments-horizontal',

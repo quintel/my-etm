@@ -7,6 +7,19 @@ en:
       collections: All collections
       applications: Local ETM & applications
       featured_users: Featured users
+      announcements: Announcement
+    announcements:
+      title: Announcement
+      intro: >
+        Shows a message at the top of every page in the ETM. Use it for planned maintenance or
+        other short notices.
+      active: Show this announcement
+      body_en: Message (English)
+      body_nl: Message (Dutch)
+      length: The banner is a single line, so keep the message under %{count} characters.
+      delay: It can take up to five minutes before a change appears in the ETM.
+      submit: Update
+      success: The announcement was updated!
     users:
       confirm: Confirm
       edit:

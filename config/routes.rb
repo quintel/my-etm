@@ -95,6 +95,7 @@ Rails.application.routes.draw do
         collection { get :scenarios }
       end
       resources :versions, only: [:index]
+      resources :announcements, only: [:index]
     end
   end
 
@@ -141,6 +142,8 @@ Rails.application.routes.draw do
     end
 
     resources :featured_scenario_users
+
+    resource :announcement, only: %i[edit update]
 
     resources :saved_scenarios, only: [:index] do
       collection do
