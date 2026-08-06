@@ -58,6 +58,18 @@ module JwtSessionCookies
     write_session_cookies(access)
   end
 
+  # Re-issues the session cookie carrying a ScenarioGrant, so the identity token authorises the
+  # scenario the browser is about to open.
+  def issue_session_with_grant(user, grant)
+    revoke_jwt_session
+
+    access = user.access_tokens.create!(
+      expires_in: ACCESS_TTL, scopes: SESSION_SCOPES, use_refresh_token: true,
+      scenario_grant_scenario_id: grant.scenario_id, scenario_grant_level: grant.level
+    )
+    write_session_cookies(access)
+  end
+
   # Refreshes the session from the refresh cookie via Doorkeeper's own refresh grant (the same
   # atomic validate/mint-new logic behind grant_type=refresh_token at the token endpoint). `nil`
   # credentials is correct here: the anchor token has no `application`, so Doorkeeper's client checks

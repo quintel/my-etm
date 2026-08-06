@@ -5,7 +5,6 @@
 # MyETM mints the tokens; ETEngine, ETModel and Collections verify them, in two separate
 # implementations (Identity::TokenDecoder in Ruby, jose in Collections). Nothing in the code keeps
 # the minting and the verifying in step — a change here is only felt in another repo, at runtime.
-# That is exactly how the `kid` and `aud` breaks got as far as they did.
 #
 # So this spec pins the contract and writes it to a fixture the consumers verify against:
 #
@@ -14,6 +13,8 @@
 # then copy spec/fixtures/token_contract.json to:
 #   - identity_rails/spec/fixtures/token_contract.json   (covers ETEngine and ETModel)
 #   - multi-year-charts/__fixtures__/token_contract.json (covers Collections)
+#   - etengine/spec/fixtures/token_contract.json         (covers the scenario_access claim, which
+#     ETEngine reads itself rather than through the identity gem)
 #
 # If a consumer's suite goes red after regenerating, the change is breaking — that is the point.
 RSpec.describe 'Token contract', type: :request do
@@ -38,6 +39,26 @@ RSpec.describe 'Token contract', type: :request do
 
   let(:session_header) do
     JWT.decode(anchor.token, nil, false).last
+  end
+
+  # A session token minted for an opened scenario, as OpenScenariosController produces it.
+  let(:grant) { ScenarioGrant.for_role(scenario_id: 648_695, writable: true) }
+
+  let(:grant_anchor) do
+    user.access_tokens.create!(
+      expires_in: JwtSessionCookies::ACCESS_TTL,
+      scopes: JwtSessionCookies::SESSION_SCOPES,
+      use_refresh_token: true,
+      scenario_grant_scenario_id: grant.scenario_id,
+      scenario_grant_level: grant.level
+    )
+  end
+
+  let(:grant_claims) do
+    payload, = JWT.decode(
+      grant_anchor.token, MyEtm::Auth.signing_key.public_key, true, algorithms: ['RS256']
+    )
+    payload
   end
 
   describe 'the session token' do
@@ -71,6 +92,30 @@ RSpec.describe 'Token contract', type: :request do
     end
   end
 
+  describe 'the scenario_access grant' do
+    it 'rides on the session token under a claim of its own' do
+      expect(grant_claims).to include('scenario_access')
+    end
+
+    it 'names the engine scenario id and an access level, and nothing else' do
+      expect(grant_claims['scenario_access'])
+        .to eq('scenario_id' => 648_695, 'level' => 'write')
+    end
+
+    it 'carries the scenario id as a number, so the engine compares it to its own integer id' do
+      expect(grant_claims['scenario_access']['scenario_id']).to be_a(Integer)
+    end
+
+    it 'leaves the rest of the session token unchanged' do
+      expect(grant_claims.except('scenario_access').keys)
+        .to match_array(session_claims.keys)
+    end
+
+    it 'is absent from a session token minted without one' do
+      expect(session_claims).not_to have_key('scenario_access')
+    end
+  end
+
   describe 'the JWKS' do
     subject(:keys) do
       get '/oauth/discovery/keys'
@@ -96,6 +141,8 @@ RSpec.describe 'Token contract', type: :request do
       'jwks' => JSON.parse(response.body),
       'session_token' => anchor.token,
       'session_audience' => session_claims['aud'],
+      'grant_token' => grant_anchor.token,
+      'scenario_access' => grant.as_claim,
       # A token in the pre-migration shape: legacy kid, space-delimited audience string. Consumers
       # must still verify this until the next major API break invalidates every pre-migration PAT,
       # at which point OAuth::DiscoveryController#legacy_key and TokenDecoder#verify_audience!'s
