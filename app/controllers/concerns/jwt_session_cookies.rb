@@ -33,11 +33,11 @@ module JwtSessionCookies
   # How long the access cookie is valid. Since nothing reloads the page on refresh any more, this is
   # purely a revocation-latency knob: it bounds how long a deleted account or a revoked admin role
   # keeps working.
-  ACCESS_TTL = 15.minutes
+  ACCESS_TTL = 2.hours
 
   # Idle timeout, not an absolute cap: renew_jwt_session mints a new token on every refresh, so
   # created_at resets and an actively-used browser stays signed in indefinitely. Deliberate.
-  REFRESH_TTL = 24.hours
+  REFRESH_TTL = 7.days
   SESSION_SCOPES = "openid profile email roles scenarios:read scenarios:write scenarios:delete"
 
   private
@@ -71,8 +71,21 @@ module JwtSessionCookies
     write_session_cookies(response.token)
     true
   rescue Doorkeeper::Errors::InvalidGrantReuse
-    # The refresh token was revoked concurrently
-    false
+    recover_concurrent_rotation(old)
+  end
+
+  # Recover from concurrent token rotation by adopting the winner's fresh token.
+  def recover_concurrent_rotation(old)
+    winner = Doorkeeper::AccessToken
+      .where(resource_owner_id: old.resource_owner_id, application_id: nil, revoked_at: nil)
+      .where.not(refresh_token: nil)
+      .where(created_at: 10.seconds.ago..)
+      .order(created_at: :desc)
+      .first
+    return false unless winner
+
+    write_session_cookies(winner)
+    true
   end
 
   def write_session_cookies(access)
