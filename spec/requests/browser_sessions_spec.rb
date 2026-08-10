@@ -68,6 +68,36 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
     expect(response).to have_http_status(:unauthorized)
   end
 
+  # The sequential case above hits Doorkeeper's ordinary "already revoked" validation, which never
+  # reaches InvalidGrantReuse. that error only comes from two requests  genuinely racing the same
+  # still-live token.
+  it "adopts a concurrently-minted token instead of signing the browser out on a rotation race" do
+    stale = anchor.refresh_token
+    user.access_tokens.create!(
+      expires_in: JwtSessionCookies::ACCESS_TTL, scopes: JwtSessionCookies::SESSION_SCOPES,
+      use_refresh_token: true
+    )
+    allow(Doorkeeper::OAuth::RefreshTokenRequest).to receive(:new)
+      .and_raise(Doorkeeper::Errors::InvalidGrantReuse)
+
+    expect { post("/session/refresh", headers: with_refresh(stale)) }
+      .not_to change(Doorkeeper::AccessToken, :count)
+
+    expect(response).to have_http_status(:no_content)
+    expect(response.cookies["etm_session"]).to be_present
+  end
+
+  it "still signs out when reuse is detected but no concurrent winner can be found" do
+    stale = anchor.refresh_token
+    anchor.revoke
+    allow(Doorkeeper::OAuth::RefreshTokenRequest).to receive(:new)
+      .and_raise(Doorkeeper::Errors::InvalidGrantReuse)
+
+    post "/session/refresh", headers: with_refresh(stale)
+
+    expect(response).to have_http_status(:unauthorized)
+  end
+
   it "returns 401 when no refresh cookie is present" do
     post "/session/refresh"
     expect(response).to have_http_status(:unauthorized)
