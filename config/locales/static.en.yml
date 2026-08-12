@@ -72,6 +72,8 @@ en:
       address: Address
       success_flash: |
         Thank you for contacting us. Your message is on its way!
+      spam_flash: |
+        We could not verify that you're not a robot. Please try again.
   collaborate:
     collaborate:
       title: Collaborate

@@ -66,6 +66,8 @@ nl:
       description: |
         Do you have any ideas, questions, or comments about the Energy Transition Model?
         We would like to hear from you!
+      spam_flash: |
+        We konden niet verifiëren dat u geen robot bent. Probeer het opnieuw.
   collaborate:
     collaborate:
       title: Samenwerken

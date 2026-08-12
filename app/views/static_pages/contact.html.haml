@@ -7,6 +7,7 @@
 
 = form_for(@message, url: send_message_path, html: { method: :post, class: 'flex flex-wrap' }) do |f|
   = invisible_captcha :country, timestamp_enabled: true
+  = recaptcha_v3(action: 'contact', script: true) if Settings.recaptcha&.site_key.present? && Settings.recaptcha&.secret_key.present?
 
   .grow.pr-5{class: 'basis-3/4'}
     = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.message'))) do |row|
