@@ -30,6 +30,11 @@ class StaticPagesController < ApplicationController
   def send_message
     @message = ContactUsMessage.from_params(feedback_params)
 
+    if recaptcha_failed?
+      flash[:alert] = t("contact.contact.spam_flash")
+      return redirect_to(contact_url)
+    end
+
     if @message.valid?
       ContactUsMailer.contact_email(
         @message,
@@ -49,6 +54,14 @@ class StaticPagesController < ApplicationController
 
   def require_feedback_email
     redirect_to(contact_url) unless Settings.mailer.from
+  end
+
+  def recaptcha_failed?
+    recaptcha_enabled? && !verify_recaptcha(action: "contact", minimum_score: 0.5)
+  end
+
+  def recaptcha_enabled?
+    Settings.recaptcha.site_key.present? && Settings.recaptcha.secret_key.present?
   end
 
   def feedback_params
