@@ -100,6 +100,9 @@ group :development, :test do
   gem 'shoulda-matchers'
   gem "rails-controller-testing"
 
+  # Api::V2 envelope conformance matcher
+  gem "openapi_first"
+
   # Import scenarios script
   gem 'tty-prompt'
   gem 'tty-spinner'

@@ -1,5 +1,48 @@
 # frozen_string_literal: true
 
+# Shared envelope-kind checks for Api::V2::Serialisable's render_* helpers. Reusable by any
+# controller spec whose action under test emits that kind - each just asserts `response`, already
+# set by the including spec's own request/action, matches the kind's status and shape.
+#
+# Usage:
+#
+#   it_behaves_like 'a v2 resource response'
+RSpec.shared_examples('a v2 resource response') do
+  it 'renders the single-resource kind' do
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to validate_against_the_v2_envelope(:resource)
+  end
+end
+
+RSpec.shared_examples('a v2 collection response') do
+  it 'renders the collection kind' do
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to validate_against_the_v2_envelope(:collection)
+  end
+end
+
+RSpec.shared_examples('a v2 batch response') do
+  it 'renders the batch kind as 207, regardless of mixed outcomes' do
+    expect(response).to have_http_status(:multi_status)
+    expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
+  end
+end
+
+RSpec.shared_examples('a v2 accepted response') do
+  it 'renders the accepted kind' do
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body.dig('data', 'status')).to eq('accepted')
+    expect(response.parsed_body).to validate_against_the_v2_envelope(:accepted)
+  end
+end
+
+RSpec.shared_examples('a v2 error response') do
+  it 'renders the error kind with a stable code and no data key' do
+    expect(response.parsed_body['data']).to be_nil
+    expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+  end
+end
+
 # Shared serialiser tests for API::V2 endpoints.
 #
 # Each including group supplies:

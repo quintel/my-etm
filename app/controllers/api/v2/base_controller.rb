@@ -4,6 +4,7 @@ module Api
   module V2
     class BaseController < ActionController::API
       include ActionController::MimeResponds
+      include Api::V2::Serialisable
 
       check_authorization
 
@@ -37,41 +38,6 @@ module Api
       end
 
       private
-
-      def render_ok(response)
-        render json: response, status: :ok
-      end
-
-      def render_created(response)
-        render json: response, status: :created
-      end
-
-      def render_no_content
-        render json: {}, satus: :no_content
-      end
-
-      # Error shape: { "errors": [ { status, code, detail, source } ] }
-      def render_error(status:, code:, detail:, source: nil)
-        render json: { errors: [ error_object(status, code, detail, source) ] }, status: status
-      end
-
-      # TODO: move into serialisable?
-      # Every failing key at once, one error object each
-      def render_validation_errors(errors)
-        objects = errors.to_h.flat_map do |attribute, messages|
-          Array(messages).map do |message|
-            error_object(:unprocessable_content, ErrorCodes::VALIDATION_FAILED, message.to_s, { pointer: attribute.to_s })
-          end
-        end
-
-        render json: { errors: objects }, status: :unprocessable_content
-      end
-
-      def error_object(status, code, detail, source)
-        object = { status: Rack::Utils.status_code(status), code: code.to_s, detail: detail }
-        object[:source] = source if source
-        object
-      end
 
       # Hidden or refused, depending on access.
       def render_denied(subject)

@@ -1,8 +1,6 @@
 module Api
   module V2
     class CollectionsController < BaseController
-      include Api::V2::Serialisable
-
       before_action :require_user, only: %i[index]
 
       load_and_authorize_resource(class: Collection, only: %i[index show update destroy])
@@ -13,16 +11,12 @@ module Api
 
       # GET api/v2/collections
       def index
-        render_ok(
-          serialise_collection(
-            current_user.collections.kept.order(created_at: :desc)
-          )
-        )
+        render_collection(current_user.collections.kept.order(created_at: :desc), meta: {})
       end
 
       # GET api/v2/collections/:id
       def show
-        render_ok(serialise(@collection))
+        render_resource(@collection)
       end
 
       # POST api/v2/collections
@@ -32,7 +26,7 @@ module Api
           user: current_user,
           params: collection_params.to_h.symbolize_keys
         ).either(
-          ->(collection) { render_created(serialise(collection)) },
+          ->(collection) { render_resource(collection, status: :created) },
           ->(errors)     { render_validation_errors(errors) }
         )
       end
@@ -44,7 +38,7 @@ module Api
           collection: @collection,
           params: collection_params.to_h.symbolize_keys
         ).either(
-          ->(collection) { render_ok(serialise(collection)) },
+          ->(collection) { render_resource(collection) },
           ->(errors)     { render_validation_errors(errors) }
         )
       end
@@ -54,7 +48,7 @@ module Api
         Api::V2::DestroyCollection.new.call(
           collection: @collection
         ).either(
-          ->(collection) { render_no_content },
+          ->(collection) { head :no_content },
           ->(errors)     { render_validation_errors(errors) }
         )
       end

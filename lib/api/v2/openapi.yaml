@@ -1,0 +1,134 @@
+openapi: 3.1.0
+info:
+  title: MyETM API v2
+  version: "1.0"
+  description: >
+    The source of truth for the Api::V2 response contract. Client can validate their requests and
+    responses against this document, generate a typed client or a mock server from it, and CI fails
+    any endpoint whose live response drifts from what is declared here
+    (see spec/support/matchers/v2_envelope_matcher.rb).
+
+    The five shapes under components.schemas are the closed set every Api::V2::BaseController
+    render_* helper produces.
+    204 No Content is envelope-exempt and carries no body. paths grows as each v2 endpoint is defined.
+
+    OpenAPI spec reference: https://spec.openapis.org/oas/v3.1.0
+paths: {}
+components:
+  schemas:
+    ErrorObject:
+      type: object
+      required: [status, code, detail]
+      properties:
+        status:
+          type: integer
+        code:
+          type: string
+        detail:
+          type: string
+        source:
+          type: [object, "null"]
+      additionalProperties: false
+
+    Resource:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+        meta:
+          type: object
+      additionalProperties: false
+
+    Collection:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+        meta:
+          type: object
+      additionalProperties: false
+
+    BatchItem:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+        code:
+          type: string
+        detail:
+          type: string
+        source:
+          type: [object, "null"]
+      additionalProperties: true
+
+    BatchMeta:
+      type: object
+      required: [succeeded, failed, total]
+      properties:
+        succeeded:
+          type: integer
+          minimum: 0
+        failed:
+          type: integer
+          minimum: 0
+        total:
+          type: integer
+          minimum: 0
+      additionalProperties: false
+
+    Batch:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BatchItem"
+        meta:
+          type: object
+          required: [batch]
+          properties:
+            batch:
+              $ref: "#/components/schemas/BatchMeta"
+      additionalProperties: false
+
+    Accepted:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [status]
+          properties:
+            status:
+              const: accepted
+        meta:
+          type: object
+      additionalProperties: false
+
+    Error:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ErrorObject"
+      additionalProperties: false
+
+    Envelope:
+      description: >
+        The set of response kinds rendered by api v2. A response body must match exactly one of these.
+      anyOf:
+        - $ref: "#/components/schemas/Resource"
+        - $ref: "#/components/schemas/Collection"
+        - $ref: "#/components/schemas/Batch"
+        - $ref: "#/components/schemas/Accepted"
+        - $ref: "#/components/schemas/Error"
