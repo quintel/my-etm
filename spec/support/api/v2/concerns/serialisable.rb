@@ -64,9 +64,10 @@ end
 # For show endpoints
 #
 # Expects the following declared:
-#     let(:owner)    { create(:user) }
-#     let(:resource) { create(:collection, user: owner) }
-#     let(:path)     { "/api/v2/collections/#{resource.id}" }
+#     let(:owner)      { create(:user) }
+#     let(:resource)   { create(:collection, user: owner) }
+#     let(:path)       { "/api/v2/collections/#{resource.id}" }
+#     let(:serialiser) { Api::V2::CollectionSerialiser }
 RSpec.shared_examples('a serialisable resource') do
   before do
     get(path, headers: v2_bearer(owner), as: :json)
@@ -76,8 +77,8 @@ RSpec.shared_examples('a serialisable resource') do
     expect(response.parsed_body['data']).to be_a(Hash)
   end
 
-  it 'contains resource details in the data field' do
-    expect(response.parsed_body['data']).to eq(resource.as_json)
+  it 'renders exactly the serialiser allow-list, never the model as_json' do
+    expect(response.parsed_body['data']).to eq(JSON.parse(serialiser.new(resource).to_json))
   end
 end
 
@@ -319,9 +320,10 @@ end
 # For index endpoints
 #
 # Expects the following declared:
-#     let(:owner)    { create(:user) }
-#     let(:path)     { "/api/v2/collections" }
-#     let(:class_sym) { :collection }
+#     let(:owner)      { create(:user) }
+#     let(:path)       { "/api/v2/collections" }
+#     let(:class_sym)  { :collection }
+#     let(:serialiser) { Api::V2::CollectionSerialiser }
 #
 # class_sym is used to Factory create different sizes of user resources
 RSpec.shared_examples('a collection of serialisable resources') do
@@ -334,8 +336,8 @@ RSpec.shared_examples('a collection of serialisable resources') do
   context 'with multiple owned resources' do
     let(:resources) { create_list(class_sym, 5, user: owner) }
 
-    it 'contains resource details in the data field' do
-      expect(response.parsed_body['data']).to include(resources.first.as_json)
+    it 'renders each entry through the serialiser, never the model as_json' do
+      expect(response.parsed_body['data']).to include(JSON.parse(serialiser.new(resources.first).to_json))
     end
 
     it 'contains exactly the amount of owned resources' do

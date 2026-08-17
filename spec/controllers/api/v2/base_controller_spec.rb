@@ -2,22 +2,46 @@
 
 require "rails_helper"
 
+# Stands in for a resource serialiser: the helpers only require something that wraps an object and
+# answers as_json, so the envelope can be tested without a real model.
+class PassthroughSerialiser
+  def initialize(object)
+    @object = object
+  end
+
+  def as_json(*)
+    @object
+  end
+end
+
+BULK_ITEMS = [
+  BulkResult::Item.ok(index: 0, identifier: 1, value: { id: 1 }),
+  BulkResult::Item.error(index: 1, identifier: 2, code: :not_found, messages: [ "User not found" ]),
+  BulkResult::Item.error(
+    index: 2, identifier: 2, code: :validation_failed,
+    messages: [ "Role is not included in the list", "Email is invalid" ]
+  )
+].freeze
+
 RSpec.describe Api::V2::BaseController, type: :controller do
   controller(described_class) do
     skip_authorization_check
 
     def resource
-      render_resource({ id: 1, name: "Example" })
+      render_resource({ id: 1, name: "Example" }, with: PassthroughSerialiser)
     end
 
     def collection
-      render_collection([ { id: 1 }, { id: 2 } ], meta: {})
+      render_collection([ { id: 1 }, { id: 2 } ], with: PassthroughSerialiser)
     end
 
     def batch
       render_batch([
         { status: "ok", id: 1 },
-        { status: "error", code: "not_found", detail: "Saved scenario user not found" }
+        {
+          status: "error", code: "not_found", detail: "Saved scenario user not found",
+          source: { pointer: "/items/1" }
+        }
       ])
     end
 
@@ -32,6 +56,10 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     def malformed
       render json: { data: {}, errors: [] }
     end
+
+    def bulk
+      render_bulk(BulkResult.new(BULK_ITEMS), with: PassthroughSerialiser, pointer: "/items")
+    end
   end
 
   before do
@@ -42,6 +70,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       get "accepted"   => "api/v2/base#accepted"
       get "error"      => "api/v2/base#error"
       get "malformed"  => "api/v2/base#malformed"
+      get "bulk"       => "api/v2/base#bulk"
     end
   end
 
@@ -87,5 +116,32 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     get :malformed
 
     expect(response.parsed_body).not_to validate_against_the_v2_envelope
+  end
+
+  describe "GET bulk" do
+    before { get :bulk }
+
+    it_behaves_like "a v2 batch response"
+
+    it "renders one item per BulkResult item, addressed by its request index" do
+      expect(response.parsed_body["data"]).to eq([
+        { "status" => "ok", "id" => 1 },
+        {
+          "status" => "error", "code" => "not_found", "detail" => "User not found",
+          "source" => { "pointer" => "/items/1" }
+        },
+        {
+          "status" => "error", "code" => "validation_failed",
+          "detail" => "Role is not included in the list, Email is invalid",
+          "source" => { "pointer" => "/items/2" }
+        }
+      ])
+    end
+
+    it "counts every submitted item, so a repeated identifier cannot shrink the total" do
+      expect(response.parsed_body.dig("meta", "batch")).to eq(
+        "succeeded" => 1, "failed" => 2, "total" => 3
+      )
+    end
   end
 end

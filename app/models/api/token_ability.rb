@@ -6,8 +6,8 @@ module Api
     include CanCan::Ability
 
     def initialize(token, user)
-      # Discard uses the same permissions as destroy (both are owner-only actions)
-      alias_action(:discard, to: :destroy)
+      # Discard and restore use the same permissions as destroy (all owner-only actions)
+      alias_action(:discard, :restore, to: :destroy)
 
       @scopes = extract_scopes(token)
       @user   = user

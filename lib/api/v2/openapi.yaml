@@ -52,20 +52,72 @@ components:
           type: object
       additionalProperties: false
 
-    BatchItem:
+    BatchItemError:
       type: object
-      required: [status]
+      required: [status, code, detail, source]
       properties:
         status:
-          type: string
-          enum: [ok, error]
+          const: error
         code:
           type: string
         detail:
           type: string
         source:
-          type: [object, "null"]
+          type: object
+          required: [pointer]
+          properties:
+            pointer:
+              type: string
+              pattern: "^/"
+          additionalProperties: false
+      additionalProperties: false
+
+    BatchItemOk:
+      type: object
+      required: [status]
+      properties:
+        status:
+          const: ok
       additionalProperties: true
+
+    BatchItem:
+      oneOf:
+        - $ref: "#/components/schemas/BatchItemOk"
+        - $ref: "#/components/schemas/BatchItemError"
+
+    SavedScenarioUserItemOk:
+      type: object
+      required: [status, id, user_id, user_email, role]
+      properties:
+        status:
+          const: ok
+        id:
+          type: integer
+        user_id:
+          type: [integer, "null"]
+        user_email:
+          type: [string, "null"]
+        role:
+          type: string
+      additionalProperties: false
+
+    SavedScenarioUserBatch:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/SavedScenarioUserItemOk"
+              - $ref: "#/components/schemas/BatchItemError"
+        meta:
+          type: object
+          required: [batch]
+          properties:
+            batch:
+              $ref: "#/components/schemas/BatchMeta"
+      additionalProperties: false
 
     BatchMeta:
       type: object
@@ -130,5 +182,6 @@ components:
         - $ref: "#/components/schemas/Resource"
         - $ref: "#/components/schemas/Collection"
         - $ref: "#/components/schemas/Batch"
+        - $ref: "#/components/schemas/SavedScenarioUserBatch"
         - $ref: "#/components/schemas/Accepted"
         - $ref: "#/components/schemas/Error"
