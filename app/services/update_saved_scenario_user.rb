@@ -4,7 +4,7 @@
 # Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Accepts either a single SavedScenarioUser/role_id pair OR an array of user params.
-# Returns a ServiceResult with the updated SavedScenarioUser(s).
+# Returns a ServiceResult for a single call, or a BulkResult for an array.
 class UpdateSavedScenarioUser
   extend Dry::Initializer
   include Service
@@ -14,33 +14,57 @@ class UpdateSavedScenarioUser
   param :user_params_or_object
   param :role_id_or_nil, default: proc { nil }
   option :user, optional: true
+  # TODO: drop and always skip once v1 and v3 retire; they rely on ETEngine's scenario_users check.
+  option :sync_to_engine, default: proc { true }
 
   def call
     user_params_list = normalize_params
     return ServiceResult.failure("No users provided") if user_params_list.blank?
 
-    updated_users = []
-    errors = {}
+    items = update_all(user_params_list)
+    updated_users = items.select(&:ok?).map(&:value)
 
-    ActiveRecord::Base.transaction do
-      user_params_list.each do |user_params|
-        result = update_single_user(user_params)
-        if result.successful?
-          updated_users << result.value
-        else
-          identifier = extract_identifier(user_params)
-          errors[identifier] = result.errors
-        end
-      end
+    if sync_to_engine && updated_users.any?
+      enqueue_current_scenario_sync(updated_users)
+      enqueue_historical_sync(updated_users)
     end
 
-    enqueue_current_scenario_sync(updated_users) if updated_users.any?
-    enqueue_historical_sync(updated_users) if updated_users.any?
-
-    return_result(updated_users, errors)
+    bulk? ? BulkResult.new(items) : items.first.to_service_result
   end
 
   private
+
+  def bulk?
+    user_params_or_object.is_a?(Array)
+  end
+
+  def update_all(user_params_list)
+    ActiveRecord::Base.transaction do
+      user_params_list.each_with_index.map { |user_params, index| update_one(user_params, index) }
+    end
+  end
+
+  def update_one(user_params, index)
+    identifier = extract_identifier(user_params)
+    saved_scenario_user = user_params[:saved_scenario_user] || find_saved_scenario_user(user_params)
+
+    unless saved_scenario_user
+      return BulkResult::Item.error(
+        index:, identifier:, code: :not_found, messages: [ "Saved scenario user not found" ]
+      )
+    end
+
+    saved_scenario_user.role_id = user_params[:role_id]
+
+    unless saved_scenario_user.save
+      return BulkResult::Item.invalid(index:, identifier:, record: saved_scenario_user)
+    end
+
+    BulkResult::Item.ok(index:, identifier:, value: saved_scenario_user)
+  rescue StandardError => e
+    Sentry.capture_exception(e)
+    BulkResult::Item.error(index:, identifier:, code: :internal_error, messages: [ e.message ])
+  end
 
   def normalize_params
     # Legacy single-user call: (http_client, saved_scenario, saved_scenario_user, role_id)
@@ -54,35 +78,6 @@ class UpdateSavedScenarioUser
     end
   end
 
-  def update_single_user(user_params)
-    saved_scenario_user = if user_params[:saved_scenario_user]
-      user_params[:saved_scenario_user]
-    else
-      find_saved_scenario_user(user_params)
-    end
-
-    identifier = extract_identifier(user_params, saved_scenario_user)
-
-    unless saved_scenario_user
-      return ServiceResult.failure({ identifier => [ "Saved scenario user not found" ] })
-    end
-
-    saved_scenario_user.role_id = user_params[:role_id]
-
-    unless saved_scenario_user.valid?
-      return ServiceResult.failure(saved_scenario_user.errors.full_messages)
-    end
-
-    unless saved_scenario_user.save
-      return ServiceResult.failure(saved_scenario_user.errors.full_messages)
-    end
-
-    ServiceResult.success(saved_scenario_user)
-  rescue StandardError => e
-    Sentry.capture_exception(e)
-    ServiceResult.failure([ e.message ])
-  end
-
   def find_saved_scenario_user(user_params)
     if user_params[:id]
       saved_scenario.saved_scenario_users.find_by(id: user_params[:id])
@@ -93,8 +88,8 @@ class UpdateSavedScenarioUser
     end
   end
 
-  def extract_identifier(user_params, saved_scenario_user = nil)
-    user_params[:id] || user_params[:user_id] || user_params[:user_email] || saved_scenario_user&.id
+  def extract_identifier(user_params)
+    user_params[:id] || user_params[:user_id] || user_params[:user_email]
   end
 
   def enqueue_current_scenario_sync(updated_users)
@@ -129,19 +124,5 @@ class UpdateSavedScenarioUser
       saved_scenario.version.tag,
       [ { type: :update, scenario_users: scenario_users } ]
     )
-  end
-
-  def return_result(updated_users, errors)
-    is_bulk = user_params_or_object.is_a?(Array)
-
-    if is_bulk
-      if errors.any?
-        ServiceResult.failure(errors, value: updated_users)
-      else
-        ServiceResult.success(updated_users)
-      end
-    else
-      updated_users.first ? ServiceResult.success(updated_users.first) : ServiceResult.failure(errors.values.first)
-    end
   end
 end

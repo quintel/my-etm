@@ -52,6 +52,18 @@ describe CreateSavedScenarioUser, type: :service do
         # Expect two calls: one for current scenario (with scenario_id), one for historical scenarios
         expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later).twice
       end
+
+      context "when sync_to_engine is false" do
+        let(:service) do
+          described_class.new(http_client, saved_scenario, user.name, settings, sync_to_engine: false)
+        end
+
+        it "does not enqueue a sync to ETEngine" do
+          expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+
+          service.call
+        end
+      end
     end
 
     context "when the SavedScenarioUser is invalid" do

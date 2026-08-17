@@ -4,7 +4,8 @@
 # Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Accepts either a single SavedScenarioUser OR an array of user params.
-# Returns a ServiceResult with the destroyed SavedScenarioUser(s).
+# Returns a ServiceResult for a single call, or a BulkResult for an array. Either way the value is
+# the destroyed SavedScenarioUser.
 class DestroySavedScenarioUser
   extend Dry::Initializer
   include Service
@@ -13,33 +14,55 @@ class DestroySavedScenarioUser
   param :saved_scenario
   param :user_params_or_object
   option :user, optional: true
+  # TODO: drop and always skip once v1 and v3 retire; they rely on ETEngine's scenario_users check.
+  option :sync_to_engine, default: proc { true }
 
   def call
     user_params_list = normalize_params
     return ServiceResult.failure("No users provided") if user_params_list.blank?
 
-    destroyed_users = []
-    errors = {}
+    items = destroy_all(user_params_list)
+    destroyed_users = items.select(&:ok?).map(&:value)
 
-    ActiveRecord::Base.transaction do
-      user_params_list.each do |user_params|
-        result = destroy_single_user(user_params)
-        if result.successful?
-          destroyed_users << result.value
-        else
-          identifier = extract_identifier(user_params)
-          errors[identifier] = result.errors
-        end
-      end
+    if sync_to_engine && destroyed_users.any?
+      enqueue_current_scenario_sync(destroyed_users)
+      enqueue_historical_sync(destroyed_users)
     end
 
-    enqueue_current_scenario_sync(destroyed_users) if destroyed_users.any?
-    enqueue_historical_sync(destroyed_users) if destroyed_users.any?
-
-    return_result(destroyed_users, errors)
+    bulk? ? BulkResult.new(items) : items.first.to_service_result
   end
 
   private
+
+  def bulk?
+    user_params_or_object.is_a?(Array)
+  end
+
+  def destroy_all(user_params_list)
+    ActiveRecord::Base.transaction do
+      user_params_list.each_with_index.map { |user_params, index| destroy_one(user_params, index) }
+    end
+  end
+
+  def destroy_one(user_params, index)
+    identifier = extract_identifier(user_params)
+    saved_scenario_user = user_params[:saved_scenario_user] || find_saved_scenario_user(user_params)
+
+    unless saved_scenario_user
+      return BulkResult::Item.error(
+        index:, identifier:, code: :not_found, messages: [ "User not found" ]
+      )
+    end
+
+    unless saved_scenario_user.destroy
+      return BulkResult::Item.invalid(index:, identifier:, record: saved_scenario_user)
+    end
+
+    BulkResult::Item.ok(index:, identifier:, value: saved_scenario_user)
+  rescue StandardError => e
+    Sentry.capture_exception(e)
+    BulkResult::Item.error(index:, identifier:, code: :internal_error, messages: [ e.message ])
+  end
 
   def normalize_params
     # Legacy single-user call: (http_client, saved_scenario, saved_scenario_user)
@@ -49,37 +72,6 @@ class DestroySavedScenarioUser
     else
       Array.wrap(user_params_or_object)
     end
-  end
-
-  def destroy_single_user(user_params)
-    saved_scenario_user = if user_params[:saved_scenario_user]
-      user_params[:saved_scenario_user]
-    else
-      find_saved_scenario_user(user_params)
-    end
-
-    identifier = extract_identifier(user_params, saved_scenario_user)
-
-    unless saved_scenario_user
-      return ServiceResult.failure({ identifier => [ "User not found" ] })
-    end
-
-    # Store the data we need before destroying
-    user_data = {
-      user_id: saved_scenario_user.user_id,
-      user_email: saved_scenario_user.user_email,
-      role: User::ROLES[saved_scenario_user.role_id],
-      _destroyed_object: saved_scenario_user
-    }
-
-    unless saved_scenario_user.destroy
-      return ServiceResult.failure(saved_scenario_user.errors.full_messages)
-    end
-
-    ServiceResult.success(user_data)
-  rescue StandardError => e
-    Sentry.capture_exception(e)
-    ServiceResult.failure([ e.message ])
   end
 
   def find_saved_scenario_user(user_params)
@@ -92,27 +84,19 @@ class DestroySavedScenarioUser
     end
   end
 
-  def extract_identifier(user_params, saved_scenario_user = nil)
-    user_params[:id] || user_params[:user_id] || user_params[:user_email] || saved_scenario_user&.id
+  def extract_identifier(user_params)
+    user_params[:id] || user_params[:user_id] || user_params[:user_email]
   end
 
   def enqueue_current_scenario_sync(destroyed_users)
     user_id = user&.id || saved_scenario.users.first&.id
     return unless user_id
 
-    scenario_users = destroyed_users.map do |user_data|
-      {
-        user_id: user_data[:user_id],
-        user_email: user_data[:user_email],
-        role: user_data[:role]
-      }
-    end
-
     SavedScenarioUserCallbacksJob.perform_later(
       saved_scenario.id,
       user_id,
       saved_scenario.version.tag,
-      [ { type: :destroy, scenario_users: scenario_users,
+      [ { type: :destroy, scenario_users: sync_payload(destroyed_users),
           scenario_id: saved_scenario.scenario_id } ]
     )
   end
@@ -123,38 +107,21 @@ class DestroySavedScenarioUser
     user_id = user&.id || saved_scenario.users.first&.id
     raise "No user found for SavedScenario #{saved_scenario.id}" unless user_id
 
-    scenario_users = destroyed_users.map do |user_data|
-      {
-        user_id: user_data[:user_id],
-        user_email: user_data[:user_email],
-        role: user_data[:role]
-      }
-    end
-
     SavedScenarioUserCallbacksJob.perform_later(
       saved_scenario.id,
       user_id,
       saved_scenario.version.tag,
-      [ { type: :destroy, scenario_users: scenario_users } ]
+      [ { type: :destroy, scenario_users: sync_payload(destroyed_users) } ]
     )
   end
 
-  def return_result(destroyed_users, errors)
-    is_bulk = user_params_or_object.is_a?(Array)
-
-    if is_bulk
-      if errors.any?
-        ServiceResult.failure(errors, value: destroyed_users)
-      else
-        ServiceResult.success(destroyed_users)
-      end
-    else
-      if destroyed_users.first
-        # Return the original ActiveRecord object for single-user case
-        ServiceResult.success(destroyed_users.first[:_destroyed_object])
-      else
-        ServiceResult.failure(errors.values.first)
-      end
+  def sync_payload(destroyed_users)
+    destroyed_users.map do |saved_scenario_user|
+      {
+        user_id: saved_scenario_user.user_id,
+        user_email: saved_scenario_user.user_email,
+        role: User::ROLES[saved_scenario_user.role_id]
+      }
     end
   end
 end

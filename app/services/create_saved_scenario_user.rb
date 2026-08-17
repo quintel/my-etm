@@ -4,7 +4,7 @@
 # Syncs to current scenario synchronously, historical scenarios asynchronously.
 #
 # Accepts either a single user params hash or an array of user params.
-# Returns a ServiceResult with the resulting SavedScenarioUser(s).
+# Returns a ServiceResult for a single call, or a BulkResult for an array.
 class CreateSavedScenarioUser
   extend Dry::Initializer
   include Service
@@ -14,52 +14,70 @@ class CreateSavedScenarioUser
   param :invitee_name
   param :user_params_or_array
   option :user, optional: true
+  # TODO: drop and always skip once v1 and v3 retire; they rely on ETEngine's scenario_users check.
+  option :sync_to_engine, default: proc { true }
 
   def call
     user_params_list = Array.wrap(user_params_or_array)
     return ServiceResult.failure("No users provided") if user_params_list.blank?
 
-    created_users = []
-    errors = {}
+    items = create_all(user_params_list)
+    created_users = items.select(&:ok?).map(&:value)
 
-    ActiveRecord::Base.transaction do
-      user_params_list.each do |user_params|
-        result = create_single_user(user_params)
-        if result.successful?
-          created_users << result.value
-        else
-          errors[user_params[:user_email] || user_params["user_email"]] = result.errors
-        end
-      end
+    if sync_to_engine && created_users.any?
+      enqueue_current_scenario_sync(created_users)
+      enqueue_historical_sync(created_users)
     end
 
-    enqueue_current_scenario_sync(created_users) if created_users.any?
-    enqueue_historical_sync(created_users) if created_users.any?
     send_invitation_emails(created_users)
 
-    return_result(created_users, errors)
+    bulk? ? BulkResult.new(items) : items.first.to_service_result
   end
 
   private
 
-  def create_single_user(user_params)
-    saved_scenario_user = SavedScenarioUser.new(
-      user_params.merge(saved_scenario: saved_scenario)
-    )
+  def bulk?
+    user_params_or_array.is_a?(Array)
+  end
+
+  def create_all(user_params_list)
+    ActiveRecord::Base.transaction do
+      user_params_list.each_with_index.map { |user_params, index| create_one(user_params, index) }
+    end
+  end
+
+  def create_one(user_params, index)
+    identifier = user_params[:user_email] || user_params["user_email"]
+
+    if unknown_user?(user_params)
+      return BulkResult::Item.error(
+        index:, identifier:, code: :not_found, messages: [ "User not found" ]
+      )
+    end
+
+    saved_scenario_user = SavedScenarioUser.new(user_params.merge(saved_scenario: saved_scenario))
 
     unless saved_scenario_user.valid?
-      return ServiceResult.failure(saved_scenario_user.errors.full_messages)
+      return BulkResult::Item.invalid(index:, identifier:, record: saved_scenario_user)
     end
 
     saved_scenario_user.couple_existing_user
     saved_scenario_user.save!
 
-    ServiceResult.success(saved_scenario_user)
+    BulkResult::Item.ok(index:, identifier:, value: saved_scenario_user)
   rescue ActiveRecord::RecordNotUnique
-    ServiceResult.failure([ "duplicate" ])
+    BulkResult::Item.error(index:, identifier:, code: :validation_failed, messages: [ "duplicate" ])
   rescue StandardError => e
     Sentry.capture_exception(e)
-    ServiceResult.failure([ e.message ])
+    BulkResult::Item.error(index:, identifier:, code: :internal_error, messages: [ e.message ])
+  end
+
+  # There is no foreign key on saved_scenario_users.user_id, so an unknown id would otherwise be
+  # saved as an orphan membership.
+  def unknown_user?(user_params)
+    user_id = user_params[:user_id] || user_params["user_id"]
+
+    user_id.present? && !User.exists?(id: user_id)
   end
 
   def enqueue_current_scenario_sync(created_users)
@@ -111,20 +129,6 @@ class CreateSavedScenarioUser
     rescue StandardError => e
       Rails.logger.error("Failed to send invitation email to #{saved_scenario_user.email}: #{e.message}")
       Sentry.capture_exception(e)
-    end
-  end
-
-  def return_result(created_users, errors)
-    is_bulk = user_params_or_array.is_a?(Array)
-
-    if is_bulk
-      if errors.any?
-        ServiceResult.failure(errors, value: created_users)
-      else
-        ServiceResult.success(created_users)
-      end
-    else
-      created_users.first ? ServiceResult.success(created_users.first) : ServiceResult.failure(errors.values.first)
     end
   end
 end
