@@ -20,6 +20,7 @@ module Api
       # GET /api/v2/saved_scenarios
       #
       # The caller's own scenarios, then filtered by the ability.
+      # TODO: unpaginated.
       def index
         scenarios = current_user.saved_scenarios
           .accessible_by(current_ability)

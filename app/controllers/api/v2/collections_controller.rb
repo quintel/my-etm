@@ -18,6 +18,7 @@ module Api
       # GET api/v2/collections
       #
       # Scoped based on the caller's access.
+      # TODO: unpaginated.
       def index
         collections = current_user.collections
           .kept
@@ -123,9 +124,19 @@ module Api
         ids = Array(ids).map(&:to_i)
         return [] if ids.empty?
 
-        existing = SavedScenario.where(id: ids).pluck(:id).to_set
+        visible = visible_member_ids(ids)
 
-        ids.each_index.reject { |index| ids[index] < 1 || existing.include?(ids[index]) }
+        ids.each_index.reject { |index| ids[index] < 1 || visible.include?(ids[index]) }
+      end
+
+      def visible_member_ids(ids)
+        owner = @collection&.user || current_user
+        return SavedScenario.where(id: ids).pluck(:id).to_set if owner.admin?
+
+        SavedScenarioUser
+          .where(saved_scenario_id: ids, user_id: owner.id)
+          .pluck(:saved_scenario_id)
+          .to_set
       end
     end
   end

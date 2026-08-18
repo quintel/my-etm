@@ -109,10 +109,10 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(response.parsed_body.dig('errors', 0, 'code')).to eq('forbidden')
     end
 
-    it 'is refused to a signed-out caller' do
+    it 'is told to authenticate when signed out, rather than refused' do
       post(path, params: { collection: resource_attributes }, as: :json)
 
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it 'ignores scenario_ids, which v2 does not accept as a membership parameter' do
@@ -247,7 +247,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(detail).not_to match(/#<Version/)
     end
 
-    it 'omits the source when a failure cannot be attributed to a member' do
+    it 'describes a member it cannot see exactly as it describes an absent one' do
       inaccessible = create(:saved_scenario, user: create(:user), private: true, version: Version.default)
 
       post(
@@ -256,10 +256,38 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
         params: { collection: resource_attributes.merge(saved_scenario_ids: [ inaccessible.id ]) },
         as: :json
       )
+      hidden = response.parsed_body
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
-      expect(response.parsed_body['errors'].first).not_to have_key('source')
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: [ 999_999_999 ]) },
+        as: :json
+      )
+
+      expect(hidden).to eq(response.parsed_body)
+      expect(hidden['errors'].first).to include(
+        'detail' => 'Saved scenario not found',
+        'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
+      )
+    end
+
+    it 'accepts a member the caller holds only a viewer role on' do
+      shared = create(:saved_scenario, private: true, version: Version.default)
+      create(
+        :saved_scenario_user,
+        saved_scenario: shared, user: owner, role_id: User::Roles.index_of(:scenario_viewer)
+      )
+
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: [ shared.id ]) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig('data', 'saved_scenario_ids')).to eq([ shared.id ])
     end
   end
 

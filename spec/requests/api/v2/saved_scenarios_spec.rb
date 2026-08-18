@@ -341,10 +341,10 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(response.parsed_body.dig("errors", 0, "code")).to eq("forbidden")
     end
 
-    it "is refused to a signed-out caller" do
+    it "is told to authenticate when signed out, rather than refused" do
       post(path, params: { saved_scenario: attributes }, as: :json)
 
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to have_http_status(:unauthorized)
     end
   end
 

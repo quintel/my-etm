@@ -4,7 +4,7 @@ require "rails_helper"
 
 # Exercises the envelope helpers themselves, on a throwaway controller, so the shapes are asserted
 # independently of any resource. Real models are covered by the per-resource request specs, which
-# validate every response against lib/api/v2/openapi.yaml.
+# validate every response against the kinds in spec/support/api/v2/envelope.rb.
 RSpec.describe Api::V2::BaseController, type: :controller do
   # Stands in for a resource serialiser: the helpers only require something that wraps an object and
   # answers as_json.
@@ -62,6 +62,16 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     def bulk
       render_bulk(BulkResult.new(BulkFixtureItems), with: PassthroughSerialiser, pointer: "/items")
     end
+
+    def invalid
+      render_validation_errors(title: [ "is too short" ], secret: [ "is not yours to set" ])
+    end
+
+    private
+
+    def request_members
+      %i[title]
+    end
   end
 
   before do
@@ -72,6 +82,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       get "error"      => "api/v2/base#error"
       get "malformed"  => "api/v2/base#malformed"
       get "bulk"       => "api/v2/base#bulk"
+      get "invalid"    => "api/v2/base#invalid"
     end
   end
 
@@ -162,6 +173,26 @@ RSpec.describe Api::V2::BaseController, type: :controller do
 
       expect(response.parsed_body.dig("data", 0, "code")).to eq("internal_error")
       expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
+    end
+  end
+
+  # A pointer is only meaningful if it names something the caller actually sent, so a failure on
+  # anything outside the request's own members carries no source.
+  describe "GET invalid" do
+    before { get :invalid }
+
+    it_behaves_like "a v2 error response"
+
+    it "points a failing request member at itself" do
+      titles = response.parsed_body["errors"].select { |error| error["detail"] == "is too short" }
+
+      expect(titles.sole["source"]).to eq("pointer" => "/title")
+    end
+
+    it "omits the source when the failing key is not a request member" do
+      others = response.parsed_body["errors"].reject { |error| error["detail"] == "is too short" }
+
+      expect(others.sole).not_to have_key("source")
     end
   end
 end

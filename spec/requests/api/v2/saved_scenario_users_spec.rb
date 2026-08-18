@@ -21,7 +21,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
 
       expect(response).to have_http_status(:multi_status)
-      expect(response.parsed_body).to validate_against_the_v2_envelope(:saved_scenario_user_batch)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
       expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 0, "total" => 1)
       expect(collaborator.reload.role_id).to eq(User::Roles.index_of(:scenario_collaborator))
 
@@ -46,7 +46,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
 
       expect(response).to have_http_status(:multi_status)
-      expect(response.parsed_body).to validate_against_the_v2_envelope(:saved_scenario_user_batch)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
       expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 1, "total" => 2)
       expect(collaborator.reload.role_id).to eq(User::Roles.index_of(:scenario_collaborator))
 
@@ -136,11 +136,11 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(member.reload.role_id).to eq(User::Roles.index_of(:scenario_collaborator))
     end
 
-    it "is hidden to a signed-out caller" do
+    it "is told to authenticate when signed out" do
       put(path, params: { saved_scenario_users: [ { id: collaborator.id, role: "scenario_viewer" } ] }, as: :json)
 
-      expect(response).to have_http_status(:not_found)
-      expect(response.parsed_body.dig("errors", 0, "code")).to eq("not_found")
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body.dig("errors", 0, "code")).to eq("unauthenticated")
     end
 
     it "is hidden to a stranger" do
@@ -188,7 +188,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
 
       expect(response).to have_http_status(:multi_status)
-      expect(response.parsed_body).to validate_against_the_v2_envelope(:saved_scenario_user_batch)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
       expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 0, "total" => 1)
 
       created = SavedScenarioUser.find_by(saved_scenario: saved_scenario, user_email: "new@example.com")
@@ -225,7 +225,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         as: :json
       )
 
-      expect(response.parsed_body).to validate_against_the_v2_envelope(:saved_scenario_user_batch)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
       expect(response.parsed_body["data"].first).to eq(
         "status" => "error", "code" => "not_found", "detail" => "User not found",
         "source" => { "pointer" => "/saved_scenario_users/0" }
@@ -338,10 +338,10 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
     end
 
-    it "is hidden to a signed-out caller" do
+    it "is told to authenticate when signed out" do
       post(path, params: { saved_scenario_users: [ { user_email: "a@example.com", role: "scenario_viewer" } ] }, as: :json)
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "is refused, not hidden, with only the read scope" do
@@ -370,7 +370,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
 
       expect(response).to have_http_status(:multi_status)
-      expect(response.parsed_body).to validate_against_the_v2_envelope(:saved_scenario_user_batch)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
       expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 0, "total" => 1)
       expect(SavedScenarioUser.exists?(collaborator.id)).to be(false)
 
@@ -467,10 +467,10 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
     end
 
-    it "is hidden to a signed-out caller" do
+    it "is told to authenticate when signed out" do
       delete(path, params: { saved_scenario_users: [ { id: collaborator.id } ] }, as: :json)
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "is refused, not hidden, with only the read scope" do
@@ -482,6 +482,254 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
 
       expect(response).to have_http_status(:forbidden)
+    end
+  end
+
+  # A collaborator may manage view and write roles, ownership is owner-only.
+  describe "who may manage which role" do
+    let(:collaborator) { create(:user) }
+    let(:viewer)       { create(:user) }
+
+    let!(:collaborator_membership) do
+      create(
+        :saved_scenario_user, saved_scenario: saved_scenario, user: collaborator,
+        role_id: User::Roles.index_of(:scenario_collaborator)
+      )
+    end
+
+    let!(:viewer_membership) do
+      create(
+        :saved_scenario_user, saved_scenario: saved_scenario, user: viewer,
+        role_id: User::Roles.index_of(:scenario_viewer)
+      )
+    end
+
+    def set_role(actor, membership, role)
+      put(
+        path,
+        headers: v2_bearer(actor, :write),
+        params: { saved_scenario_users: [ { id: membership.id, role: role } ] },
+        as: :json
+      )
+    end
+
+    def remove(actor, membership)
+      delete(
+        path,
+        headers: v2_bearer(actor, :write),
+        params: { saved_scenario_users: [ { id: membership.id } ] },
+        as: :json
+      )
+    end
+
+    context "as an owner" do
+      it "may grant a collaborator role" do
+        set_role(owner, viewer_membership, "scenario_collaborator")
+
+        expect(viewer_membership.reload.role).to eq(:scenario_collaborator)
+      end
+
+      it "may grant ownership" do
+        set_role(owner, viewer_membership, "scenario_owner")
+
+        expect(viewer_membership.reload.role).to eq(:scenario_owner)
+      end
+    end
+
+    context "as a collaborator" do
+      it "may grant a viewer role" do
+        set_role(collaborator, viewer_membership, "scenario_viewer")
+
+        expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 0, "total" => 1)
+      end
+
+      it "may grant a collaborator role" do
+        set_role(collaborator, viewer_membership, "scenario_collaborator")
+
+        expect(viewer_membership.reload.role).to eq(:scenario_collaborator)
+      end
+
+      it "may not promote themselves to owner" do
+        set_role(collaborator, collaborator_membership, "scenario_owner")
+
+        expect(response).to have_http_status(:multi_status)
+        expect(collaborator_membership.reload.role).to eq(:scenario_collaborator)
+        expect(response.parsed_body["data"].first).to eq(
+          "status" => "error",
+          "code" => "forbidden",
+          "detail" => SavedScenarioMemberAuthorisation::REFUSAL,
+          "source" => { "pointer" => "/saved_scenario_users/0" }
+        )
+      end
+
+      it "may not grant ownership to anyone else" do
+        set_role(collaborator, viewer_membership, "scenario_owner")
+
+        expect(viewer_membership.reload.role).to eq(:scenario_viewer)
+        expect(response.parsed_body.dig("data", 0, "code")).to eq("forbidden")
+      end
+
+      it "may not demote an existing owner" do
+        owner_membership = saved_scenario.saved_scenario_users.find_by(user: owner)
+
+        set_role(collaborator, owner_membership, "scenario_viewer")
+
+        expect(owner_membership.reload.role).to eq(:scenario_owner)
+        expect(response.parsed_body.dig("data", 0, "code")).to eq("forbidden")
+      end
+
+      it "may not remove an existing owner" do
+        owner_membership = saved_scenario.saved_scenario_users.find_by(user: owner)
+
+        remove(collaborator, owner_membership)
+
+        expect(SavedScenarioUser.exists?(owner_membership.id)).to be(true)
+        expect(response.parsed_body.dig("data", 0, "code")).to eq("forbidden")
+      end
+
+      it "may remove a viewer" do
+        remove(collaborator, viewer_membership)
+
+        expect(SavedScenarioUser.exists?(viewer_membership.id)).to be(false)
+      end
+
+      it "may not invite a new owner" do
+        post(
+          path,
+          headers: v2_bearer(collaborator, :write),
+          params: { saved_scenario_users: [ { user_email: "new@example.com", role: "scenario_owner" } ] },
+          as: :json
+        )
+
+        expect(response.parsed_body.dig("data", 0, "code")).to eq("forbidden")
+        expect(SavedScenarioUser.exists?(user_email: "new@example.com")).to be(false)
+      end
+
+      it "may not reach an owner addressed by user_id rather than membership id" do
+        delete(
+          path,
+          headers: v2_bearer(collaborator, :write),
+          params: { saved_scenario_users: [ { user_id: owner.id } ] },
+          as: :json
+        )
+
+        expect(response.parsed_body.dig("data", 0, "code")).to eq("forbidden")
+        expect(saved_scenario.saved_scenario_users.find_by(user: owner)).to be_present
+      end
+
+      it "may not reach an owner addressed by email" do
+        delete(
+          path,
+          headers: v2_bearer(collaborator, :write),
+          params: { saved_scenario_users: [ { user_email: owner.email } ] },
+          as: :json
+        )
+
+        expect(response.parsed_body.dig("data", 0, "code")).to eq("forbidden")
+        expect(saved_scenario.saved_scenario_users.find_by(user: owner)).to be_present
+      end
+    end
+
+    context "as a viewer" do
+      it "may not manage members at all" do
+        set_role(viewer, viewer_membership, "scenario_collaborator")
+
+        expect(response).to have_http_status(:forbidden)
+        expect(viewer_membership.reload.role).to eq(:scenario_viewer)
+      end
+    end
+
+    context "as an admin" do
+      let(:admin) { create(:user, admin: true) }
+
+      it "may grant ownership, as an owner may" do
+        set_role(admin, viewer_membership, "scenario_owner")
+
+        expect(viewer_membership.reload.role).to eq(:scenario_owner)
+      end
+    end
+
+    describe "a batch mixing a permitted change with a refused one" do
+      it "applies the permitted item and refuses only the other, still as 207" do
+        put(
+          path,
+          headers: v2_bearer(collaborator, :write),
+          params: {
+            saved_scenario_users: [
+              { id: viewer_membership.id, role: "scenario_collaborator" },
+              { id: collaborator_membership.id, role: "scenario_owner" }
+            ]
+          },
+          as: :json
+        )
+
+        expect(response).to have_http_status(:multi_status)
+        expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
+        expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 1, "total" => 2)
+        expect(viewer_membership.reload.role).to eq(:scenario_collaborator)
+        expect(collaborator_membership.reload.role).to eq(:scenario_collaborator)
+      end
+
+      it "reports each item at the position it was submitted, refusal first" do
+        put(
+          path,
+          headers: v2_bearer(collaborator, :write),
+          params: {
+            saved_scenario_users: [
+              { id: collaborator_membership.id, role: "scenario_owner" },
+              { id: viewer_membership.id, role: "scenario_collaborator" }
+            ]
+          },
+          as: :json
+        )
+
+        statuses = response.parsed_body["data"].map { |item| item["status"] }
+        expect(statuses).to eq([ "error", "ok" ])
+        expect(response.parsed_body.dig("data", 0, "source", "pointer")).to eq("/saved_scenario_users/0")
+      end
+
+      it "answers a batch of nothing but refusals without calling the service" do
+        put(
+          path,
+          headers: v2_bearer(collaborator, :write),
+          params: {
+            saved_scenario_users: [
+              { id: collaborator_membership.id, role: "scenario_owner" },
+              { id: viewer_membership.id, role: "scenario_owner" }
+            ]
+          },
+          as: :json
+        )
+
+        expect(response).to have_http_status(:multi_status)
+        expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 0, "failed" => 2, "total" => 2)
+        expect(response.parsed_body["data"].map { |item| item["code"] }).to eq([ "forbidden", "forbidden" ])
+      end
+    end
+  end
+
+  describe "a role that is not a role name" do
+    let!(:member) do
+      create(
+        :saved_scenario_user, saved_scenario: saved_scenario,
+        role_id: User::Roles.index_of(:scenario_viewer)
+      )
+    end
+
+    [ 1, 3.5, true, "not_a_real_role", "" ].each do |role|
+      it "answers #{role.inspect} as a per-item validation failure rather than raising" do
+        put(
+          path,
+          headers: v2_bearer(owner, :write),
+          params: { saved_scenario_users: [ { id: member.id, role: role } ] },
+          as: :json
+        )
+
+        expect(response).to have_http_status(:multi_status)
+        expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
+        expect(response.parsed_body.dig("data", 0, "code")).to eq("validation_failed")
+        expect(member.reload.role).to eq(:scenario_viewer)
+      end
     end
   end
 end

@@ -6,50 +6,46 @@ module Api
       load_and_authorize_resource :saved_scenario, only: %i[create update destroy]
 
       before_action only: %i[create update destroy] do
-        authorize!(:update, @saved_scenario)
+        authorize!(:manage_members, @saved_scenario)
       end
 
       # POST /api/v2/saved_scenarios/:saved_scenario_id/users
       def create
-        result = CreateSavedScenarioUser.call(
-          nil,
-          @saved_scenario,
-          current_user.name,
-          bulk_user_params,
-          user: current_user,
-          sync_to_engine: false
-        )
-
-        render_users(result)
+        apply do |members|
+          CreateSavedScenarioUser.call(
+            nil, @saved_scenario, current_user.name, members,
+            user: current_user, sync_to_engine: false
+          )
+        end
       end
 
       # PUT/PATCH /api/v2/saved_scenarios/:saved_scenario_id/users
       def update
-        result = UpdateSavedScenarioUser.call(
-          nil,
-          @saved_scenario,
-          bulk_user_params,
-          user: current_user,
-          sync_to_engine: false
-        )
-
-        render_users(result)
+        apply do |members|
+          UpdateSavedScenarioUser.call(
+            nil, @saved_scenario, members, user: current_user, sync_to_engine: false
+          )
+        end
       end
 
       # DELETE /api/v2/saved_scenarios/:saved_scenario_id/users
       def destroy
-        result = DestroySavedScenarioUser.call(
-          nil,
-          @saved_scenario,
-          bulk_user_params,
-          user: current_user,
-          sync_to_engine: false
-        )
-
-        render_users(result)
+        apply do |members|
+          DestroySavedScenarioUser.call(
+            nil, @saved_scenario, members, user: current_user, sync_to_engine: false
+          )
+        end
       end
 
       private
+
+      def apply(&service)
+        authorisation = SavedScenarioMemberAuthorisation.new(
+          @saved_scenario, bulk_user_params, permit_owners: can?(:manage_owners, @saved_scenario)
+        )
+
+        render_users(authorisation.apply(&service))
+      end
 
       def render_users(result)
         render_bulk(
@@ -70,6 +66,8 @@ module Api
 
       # `require` answers an absent or empty list as param_missing, but cannot tell a list from an
       # object, so the shape is checked separately.
+      #
+      # TODO: no maximum item count is currently enforced.
       def bulk_user_params
         submitted = permitted_params.require(:saved_scenario_users)
         raise InvalidParam.new("/saved_scenario_users", "saved_scenario_users must be an array") unless
@@ -81,7 +79,7 @@ module Api
       def scenario_user_params(user_params)
         {
           id: user_params[:id]&.to_i,
-          role_id: User::Roles.index_of(user_params[:role]&.to_sym),
+          role_id: User::Roles.index_of(user_params[:role].to_s.presence&.to_sym),
           user_id: user_params[:user_id].presence&.to_i,
           user_email: user_params[:user_email]
         }

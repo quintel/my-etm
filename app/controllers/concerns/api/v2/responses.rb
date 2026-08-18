@@ -11,6 +11,7 @@ module Api
       # cannot name codes themselves. Revisit when v1 retires.
       ITEM_CODES = {
         not_found: ErrorCodes::NOT_FOUND,
+        forbidden: ErrorCodes::FORBIDDEN,
         validation_failed: ErrorCodes::VALIDATION_FAILED,
         internal_error: ErrorCodes::INTERNAL_ERROR
       }.freeze

@@ -24,11 +24,11 @@ module Api
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
-        render_error(status: :not_found, code: not_found_code(e.model), detail: not_found_detail(e.model))
+        render_not_found(code: not_found_code(e.model), detail: not_found_detail(e.model))
       end
 
       rescue_from ActiveModel::RangeError do
-        render_error(status: :not_found, code: ErrorCodes::NOT_FOUND, detail: "Not found")
+        render_not_found(code: ErrorCodes::NOT_FOUND, detail: "Not found")
       end
 
       rescue_from CanCan::AccessDenied do |e|
@@ -58,13 +58,22 @@ module Api
         )
       end
 
-      # Hidden or refused, depending on access.
+      # With a caller: hidden or refused, depending on access.
       def render_denied(subject)
+        return render_unauthenticated unless current_user
+
         if subject.is_a?(Class) || current_ability.can?(:read, subject)
           render_error(status: :forbidden, code: ErrorCodes::FORBIDDEN, detail: denied_detail(subject))
         else
           render_error(status: :not_found, code: ErrorCodes::NOT_FOUND, detail: "Not found")
         end
+      end
+
+      # An anonymous caller is told to authenticate rather than whether the record exists.
+      def render_not_found(code:, detail:)
+        return render_unauthenticated unless current_user
+
+        render_error(status: :not_found, code: code, detail: detail)
       end
 
       def denied_detail(subject)
@@ -113,8 +122,11 @@ module Api
       def require_user
         return if current_user
 
-        # Added because according to RFC 6750 s3: a 401 from a bearer-token resource must say which
-        # scheme to retry with.
+        render_unauthenticated
+      end
+
+      # The single 401 route.
+      def render_unauthenticated
         response.set_header("WWW-Authenticate", 'Bearer realm="api"')
 
         render_error(status: :unauthorized, code: ErrorCodes::UNAUTHENTICATED, detail: "Not authenticated")
