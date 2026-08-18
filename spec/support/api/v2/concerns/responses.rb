@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Shared envelope-kind checks for Api::V2::Serialisable's render_* helpers. Reusable by any
+# Shared envelope-kind checks for Api::V2::Responses' render_* helpers. Reusable by any
 # controller spec whose action under test emits that kind - each just asserts `response`, already
 # set by the including spec's own request/action, matches the kind's status and shape.
 #

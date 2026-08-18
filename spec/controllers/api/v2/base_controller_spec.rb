@@ -103,6 +103,12 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     it_behaves_like "a v2 error response"
   end
 
+  it "matches the closed set of kinds without one being named" do
+    get :resource
+
+    expect(response.parsed_body).to validate_against_the_v2_envelope
+  end
+
   it "fails the conformance matcher for a payload carrying both data and errors" do
     get :malformed
 

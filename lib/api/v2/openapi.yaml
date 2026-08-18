@@ -8,9 +8,10 @@ info:
     any endpoint whose live response drifts from what is declared here
     (see spec/support/matchers/v2_envelope_matcher.rb).
 
-    The five shapes under components.schemas are the closed set every Api::V2::BaseController
-    render_* helper produces.
-    204 No Content is envelope-exempt and carries no body. paths grows as each v2 endpoint is defined.
+    The five response kinds (Resource, Collection, Batch, Accepted, Error) are the closed set every
+    Api::V2::Responses render_* helper produces. Per-resource schemas (SavedScenarioUserBatch) narrow
+    a kind for one endpoint's own spec.
+    204 No Content is envelope-exempt and carries no body. paths not yet populated.
 
     OpenAPI spec reference: https://spec.openapis.org/oas/v3.1.0
 paths: {}
@@ -174,14 +175,3 @@ components:
           items:
             $ref: "#/components/schemas/ErrorObject"
       additionalProperties: false
-
-    Envelope:
-      description: >
-        The set of response kinds rendered by api v2. A response body must match exactly one of these.
-      anyOf:
-        - $ref: "#/components/schemas/Resource"
-        - $ref: "#/components/schemas/Collection"
-        - $ref: "#/components/schemas/Batch"
-        - $ref: "#/components/schemas/SavedScenarioUserBatch"
-        - $ref: "#/components/schemas/Accepted"
-        - $ref: "#/components/schemas/Error"

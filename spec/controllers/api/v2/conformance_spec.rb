@@ -35,7 +35,7 @@ RSpec.describe "Api::V2 envelope conformance" do
     it "#{file.relative_path_from(Rails.root)} does not call render json: directly" do
       expect(raw_render_json?(file.read)).to be(false),
         "#{file} calls render json: directly, out of contract for Api::V2; " \
-        "use a Serialisable envelope helper instead"
+        "use an Api::V2::Responses envelope helper instead"
     end
   end
 end

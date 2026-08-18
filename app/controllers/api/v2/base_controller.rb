@@ -4,7 +4,7 @@ module Api
   module V2
     class BaseController < ActionController::API
       include ActionController::MimeResponds
-      include Api::V2::Serialisable
+      include Api::V2::Responses
 
       check_authorization
 

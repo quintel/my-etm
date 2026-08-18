@@ -1,10 +1,10 @@
 module Api
   module V2
-    # Serialiser logic shared for API responses.
+    # The render helpers for the Api::V2 response envelope: one per response kind.
     #
-    # Every resource-bearing helper takes an explicit `with:` serialiser, so a model must always go
-    # through serialisable, not as_json
-    module Serialisable
+    # Every resource-bearing helper takes an explicit `with:` serialiser, so a model can never reach
+    # the response through its own as_json.
+    module Responses
       def render_resource(object, with:, meta: {}, status: :ok)
         render json: { data: with.new(object).as_json, meta: meta }, status: status
       end
@@ -15,9 +15,8 @@ module Api
         render json: { data: data, meta: meta }, status: :ok
       end
 
-      # Batch kind, always 207 regardless of whether every item succeeded, so a batch endpoint's
-      # contract never changes shape between an all-success and a partial-success run. One item out
-      # per item in, addressed by its position in the request.
+      # Batch kind, always 207 regardless of whether every item succeeded. One item out per item in,
+      # addressed by its position in the request.
       def render_bulk(result, with:, pointer:)
         items = result.items.map { |item| batch_item(item, with, pointer) }
         succeeded = items.count { |item| item[:status] == "ok" }
@@ -36,13 +35,13 @@ module Api
         render json: { errors: [ error_object(status, code, detail, source) ] }, status: status
       end
 
-      # Every failing key at once, one error object each.
+      # Every failing key, one error object each.
       def render_validation_errors(errors)
         objects = validation_failures(errors.to_hash).map do |pointer, message|
           error_object(:unprocessable_content, ErrorCodes::VALIDATION_FAILED, message, { pointer: pointer })
         end
 
-        # `errors` is required to hold at least one object, and a failure can arrive carrying none.
+        # `errors` is required to hold at least one object, a failure can arrive carrying none.
         objects << validation_failed_without_detail if objects.empty?
 
         render json: { errors: objects }, status: :unprocessable_content
