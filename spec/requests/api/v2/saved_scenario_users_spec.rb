@@ -100,6 +100,42 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(response.parsed_body.dig("errors", 0, "code")).to eq("param_missing")
     end
 
+    it "answers 400 param_invalid for an object where a list belongs" do
+      put(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: { saved_scenario_users: { id: collaborator.id, role: "scenario_viewer" } },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body["errors"].first).to include(
+        "code" => "param_invalid",
+        "source" => { "pointer" => "/saved_scenario_users" }
+      )
+    end
+
+    it "addresses a coupled member by the email the API reports for them" do
+      member = create(
+        :saved_scenario_user,
+        saved_scenario: saved_scenario, user: create(:user, email: "coupled@example.com"),
+        role_id: User::Roles.index_of(:scenario_viewer)
+      )
+
+      put(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: {
+          saved_scenario_users: [ { user_email: "coupled@example.com", role: "scenario_collaborator" } ]
+        },
+        as: :json
+      )
+
+      expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 0, "total" => 1)
+      expect(member.reload.role_id).to eq(User::Roles.index_of(:scenario_collaborator))
+    end
+
     it "is hidden to a signed-out caller" do
       put(path, params: { saved_scenario_users: [ { id: collaborator.id, role: "scenario_viewer" } ] }, as: :json)
 
@@ -250,6 +286,47 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(failed_item["source"]).to eq("pointer" => "/saved_scenario_users/1")
     end
 
+    it "says what already exists when the same invitee appears twice in one batch" do
+      post(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: {
+          saved_scenario_users: [
+            { user_email: "dup@example.com", role: "scenario_viewer" },
+            { user_email: "dup@example.com", role: "scenario_viewer" }
+          ]
+        },
+        as: :json
+      )
+
+      expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 1, "total" => 2)
+      expect(response.parsed_body["data"].last).to include(
+        "status" => "error",
+        "code" => "validation_failed",
+        "detail" => "This user already has access to this scenario",
+        "source" => { "pointer" => "/saved_scenario_users/1" }
+      )
+    end
+
+    it "keeps the members it created when a later item fails" do
+      post(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: {
+          saved_scenario_users: [
+            { user_email: "kept@example.com", role: "scenario_viewer" },
+            { user_id: -1, role: "scenario_viewer" }
+          ]
+        },
+        as: :json
+      )
+
+      expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 1, "total" => 2)
+      expect(
+        SavedScenarioUser.exists?(saved_scenario: saved_scenario, user_email: "kept@example.com")
+      ).to be(true)
+    end
+
     it "does not sync the change to ETEngine - v2 access resolves via a session grant instead" do
       expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
 
@@ -346,6 +423,24 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         "status" => "error", "code" => "not_found", "detail" => "User not found",
         "source" => { "pointer" => "/saved_scenario_users/1" }
       )
+    end
+
+    it "removes a coupled member addressed by the email the API reports for them" do
+      member = create(
+        :saved_scenario_user,
+        saved_scenario: saved_scenario, user: create(:user, email: "coupled@example.com"),
+        role_id: User::Roles.index_of(:scenario_viewer)
+      )
+
+      delete(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: { saved_scenario_users: [ { user_email: "coupled@example.com" } ] },
+        as: :json
+      )
+
+      expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 0, "total" => 1)
+      expect(SavedScenarioUser.exists?(member.id)).to be(false)
     end
 
     it "does not remove the last owner" do

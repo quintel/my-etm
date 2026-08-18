@@ -9,6 +9,7 @@
 class DestroySavedScenarioUser
   extend Dry::Initializer
   include Service
+  include SavedScenarioUserLookup
 
   param :http_client
   param :saved_scenario
@@ -39,9 +40,7 @@ class DestroySavedScenarioUser
   end
 
   def destroy_all(user_params_list)
-    ActiveRecord::Base.transaction do
-      user_params_list.each_with_index.map { |user_params, index| destroy_one(user_params, index) }
-    end
+    user_params_list.each_with_index.map { |user_params, index| destroy_one(user_params, index) }
   end
 
   def destroy_one(user_params, index)
@@ -72,20 +71,6 @@ class DestroySavedScenarioUser
     else
       Array.wrap(user_params_or_object)
     end
-  end
-
-  def find_saved_scenario_user(user_params)
-    if user_params[:id]
-      saved_scenario.saved_scenario_users.find_by(id: user_params[:id])
-    elsif user_params[:user_id]
-      saved_scenario.saved_scenario_users.find_by(user_id: user_params[:user_id])
-    elsif user_params[:user_email]
-      saved_scenario.saved_scenario_users.find_by(user_email: user_params[:user_email])
-    end
-  end
-
-  def extract_identifier(user_params)
-    user_params[:id] || user_params[:user_id] || user_params[:user_email]
   end
 
   def enqueue_current_scenario_sync(destroyed_users)

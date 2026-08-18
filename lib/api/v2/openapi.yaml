@@ -8,10 +8,19 @@ info:
     any endpoint whose live response drifts from what is declared here
     (see spec/support/matchers/v2_envelope_matcher.rb).
 
-    The five response kinds (Resource, Collection, Batch, Accepted, Error) are the closed set every
+    The five response kinds (Resource, Collection, Batch, Ok, Error) are the closed set every
     Api::V2::Responses render_* helper produces. Per-resource schemas (SavedScenarioUserBatch) narrow
     a kind for one endpoint's own spec.
     204 No Content is envelope-exempt and carries no body. paths not yet populated.
+
+    `not_found` and `scenario_not_found` describe the resource named in the URL. A body member
+    referencing a record that does not exist is a `validation_failed` at 422, pointed at the member
+    that named it.
+
+    `unauthenticated` is reached only where a caller-scoped list is meaningless without an identity,
+    i.e. index. A write attempted with no credential answers `forbidden`, matching Api::V1: whether
+    a refusal is hidden (404) or stated (403) turns on read access alone, not on whether a
+    credential was presented. A 401 always carries a `WWW-Authenticate` header.
 
     OpenAPI spec reference: https://spec.openapis.org/oas/v3.1.0
 paths: {}
@@ -28,7 +37,12 @@ components:
         detail:
           type: string
         source:
-          type: [object, "null"]
+          type: object
+          properties:
+            pointer:
+              type: string
+              pattern: "^/"
+          additionalProperties: false
       additionalProperties: false
 
     Resource:
@@ -60,7 +74,7 @@ components:
         status:
           const: error
         code:
-          type: string
+          enum: [not_found, validation_failed, internal_error]
         detail:
           type: string
         source:
@@ -151,7 +165,7 @@ components:
               $ref: "#/components/schemas/BatchMeta"
       additionalProperties: false
 
-    Accepted:
+    Ok:
       type: object
       required: [data, meta]
       properties:
@@ -160,7 +174,7 @@ components:
           required: [status]
           properties:
             status:
-              const: accepted
+              const: ok
         meta:
           type: object
       additionalProperties: false

@@ -52,19 +52,30 @@ module Api
       private
 
       def render_users(result)
-        render_bulk(result, with: SavedScenarioUserSerialiser, pointer: "/saved_scenario_users")
+        render_bulk(
+          result,
+          with: SavedScenarioUserSerialiser,
+          options: { emails: true },
+          pointer: "/saved_scenario_users"
+        )
+      end
+
+      def request_members
+        %i[saved_scenario_users]
       end
 
       def permitted_params
         params.permit(saved_scenario_users: %i[id role user_id user_email])
       end
 
-      # `require` answers an absent or empty list as 400 param_missing rather than letting it become
-      # a batch of nothing.
+      # `require` answers an absent or empty list as param_missing, but cannot tell a list from an
+      # object, so the shape is checked separately.
       def bulk_user_params
-        permitted_params.require(:saved_scenario_users).map do |user_params|
-          scenario_user_params(user_params)
-        end
+        submitted = permitted_params.require(:saved_scenario_users)
+        raise InvalidParam.new("/saved_scenario_users", "saved_scenario_users must be an array") unless
+          submitted.is_a?(Array)
+
+        submitted.map { |user_params| scenario_user_params(user_params) }
       end
 
       def scenario_user_params(user_params)

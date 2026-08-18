@@ -1,11 +1,15 @@
 module Api
   module V2
     class CollectionsController < BaseController
+      self.resource_param_key = :collection
+
       before_action :require_user, only: %i[index]
 
       load_and_authorize_resource(
-        class: Collection, only: %i[index show update destroy discard restore]
+        class: Collection, only: %i[show update destroy discard restore]
       )
+
+      authorize_resource(class: Collection, only: %i[index])
 
       before_action only: %i[create] do
         authorize!(:create, Collection)
@@ -30,9 +34,12 @@ module Api
 
       # POST api/v2/collections
       def create
+        attributes = create_params
+        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
+
         Api::CreateCollection.new.call(
           user: current_user,
-          params: create_params.to_h.symbolize_keys
+          params: attributes.to_h.symbolize_keys
         ).either(
           ->(collection) { render_resource(collection, with: CollectionSerialiser, status: :created) },
           ->(errors)     { render_validation_errors(errors) }
@@ -41,9 +48,12 @@ module Api
 
       # PUT/PATCH api/v2/collections/:id
       def update
+        attributes = update_params
+        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
+
         Api::UpdateCollection.new.call(
           collection: @collection,
-          params: update_params.to_h.symbolize_keys
+          params: attributes.to_h.symbolize_keys
         ).either(
           ->(collection) { render_resource(collection, with: CollectionSerialiser) },
           ->(errors)     { render_validation_errors(errors) }
@@ -74,18 +84,48 @@ module Api
 
       private
 
-      # The create contract needs at least one member, and v2 accepts only saved_scenario_ids.
+      def request_members
+        %i[title area_code end_year version interpolation saved_scenario_ids]
+      end
+
+      # Api::V1 renders Collection's error keys verbatim, so :scenarios is translated, not renamed.
+      def member_aliases
+        { scenarios: :saved_scenario_ids }
+      end
+
+      # The column defaults to true, which would fail every collection with more than one member.
       def create_params
         collection = params.require(:collection)
         collection.require(:saved_scenario_ids)
 
-        collection.permit(
-          :title, :area_code, :end_year, :version, :interpolation, saved_scenario_ids: []
-        )
+        collection
+          .permit(:title, :area_code, :end_year, :version, :interpolation, saved_scenario_ids: [])
+          .with_defaults(interpolation: false)
       end
 
       def update_params
         params.require(:collection).permit(:title, :area_code, :end_year, saved_scenario_ids: [])
+      end
+
+      # Renders and returns true when a member cannot be resolved, naming the position that failed.
+      def reject_unresolvable_members(ids)
+        missing = unresolvable_member_indices(ids)
+        return false if missing.empty?
+
+        render_validation_errors(
+          saved_scenario_ids: missing.index_with { [ "Saved scenario not found" ] }
+        )
+        true
+      end
+
+      # Ids the contract itself rejects are left to it, so a malformed id still reads as malformed.
+      def unresolvable_member_indices(ids)
+        ids = Array(ids).map(&:to_i)
+        return [] if ids.empty?
+
+        existing = SavedScenario.where(id: ids).pluck(:id).to_set
+
+        ids.each_index.reject { |index| ids[index] < 1 || existing.include?(ids[index]) }
       end
     end
   end

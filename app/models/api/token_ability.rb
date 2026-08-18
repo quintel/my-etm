@@ -95,30 +95,31 @@ module Api
 
     # Helper methods to fetch associated IDs for SavedScenario based on the user's role.
 
+    def memberships
+      @memberships ||= SavedScenarioUser.where(user_id: @user.id).pluck(:saved_scenario_id, :role_id)
+    end
+
+    def saved_scenario_ids_from(role)
+      minimum = User::Roles.index_of(role)
+
+      memberships.filter_map { |saved_scenario_id, role_id| saved_scenario_id if role_id >= minimum }
+    end
+
     def viewer_saved_scenario_ids
-      SavedScenarioUser.where(
-        user_id: @user.id,
-        role_id: User::Roles.index_of(:scenario_viewer)..
-      ).pluck(:saved_scenario_id)
+      saved_scenario_ids_from(:scenario_viewer)
     end
 
     def collaborator_saved_scenario_ids
-      SavedScenarioUser.where(
-        user_id: @user.id,
-        role_id: User::Roles.index_of(:scenario_collaborator)..
-      ).pluck(:saved_scenario_id)
+      saved_scenario_ids_from(:scenario_collaborator)
     end
 
     def owner_saved_scenario_ids
-      SavedScenarioUser.where(
-        user_id: @user.id,
-        role_id: User::Roles.index_of(:scenario_owner)
-      ).pluck(:saved_scenario_id)
+      saved_scenario_ids_from(:scenario_owner)
     end
 
     # Helper method for fetching Collection IDs for the user.
     def user_collection_ids
-      Collection.where(user_id: @user.id).pluck(:id)
+      @user_collection_ids ||= Collection.where(user_id: @user.id).pluck(:id)
     end
   end
 end

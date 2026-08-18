@@ -362,4 +362,26 @@ RSpec.describe Api::TokenAbility do
       end
     end
   end
+
+  describe "the cost of building the ability" do
+    let(:user)   { create(:user, admin: false) }
+    let(:scopes) { "public scenarios:read scenarios:write scenarios:delete" }
+
+    before do
+      create_list(:saved_scenario, 3, user: user)
+      create_list(:collection, 2, user: user)
+    end
+
+    it "reads each table once, however many rules depend on it" do
+      queries = []
+      callback = lambda do |*, payload|
+        queries << payload[:sql] unless payload[:sql].match?(/\A(BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)/i)
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { ability }
+
+      expect(queries.grep(/FROM `saved_scenario_users`/).size).to eq(1)
+      expect(queries.grep(/FROM `collections`/).size).to eq(1)
+    end
+  end
 end

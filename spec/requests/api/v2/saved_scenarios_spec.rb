@@ -89,13 +89,28 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       )
     end
 
-    it "runs a bounded number of queries regardless of result size" do
-      create_list(:saved_scenario, 25, user: owner)
+    it "does not enumerate private scenarios for a token without the read scope" do
+      private_own = create(:saved_scenario, user: owner, private: true)
+      public_own  = create(:saved_scenario, user: owner, private: false)
+
+      get(path, headers: v2_bearer(owner, :public), as: :json)
+
+      expect(response).to have_http_status(:ok)
+      ids = response.parsed_body["data"].map { |item| item["id"] }
+      expect(ids).to include(public_own.id)
+      expect(ids).not_to include(private_own.id)
+    end
+
+    it "issues no further query for each additional scenario" do
+      create_list(:saved_scenario, 5, user: owner)
       headers = v2_bearer(owner, :read)
+      get(path, headers: headers, as: :json)
 
-      queries = count_queries { get(path, headers: headers, as: :json) }
+      few = count_queries { get(path, headers: headers, as: :json) }
+      create_list(:saved_scenario, 20, user: owner)
+      many = count_queries { get(path, headers: headers, as: :json) }
 
-      expect(queries).to be < 15
+      expect(many).to eq(few)
     end
   end
 
@@ -151,8 +166,10 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
         get(path, headers: v2_bearer(viewer, :read), as: :json)
 
         expect(response.parsed_body.dig("data", "saved_scenario_users")).to contain_exactly(
-          { "user_id" => owner.id, "role" => "scenario_owner" },
-          { "user_id" => viewer.id, "role" => "scenario_viewer" }
+          { "id" => resource.saved_scenario_users.find_by(user: owner).id,
+            "user_id" => owner.id, "role" => "scenario_owner" },
+          { "id" => resource.saved_scenario_users.find_by(user: viewer).id,
+            "user_id" => viewer.id, "role" => "scenario_viewer" }
         )
       end
 
@@ -166,6 +183,79 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
         get(path, headers: v2_bearer(create(:user, admin: true), :read), as: :json)
 
         expect(response.parsed_body.dig("data", "saved_scenario_users").length).to eq(2)
+      end
+
+      describe "email addresses" do
+        it "are withheld from a viewer, who may see who has access but not how to contact them" do
+          get(path, headers: v2_bearer(viewer, :read), as: :json)
+
+          expect(response.parsed_body.dig("data", "saved_scenario_users").flat_map(&:keys))
+            .not_to include("user_email")
+        end
+
+        it "are withheld from a caller who can read but not write the scenario" do
+          get(path, headers: v2_bearer(owner, :read), as: :json)
+
+          expect(response.parsed_body.dig("data", "saved_scenario_users").flat_map(&:keys))
+            .not_to include("user_email")
+        end
+
+        it "are shown to a caller who may manage access" do
+          get(path, headers: v2_bearer(owner, :write), as: :json)
+
+          expect(response.parsed_body.dig("data", "saved_scenario_users")).to include(
+            hash_including("user_id" => viewer.id, "user_email" => viewer.email)
+          )
+        end
+
+        it "issues no further query for each additional member" do
+          headers = v2_bearer(owner, :write)
+          get(path, headers: headers, as: :json)
+
+          few = count_queries { get(path, headers: headers, as: :json) }
+          create_list(
+            :saved_scenario_user, 9,
+            saved_scenario: resource, role_id: User::Roles.index_of(:scenario_viewer)
+          )
+          many = count_queries { get(path, headers: headers, as: :json) }
+
+          expect(many).to eq(few)
+        end
+      end
+
+      describe "a pending invitee" do
+        let!(:invitee) do
+          create(
+            :saved_scenario_user,
+            saved_scenario: resource, user: nil, user_email: "pending@example.com",
+            role_id: User::Roles.index_of(:scenario_viewer)
+          )
+        end
+
+        it "is addressable by id, which the batch endpoints accept" do
+          get(path, headers: v2_bearer(owner, :write), as: :json)
+
+          entry = response.parsed_body.dig("data", "saved_scenario_users")
+            .find { |member| member["user_email"] == "pending@example.com" }
+
+          expect(entry).to include("id" => invitee.id, "user_id" => nil)
+        end
+
+        it "is distinguishable from another pending invitee" do
+          other = create(
+            :saved_scenario_user,
+            saved_scenario: resource, user: nil, user_email: "second@example.com",
+            role_id: User::Roles.index_of(:scenario_viewer)
+          )
+
+          get(path, headers: v2_bearer(owner, :write), as: :json)
+
+          pending_ids = response.parsed_body.dig("data", "saved_scenario_users")
+            .select { |member| member["user_id"].nil? }
+            .map { |member| member["id"] }
+
+          expect(pending_ids).to contain_exactly(invitee.id, other.id)
+        end
       end
     end
   end
@@ -196,8 +286,11 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     it "renders the caller as owner in the membership list" do
       post(path, headers: v2_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json)
 
+      created = SavedScenario.find(response.parsed_body.dig("data", "id"))
+
       expect(response.parsed_body.dig("data", "saved_scenario_users")).to eq(
-        [ { "user_id" => owner.id, "role" => "scenario_owner" } ]
+        [ { "id" => created.saved_scenario_users.sole.id, "user_id" => owner.id,
+            "role" => "scenario_owner", "user_email" => owner.email } ]
       )
     end
 
@@ -229,7 +322,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(response.parsed_body["data"]).to be_nil
 
       pointers = response.parsed_body["errors"].map { |error| error.dig("source", "pointer") }
-      expect(pointers).to include("title", "area_code")
+      expect(pointers).to include("/saved_scenario/title", "/saved_scenario/area_code")
       expect(response.parsed_body["errors"].map { |error| error["code"] }.uniq).to eq([ "validation_failed" ])
       expect(SavedScenario.where(scenario_id: 123_456)).to be_empty
     end
@@ -312,7 +405,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       put(path, headers: v2_bearer(owner, :write), params: { saved_scenario: { title: "" } }, as: :json)
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body.dig("errors", 0, "source", "pointer")).to eq("title")
+      expect(response.parsed_body.dig("errors", 0, "source", "pointer")).to eq("/saved_scenario/title")
       expect(resource.reload.title).not_to eq("")
     end
 

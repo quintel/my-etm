@@ -102,10 +102,10 @@ describe CreateSavedScenarioUser, type: :service do
         create(:saved_scenario_user, :with_email, saved_scenario: saved_scenario, role_id: 1)
       end
 
-      it 'returns a failure ServiceResult with "duplicate" error' do
+      it 'returns a failure ServiceResult naming the existing access' do
         result = service.call
         expect(result).not_to be_successful
-        expect(result.errors).to eq([ "duplicate" ])
+        expect(result.errors).to eq([ "This user already has access to this scenario" ])
       end
     end
 

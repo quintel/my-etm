@@ -34,7 +34,7 @@ RSpec::Matchers.define(:validate_against_the_v2_envelope) do |kind = nil|
 
   # The closed set of response kinds.
   def response_kinds
-    %i[resource collection batch accepted error]
+    %i[resource collection batch ok error]
   end
 
   def document

@@ -47,8 +47,8 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       render_collection([ { id: 1 }, { id: 2 } ], with: PassthroughSerialiser)
     end
 
-    def accepted
-      render_accepted(job_id: "abc-123")
+    def ok
+      render_ok(job_id: "abc-123")
     end
 
     def error
@@ -68,7 +68,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     routes.draw do
       get "resource"   => "api/v2/base#resource"
       get "collection" => "api/v2/base#collection"
-      get "accepted"   => "api/v2/base#accepted"
+      get "ok"         => "api/v2/base#ok"
       get "error"      => "api/v2/base#error"
       get "malformed"  => "api/v2/base#malformed"
       get "bulk"       => "api/v2/base#bulk"
@@ -91,10 +91,10 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     it_behaves_like "a v2 collection response"
   end
 
-  describe "GET accepted" do
-    before { get :accepted }
+  describe "GET ok" do
+    before { get :ok }
 
-    it_behaves_like "a v2 accepted response"
+    it_behaves_like "a v2 ok response"
   end
 
   describe "GET error" do
@@ -142,12 +142,26 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     end
 
     # The services hand back a bare symbol, so nothing stops one drifting out of the documented set.
-    it "only emits codes from the documented ErrorCodes enum" do
-      documented = Api::V2::ErrorCodes.constants.map { |name| Api::V2::ErrorCodes.const_get(name) }
+    it "only emits codes an item is allowed to carry" do
       codes = response.parsed_body["data"].filter_map { |item| item["code"] }
 
       expect(codes).not_to be_empty
-      expect(codes).to all(be_in(documented))
+      expect(codes).to all(be_in(Api::V2::Responses::ITEM_CODES.values))
+    end
+  end
+
+  describe "an item code outside the documented set" do
+    let(:bulk_items) do
+      [ BulkResult::Item.error(index: 0, identifier: 1, code: :teapot, messages: [ "nope" ]) ]
+    end
+
+    it "answers internal_error rather than inventing a code, and reports it" do
+      expect(Sentry).to receive(:capture_message).with(/Undocumented Api::V2 batch item code: :teapot/)
+
+      get :bulk
+
+      expect(response.parsed_body.dig("data", 0, "code")).to eq("internal_error")
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
     end
   end
 end

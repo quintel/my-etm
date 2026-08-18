@@ -41,9 +41,7 @@ class CreateSavedScenarioUser
   end
 
   def create_all(user_params_list)
-    ActiveRecord::Base.transaction do
-      user_params_list.each_with_index.map { |user_params, index| create_one(user_params, index) }
-    end
+    user_params_list.each_with_index.map { |user_params, index| create_one(user_params, index) }
   end
 
   def create_one(user_params, index)
@@ -66,7 +64,10 @@ class CreateSavedScenarioUser
 
     BulkResult::Item.ok(index:, identifier:, value: saved_scenario_user)
   rescue ActiveRecord::RecordNotUnique
-    BulkResult::Item.error(index:, identifier:, code: :validation_failed, messages: [ "duplicate" ])
+    BulkResult::Item.error(
+      index:, identifier:, code: :validation_failed,
+      messages: [ "This user already has access to this scenario" ]
+    )
   rescue StandardError => e
     Sentry.capture_exception(e)
     BulkResult::Item.error(index:, identifier:, code: :internal_error, messages: [ e.message ])

@@ -28,11 +28,11 @@ RSpec.shared_examples('a v2 batch response') do
   end
 end
 
-RSpec.shared_examples('a v2 accepted response') do
-  it 'renders the accepted kind' do
+RSpec.shared_examples('a v2 ok response') do
+  it 'renders the ok kind' do
     expect(response).to have_http_status(:ok)
-    expect(response.parsed_body.dig('data', 'status')).to eq('accepted')
-    expect(response.parsed_body).to validate_against_the_v2_envelope(:accepted)
+    expect(response.parsed_body.dig('data', 'status')).to eq('ok')
+    expect(response.parsed_body).to validate_against_the_v2_envelope(:ok)
   end
 end
 
@@ -74,7 +74,7 @@ end
 #     let(:required_strict_attribute) { :version }
 #     let(:resource_attributes) do
 #       {
-#         area_code: 'nl',
+#         area_code: 'nl2023',
 #         end_year: 2050,
 #         scenario_ids: [ 1, 2, 3 ],
 #         title: 'My collection',
@@ -121,7 +121,7 @@ RSpec.shared_examples('a serialisable resource on create') do
     end
 
     it 'points to the failed attribute in the error field' do
-      expect(response.parsed_body['errors'].first['source']['pointer']).to eq(required_attribute.to_s)
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/#{required_attribute}")
     end
 
     it 'contains missing details in the error field' do
@@ -154,7 +154,7 @@ RSpec.shared_examples('a serialisable resource on create') do
     end
 
     it 'points to the failed attribute in the error field' do
-      expect(response.parsed_body['errors'].first['source']['pointer']).to eq(strict_attribute.to_s)
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/#{strict_attribute}")
     end
   end
 end
@@ -215,7 +215,7 @@ RSpec.shared_examples('a serialisable resource on update') do
 
       it 'points to the failed attribute in the error field' do
         pending 'awaiting code - response for non-existing attributes'
-        expect(response.parsed_body['errors'].first['source']['pointer']).to eq(unupdateable_attribute.to_s)
+        expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/#{unupdateable_attribute}")
       end
     end
 
@@ -249,7 +249,7 @@ RSpec.shared_examples('a serialisable resource on update') do
 
       it 'points to the failed attribute in the error field' do
         pending 'awaiting code - response for non-existing attributes'
-        expect(response.parsed_body['errors'].first['source']['pointer']).to eq(unupdateable_attribute.to_s)
+        expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/#{unupdateable_attribute}")
       end
     end
   end
@@ -275,7 +275,7 @@ RSpec.shared_examples('a serialisable resource on update') do
     end
 
     it 'points to the failed attribute in the error field' do
-      expect(response.parsed_body['errors'].first['source']['pointer']).to eq(strict_attribute.to_s)
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/#{strict_attribute}")
     end
   end
 
@@ -294,7 +294,7 @@ RSpec.shared_examples('a serialisable resource on update') do
 
     it 'points to the failed attribute in the error field' do
       pending 'awaiting code - response for non-existing attributes'
-      expect(response.parsed_body['errors'].first['source']['pointer']).to eq('winnie_the_pooh')
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/winnie_the_pooh")
     end
   end
 end

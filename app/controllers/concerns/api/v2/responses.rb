@@ -5,8 +5,23 @@ module Api
     # Every resource-bearing helper takes an explicit `with:` serialiser, so a model can never reach
     # the response through its own as_json.
     module Responses
-      def render_resource(object, with:, meta: {}, status: :ok)
-        render json: { data: with.new(object).as_json, meta: meta }, status: status
+      extend ActiveSupport::Concern
+
+      # TODO: v1 compares these symbols directly rather than the rendered code, so the services
+      # cannot name codes themselves. Revisit when v1 retires.
+      ITEM_CODES = {
+        not_found: ErrorCodes::NOT_FOUND,
+        validation_failed: ErrorCodes::VALIDATION_FAILED,
+        internal_error: ErrorCodes::INTERNAL_ERROR
+      }.freeze
+
+      included do
+        # The request member wrapping this resource. Prefixes every error pointer.
+        class_attribute :resource_param_key, instance_writer: false, default: nil
+      end
+
+      def render_resource(object, with:, options: {}, meta: {}, status: :ok)
+        render json: { data: with.new(object, **options).as_json, meta: meta }, status: status
       end
 
       def render_collection(objects, with:, meta: {})
@@ -17,8 +32,8 @@ module Api
 
       # Batch kind, always 207 regardless of whether every item succeeded. One item out per item in,
       # addressed by its position in the request.
-      def render_bulk(result, with:, pointer:)
-        items = result.items.map { |item| batch_item(item, with, pointer) }
+      def render_bulk(result, with:, pointer:, options: {})
+        items = result.items.map { |item| batch_item(item, with, pointer, options) }
         succeeded = items.count { |item| item[:status] == "ok" }
 
         render json: {
@@ -27,8 +42,8 @@ module Api
         }, status: :multi_status
       end
 
-      def render_accepted(extra = {})
-        render json: { data: { status: "accepted", **extra }, meta: {} }, status: :ok
+      def render_ok(extra = {})
+        render json: { data: { status: "ok", **extra }, meta: {} }, status: :ok
       end
 
       def render_error(status:, code:, detail:, source: nil)
@@ -37,8 +52,10 @@ module Api
 
       # Every failing key, one error object each.
       def render_validation_errors(errors)
-        objects = validation_failures(errors.to_hash).map do |pointer, message|
-          error_object(:unprocessable_content, ErrorCodes::VALIDATION_FAILED, message, { pointer: pointer })
+        objects = validation_failures(errors.to_hash).map do |path, message|
+          error_object(
+            :unprocessable_content, ErrorCodes::VALIDATION_FAILED, message, member_source(path)
+          )
         end
 
         # `errors` is required to hold at least one object, a failure can arrive carrying none.
@@ -54,8 +71,29 @@ module Api
         case node
         when Hash  then node.flat_map { |key, value| validation_failures(value, path + [ key ]) }
         when Array then node.flat_map { |value| validation_failures(value, path) }
-        else [ [ path.join("/"), node.to_s ] ]
+        else [ [ path, node.to_s ] ]
         end
+      end
+
+      def member_source(path)
+        member, *rest = path
+        member = member_aliases.fetch(member.to_s.to_sym) { member.to_s.to_sym }
+        return nil unless request_members.include?(member)
+
+        { pointer: json_pointer([ member, *rest ]) }
+      end
+
+      def json_pointer(path)
+        "/#{[ resource_param_key, *path ].compact.join('/')}"
+      end
+
+      def request_members
+        []
+      end
+
+      # Model attribute names that differ from the request member they describe.
+      def member_aliases
+        {}
       end
 
       def validation_failed_without_detail
@@ -70,15 +108,22 @@ module Api
         object
       end
 
-      def batch_item(item, serialiser, pointer)
-        return { status: "ok", **serialiser.new(item.value).as_json } if item.ok?
+      def batch_item(item, serialiser, pointer, options)
+        return { status: "ok", **serialiser.new(item.value, **options).as_json } if item.ok?
 
         {
           status: "error",
-          code: item.code.to_s,
+          code: item_code(item.code),
           detail: item.messages.join(", "),
           source: { pointer: "#{pointer}/#{item.index}" }
         }
+      end
+
+      def item_code(code)
+        ITEM_CODES.fetch(code) do
+          Sentry.capture_message("Undocumented Api::V2 batch item code: #{code.inspect}")
+          ErrorCodes::INTERNAL_ERROR
+        end
       end
     end
   end

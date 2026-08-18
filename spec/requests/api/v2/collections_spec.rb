@@ -46,13 +46,16 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(ids).to eq([ kept.id ])
     end
 
-    it 'runs a bounded number of queries regardless of result size' do
-      create_list(:collection, 25, user: owner)
+    it 'issues no further query for each additional collection' do
+      create_list(:collection, 5, user: owner)
       headers = v2_bearer(owner, :read)
+      get(path, headers: headers, as: :json)
 
-      queries = count_queries { get(path, headers: headers, as: :json) }
+      few = count_queries { get(path, headers: headers, as: :json) }
+      create_list(:collection, 20, user: owner)
+      many = count_queries { get(path, headers: headers, as: :json) }
 
-      expect(queries).to be < 15
+      expect(many).to eq(few)
     end
   end
 
@@ -86,7 +89,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     let(:required_attribute) { :title }
     let(:resource_attributes) do
       {
-        area_code: 'nl',
+        area_code: 'nl2023',
         end_year: 2050,
         saved_scenario_ids: [ saved_scenario.id ],
         title: 'My collection',
@@ -131,7 +134,8 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(response).to have_http_status(:bad_request)
       expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
       expect(response.parsed_body.dig('errors', 0, 'code')).to eq('param_missing')
-      expect(response.parsed_body.dig('errors', 0, 'source', 'parameter')).to eq('saved_scenario_ids')
+      expect(response.parsed_body.dig('errors', 0, 'source', 'pointer'))
+        .to eq('/collection/saved_scenario_ids')
     end
 
     it 'points a failing member at its own position, not at the whole list' do
@@ -147,7 +151,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(response.parsed_body['errors'].first).to include(
         'code' => 'validation_failed',
         'detail' => 'must be greater than 0',
-        'source' => { 'pointer' => 'saved_scenario_ids/0' }
+        'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
       )
     end
 
@@ -155,11 +159,107 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       post(
         path,
         headers: v2_bearer(owner, :write),
-        params: { collection: resource_attributes.merge(interpolation: false) },
+        params: { collection: resource_attributes.merge(interpolation: true) },
         as: :json
       )
 
+      expect(response.parsed_body.dig('data', 'interpolation')).to be(true)
+    end
+
+    it 'creates a plain collection when interpolation is not mentioned' do
+      post(path, headers: v2_bearer(owner, :write), params: { collection: resource_attributes }, as: :json)
+
+      expect(response).to have_http_status(:created)
       expect(response.parsed_body.dig('data', 'interpolation')).to be(false)
+    end
+
+    it 'accepts more than one member without being told about interpolation' do
+      members = create_list(:saved_scenario, 3, user: owner, version: Version.default)
+
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: members.map(&:id)) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig('data', 'saved_scenario_ids')).to eq(members.map(&:id))
+    end
+
+    it 'refuses more than one member for a transition path, pointed at the member list' do
+      members = create_list(:saved_scenario, 2, user: owner, version: Version.default)
+
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: {
+          collection: resource_attributes.merge(
+            interpolation: true, saved_scenario_ids: members.map(&:id)
+          )
+        },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors'].first).to include(
+        'detail' => 'interpolated collections cannot have more than 1 saved scenario',
+        'source' => { 'pointer' => '/collection/saved_scenario_ids' }
+      )
+    end
+
+    it 'points an unresolvable member at its own position rather than raising' do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: {
+          collection: resource_attributes.merge(
+            saved_scenario_ids: [ saved_scenario.id, 999_999_999 ]
+          )
+        },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body['errors']).to contain_exactly(
+        hash_including(
+          'code' => 'validation_failed',
+          'detail' => 'Saved scenario not found',
+          'source' => { 'pointer' => '/collection/saved_scenario_ids/1' }
+        )
+      )
+    end
+
+    it 'reports a version mismatch with the version tag, not the Version object' do
+      other_version = Version.where.not(id: Version.default.id).first
+      mismatched    = create(:saved_scenario, user: owner, version: other_version)
+
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: [ mismatched.id ]) },
+        as: :json
+      )
+
+      detail = response.parsed_body.dig('errors', 0, 'detail')
+      expect(detail).to include(Version.default.tag)
+      expect(detail).not_to match(/#<Version/)
+    end
+
+    it 'omits the source when a failure cannot be attributed to a member' do
+      inaccessible = create(:saved_scenario, user: create(:user), private: true, version: Version.default)
+
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: [ inaccessible.id ]) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body['errors'].first).not_to have_key('source')
     end
   end
 
@@ -205,6 +305,37 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       put(path, headers: v2_bearer(owner, :write), params: { collection: { interpolation: true } }, as: :json)
 
       expect(resource.reload.interpolation).to be(false)
+    end
+
+    it 'points an unresolvable member at its own position rather than raising' do
+      put(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: { saved_scenario_ids: [ 999_999_999 ] } },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors']).to contain_exactly(
+        hash_including(
+          'detail' => 'Saved scenario not found',
+          'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
+        )
+      )
+    end
+
+    it 'leaves the existing members in place when a new one cannot be resolved' do
+      member = create(:saved_scenario, user: owner, version: resource.version)
+      resource.update!(saved_scenario_ids: [ member.id ])
+
+      put(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: { saved_scenario_ids: [ 999_999_999 ] } },
+        as: :json
+      )
+
+      expect(resource.reload.saved_scenario_ids).to eq([ member.id ])
     end
   end
 

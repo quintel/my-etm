@@ -4,15 +4,21 @@ module Api
   module V2
     # A SavedScenario plus who has access to it.
     class SavedScenarioWithUsersSerialiser < SavedScenarioSerialiser
+      def initialize(saved_scenario, emails: false)
+        super(saved_scenario)
+
+        @emails = emails
+      end
+
       def as_json(*)
-        super.merge(saved_scenario_users: users)
+        super.merge(saved_scenario_users: members)
       end
 
       private
 
-      def users
-        saved_scenario.saved_scenario_users.map do |saved_scenario_user|
-          { user_id: saved_scenario_user.user_id, role: saved_scenario_user.role.to_s }
+      def members
+        saved_scenario.saved_scenario_users.map do |member|
+          SavedScenarioUserSerialiser.new(member, emails: @emails).as_json
         end
       end
     end

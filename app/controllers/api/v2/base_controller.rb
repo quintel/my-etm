@@ -15,8 +15,12 @@ module Api
           status: :bad_request,
           code: ErrorCodes::PARAM_MISSING,
           detail: "param is missing or the value is empty: #{e.param}",
-          source: { parameter: e.param.to_s }
+          source: param_source(e.param)
         )
+      end
+
+      rescue_from InvalidParam do |e|
+        render_invalid_param(pointer: e.pointer, detail: e.message)
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
@@ -38,6 +42,21 @@ module Api
       end
 
       private
+
+      def param_source(param)
+        return { pointer: "/#{param}" } if param.to_s == resource_param_key.to_s
+
+        member_source([ param ])
+      end
+
+      def render_invalid_param(pointer:, detail:)
+        render_error(
+          status: :bad_request,
+          code: ErrorCodes::PARAM_INVALID,
+          detail: detail,
+          source: { pointer: pointer }
+        )
+      end
 
       # Hidden or refused, depending on access.
       def render_denied(subject)
@@ -86,8 +105,17 @@ module Api
           end
       end
 
+      # The ability's id lists are built once per request, so a resource created during it is absent.
+      def reset_ability!
+        @current_ability = nil
+      end
+
       def require_user
         return if current_user
+
+        # Added because according to RFC 6750 s3: a 401 from a bearer-token resource must say which
+        # scheme to retry with.
+        response.set_header("WWW-Authenticate", 'Bearer realm="api"')
 
         render_error(status: :unauthorized, code: ErrorCodes::UNAUTHENTICATED, detail: "Not authenticated")
       end

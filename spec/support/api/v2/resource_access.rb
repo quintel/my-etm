@@ -151,6 +151,12 @@ RSpec.shared_examples('a caller-scoped collection endpoint') do
     expect(response.parsed_body.dig('errors', 0, 'code')).to eq('unauthenticated')
   end
 
+  it 'names the authentication scheme on a 401' do
+    get(path, as: :json)
+
+    expect(response.headers['WWW-Authenticate']).to eq('Bearer realm="api"')
+  end
+
   it 'is reachable with the read scope' do
     get(path, headers: v2_bearer(owner, :read), as: :json)
 
