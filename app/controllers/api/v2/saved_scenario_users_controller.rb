@@ -3,7 +3,6 @@
 module Api
   module V2
     class SavedScenarioUsersController < BaseController
-
       load_and_authorize_resource :saved_scenario, only: %i[create update destroy]
 
       before_action only: %i[create update destroy] do

@@ -26,12 +26,12 @@
 #     let(:owner)    { create(:user) }
 #     let(:path)     { "/api/v2/collections" }
 #
-#     let(:required_strict_attribute) { :version }
+#     let(:required_attribute) { :title }
 #     let(:resource_attributes) do
 #       {
 #         area_code: 'nl',
 #         end_year: 2050,
-#         scenario_ids: [ 1, 2, 3 ],
+#         saved_scenario_ids: [ saved_scenario.id ],
 #         title: 'My collection',
 #         version: Version.default.tag
 #       }

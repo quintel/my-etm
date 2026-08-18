@@ -43,24 +43,6 @@ RSpec.shared_examples('a v2 error response') do
   end
 end
 
-# Shared serialiser tests for API::V2 endpoints.
-#
-# Each including group supplies:
-#
-#   owner    - the user the resource belongs to
-#   resource - the resource under test, belonging to `owner`
-#   path     - the request path for that resource
-#
-# and, for the write/delete groups, `body` (the params to send).
-#
-# Usage:
-#
-#   it_behaves_like 'a read-protected resource' do
-#     let(:owner)    { create(:user) }
-#     let(:resource) { create(:collection, user: owner) }
-#     let(:path)     { "/api/v2/collections/#{resource.id}" }
-#   end
-
 # For show endpoints
 #
 # Expects the following declared:

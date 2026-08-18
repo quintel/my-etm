@@ -74,8 +74,12 @@ module Api
 
       private
 
+      # The create contract needs at least one member, and v2 accepts only saved_scenario_ids.
       def create_params
-        params.require(:collection).permit(
+        collection = params.require(:collection)
+        collection.require(:saved_scenario_ids)
+
+        collection.permit(
           :title, :area_code, :end_year, :version, :interpolation, saved_scenario_ids: []
         )
       end

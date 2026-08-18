@@ -34,7 +34,7 @@ module Api
       # POST /api/v2/saved_scenarios
       def create
         render_write(
-          SavedScenario::Create.call(nil, create_params.to_h.symbolize_keys, current_user),
+          SavedScenario::Create.call(nil, create_params, current_user),
           status: :created
         )
       end
@@ -42,7 +42,7 @@ module Api
       # PUT/PATCH /api/v2/saved_scenarios/:id
       def update
         render_write(
-          SavedScenario::Update.call(nil, @saved_scenario, update_params.to_h.symbolize_keys)
+          SavedScenario::Update.call(nil, @saved_scenario, update_params)
         )
       end
 

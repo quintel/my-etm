@@ -125,6 +125,32 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(response.parsed_body.dig('data', 'saved_scenario_ids')).to eq([ saved_scenario.id ])
     end
 
+    it 'answers 400 param_missing when no members are given' do
+      post(path, headers: v2_bearer(owner, :write), params: { collection: { title: 'T' } }, as: :json)
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body.dig('errors', 0, 'code')).to eq('param_missing')
+      expect(response.parsed_body.dig('errors', 0, 'source', 'parameter')).to eq('saved_scenario_ids')
+    end
+
+    it 'points a failing member at its own position, not at the whole list' do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: [ -1 ]) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body['errors'].first).to include(
+        'code' => 'validation_failed',
+        'detail' => 'must be greater than 0',
+        'source' => { 'pointer' => 'saved_scenario_ids/0' }
+      )
+    end
+
     it 'accepts interpolation on create' do
       post(
         path,

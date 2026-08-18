@@ -201,6 +201,21 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       )
     end
 
+    it "honours a requested version other than the default" do
+      other = Version.where.not(id: Version.default.id).first
+
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { saved_scenario: attributes.merge(version: other.tag) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig("data", "version")).to eq(other.tag)
+      expect(SavedScenario.find(response.parsed_body.dig("data", "id")).version).to eq(other)
+    end
+
     it "reports one error per failing attribute, atomically" do
       post(
         path,

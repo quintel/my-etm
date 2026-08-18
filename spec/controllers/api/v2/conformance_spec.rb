@@ -14,11 +14,11 @@ RSpec.describe "Api::V2 envelope conformance" do
   it "does not flag calls to the sanctioned envelope helpers" do
     source = <<~RUBY
       def show
-        render_resource(@thing)
+        render_resource(@thing, with: ThingSerialiser)
       end
 
       def index
-        render_collection(@things, meta: { pagination: {} })
+        render_collection(@things, with: ThingSerialiser)
       end
     RUBY
 
