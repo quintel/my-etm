@@ -29,7 +29,7 @@ module Api
           @saved_scenario.reload
           render json: result.value, status: :created
         else
-          errors = normalize_errors(result.errors)
+          errors = normalize_errors(result)
 
           # Partial success: return both successes and errors
           if result.value.present?
@@ -54,8 +54,8 @@ module Api
           @saved_scenario.reload
           render json: result.value, status: :ok
         else
-          errors = normalize_errors(result.errors)
-          status = errors_include_not_found?(errors) ? :not_found : :unprocessable_entity
+          errors = normalize_errors(result)
+          status = errors_include_not_found?(result) ? :not_found : :unprocessable_entity
 
           # Partial success: return both successes and errors
           if result.value.present?
@@ -76,13 +76,14 @@ module Api
         )
 
         if result.successful?
-          render json: result.value, status: :ok
+          render json: legacy_destroyed_users(result), status: :ok
         else
-          errors = normalize_errors(result.errors)
+          errors = normalize_errors(result)
 
           # Partial success: return both successes and errors
           if result.value.present?
-            render json: { success: result.value, errors: errors }, status: :unprocessable_entity
+            render json: { success: legacy_destroyed_users(result), errors: errors },
+              status: :unprocessable_entity
           else
             render json: { errors: errors }, status: :unprocessable_entity
           end
@@ -91,21 +92,29 @@ module Api
 
       private
 
-      def normalize_errors(errors)
-        # ServiceResult wraps hash errors in Array(), converting them to [[key, value], ...]
-        # Convert back to hash format for API response
-        if errors.is_a?(Array) && errors.first.is_a?(Array)
-          errors.to_h
-        else
-          errors
+      # V1's error body is a hash keyed by whichever identifier the caller sent. Two
+      # items sharing one identifier collapse into a single entry. Kept as-is for compatibility.
+      def normalize_errors(result)
+        return result.errors unless result.respond_to?(:items)
+
+        result.items.reject(&:ok?).to_h { |item| [ item.identifier, item.messages ] }
+      end
+
+      # V1 answers destroy with the identifying fields of each removed member, rather than the record.
+      def legacy_destroyed_users(result)
+        Array(result.value).map do |saved_scenario_user|
+          {
+            user_id: saved_scenario_user.user_id,
+            user_email: saved_scenario_user.user_email,
+            role: User::ROLES[saved_scenario_user.role_id]
+          }
         end
       end
 
-      def errors_include_not_found?(errors)
-        return false unless errors.is_a?(Hash) || errors.is_a?(Array)
+      def errors_include_not_found?(result)
+        return false unless result.respond_to?(:items)
 
-        errors_str = errors.to_s.downcase
-        errors_str.include?("not found")
+        result.items.any? { |item| item.code == :not_found }
       end
 
       def permitted_params

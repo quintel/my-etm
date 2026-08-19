@@ -79,6 +79,18 @@ module Api
         can :update, SavedScenario, id: collaborator_saved_scenario_ids
         can :update, Collection, id: user_collection_ids
       end
+
+      allow_membership_management
+    end
+
+    def allow_membership_management
+      if admin?
+        can :manage_members, SavedScenario
+        can :manage_owners, SavedScenario
+      else
+        can :manage_members, SavedScenario, id: collaborator_saved_scenario_ids
+        can :manage_owners, SavedScenario, id: owner_saved_scenario_ids
+      end
     end
 
     # Allow destroying saved scenarios and collections if the token has the delete scope.
