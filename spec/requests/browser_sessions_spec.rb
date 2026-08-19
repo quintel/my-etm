@@ -57,13 +57,44 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
     post "/session/refresh", headers: { "Cookie" => "etm_refresh=#{stale}; etm_session=#{live_session}" }
 
     expect(response).to have_http_status(:no_content)
-    expect(response.cookies["etm_session"]).to be_blank
+    expect(response.cookies["etm_session"]).to eq(live_session)
   end
 
-  it "returns 401 when the refresh token is stale and the access cookie has gone too" do
+  # The morning case: every tab's keeper recovers at once with no access cookie to fall back on, so
+  # all but one present a token that was rotated a moment ago. They must be handed the winner's
+  # session, not signed out — a 401 here also deletes the refresh cookie the winner just wrote.
+  it "adopts the winner when the refresh token was just rotated and no access cookie remains" do
     stale = anchor.refresh_token
     post "/session/refresh", headers: with_refresh(stale)
+    winner_session = response.cookies["etm_session"]
+
     post "/session/refresh", headers: with_refresh(stale)
+
+    expect(response).to have_http_status(:no_content)
+    expect(response.cookies["etm_session"]).to eq(winner_session)
+    expect(response.cookies["etm_refresh"]).to be_present
+  end
+
+  it "signs out rather than adopting once the rotation grace has passed" do
+    stale = anchor.refresh_token
+    post "/session/refresh", headers: with_refresh(stale)
+    Doorkeeper::AccessToken.find_by!(previous_refresh_token: stale)
+      .update!(created_at: (JwtSessionCookies::ROTATION_GRACE + 1.minute).ago)
+
+    post "/session/refresh", headers: with_refresh(stale)
+
+    expect(response).to have_http_status(:unauthorized)
+  end
+
+  # Adoption is tied to the presented token via previous_refresh_token, not to "some recent session
+  # of this user" — otherwise an unknown token rides in on a sibling tab's fresh login.
+  it "signs out on an unknown refresh token even while another session is live" do
+    user.access_tokens.create!(
+      expires_in: JwtSessionCookies::ACCESS_TTL, scopes: JwtSessionCookies::SESSION_SCOPES,
+      use_refresh_token: true
+    )
+
+    post "/session/refresh", headers: with_refresh("never-issued-token")
 
     expect(response).to have_http_status(:unauthorized)
   end
@@ -71,12 +102,13 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
   # The sequential case above hits Doorkeeper's ordinary "already revoked" validation, which never
   # reaches InvalidGrantReuse. that error only comes from two requests  genuinely racing the same
   # still-live token.
-  it "adopts a concurrently-minted token instead of signing the browser out on a rotation race" do
+  it "adopts the linked successor when Doorkeeper reports refresh-token reuse" do
     stale = anchor.refresh_token
-    user.access_tokens.create!(
+    winner = user.access_tokens.create!(
       expires_in: JwtSessionCookies::ACCESS_TTL, scopes: JwtSessionCookies::SESSION_SCOPES,
       use_refresh_token: true
     )
+    winner.update!(previous_refresh_token: stale)
     allow(Doorkeeper::OAuth::RefreshTokenRequest).to receive(:new)
       .and_raise(Doorkeeper::Errors::InvalidGrantReuse)
 
@@ -84,7 +116,7 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
       .not_to change(Doorkeeper::AccessToken, :count)
 
     expect(response).to have_http_status(:no_content)
-    expect(response.cookies["etm_session"]).to be_present
+    expect(response.cookies["etm_session"]).to eq(winner.token)
   end
 
   it "still signs out when reuse is detected but no concurrent winner can be found" do
