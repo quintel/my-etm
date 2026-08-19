@@ -50,7 +50,7 @@ class SavedScenario < ApplicationRecord
     where(id: FeaturedScenario.select(:saved_scenario_id))
   }
 
-  # Returns all saved scenarios whose areas are avaliable.
+  # Returns all saved scenarios which have not been discarded.
   def self.available
     kept
   end
