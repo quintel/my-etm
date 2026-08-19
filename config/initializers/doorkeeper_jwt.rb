@@ -39,7 +39,7 @@ Doorkeeper::JWT.configure do
     scopes = opts[:scopes]
     extras = opts[:expires_in].present? ? { exp: opts[:expires_in] + Time.now.to_i } : {}
 
-    {
+    payload = {
       iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
       iat: Time.now.to_i,
       aud: audience,
@@ -50,6 +50,17 @@ Doorkeeper::JWT.configure do
       sub: user.id,
       user: user.as_json(only: %i[id admin email name])
     }.merge(extras)
+
+    # Present only on a session token minted for an opened scenario, so ETEngine can authorise from
+    # the token alone.
+    if opts[:scenario_grant_scenario_id].present?
+      payload[ScenarioGrant::CLAIM.to_sym] = ScenarioGrant.new(
+        scenario_id: opts[:scenario_grant_scenario_id],
+        level: opts[:scenario_grant_level]
+      ).as_claim
+    end
+
+    payload
   end
 
   # Optionally set additional headers for the JWT. See

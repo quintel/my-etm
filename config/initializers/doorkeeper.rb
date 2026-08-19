@@ -126,6 +126,10 @@ Doorkeeper.configure do
   #
   access_token_generator 'Doorkeeper::JWT'
 
+  # Columns Doorkeeper carries through token creation and refresh and hands to the token generator.
+  # They hold the ScenarioGrant, which doorkeeper_jwt.rb turns into a claim.
+  custom_access_token_attributes %i[scenario_grant_scenario_id scenario_grant_level]
+
   # The controller +Doorkeeper::ApplicationController+ inherits from.
   # Defaults to +ActionController::Base+ unless +api_only+ is set, which changes the default to
   # +ActionController::API+. The return value of this option must be a stringified class name.
