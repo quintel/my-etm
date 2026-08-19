@@ -46,6 +46,26 @@ describe UpdateSavedScenarioUser, type: :service do
     end
   end
 
+  context 'sync_to_engine' do
+    it 'enqueues a sync to ETEngine by default' do
+      expect(SavedScenarioUserCallbacksJob).to receive(:perform_later)
+
+      result
+    end
+
+    context 'when explicitly disabled' do
+      let(:result) do
+        described_class.call(client, saved_scenario, saved_scenario_user, 2, sync_to_engine: false)
+      end
+
+      it 'does not enqueue a sync to ETEngine' do
+        expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+
+        result
+      end
+    end
+  end
+
   context 'when downgrading the role of the last owner' do
     let(:saved_scenario_user) { saved_scenario.owners.first }
 
