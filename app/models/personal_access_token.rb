@@ -10,6 +10,12 @@ class PersonalAccessToken < ApplicationRecord
 
   validates :name, presence: true
 
+  # Whether an OAuth token value belongs to a personal access token. The absence of an application
+  # does not answer that, because the shared session credential is app-less too
+  def self.prefixed?(token_value)
+    token_value.to_s.start_with?(TOKEN_PREFIX)
+  end
+
   def self.not_expired
     relation = joins(:oauth_access_token)
       .includes(:oauth_access_token)
