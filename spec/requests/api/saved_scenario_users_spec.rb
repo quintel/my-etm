@@ -143,7 +143,9 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
         if errors.is_a?(Array) && errors.first.is_a?(Array)
           errors = errors.to_h.transform_values { |v| v.last.last }
         end
-        expect(errors).to eq({ 'viewer@test.com' => [ 'duplicate' ] })
+        expect(errors).to eq(
+          { 'viewer@test.com' => [ 'This user already has access to this scenario' ] }
+        )
       end
     end
   end

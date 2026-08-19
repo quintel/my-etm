@@ -38,6 +38,26 @@ describe DestroySavedScenarioUser, type: :service do
         saved_scenario.saved_scenario_users, :count
         ).from(2).to(1)
     end
+
+    context 'sync_to_engine' do
+      it 'enqueues a sync to ETEngine by default' do
+        expect(SavedScenarioUserCallbacksJob).to receive(:perform_later)
+
+        result
+      end
+
+      context 'when explicitly disabled' do
+        let(:result) do
+          described_class.call(client, saved_scenario, saved_scenario_user, sync_to_engine: false)
+        end
+
+        it 'does not enqueue a sync to ETEngine' do
+          expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+
+          result
+        end
+      end
+    end
   end
 
   context 'when the user was the last one left on the scenario' do
