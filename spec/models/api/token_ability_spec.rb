@@ -384,4 +384,62 @@ RSpec.describe Api::TokenAbility do
       expect(queries.grep(/FROM `collections`/).size).to eq(1)
     end
   end
+
+  describe "membership management" do
+    context "with the write scope, as a collaborator" do
+      let(:user)   { collaborator_user }
+      let(:scopes) { "public scenarios:read scenarios:write" }
+
+      it "may manage members" do
+        expect(ability).to be_able_to(:manage_members, public_saved_scenario)
+      end
+
+      it "may not manage owners" do
+        expect(ability).not_to be_able_to(:manage_owners, public_saved_scenario)
+      end
+    end
+
+    context "with the write scope, as an owner" do
+      let(:user)   { owner_user }
+      let(:scopes) { "public scenarios:read scenarios:write" }
+
+      it "may manage members" do
+        expect(ability).to be_able_to(:manage_members, private_saved_scenario)
+      end
+
+      it "may manage owners without holding the delete scope" do
+        expect(ability).to be_able_to(:manage_owners, private_saved_scenario)
+      end
+    end
+
+    context "with the write scope, as a viewer" do
+      let(:user)   { viewer_user }
+      let(:scopes) { "public scenarios:read scenarios:write" }
+
+      it "may manage neither" do
+        expect(ability).not_to be_able_to(:manage_members, private_saved_scenario)
+        expect(ability).not_to be_able_to(:manage_owners, private_saved_scenario)
+      end
+    end
+
+    context "with the read scope only, as an owner" do
+      let(:user)   { owner_user }
+      let(:scopes) { "public scenarios:read" }
+
+      it "may manage neither" do
+        expect(ability).not_to be_able_to(:manage_members, private_saved_scenario)
+        expect(ability).not_to be_able_to(:manage_owners, private_saved_scenario)
+      end
+    end
+
+    context "as an admin with the write scope" do
+      let(:user)   { create(:user, admin: true) }
+      let(:scopes) { "public scenarios:read scenarios:write" }
+
+      it "may manage members and owners on a scenario they hold no role on" do
+        expect(ability).to be_able_to(:manage_members, other_private_saved_scenario)
+        expect(ability).to be_able_to(:manage_owners, other_private_saved_scenario)
+      end
+    end
+  end
 end
