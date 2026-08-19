@@ -77,6 +77,15 @@ Rails.application.routes.draw do
   end
 
   namespace :api do
+    namespace :v2 do
+      resources :saved_scenarios, only: %i[index show create update destroy] do
+        member do
+          put :discard
+          put :restore
+        end
+      end
+    end
+
     namespace :v1 do
       resources :collections, only: %i[index show create update destroy]
       resources :saved_scenarios, only: %i[index show create update destroy] do
