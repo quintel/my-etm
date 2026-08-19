@@ -38,6 +38,11 @@ module JwtSessionCookies
   # Idle timeout, not an absolute cap: renew_jwt_session mints a new token on every refresh, so
   # created_at resets and an actively-used browser stays signed in indefinitely. Deliberate.
   REFRESH_TTL = 7.days
+
+  # How long after a rotation a tab that lost the race may still adopt the winner's token. Covers the
+  # keeper's 0 to 10 second refresh jitter plus a slow round trip.
+  ROTATION_GRACE = 30.seconds
+
   SESSION_SCOPES = "openid profile email roles scenarios:read scenarios:write scenarios:delete"
 
   private
@@ -62,27 +67,26 @@ module JwtSessionCookies
   # the caller should clear the cookies and return 401.
   def renew_jwt_session
     old = Doorkeeper::AccessToken.by_refresh_token(cookies[REFRESH_COOKIE])
-    return false unless old && refresh_token_live?(old)
+    return adopt_rotated_session unless old && refresh_token_live?(old)
 
     response = Doorkeeper::OAuth::RefreshTokenRequest.new(Doorkeeper.config, old, nil, {}).authorize
-    return false unless response.is_a?(Doorkeeper::OAuth::TokenResponse)
+    return adopt_rotated_session unless response.is_a?(Doorkeeper::OAuth::TokenResponse)
 
     old.revoke unless old.revoked?
     write_session_cookies(response.token)
     true
   rescue Doorkeeper::Errors::InvalidGrantReuse
-    recover_concurrent_rotation(old)
+    adopt_rotated_session
   end
 
-  # Recover from concurrent token rotation by adopting the winner's fresh token.
-  def recover_concurrent_rotation(old)
-    winner = Doorkeeper::AccessToken
-      .where(resource_owner_id: old.resource_owner_id, application_id: nil, revoked_at: nil)
-      .where.not(refresh_token: nil)
-      .where(created_at: 10.seconds.ago..)
-      .order(created_at: :desc)
-      .first
-    return false unless winner
+  # A sibling tab rotated this refresh token moments ago, so Doorkeeper will not honour it again.
+  # Adopts the successor that tab minted instead of signing the browser out.
+  def adopt_rotated_session
+    presented = cookies[REFRESH_COOKIE]
+    return false if presented.blank?
+
+    winner = Doorkeeper::AccessToken.find_by(previous_refresh_token: presented)
+    return false unless winner && !winner.revoked? && winner.created_at > ROTATION_GRACE.ago
 
     write_session_cookies(winner)
     true
