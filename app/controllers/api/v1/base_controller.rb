@@ -55,14 +55,18 @@ module Api
       end
 
       # Claims of a self-issued identity JWT (the shared session cookie) presented as a bearer token
-      # but not stored as a Doorkeeper token. Verified locally against MyETM's signing key, so the
-      # cookie authenticates here exactly as it does at ETEngine. nil for Doorkeeper tokens (PATs,
-      # OAuth) and unauthenticated requests. TokenAbility reads scopes straight from this claims hash.
+      # or as the cookie itself, but not stored as a Doorkeeper token. Verified locally against
+      # MyETM's signing key, so the cookie authenticates here exactly as it does at ETEngine. nil for
+      # Doorkeeper tokens (PATs, OAuth) and unauthenticated requests. TokenAbility reads scopes
+      # straight from this claims hash.
       def session_token_claims
         return @session_token_claims if defined?(@session_token_claims)
 
-        bearer = request.authorization.to_s[/\ABearer (.+)\z/, 1]
-        @session_token_claims = bearer && MyEtm::Auth.verify_jwt(bearer)
+        # request.cookies, not the cookies helper: ActionController::API has no cookie jar.
+        token = request.authorization.to_s[/\ABearer (.+)\z/, 1] ||
+          request.cookies[JwtSessionCookies::SESSION_COOKIE].presence
+
+        @session_token_claims = token && MyEtm::Auth.verify_jwt(token)
       end
 
       # The granted scopes, from a stored Doorkeeper token or, for the shared session cookie, the

@@ -1,5 +1,5 @@
-# Same-registrable-domain ETM apps call the session-refresh endpoint cross-subdomain with the refresh
-# cookie (credentialed), so it needs a specific-origin grant (the CORS spec forbids credentials with
+# Same-registrable-domain ETM apps call session refresh and the API cross-subdomain with the shared
+# cookie (credentialed), so they need a specific-origin grant (the CORS spec forbids credentials with
 # a wildcard origin). Defaults cover every prod and dev ETM subdomain; override with
 # CORS_SESSION_ORIGINS (comma-separated) if needed.
 SESSION_CORS_ORIGINS =
@@ -15,6 +15,10 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       headers: :any,
       credentials: true,
       methods: [:post, :options]
+    resource '/api/*',
+      headers: :any,
+      credentials: true,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head]
   end
 
   # Token/PAT API clients authenticate with a bearer header (no cookies), so any origin is allowed.
