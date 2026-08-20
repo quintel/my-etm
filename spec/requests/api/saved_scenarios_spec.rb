@@ -68,6 +68,20 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
       end
     end
 
+    context 'with the shared session cookie and no Authorization header' do
+      let!(:user_ss) { create(:saved_scenario, user: user) }
+      let(:jwt) { session_token_header(user)['Authorization'].delete_prefix('Bearer ') }
+
+      before do
+        cookies[JwtSessionCookies::SESSION_COOKIE] = jwt
+        get '/api/v1/saved_scenarios', as: :json
+      end
+
+      it 'authenticates the user from the cookie' do
+        expect(response.parsed_body.map { |s| s['id'] }).to contain_exactly(user_ss.id)
+      end
+    end
+
     context 'with an access token with the correct scope, but the user does not exist' do
       let(:request) do
         get '/api/v1/saved_scenarios',
