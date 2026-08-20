@@ -92,7 +92,7 @@ GEM
     bindex (0.8.1)
     bootsnap (1.23.0)
       msgpack (~> 1.2)
-    brakeman (8.0.5)
+    brakeman (8.0.6)
       racc
     builder (3.3.0)
     cancancan (3.6.1)
@@ -565,7 +565,7 @@ PLATFORMS
 DEPENDENCIES
   activerecord-session_store
   bootsnap
-  brakeman (>= 8.0.4)
+  brakeman (>= 8.0.6)
   cancancan (~> 3.0)
   capybara
   config
