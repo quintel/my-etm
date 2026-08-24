@@ -111,6 +111,8 @@ class ApplicationController < ActionController::Base
   end
 
   def after_sign_in_path_for(resource_or_scope)
+    return signed_in_root_path(resource_or_scope) if EtmAppRedirects.validate(session["user_return_to"])
+
     stored_location_for(resource_or_scope) || super
   end
 
