@@ -24,7 +24,7 @@
     <% end %>
   </div>
 
-  <% row.message do %>
+  <% row.with_message do %>
     <p>
       <% if @confirmed %>
         <%= t('.explanation') %>
@@ -35,7 +35,7 @@
   <% end %>
 
   <% if @show_change_button || !@confirmed %>
-    <% row.button do %>
+    <% row.with_button do %>
       <% unless @confirmed %>
         <%= button_to user_confirmation_path, params: { user: { email: @email } }, method: :post, class: button_classes(color: :default_colored) do %>
           <%= t('.resend_confirmation') %>

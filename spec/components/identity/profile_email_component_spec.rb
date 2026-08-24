@@ -32,7 +32,7 @@ RSpec.describe Identity::ProfileEmailComponent, type: :component do
       expect(rendered).to have_css('span', text: 'Not verified')
     end
 
-    pending 'renders a link to resend confirmation instructions' do
+    it 'renders a link to resend confirmation instructions' do
       expect(rendered).to have_button(text: 'Resend confirmation instructions')
     end
   end

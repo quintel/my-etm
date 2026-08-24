@@ -5,9 +5,9 @@
         <%= render(FormSteps::RowComponent.new(title: t('.name'), label_for: "user_name")) do |row| %>
           <%= f.text_field :name, value: @user.name, required: true, autofocus: true, autocomplete: 'name', class: "field" %>
 
-          <% row.icon { heroicon 'identification', options: {class: 'w-5 h-5 mr-2'} } %>
+          <% row.with_icon { heroicon 'identification', options: {class: 'w-5 h-5 mr-2'} } %>
 
-          <% row.after_hint do %>
+          <% row.with_after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @user, attribute: :name)) %>
           <% end %>
         <% end %>
@@ -17,9 +17,9 @@
             <%= f.email_field :email, value: action_name == "edit_email" ? "" : @user.email, autocomplete: 'email', required: true, class: "field" %>
           </div>
 
-          <% row.icon { heroicon 'envelope', options: {class: 'w-5 h-5 mr-2'} } %>
+          <% row.with_icon { heroicon 'envelope', options: {class: 'w-5 h-5 mr-2'} } %>
 
-          <% row.after_hint do %>
+          <% row.with_after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @user, attribute: :email)) %>
           <% end %>
         <% end %>
@@ -29,7 +29,7 @@
             <%= render(PasswordFieldComponent.new(form: f, name: :password, class: "field", autocomplete: 'new-password')) %>
           </div>
 
-          <% row.after_hint do %>
+          <% row.with_after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @user, attribute: :password)) %>
           <% end %>
         <% end %>

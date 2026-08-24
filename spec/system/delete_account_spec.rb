@@ -32,7 +32,7 @@ RSpec.describe 'Registrations', type: :system do
     expect(User.where(id: user.id).count).to eq(0)
   end
 
-  pending 'shows an error when entering an invalid password' do
+  it 'shows an error when entering an invalid password' do
     sign_in(user)
 
     visit '/identity'
@@ -45,7 +45,7 @@ RSpec.describe 'Registrations', type: :system do
     expect(page).to have_text('Current password is invalid')
   end
 
-  pending 'shows an error when entering no password' do
+  it 'shows an error when entering no password' do
     sign_in(user)
 
     visit '/identity'

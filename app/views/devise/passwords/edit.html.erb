@@ -13,7 +13,7 @@
 
   <div class="mb-4">
     <%= render(Login::FloatingFieldComponent.new(form: f, name: :password, type: :password, title: t('.password'))) do |c| %>
-      <% c.field do %>
+      <% c.with_field do %>
         <%= render(PasswordFieldComponent.new(form: f, name: :password, autofocus: true, autocomplete: "new-password", class: "peer mb-1", placeholder: t('.password'))) %>
       <% end %>
     <% end %>
@@ -21,7 +21,7 @@
 
   <div class="mb-4">
     <%= render(Login::FloatingFieldComponent.new(form: f, name: :password_confirmation, type: :password, title: t('.password_confirmation'))) do |c| %>
-      <% c.field do %>
+      <% c.with_field do %>
         <%= render(PasswordFieldComponent.new(form: f, name: :password_confirmation, class: "peer mb-1", placeholder: t('.password_confirmation'))) %>
       <% end %>
     <% end %>
