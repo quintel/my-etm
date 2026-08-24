@@ -8,6 +8,14 @@ RSpec.describe 'Sign-in return_to', type: :request do
   let(:model_url) { Version.default.model_url }
   let(:collections_url) { Version.default.collections_url }
 
+  let(:session_token) do
+    user.access_tokens.create!(
+      expires_in: JwtSessionCookies::ACCESS_TTL,
+      scopes: JwtSessionCookies::SESSION_SCOPES,
+      use_refresh_token: true
+    ).token
+  end
+
   def sign_in_with(return_to:)
     get '/identity/sign_in', params: { return_to: return_to }.compact
     post '/identity/sign_in', params: { user: { email: user.email, password: 'password' } }
@@ -54,6 +62,15 @@ RSpec.describe 'Sign-in return_to', type: :request do
 
     expect(response).to have_http_status(:redirect)
     expect(response.location).not_to include('sign_in')
+  end
+
+  it 'returns the user to the other app when the session revives before the form is submitted' do
+    get '/identity/sign_in', params: { return_to: "#{model_url}/scenarios/123" }
+
+    cookies[JwtSessionCookies::SESSION_COOKIE] = session_token
+    post '/identity/sign_in', params: { user: { email: user.email, password: 'password' } }
+
+    expect(response).to redirect_to("#{model_url}/scenarios/123")
   end
 
   # Devise's stock guard reads Warden, which is deliberately not persisted (the access cookie is the
