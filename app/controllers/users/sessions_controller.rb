@@ -65,7 +65,15 @@ module Users
     # the JWT cookie (current_user) instead, so a valid session skips the form and a lapsed one
     # always shows it — the same source of truth Doorkeeper uses, so the two cannot loop.
     def require_no_authentication
-      redirect_to(after_sign_in_path_for(current_user)) if current_user
+      return unless current_user
+
+      # Signing in can complete before the form is submitted (recover_jwt_session slides a lapsed
+      # session), so this guard has to honour a cross-host return_to
+      target = EtmAppRedirects.validate(session["user_return_to"])
+      return redirect_to(after_sign_in_path_for(current_user)) unless target
+
+      session.delete("user_return_to")
+      redirect_to(target, allow_other_host: true)
     end
 
     # Same reason as #require_no_authentication: Devise's verify_signed_out_user asks Warden whether
