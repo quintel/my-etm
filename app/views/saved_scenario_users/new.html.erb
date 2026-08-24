@@ -15,9 +15,9 @@
             <%= f.email_field :user_email, autocomplete: 'email', required: true, class: "field" %>
           </div>
 
-          <% row.icon { heroicon 'envelope', options: {class: 'w-5 h-5 mr-2'} } %>
+          <% row.with_icon { heroicon 'envelope', options: {class: 'w-5 h-5 mr-2'} } %>
 
-          <% row.after_hint do %>
+          <% row.with_after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @saved_scenario_user, attribute: :user_email)) %>
           <% end %>
         <% end %>
@@ -27,7 +27,7 @@
                 %>
           </div>
 
-          <% row.icon { heroicon 'user-plus', options: {class: 'w-5 h-5 mr-2'} } %>
+          <% row.with_icon { heroicon 'user-plus', options: {class: 'w-5 h-5 mr-2'} } %>
         <% end %>
 
         <div class="mt-6 pb-2 flex items-center gap-2">

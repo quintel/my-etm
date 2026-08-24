@@ -10,7 +10,7 @@
 
   .grow.pr-5{class: 'basis-3/4'}
     = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.message'))) do |row|
-      - row.title_contents do
+      - row.with_title_contents do
         = f.label :message, class: 'block py-1.5'
       .mb-4
         = f.text_area :message, required: true, class: 'w-full resize-none h-[300px]'
@@ -18,7 +18,7 @@
 
   .flex.flex-col.ml-auto.mr-0{class: 'basis-1/4'}
     = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.name'))) do |row|
-      - row.title_contents do
+      - row.with_title_contents do
         = f.label :name, class: 'block py-1.5'
 
       .mb-4
@@ -26,7 +26,7 @@
         = render(FieldErrorsComponent.new(record: @message, attribute: :name))
 
     = render(Identity::RowComponent.new(title: t('activemodel.attributes.contact_us_message.email'))) do |row|
-      - row.title_contents do
+      - row.with_title_contents do
         = f.label :email, class: 'block py-1.5'
 
       .mb-4

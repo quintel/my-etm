@@ -320,6 +320,12 @@ Devise.setup do |config|
   #   include Turbolinks::Controller
   # end
 
+  # ==> Turbo configuration
+  # Turbo only acts on a form response when it is a 422 or a 303 redirect; Devise's pre-Turbo
+  # defaults (200 and 302) leave the page untouched with no feedback.
+  config.responder.error_status = :unprocessable_entity
+  config.responder.redirect_status = :see_other
+
   # ==> Configuration for :registerable
 
   # When set to false, does not sign a user in automatically after their password is

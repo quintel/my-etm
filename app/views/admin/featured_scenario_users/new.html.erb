@@ -5,9 +5,9 @@
         <%= render(FormSteps::RowComponent.new(title: t('.name'), label_for: "featured_scenario_user_name")) do |row| %>
           <%= f.text_field :name, value: @featured_scenario_user.name, required: true, autofocus: true, autocomplete: 'name', class: "field" %>
 
-          <% row.icon { heroicon 'identification', options: {class: 'w-5 h-5 mr-2'} } %>
+          <% row.with_icon { heroicon 'identification', options: {class: 'w-5 h-5 mr-2'} } %>
 
-          <% row.after_hint do %>
+          <% row.with_after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @featured_scenario_user, attribute: :name)) %>
           <% end %>
         <% end %>
@@ -21,9 +21,9 @@
             <%= f.select :user_id, options_from_collection_for_select(User.all.order(:name), "id", "name"), required: false, include_blank: true, class: 'mb-2'%>
           </div>
 
-          <% row.icon { heroicon 'user', options: {class: 'w-5 h-5 mr-2'} } %>
+          <% row.with_icon { heroicon 'user', options: {class: 'w-5 h-5 mr-2'} } %>
 
-          <% row.after_hint do %>
+          <% row.with_after_hint do %>
             <%= render(FieldErrorsComponent.new(record: @featured_scenario_user, attribute: :user)) %>
           <% end %>
         <% end %>

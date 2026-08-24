@@ -34,6 +34,8 @@
         <div class="relative">
           <%= render(PasswordFieldComponent.new(form: f, name: :password_confirmation, autocomplete: "new-password", class: "peer mb-1", placeholder: t('activerecord.attributes.user.password_confirmation'), required: true, data: { password_confirmation_target: "confirmation", action: "input->password-confirmation#validate" })) %>
         </div>
+
+        <p class="text-sm text-red-600 mt-2 hidden" data-password-confirmation-target="message"></p>
       </div>
     </div>
   </div>

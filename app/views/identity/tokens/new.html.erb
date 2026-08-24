@@ -12,7 +12,7 @@
 
 <%= form_for(@token, url: identity_tokens_path, html: { method: :post, name: 'token' }) do |f| %>
   <%= render(Identity::RowComponent.new(title: t('helpers.label.create_personal_access_token_params.name'))) do |row| %>
-    <% row.title_contents do %>
+    <% row.with_title_contents do %>
       <%= f.label :name, class: 'block py-1.5' %>
     <% end %>
 
@@ -28,7 +28,7 @@
   <% end %>
 
   <%= render(Identity::RowComponent.new(title: t('helpers.label.create_personal_access_token_params.expires_in'))) do |row| %>
-    <% row.title_contents do %>
+    <% row.with_title_contents do %>
       <%= f.label :expires_in, class: 'block py-1.5' %>
     <% end %>
 
@@ -47,7 +47,7 @@
   <div class="-mt-1.5"></div>
 
   <%= render(Identity::RowComponent.new(title: t('helpers.label.create_personal_access_token_params.permissions'))) do |row| %>
-    <% row.title_contents do %>
+    <% row.with_title_contents do %>
       <%= f.label :permissions, class: 'block pb-1.5' %>
     <% end %>
 
