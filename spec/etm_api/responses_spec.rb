@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe EtmApi::Responses do
-  # Stands in for a ServiceResult: the builder only needs something that answers these three.
-  let(:service_result) { Struct.new(:successful?, :value, :errors) }
-
   describe ".data" do
     it "wraps the payload with an empty meta by default" do
       expect(described_class.data({ id: 1 })).to eq(data: { id: 1 }, meta: {})
@@ -87,58 +84,6 @@ RSpec.describe EtmApi::Responses do
     # nil rather than a fallback, leaving the caller to decide how to report it.
     it "is nil for a code outside the documented set" do
       expect(described_class.item_code(:teapot)).to be_nil
-    end
-  end
-
-  describe ".normalise_result" do
-    context "with a service result" do
-      it "returns the value and no errors when successful" do
-        result = service_result.new(true, { id: 1 }, [])
-
-        expect(described_class.normalise_result(result)).to eq([ { id: 1 }, nil ])
-      end
-
-      # An unsuccessful result carrying a record reports that record's own errors, so a failed
-      # validation reaches the response keyed by member rather than as a flat list.
-      it "prefers the value's errors when it has them" do
-        record = double(errors: { title: [ "is required" ] })
-        result = service_result.new(false, record, [ "ignored" ])
-
-        expect(described_class.normalise_result(result)).to eq([ nil, { title: [ "is required" ] } ])
-      end
-
-      it "falls back to the result's own errors under :base when there is no value" do
-        result = service_result.new(false, nil, [ "Something went wrong" ])
-
-        expect(described_class.normalise_result(result))
-          .to eq([ nil, { base: [ "Something went wrong" ] } ])
-      end
-    end
-
-    # Guarded by dry_result?, so the lib does not require dry-monads of an app that has no use
-    # for it. my-etm does use it, so both branches are exercised here.
-    context "with a dry-monads result" do
-      it "returns the value and no errors when successful" do
-        result = Dry::Monads::Result::Success.new({ id: 1 })
-
-        expect(described_class.normalise_result(result)).to eq([ { id: 1 }, nil ])
-      end
-
-      it "returns the failure when unsuccessful" do
-        result = Dry::Monads::Result::Failure.new({ title: [ "is required" ] })
-
-        expect(described_class.normalise_result(result)).to eq([ nil, { title: [ "is required" ] } ])
-      end
-    end
-  end
-
-  describe ".dry_result?" do
-    it "is false for anything else" do
-      expect(described_class.dry_result?(Object.new)).to be(false)
-    end
-
-    it "is true for a dry result" do
-      expect(described_class.dry_result?(Dry::Monads::Result::Success.new(1))).to be(true)
     end
   end
 
