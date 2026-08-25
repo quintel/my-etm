@@ -115,7 +115,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(response).to have_http_status(:unauthorized)
     end
 
-    it 'ignores scenario_ids, which v2 does not accept as a membership parameter' do
+    it 'refuses scenario_ids, which v2 does not accept as a membership parameter' do
       post(
         path,
         headers: v2_bearer(owner, :write),
@@ -123,8 +123,94 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
         as: :json
       )
 
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body['errors'].sole).to include(
+        'code' => 'param_invalid',
+        'detail' => 'is not a member of this resource',
+        'source' => { 'pointer' => '/collection/scenario_ids' }
+      )
+      expect(Collection.where(title: 'My collection')).to be_empty
+    end
+
+    it 'refuses a member list that did not arrive as a list' do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: saved_scenario.id) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body['errors'].sole).to include(
+        'code' => 'param_invalid',
+        'detail' => 'saved_scenario_ids must be an array',
+        'source' => { 'pointer' => '/collection/saved_scenario_ids' }
+      )
+    end
+
+    it 'refuses a version tag it cannot resolve, rather than substituting the default' do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(version: 'not-a-version') },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors'].sole).to include(
+        'code' => 'validation_failed',
+        'detail' => 'is not a known version',
+        'source' => { 'pointer' => '/collection/version' }
+      )
+      expect(Collection.where(title: 'My collection')).to be_empty
+    end
+
+    it 'reports an oversized member list once, not once per member' do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: (1..(Api::V2::BaseController::BATCH_LIMIT + 1)).to_a) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors'].sole).to include(
+        'detail' => 'size cannot be greater than 100',
+        'source' => { 'pointer' => '/collection/saved_scenario_ids' }
+      )
+    end
+
+    it 'refuses a discarded scenario as a member, describing it as absent' do
+      discarded = create(:saved_scenario, user: owner, version: Version.default)
+      discarded.discard
+
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: resource_attributes.merge(saved_scenario_ids: [ discarded.id ]) },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body['errors'].sole).to include(
+        'detail' => 'Saved scenario not found',
+        'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
+      )
+    end
+
+    it 'deduplicates a repeated member rather than storing it twice' do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: {
+          collection: resource_attributes.merge(
+            saved_scenario_ids: [ saved_scenario.id, saved_scenario.id ]
+          )
+        },
+        as: :json
+      )
+
       expect(response).to have_http_status(:created)
-      expect(response.parsed_body.dig('data', 'scenario_ids')).to eq([])
       expect(response.parsed_body.dig('data', 'saved_scenario_ids')).to eq([ saved_scenario.id ])
     end
 
@@ -350,6 +436,36 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
           'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
         )
       )
+    end
+
+    it 'refuses an unknown member rather than ignoring it' do
+      put(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: { random_thing: 1 } },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body['errors'].sole).to include(
+        'code' => 'param_invalid',
+        'source' => { 'pointer' => '/collection/random_thing' }
+      )
+    end
+
+    it 'refuses emptying a collection, which would leave it with nothing to show' do
+      member = create(:saved_scenario, user: owner, version: resource.version)
+      resource.update!(saved_scenario_ids: [ member.id ])
+
+      put(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: { saved_scenario_ids: [] } },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(resource.reload.saved_scenario_ids).to eq([ member.id ])
     end
 
     it 'leaves the existing members in place when a new one cannot be resolved' do
