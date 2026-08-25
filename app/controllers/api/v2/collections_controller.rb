@@ -17,10 +17,11 @@ module Api
 
       # GET api/v2/collections
       #
-      # Scoped based on the caller's access.
+      # The caller's own collections, then filtered by the ability.
       # TODO: unpaginated.
       def index
         collections = current_user.collections
+          .accessible_by(current_ability)
           .kept
           .includes(:version, :user, :scenarios, :saved_scenarios)
           .order(created_at: :desc)
@@ -36,37 +37,32 @@ module Api
       # POST api/v2/collections
       def create
         attributes = create_params
-        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
+        return if reject_request(attributes)
 
-        Api::CreateCollection.new.call(
-          user: current_user,
-          params: attributes.to_h.symbolize_keys
-        ).either(
-          ->(collection) { render_resource(collection, with: CollectionSerialiser, status: :created) },
-          ->(errors)     { render_validation_errors(errors) }
+        render_write(
+          Api::CreateCollection.new.call(user: current_user, params: attributes.to_h.symbolize_keys),
+          with: CollectionSerialiser, status: :created
         )
       end
 
       # PUT/PATCH api/v2/collections/:id
       def update
         attributes = update_params
-        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
+        return if reject_request(attributes)
 
-        Api::UpdateCollection.new.call(
-          collection: @collection,
-          params: attributes.to_h.symbolize_keys
-        ).either(
-          ->(collection) { render_resource(collection, with: CollectionSerialiser) },
-          ->(errors)     { render_validation_errors(errors) }
+        render_write(
+          Api::UpdateCollection.new.call(
+            collection: @collection, params: attributes.to_h.symbolize_keys
+          ),
+          with: CollectionSerialiser
         )
       end
 
       # DELETE api/v2/collections/:id
       def destroy
-        Api::V2::DestroyCollection.new.call(collection: @collection).either(
-          ->(_collection) { head :no_content },
-          ->(errors)      { render_validation_errors(errors) }
-        )
+        return render_validation_errors(@collection.errors) unless @collection.destroy
+
+        head :no_content
       end
 
       # PUT api/v2/collections/:id/discard
@@ -96,16 +92,21 @@ module Api
 
       # The column defaults to true, which would fail every collection with more than one member.
       def create_params
-        collection = params.require(:collection)
-        collection.require(:saved_scenario_ids)
-
-        collection
-          .permit(:title, :area_code, :end_year, :version, :interpolation, saved_scenario_ids: [])
+        resource_params(
+          :title, :area_code, :end_year, :version, :interpolation, saved_scenario_ids: []
+        ).tap { |attributes| attributes.require(:saved_scenario_ids) }
           .with_defaults(interpolation: false)
       end
 
       def update_params
-        params.require(:collection).permit(:title, :area_code, :end_year, saved_scenario_ids: [])
+        resource_params(:title, :area_code, :end_year, saved_scenario_ids: [])
+      end
+
+      # Renders and returns true when the request names something that cannot be resolved
+      def reject_request(attributes)
+        reject_unknown_version(attributes[:version]) ||
+          reject_oversized(:saved_scenario_ids, attributes[:saved_scenario_ids]) ||
+          reject_unresolvable_members(attributes[:saved_scenario_ids])
       end
 
       # Renders and returns true when a member cannot be resolved, naming the position that failed.
@@ -131,10 +132,11 @@ module Api
 
       def visible_member_ids(ids)
         owner = @collection&.user || current_user
-        return SavedScenario.where(id: ids).pluck(:id).to_set if owner.admin?
+        scenarios = SavedScenario.kept.where(id: ids)
+        return scenarios.pluck(:id).to_set if owner.admin?
 
         SavedScenarioUser
-          .where(saved_scenario_id: ids, user_id: owner.id)
+          .where(saved_scenario_id: scenarios.select(:id), user_id: owner.id)
           .pluck(:saved_scenario_id)
           .to_set
       end
