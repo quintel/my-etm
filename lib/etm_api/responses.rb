@@ -55,19 +55,5 @@ module EtmApi
     def item_code(code)
       ITEM_CODES[code]
     end
-
-    # Reduces a ServiceResult or a Dry::Monads result to [record, errors], errors nil on success.
-    def normalise_result(result)
-      return [ result.value!, nil ] if dry_result?(result) && result.success?
-      return [ nil, result.failure ] if dry_result?(result)
-      return [ result.value, nil ] if result.successful?
-
-      [ nil, result.value&.errors || { base: result.errors } ]
-    end
-
-    # Guarded so the lib does not require dry-monads of an app that has no use for it.
-    def dry_result?(result)
-      defined?(Dry::Monads::Result) && result.is_a?(Dry::Monads::Result)
-    end
   end
 end
