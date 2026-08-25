@@ -9,6 +9,8 @@ module Api
         authorize!(:manage_members, @saved_scenario)
       end
 
+      before_action :reject_discarded_scenario, only: %i[create]
+
       # POST /api/v2/saved_scenarios/:saved_scenario_id/users
       def create
         apply do |members|
@@ -39,12 +41,42 @@ module Api
 
       private
 
+      def reject_discarded_scenario
+        return unless @saved_scenario.discarded?
+
+        render_error(
+          status: :conflict,
+          code: ErrorCodes::SCENARIO_DISCARDED,
+          detail: "Saved scenario is discarded"
+        )
+      end
+
       def apply(&service)
+        submitted = submitted_items
+        return if reject_oversized(:saved_scenario_users, submitted)
+        return if reject_item_ids(submitted)
+
         authorisation = SavedScenarioMemberAuthorisation.new(
-          @saved_scenario, bulk_user_params, permit_owners: can?(:manage_owners, @saved_scenario)
+          @saved_scenario, submitted.map { |item| scenario_user_params(item) },
+          permit_owners: can?(:manage_owners, @saved_scenario)
         )
 
         render_users(authorisation.apply(&service))
+      end
+
+      def reject_item_ids(submitted)
+        return false unless action_name == "create"
+
+        index = submitted.index { |item| item[:id].present? }
+        return false if index.nil?
+
+        render_error(
+          status: :bad_request,
+          code: ErrorCodes::PARAM_INVALID,
+          detail: "cannot be set when granting access",
+          source: { pointer: "/saved_scenario_users/#{index}/id" }
+        )
+        true
       end
 
       def render_users(result)
@@ -66,14 +98,12 @@ module Api
 
       # `require` answers an absent or empty list as param_missing, but cannot tell a list from an
       # object, so the shape is checked separately.
-      #
-      # TODO: no maximum item count is currently enforced.
-      def bulk_user_params
+      def submitted_items
         submitted = permitted_params.require(:saved_scenario_users)
         raise InvalidParam.new("/saved_scenario_users", "saved_scenario_users must be an array") unless
           submitted.is_a?(Array)
 
-        submitted.map { |user_params| scenario_user_params(user_params) }
+        submitted
       end
 
       def scenario_user_params(user_params)

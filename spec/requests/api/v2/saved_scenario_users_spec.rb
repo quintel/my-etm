@@ -116,6 +116,30 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
     end
 
+    it "still accepts an id, which is how an existing membership is addressed" do
+      member = create(:saved_scenario_user, saved_scenario: saved_scenario, role_id: 1)
+
+      put(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: { saved_scenario_users: [ { id: member.id, role: "scenario_collaborator" } ] },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:multi_status)
+      expect(member.reload.role).to eq(:scenario_collaborator)
+    end
+
+    it "refuses a batch over the limit" do
+      over = Api::V2::BaseController::BATCH_LIMIT + 1
+      items = Array.new(over) { { id: collaborator.id, role: "scenario_viewer" } }
+
+      put(path, headers: v2_bearer(owner, :delete), params: { saved_scenario_users: items }, as: :json)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("errors", 0, "code")).to eq("validation_failed")
+    end
+
     it "addresses a coupled member by the email the API reports for them" do
       member = create(
         :saved_scenario_user,
@@ -342,6 +366,138 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       post(path, params: { saved_scenario_users: [ { user_email: "a@example.com", role: "scenario_viewer" } ] }, as: :json)
 
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "refuses an item naming an id, which would choose the row's primary key" do
+      invitee = create(:user)
+
+      post(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: {
+          saved_scenario_users: [
+            { user_email: "first@example.com", role: "scenario_viewer" },
+            { id: 4242, user_id: invitee.id, role: "scenario_viewer" }
+          ]
+        },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "param_invalid",
+        "detail" => "cannot be set when granting access",
+        "source" => { "pointer" => "/saved_scenario_users/1/id" }
+      )
+      expect(SavedScenarioUser.exists?(4242)).to be(false)
+    end
+
+    it "applies nothing when one item names an id, so the batch is not half done" do
+      post(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: {
+          saved_scenario_users: [
+            { user_email: "kept@example.com", role: "scenario_viewer" },
+            { id: 4243, user_email: "other@example.com", role: "scenario_viewer" }
+          ]
+        },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:bad_request)
+      expect(SavedScenarioUser.exists?(user_email: "kept@example.com")).to be(false)
+    end
+
+    it "refuses a batch over the limit, as one error rather than one per item" do
+      over = Api::V2::BaseController::BATCH_LIMIT + 1
+      items = Array.new(over) { |i| { user_email: "bulk#{i}@example.com", role: "scenario_viewer" } }
+
+      post(path, headers: v2_bearer(owner, :delete), params: { saved_scenario_users: items }, as: :json)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "validation_failed",
+        "detail" => "size cannot be greater than 100",
+        "source" => { "pointer" => "/saved_scenario_users" }
+      )
+      expect(SavedScenarioUser.where(saved_scenario: saved_scenario).count).to eq(1)
+    end
+
+    it "accepts a batch at the limit" do
+      items = Array.new(Api::V2::BaseController::BATCH_LIMIT) do |i|
+        { user_email: "atlimit#{i}@example.com", role: "scenario_viewer" }
+      end
+
+      post(path, headers: v2_bearer(owner, :delete), params: { saved_scenario_users: items }, as: :json)
+
+      expect(response).to have_http_status(:multi_status)
+      expect(response.parsed_body.dig("meta", "batch", "succeeded"))
+        .to eq(Api::V2::BaseController::BATCH_LIMIT)
+    end
+
+    context "when the scenario has been discarded" do
+      before { saved_scenario.discard }
+
+      it "refuses to grant access to a scenario in the bin" do
+        post(
+          path,
+          headers: v2_bearer(owner, :delete),
+          params: { saved_scenario_users: [ { user_email: "binned@example.com", role: "scenario_viewer" } ] },
+          as: :json
+        )
+
+        expect(response).to have_http_status(:conflict)
+        expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+        expect(response.parsed_body["errors"].sole).to include(
+          "code" => "scenario_discarded", "detail" => "Saved scenario is discarded"
+        )
+        expect(SavedScenarioUser.exists?(user_email: "binned@example.com")).to be(false)
+      end
+
+      it "tells a stranger nothing about the scenario's state" do
+        post(
+          path,
+          headers: v2_bearer(create(:user), :delete),
+          params: { saved_scenario_users: [ { user_email: "binned@example.com", role: "scenario_viewer" } ] },
+          as: :json
+        )
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it "still allows revoking access, which stays useful until the auto-delete" do
+        member = create(
+          :saved_scenario_user, saved_scenario: saved_scenario,
+          role_id: User::Roles.index_of(:scenario_viewer)
+        )
+
+        delete(
+          path, headers: v2_bearer(owner, :delete),
+          params: { saved_scenario_users: [ { id: member.id } ] }, as: :json
+        )
+
+        expect(response).to have_http_status(:multi_status)
+        expect(SavedScenarioUser.exists?(member.id)).to be(false)
+      end
+
+      it "still allows changing a role" do
+        member = create(
+          :saved_scenario_user, saved_scenario: saved_scenario,
+          role_id: User::Roles.index_of(:scenario_viewer)
+        )
+
+        put(
+          path, headers: v2_bearer(owner, :delete),
+          params: { saved_scenario_users: [ { id: member.id, role: "scenario_collaborator" } ] },
+          as: :json
+        )
+
+        expect(response).to have_http_status(:multi_status)
+        expect(member.reload.role).to eq(:scenario_collaborator)
+      end
     end
 
     it "is refused, not hidden, with only the read scope" do
