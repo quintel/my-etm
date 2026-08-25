@@ -43,12 +43,18 @@ module Api
         }, status: :multi_status
       end
 
+      # `with:` is a serialiser, or a callable answering { with:, options: } for the written record
       def render_write(result, with:, options: {}, status: :ok)
-        record, errors = normalise_result(result)
+        if write_successful?(result)
+          record = write_value(result)
 
-        return render_resource(record, with: with, options: options, status: status) if errors.nil?
+          return render_resource(record, **write_view(with, record, options), status: status)
+        end
 
-        render_validation_errors(errors)
+        errors = write_errors(result)
+        return render_validation_errors(errors) if errors
+
+        render_upstream_error(result)
       end
 
       # Every member the action does not accept, one error object each.
@@ -87,17 +93,36 @@ module Api
 
       private
 
-      # Reduces a ServiceResult or a Dry::Monads result to [record, errors], errors nil on success.
-      def normalise_result(result)
-        return [ result.value!, nil ] if dry_result?(result) && result.success?
-        return [ nil, result.failure ] if dry_result?(result)
-        return [ result.value, nil ] if result.successful?
-
-        [ nil, result.value&.errors || { base: result.errors } ]
-      end
-
       def dry_result?(result)
         result.is_a?(Dry::Monads::Result)
+      end
+
+      def write_successful?(result)
+        dry_result?(result) ? result.success? : result.successful?
+      end
+
+      def write_value(result)
+        dry_result?(result) ? result.value! : result.value
+      end
+
+      # A failure naming no record did not come from a request member, so it is not the caller's to
+      # fix and must not read as a validation failure. Only an upstream call can produce one; v2
+      # makes none synchronously yet, so this is the guard for when it does.
+      def write_errors(result)
+        dry_result?(result) ? result.failure : result.value&.errors
+      end
+
+      def render_upstream_error(result)
+        render_error(
+          status: :bad_gateway,
+          code: ErrorCodes::UPSTREAM_ERROR,
+          detail: Array(result.errors).join(", ").presence || "The request could not be completed"
+        )
+      end
+
+      # A serialiser names itself; a callable is asked what the written record should go out as.
+      def write_view(with, record, options)
+        with.respond_to?(:call) ? with.call(record) : { with: with, options: options }
       end
 
       # A member the resource does not have at all reads differently from one it will not accept here.

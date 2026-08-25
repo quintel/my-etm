@@ -65,6 +65,6 @@ class SavedScenario::Update
   end
 
   def failure
-    ServiceResult.failure(saved_scenario.errors.map(&:full_message))
+    ServiceResult.failure(saved_scenario.errors.map(&:full_message), saved_scenario)
   end
 end
