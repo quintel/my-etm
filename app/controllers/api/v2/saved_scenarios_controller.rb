@@ -24,7 +24,7 @@ module Api
       def index
         scenarios = current_user.saved_scenarios
           .accessible_by(current_ability)
-          .available
+          .kept
           .includes(:version)
           .with_rich_text_description
           .order(updated_at: :desc)
@@ -39,16 +39,22 @@ module Api
 
       # POST /api/v2/saved_scenarios
       def create
-        result = SavedScenario::Create.call(nil, create_params, current_user)
+        attributes = validated(SavedScenarioCreateContract, create_params)
+        return if attributes.nil? || reject_unknown_version(attributes[:version])
+
+        result = SavedScenario::Create.call(nil, attributes.stringify_keys, current_user)
         reset_ability! if result.successful?
 
-        render_write(result, status: :created)
+        render_write(result, with: caller_view, status: :created)
       end
 
       # PUT/PATCH /api/v2/saved_scenarios/:id
       def update
+        attributes = validated(SavedScenarioUpdateContract, update_params)
+        return if attributes.nil?
+
         render_write(
-          SavedScenario::Update.call(nil, @saved_scenario, update_params)
+          SavedScenario::Update.call(nil, @saved_scenario, attributes), with: caller_view
         )
       end
 
@@ -75,12 +81,17 @@ module Api
 
       private
 
-      def render_write(result, status: :ok)
-        if result.successful?
-          render_resource(result.value, **view_for(result.value), status: status)
-        else
-          render_validation_errors(result.value&.errors || { base: result.errors })
-        end
+      # Renders and returns nil when the contract rejects a member
+      def validated(contract, attributes)
+        result = contract.new.call(attributes.to_h.symbolize_keys)
+        return result.to_h if result.success?
+
+        render_validation_errors(result.errors.to_h)
+        nil
+      end
+
+      def caller_view
+        ->(saved_scenario) { view_for(saved_scenario) }
       end
 
       def request_members
@@ -88,13 +99,11 @@ module Api
       end
 
       def create_params
-        params.require(:saved_scenario).permit(
-          :scenario_id, :title, :version, :description, :area_code, :end_year, :private
-        )
+        resource_params(:scenario_id, :title, :version, :description, :area_code, :end_year, :private)
       end
 
       def update_params
-        params.require(:saved_scenario).permit(:title, :description, :area_code, :end_year, :private)
+        resource_params(:title, :description, :area_code, :end_year, :private)
       end
 
       # A public scenario is readable by anyone, so :read is not sufficient here

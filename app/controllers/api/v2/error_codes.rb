@@ -13,6 +13,7 @@ module Api
       FORBIDDEN          = "forbidden"           # the caller may not perform this action (403)
       VALIDATION_FAILED  = "validation_failed"   # the record failed validation (422)
       INTERNAL_ERROR     = "internal_error"      # the item failed unexpectedly (500)
+      UPSTREAM_ERROR     = "upstream_error"      # a service this request depends on failed (502)
     end
   end
 end

@@ -3,7 +3,9 @@
 require "rails_helper"
 
 RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
-  let(:owner) { create(:user) }
+  let(:class_sym)  { :saved_scenario }
+  let(:owner)      { create(:user) }
+  let(:serialiser) { Api::V2::SavedScenarioSerialiser }
 
   def count_queries
     count = 0
@@ -18,6 +20,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     let(:path) { "/api/v2/saved_scenarios" }
 
     it_behaves_like "a caller-scoped collection endpoint"
+    it_behaves_like "a collection of serialisable resources"
 
     it "lists the caller's own scenarios" do
       own = create(:saved_scenario, user: owner, private: true)
@@ -58,6 +61,18 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(response.parsed_body["data"].map { |item| item["id"] }).not_to include(inaccessible.id)
     end
 
+    it "lists only the caller's own scenarios, even for an admin" do
+      admin = create(:user, admin: true)
+      own   = create(:saved_scenario, user: admin)
+      other = create(:saved_scenario, user: owner)
+
+      get(path, headers: v2_bearer(admin, :read), as: :json)
+
+      ids = response.parsed_body["data"].map { |item| item["id"] }
+      expect(ids).to eq([ own.id ])
+      expect(ids).not_to include(other.id)
+    end
+
     it "excludes discarded scenarios" do
       kept      = create(:saved_scenario, user: owner)
       discarded = create(:saved_scenario, user: owner)
@@ -66,27 +81,6 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       get(path, headers: v2_bearer(owner, :read), as: :json)
 
       expect(response.parsed_body["data"].map { |item| item["id"] }).to eq([ kept.id ])
-    end
-
-    it "serialises a scenario via the explicit allow-list, without its membership" do
-      scenario = create(:saved_scenario, user: owner, private: false)
-
-      get(path, headers: v2_bearer(owner, :read), as: :json)
-
-      entry = response.parsed_body["data"].find { |item| item["id"] == scenario.id }
-      expect(entry).to eq(
-        "id" => scenario.id,
-        "title" => scenario.title,
-        "description" => nil,
-        "scenario_id" => scenario.scenario_id,
-        "area_code" => scenario.area_code,
-        "end_year" => scenario.end_year,
-        "version" => scenario.version.tag,
-        "private" => false,
-        "discarded_at" => nil,
-        "created_at" => scenario.created_at.as_json,
-        "updated_at" => scenario.updated_at.as_json
-      )
     end
 
     it "does not enumerate private scenarios for a token without the read scope" do
@@ -119,6 +113,12 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     let(:path)     { "/api/v2/saved_scenarios/#{resource.id}" }
 
     it_behaves_like "a read-protected resource"
+
+    # A caller holding a role is served membership as well, so that is the shape to pin here.
+    it_behaves_like "a serialisable resource" do
+      let(:serialiser)         { Api::V2::SavedScenarioWithUsersSerialiser }
+      let(:serialiser_options) { { emails: true } }
+    end
 
     it "renders the single-resource kind for the owner" do
       get(path, headers: v2_bearer(owner, :read), as: :json)
@@ -262,6 +262,8 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
 
   describe "POST /api/v2/saved_scenarios" do
     let(:path) { "/api/v2/saved_scenarios" }
+    let(:strict_attribute)   { :end_year }
+    let(:required_attribute) { :title }
     let(:attributes) do
       {
         scenario_id: 123_456,
@@ -270,6 +272,12 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
         end_year: 2050,
         version: Version.default.tag
       }
+    end
+    let(:resource_attributes) { attributes }
+
+    it_behaves_like "a serialisable resource on create"
+    it_behaves_like "a persistant resource on create" do
+      let(:resource_name) { :saved_scenarios }
     end
 
     it "creates the scenario and renders the single-resource kind" do
@@ -327,6 +335,78 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(SavedScenario.where(scenario_id: 123_456)).to be_empty
     end
 
+    it "refuses an unparseable integer rather than storing what it coerces to" do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { saved_scenario: attributes.merge(end_year: "random_thing") },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "validation_failed",
+        "detail" => "must be an integer",
+        "source" => { "pointer" => "/saved_scenario/end_year" }
+      )
+      expect(SavedScenario.where(scenario_id: 123_456)).to be_empty
+    end
+
+    it "refuses an unparseable boolean rather than reading it as true" do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { saved_scenario: attributes.merge(private: "banana") },
+        as: :json
+      )
+
+      expect(response.parsed_body["errors"].sole).to include(
+        "detail" => "must be boolean",
+        "source" => { "pointer" => "/saved_scenario/private" }
+      )
+    end
+
+    it "refuses a version tag it cannot resolve, rather than substituting the default" do
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { saved_scenario: attributes.merge(version: "not-a-version") },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "validation_failed",
+        "detail" => "is not a known version",
+        "source" => { "pointer" => "/saved_scenario/version" }
+      )
+      expect(SavedScenario.where(scenario_id: 123_456)).to be_empty
+    end
+
+    # Api::CreateCollection::Contract words an absent member the same way.
+    it "words an absent member as missing, not as the model's blankness" do
+      post(
+        path, headers: v2_bearer(owner, :write),
+        params: { saved_scenario: attributes.except(:title) }, as: :json
+      )
+
+      expect(response.parsed_body["errors"].sole).to include(
+        "detail" => "is missing", "source" => { "pointer" => "/saved_scenario/title" }
+      )
+    end
+
+    it "refuses a member the resource does not have rather than dropping it" do
+      post(
+        path, headers: v2_bearer(owner, :write),
+        params: { saved_scenario: attributes.merge(random_thing: 1) }, as: :json
+      )
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "param_invalid", "source" => { "pointer" => "/saved_scenario/random_thing" }
+      )
+    end
+
     it "answers 400 param_missing without the saved_scenario key" do
       post(path, headers: v2_bearer(owner, :write), params: {}, as: :json)
 
@@ -352,6 +432,18 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     let(:resource) { create(:saved_scenario, user: owner, private: true) }
     let(:path)     { "/api/v2/saved_scenarios/#{resource.id}" }
 
+    let(:strict_attribute)       { :end_year }
+    let(:unupdateable_attribute) { :version }
+    let(:resource_attributes)    { { title: "My new scenario" } }
+
+    it_behaves_like "a write-protected resource" do
+      let(:body) { { saved_scenario: resource_attributes } }
+    end
+    it_behaves_like "a serialisable resource on update"
+    it_behaves_like "a persistant resource on update" do
+      let(:resource_name) { :saved_scenarios }
+    end
+
     it "updates the writable attributes" do
       put(
         path,
@@ -366,7 +458,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(resource.private).to be(false)
     end
 
-    it "does not re-point the engine scenario through the general update action" do
+    it "refuses re-pointing the engine scenario through the general update action" do
       put(
         path,
         headers: v2_bearer(owner, :write),
@@ -374,10 +466,15 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
         as: :json
       )
 
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["errors"].sole).to include(
+        "detail" => "cannot be set by this action",
+        "source" => { "pointer" => "/saved_scenario/scenario_id" }
+      )
       expect(resource.reload.scenario_id).not_to eq(999_999)
     end
 
-    it "does not change the version through the general update action" do
+    it "refuses changing the version through the general update action" do
       other_version = Version.where.not(id: resource.version_id).first
 
       put(
@@ -387,10 +484,11 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
         as: :json
       )
 
+      expect(response).to have_http_status(:bad_request)
       expect(resource.reload.version_id).not_to eq(other_version.id)
     end
 
-    it "does not discard through the general update action" do
+    it "refuses discarding through the general update action" do
       put(
         path,
         headers: v2_bearer(owner, :write),
@@ -398,7 +496,24 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
         as: :json
       )
 
+      expect(response).to have_http_status(:bad_request)
       expect(resource.reload.discarded_at).to be_nil
+    end
+
+    it "refuses an unparseable integer rather than storing what it coerces to" do
+      put(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { saved_scenario: { end_year: "random_thing" } },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"].sole).to include(
+        "detail" => "must be an integer",
+        "source" => { "pointer" => "/saved_scenario/end_year" }
+      )
+      expect(resource.reload.end_year).not_to eq(0)
     end
 
     it "reports a validation failure through the error grammar" do
@@ -413,6 +528,34 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       put(path, headers: v2_bearer(owner, :read), params: { saved_scenario: { title: "x" } }, as: :json)
 
       expect(response).to have_http_status(:forbidden)
+    end
+
+    # v2 makes no synchronous engine call today, so this is asserted through the service.
+    it "reports a failure that is not the caller's to fix as upstream, not as validation" do
+      allow(SavedScenario::Update).to receive(:call)
+        .and_return(ServiceResult.failure([ "Engine unreachable" ]))
+
+      put(path, headers: v2_bearer(owner, :write), params: { saved_scenario: { title: "x" } }, as: :json)
+
+      expect(response).to have_http_status(:bad_gateway)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body["errors"].sole).to eq(
+        "status" => 502, "code" => "upstream_error", "detail" => "Engine unreachable"
+      )
+    end
+
+    it "still reports a record's own errors as validation failures" do
+      allow(SavedScenario::Update).to receive(:call) do
+        resource.errors.add(:title, "is too short")
+        ServiceResult.failure([ "Title is too short" ], resource)
+      end
+
+      put(path, headers: v2_bearer(owner, :write), params: { saved_scenario: { title: "x" } }, as: :json)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "validation_failed", "source" => { "pointer" => "/saved_scenario/title" }
+      )
     end
 
     it "is hidden to a stranger" do
@@ -430,6 +573,12 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
   describe "DELETE /api/v2/saved_scenarios/:id" do
     let(:resource) { create(:saved_scenario, user: owner, private: true) }
     let(:path)     { "/api/v2/saved_scenarios/#{resource.id}" }
+
+    it_behaves_like "a delete-protected resource"
+    it_behaves_like "a serialisable resource on delete"
+    it_behaves_like "a persistant resource on delete" do
+      let(:resource_name) { :saved_scenarios }
+    end
 
     it "hard-deletes and answers 204" do
       delete(path, headers: v2_bearer(owner, :delete), as: :json)
@@ -482,6 +631,16 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       put(path, headers: v2_bearer(create(:user), :delete), as: :json)
 
       expect(response).to have_http_status(:not_found)
+    end
+
+    it "is idempotent" do
+      resource.discard
+      discarded_at = resource.reload.discarded_at
+
+      put(path, headers: v2_bearer(owner, :delete), as: :json)
+
+      expect(response).to have_http_status(:ok)
+      expect(resource.reload.discarded_at).to eq(discarded_at)
     end
   end
 
