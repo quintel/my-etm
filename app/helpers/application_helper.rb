@@ -25,7 +25,7 @@ module ApplicationHelper
   end
 
   def identity_back_to_etm_url
-    session[:back_to_etm_url] || Settings.etmodel_uri || "https://energytransitionmodel.com"
+    session[:back_to_etm_url] || Settings.etmodel.uri || "https://energytransitionmodel.com"
   end
 
   # Like simple_format, except without inserting breaks on newlines.

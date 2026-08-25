@@ -59,7 +59,7 @@ module Users
 
     # Goes to ETModel, as a sign-out does.
     def after_sign_out_path_for(...)
-      Settings.etmodel_uri.presence || super
+      Settings.etmodel.uri.presence || super
     end
 
     def update_resource(resource, params)

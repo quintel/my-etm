@@ -21,7 +21,7 @@ RSpec.describe Users::SessionsController do
   end
 
   before do
-    Settings.etmodel_uri = 'http://etmodel.test'
+    Settings.etmodel.uri = 'http://etmodel.test'
     request.env['devise.mapping'] = Devise.mappings[:user]
   end
 
@@ -111,7 +111,7 @@ RSpec.describe Users::SessionsController do
 
     it 'redirects to ETModel' do
       delete :destroy
-      expect(response).to redirect_to(Settings.etmodel_uri)
+      expect(response).to redirect_to(Settings.etmodel.uri)
     end
   end
 
@@ -120,7 +120,7 @@ RSpec.describe Users::SessionsController do
 
     it 'redirects to ETModel' do
       delete :destroy
-      expect(response).to redirect_to(Settings.etmodel_uri)
+      expect(response).to redirect_to(Settings.etmodel.uri)
     end
   end
 
@@ -129,7 +129,7 @@ RSpec.describe Users::SessionsController do
 
     it 'redirects to ETModel' do
       delete :destroy, params: { access_token: 'invalid' }
-      expect(response).to redirect_to(Settings.etmodel_uri)
+      expect(response).to redirect_to(Settings.etmodel.uri)
     end
   end
 
@@ -202,7 +202,7 @@ RSpec.describe Users::SessionsController do
 
     it 'redirects to ETModel' do
       delete :destroy, params: { access_token: 'invalid' }
-      expect(response).to redirect_to(Settings.etmodel_uri)
+      expect(response).to redirect_to(Settings.etmodel.uri)
     end
 
     it 'does not revoke the token' do

@@ -52,9 +52,9 @@ module Users
       clear_jwt_session_cookies
 
       super do
+        target = post_logout_target(return_app) || after_sign_out_path_for(resource_name)
+        flash.delete(:notice) if is_flashing_format?
         # Turbo requires redirects be :see_other (303); so override Devise default (302)
-        target = return_app ? validated_post_logout_uri(return_app) : after_sign_out_path_for(resource_name)
-        flash.delete(:notice) if return_app && is_flashing_format?
         return redirect_to(target, status: :see_other, allow_other_host: true)
       end
     end
@@ -90,13 +90,15 @@ module Users
       end
     end
 
-    # Returns a safe post-logout redirect target, falling back to the app that initiated the logout.
-    def validated_post_logout_uri(return_app)
-      EtmAppRedirects.validate(params[:post_logout_redirect_uri]) || return_app.uri
+    # Where to send the visitor once they are signed out, or nil if nowhere is known.
+    def post_logout_target(return_app = nil)
+      EtmAppRedirects.validate(params[:post_logout_redirect_uri]) ||
+        return_app&.uri ||
+        Settings.etmodel.uri.presence
     end
 
     def after_sign_out_path_for(...)
-      Settings.etmodel_uri.presence || super
+      post_logout_target || super
     end
 
     # Overridden only to allow the cross-host redirect. The keyword is Devise's: it responds :no_content
