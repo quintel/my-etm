@@ -7,7 +7,7 @@
 # `data` and `errors` are mutually exclusive because every kind names its own complete key set, and
 # no kind names both.
 module ApiV2Envelope
-  KINDS = %i[resource collection batch ok error].freeze
+  KINDS = %i[resource collection batch ok no_content error].freeze
   ITEM_CODES = %w[not_found forbidden validation_failed internal_error].freeze
 
   class << self
@@ -15,6 +15,7 @@ module ApiV2Envelope
     def violations(body, kind)
       return [ "#{kind.inspect} is not a v2 response kind (#{KINDS.join(', ')})" ] unless
         KINDS.include?(kind)
+      return no_content_violations(body) if kind == :no_content
       return [ "expected a JSON object, got #{body.class}" ] unless body.is_a?(Hash)
 
       send("#{kind}_violations", body)
@@ -29,6 +30,10 @@ module ApiV2Envelope
     def collection_violations(body)
       keys(body, %w[data meta]) + object(body["meta"], "meta") +
         array(body["data"], "data") { |item, at| object(item, at) }
+    end
+
+    def no_content_violations(body)
+      body.nil? || body == "" ? [] : [ "a no_content response must carry no body" ]
     end
 
     def ok_violations(body)
@@ -58,7 +63,7 @@ module ApiV2Envelope
       return object(item, at) unless item.is_a?(Hash)
 
       case item["status"]
-      when "ok"    then [] # An ok item carries its resource's own fields, checked by its serialiser.
+      when "ok"    then keys(item, %w[status data], at: at) + object(item["data"], "#{at}/data")
       when "error" then batch_item_error_violations(item, at)
       else [ "#{at}/status must be \"ok\" or \"error\"" ]
       end
