@@ -51,6 +51,10 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       render_ok(job_id: "abc-123")
     end
 
+    def no_content
+      render_no_content
+    end
+
     def error
       render_error(status: :forbidden, code: "forbidden", detail: "Scenario does not belong to you")
     end
@@ -95,6 +99,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       get "resource"   => "api/v2/base#resource"
       get "collection" => "api/v2/base#collection"
       get "ok"         => "api/v2/base#ok"
+      get "no_content" => "api/v2/base#no_content"
       get "error"      => "api/v2/base#error"
       get "malformed"  => "api/v2/base#malformed"
       get "bulk"       => "api/v2/base#bulk"
@@ -127,10 +132,21 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     it_behaves_like "a v2 ok response"
   end
 
+  describe "GET no_content" do
+    before { get :no_content }
+
+    it_behaves_like "a v2 no_content response"
+  end
+
   describe "GET error" do
     before { get :error }
 
     it_behaves_like "a v2 error response"
+  end
+
+  it "refuses to guess the request members a controller has not declared" do
+    expect { Class.new(described_class).new.send(:request_members) }
+      .to raise_error(NotImplementedError, /must declare request_members/)
   end
 
   it "matches the closed set of kinds without one being named" do
@@ -152,7 +168,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
 
     it "renders one item per BulkResult item, addressed by its request index" do
       expect(response.parsed_body["data"]).to eq([
-        { "status" => "ok", "id" => 1 },
+        { "status" => "ok", "data" => { "id" => 1 } },
         {
           "status" => "error", "code" => "not_found", "detail" => "User not found",
           "source" => { "pointer" => "/items/1" }
@@ -234,6 +250,14 @@ RSpec.describe Api::V2::BaseController, type: :controller do
         "status" => 400, "code" => "param_invalid",
         "detail" => "is not a member of this resource",
         "source" => { "pointer" => "/thing/random_thing" }
+      )
+    end
+
+    it "distinguishes a member the resource shows but never accepts" do
+      post :strict, params: { thing: { title: "Example", id: 5 } }, as: :json
+
+      expect(response.parsed_body["errors"].sole).to include(
+        "detail" => "is read-only", "source" => { "pointer" => "/thing/id" }
       )
     end
 

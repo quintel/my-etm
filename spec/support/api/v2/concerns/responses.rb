@@ -36,6 +36,13 @@ RSpec.shared_examples('a v2 ok response') do
   end
 end
 
+RSpec.shared_examples('a v2 no_content response') do
+  it 'renders the no_content kind, carrying nothing' do
+    expect(response).to have_http_status(:no_content)
+    expect(response.body).to validate_against_the_v2_envelope(:no_content)
+  end
+end
+
 RSpec.shared_examples('a v2 error response') do
   it 'renders the error kind with a stable code and no data key' do
     expect(response.parsed_body['data']).to be_nil
@@ -339,8 +346,6 @@ RSpec.shared_examples('a serialisable resource on delete') do
   end
 
   context 'when the owner of the scenario' do
-    it 'puts an object in the data field' do
-      expect(response.parsed_body['data']).to be_nil
-    end
+    it_behaves_like 'a v2 no_content response'
   end
 end
