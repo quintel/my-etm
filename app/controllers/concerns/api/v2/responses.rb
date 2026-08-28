@@ -25,8 +25,8 @@ module Api
         render json: { data: with.new(object, **options).as_json, meta: meta }, status: status
       end
 
-      def render_collection(objects, with:, meta: {})
-        data = objects.map { |object| with.new(object).as_json }
+      def render_collection(objects, with:, options: {}, meta: {})
+        data = objects.map { |object| with.new(object, **options).as_json }
 
         render json: { data: data, meta: meta }, status: :ok
       end
@@ -67,6 +67,11 @@ module Api
         render json: { data: { status: "ok", **extra }, meta: {} }, status: :ok
       end
 
+      # The one route to a 204, so it stays inside the closed set of kinds.
+      def render_no_content
+        head :no_content
+      end
+
       def render_error(status:, code:, detail:, source: nil)
         render json: { errors: [ error_object(status, code, detail, source) ] }, status: status
       end
@@ -100,9 +105,11 @@ module Api
         result.is_a?(Dry::Monads::Result)
       end
 
-      # A member the resource does not have at all reads differently from one it will not accept here.
       def rejection_detail(member)
-        request_members.include?(member) ? "cannot be set by this action" : "is not a member of this resource"
+        return "cannot be set by this action" if request_members.include?(member)
+        return "is read-only" if readonly_members.include?(member)
+
+        "is not a member of this resource"
       end
 
       # A contract reports a failing collection member as { key => { index => [messages] } }
@@ -127,7 +134,12 @@ module Api
       end
 
       def request_members
-        []
+        raise NotImplementedError, "#{self.class.name} must declare request_members"
+      end
+
+      # Members the resource shows but doesn't accept
+      def readonly_members
+        %i[id created_at updated_at]
       end
 
       # Model attribute names that differ from the request member they describe.
@@ -148,7 +160,7 @@ module Api
       end
 
       def batch_item(item, serialiser, pointer, options)
-        return { status: "ok", **serialiser.new(item.value, **options).as_json } if item.ok?
+        return { status: "ok", data: serialiser.new(item.value, **options).as_json } if item.ok?
 
         {
           status: "error",
