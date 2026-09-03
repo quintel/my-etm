@@ -3,6 +3,92 @@ require 'rails_helper'
 RSpec.describe "API::Collections", type: :request, api: true do
   let(:user) { create(:user) }
 
+  # A collection is no more readable than the least readable scenario in it. That matches the
+  # older scenario-ids URL, where one unreadable scenario failed the whole page.
+  describe 'GET /api/v1/collections/:id access' do
+    let(:owner) { create(:user) }
+    let(:other) { create(:user) }
+
+    def collection_with(*saved_scenarios)
+      create(:collection, user: owner, scenarios_count: 0).tap do |coll|
+        saved_scenarios.each do |ss|
+          create(:collection_saved_scenario, collection: coll, saved_scenario: ss)
+        end
+      end
+    end
+
+    def get_collection(collection, as:)
+      headers = as ? access_token_header(as, :read) : {}
+      get "/api/v1/collections/#{collection.id}", as: :json, headers: headers
+    end
+
+    let(:public_scenario)  { create(:saved_scenario, user: owner, private: false) }
+    let(:private_scenario) { create(:saved_scenario, user: owner, private: true) }
+
+    context 'when every scenario is public' do
+      let(:second_public_scenario) { create(:saved_scenario, user: owner, private: false) }
+      let(:collection) { collection_with(public_scenario, second_public_scenario) }
+
+      it 'is readable by someone who is not the owner' do
+        get_collection(collection, as: other)
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'is readable without a token at all' do
+        get_collection(collection, as: nil)
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context 'when one scenario of several is not readable' do
+      let(:collection) { collection_with(public_scenario, private_scenario) }
+
+      it 'is not readable, even though the other scenario is public' do
+        get_collection(collection, as: other)
+        expect(response).not_to have_http_status(:success)
+      end
+
+      it 'does not return the collection itself' do
+        get_collection(collection, as: other)
+        expect(response.body).not_to include(collection.title)
+      end
+
+      it 'is not readable without a token' do
+        get_collection(collection, as: nil)
+        expect(response).not_to have_http_status(:success)
+      end
+
+      it 'becomes readable once the private scenario is shared with the viewer' do
+        create(:saved_scenario_user, saved_scenario: private_scenario, user: other,
+          role_id: User::Roles.index_of(:scenario_viewer))
+
+        get_collection(collection, as: other)
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'is still readable by its owner' do
+        get_collection(collection, as: owner)
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    # Nothing local says whether these ETEngine scenarios are private, so there is no evidence to
+    # derive access from.
+    context 'when the collection holds no saved scenarios' do
+      let(:bare) { create(:collection, user: owner, scenarios_count: 2) }
+
+      it 'is readable by its owner' do
+        get_collection(bare, as: owner)
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'is not readable by anyone else' do
+        get_collection(bare, as: other)
+        expect(response).not_to have_http_status(:success)
+      end
+    end
+  end
+
   describe 'GET /api/v1/collections' do
     context 'with an access token with the correct scope' do
       let!(:user_collection1) { create(:collection, user:) }
