@@ -48,11 +48,15 @@ RSpec.describe Collection, type: :model do
     let(:collection) { create(:collection, user:, scenarios_count: 1) }
 
     it 'pairs a saved scenario with its engine scenario' do
-      saved_scenario = create(:saved_scenario, scenario_id: 111, end_year: 2050, user:)
+      saved_scenario = create(:saved_scenario, scenario_id: 111, title: 'Dutch net zero', user:)
       create(:collection_saved_scenario, collection:, saved_scenario:)
 
       expect(collection.reload.scenario_members_as_json).to include(
-        { "saved_scenario_id" => saved_scenario.id, "scenario_id" => 111, "end_year" => 2050 }
+        {
+          "saved_scenario_id" => saved_scenario.id,
+          "scenario_id" => 111,
+          "title" => 'Dutch net zero'
+        }
       )
     end
 
@@ -60,7 +64,7 @@ RSpec.describe Collection, type: :model do
       direct = collection.scenarios.first
 
       expect(collection.scenario_members_as_json).to include(
-        { "saved_scenario_id" => nil, "scenario_id" => direct.scenario_id, "end_year" => nil }
+        { "saved_scenario_id" => nil, "scenario_id" => direct.scenario_id, "title" => nil }
       )
     end
 

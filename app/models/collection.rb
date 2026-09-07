@@ -107,20 +107,20 @@ class Collection < ApplicationRecord
   end
 
   # Public: Every scenario in the collection, each paired with the saved scenario it came from.
-  # Scenarios held directly have no SavedScenario, so their saved_scenario_id is nil; their end
-  # year is not stored here, only in ETEngine.
+  # Scenarios held directly have no SavedScenario, so their saved_scenario_id and title are nil:
+  # nothing local names them.
   #
   # Returns an array of hashes, in the order the scenarios should be shown.
   def scenario_members_as_json
     direct = scenarios.map do |scenario|
-      { "saved_scenario_id" => nil, "scenario_id" => scenario.scenario_id, "end_year" => nil }
+      { "saved_scenario_id" => nil, "scenario_id" => scenario.scenario_id, "title" => nil }
     end
 
     direct + saved_scenarios.map do |saved_scenario|
       {
         "saved_scenario_id" => saved_scenario.id,
         "scenario_id" => saved_scenario.scenario_id,
-        "end_year" => saved_scenario.end_year
+        "title" => saved_scenario.title
       }
     end
   end
