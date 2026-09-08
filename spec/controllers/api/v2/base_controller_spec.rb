@@ -253,12 +253,22 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       )
     end
 
-    it "distinguishes a member the resource shows but never accepts" do
+    # A caller may send back a resource exactly as it was fetched, so those fields are ignored.
+    it "ignores a read-only member the resource shows but never accepts" do
       post :strict, params: { thing: { title: "Example", id: 5 } }, as: :json
 
-      expect(response.parsed_body["errors"].sole).to include(
-        "detail" => "is read-only", "source" => { "pointer" => "/thing/id" }
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["errors"]).to be_nil
+    end
+
+    it "does not let an ignored member through to the permitted params" do
+      post(
+        :strict,
+        params: { thing: { title: "Example", id: 5, created_at: "2026-01-01", updated_at: "2026-01-02" } },
+        as: :json
       )
+
+      expect(response.parsed_body.dig("data", "accepted")).to eq("title" => "Example")
     end
 
     it "distinguishes a member the resource has but this action will not set" do
