@@ -58,8 +58,6 @@
             <%= render(PasswordFieldComponent.new(form: f, name: :current_password, class: "field", required: true, autofocus: "true", autocomplete: 'current-password')) %>
           </div>
 
-          <% row.with_icon { heroicon 'identification', options: { class: 'w-5 h-5' } } %>
-
           <% row.with_after_hint do %>
             <%= render(FieldErrorsComponent.new(record: current_user, attribute: :current_password)) %>
           <% end %>
