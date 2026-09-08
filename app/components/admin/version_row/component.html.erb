@@ -1,0 +1,21 @@
+<%= link_to path, class:"grid grid-cols-4 gap-5 w-full transition mt-5 p-2 pr-4 rounded-md hover:bg-midnight-600", data: { turbo_frame: 'modal' } do %>
+  <%# GRID COL 1 %>
+  <div class="flex flex-col">
+    <span><%= @version.titleize %></span>
+    <div class="text-sm text-midnight-400">
+      <span>#<%= @version.tag %></span>
+    </div>
+  </div>
+
+  <%# GRID COL 2 %>
+  <span class="text-midnight-400 text-sm mt-3">
+    Created <%= time_ago_in_words(@version.created_at) %> ago
+  </span>
+
+  <%# GRID COL 3 %>
+  <span class="flex flex-col col-span-2 text-midnight-400 text-sm">
+    <div><%= @version.model_url %></div>
+    <div><%= @version.collections_url %></div>
+    <div><%= @version.engine_url %></div>
+  </span>
+<% end %>

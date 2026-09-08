@@ -145,6 +145,8 @@ Rails.application.routes.draw do
 
     resource :announcement, only: %i[edit update]
 
+    resources :versions, only: [:index]
+
     resources :saved_scenarios, only: [:index] do
       collection do
         get :list
