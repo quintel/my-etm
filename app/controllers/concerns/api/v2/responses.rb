@@ -105,11 +105,9 @@ module Api
         result.is_a?(Dry::Monads::Result)
       end
 
+      # Read-only members are ignored before rejection, so only these two cases reach here.
       def rejection_detail(member)
-        return "cannot be set by this action" if request_members.include?(member)
-        return "is read-only" if readonly_members.include?(member)
-
-        "is not a member of this resource"
+        request_members.include?(member) ? "cannot be set by this action" : "is not a member of this resource"
       end
 
       # A contract reports a failing collection member as { key => { index => [messages] } }

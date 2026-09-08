@@ -60,8 +60,9 @@ module Api
         submitted.permit(*scalars, **lists)
       end
 
+      # Read-only members are ignored, not refused, so a caller can send back what it fetched.
       def reject_unaccepted_members(submitted, accepted)
-        unaccepted = submitted.keys.map(&:to_sym) - accepted
+        unaccepted = submitted.keys.map(&:to_sym) - accepted - readonly_members
         raise UnacceptedMembers, unaccepted if unaccepted.any?
       end
 
