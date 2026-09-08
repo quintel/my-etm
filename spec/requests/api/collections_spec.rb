@@ -488,7 +488,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
       let(:ss4) { create(:saved_scenario, user: other_user) }
       let(:attributes) { { saved_scenario_ids: [ss1.id, ss4.id, ss2.id, ss3.id] } }
 
-      it 'does not change the latest_scenario_ids order' do
+      it 'does not change the saved_scenario_ids order' do
         expect { request }.not_to change { collection.reload.saved_scenario_ids }
       end
 
@@ -512,21 +512,24 @@ RSpec.describe "API::Collections", type: :request, api: true do
       end
     end
 
-    context 'when attempting to update an interpolated collection' do
+    context 'when attempting to update an interpolated collection with duplicate end years' do
       let(:collection) { create(:collection, interpolation: true, user: user, scenarios_count: 0) }
+      # ss1 and ss2 both end in 2050
       let(:attributes) { { saved_scenario_ids: [ss1.id, ss2.id] } }
 
       before do
-        # This reflects the nature of the scenario relations in an interpolated collection
+        # A collection which holds its interpolated scenarios directly, rather than as saved
+        # scenarios. The validation applies to it just the same.
         collection.saved_scenarios = [ss1]
         collection.scenarios.create!(scenario_id: 1)
         collection.scenarios.create!(scenario_id: 2)
       end
 
       it 'does not insert a saved_scenario' do
-        expect { request }.not_to change { collection.reload.latest_scenario_ids }
+        expect { request }.not_to change { collection.reload.saved_scenario_ids }
         expect(response).to have_http_status(:unprocessable_content)
-        expect(JSON.parse(response.body)['scenarios']).to include('interpolated collections cannot have more than 1 saved scenario')
+        expect(JSON.parse(response.body)['scenarios'])
+          .to include('must all have a different end year in an interpolated collection')
       end
     end
 

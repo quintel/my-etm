@@ -10,6 +10,58 @@ describe CollectionsController do
 
   before { allow(MyEtm::Auth).to receive(:engine_client).and_return(client) }
 
+  describe '#show' do
+    render_views
+
+    let(:user) { create(:user) }
+    let(:collection) { create(:collection, interpolation: true, user:, scenarios_count: 0) }
+
+    before { sign_in(user) }
+
+    def link(end_year, title)
+      saved_scenario = create(:saved_scenario, user:, end_year:, title:, scenario_id: end_year)
+
+      create(
+        :collection_saved_scenario,
+        collection:,
+        saved_scenario:,
+        saved_scenario_order: collection.collection_saved_scenarios.count + 1
+      )
+    end
+
+    context 'with a transition path whose scenarios are all saved' do
+      before do
+        link(2030, 'Dutch net zero (Interpolated 2030)')
+        link(2040, 'Dutch net zero (Interpolated 2040)')
+        link(2050, 'Dutch net zero')
+
+        get :show, params: { id: collection.id }
+      end
+
+      it 'links to every scenario in the collection' do
+        shown = collection.saved_scenarios.count do |saved_scenario|
+          response.body.include?(saved_scenario_path(saved_scenario))
+        end
+
+        expect(shown).to eq(3)
+      end
+    end
+
+    context 'with a transition path holding its interpolated scenarios directly' do
+      let(:collection) { create(:collection, interpolation: true, user:, scenarios_count: 2) }
+
+      before do
+        link(2050, 'Dutch net zero')
+
+        get :show, params: { id: collection.id }
+      end
+
+      it 'lists the saved scenario it has' do
+        expect(response.body).to include('Dutch net zero')
+      end
+    end
+  end
+
   describe '#create_transition' do
     context 'when signed in and given a valid saved scenario ID' do
       let(:scenario) { create(:saved_scenario, end_year: 2050, user: user) }
