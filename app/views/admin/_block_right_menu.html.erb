@@ -36,6 +36,12 @@
     active: controller_name == 'collections')
   )%>
   <%= render(SavedScenarios::NavItem::Component.new(
+    path: admin_versions_path,
+    title: t('admin.bar.versions'),
+    icon: 'hashtag',
+    active: controller_name == 'versions')
+  )%>
+  <%= render(SavedScenarios::NavItem::Component.new(
     path: admin_applications_path,
     title: t('admin.bar.applications'),
     icon: 'computer-desktop',
