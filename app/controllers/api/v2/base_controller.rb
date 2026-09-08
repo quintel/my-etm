@@ -30,6 +30,10 @@ module Api
         render_rejected_members(e.members)
       end
 
+      rescue_from OversizedMember do |e|
+        render_validation_errors(e.member => [ "size cannot be greater than #{BATCH_LIMIT}" ])
+      end
+
       rescue_from ActiveRecord::RecordNotFound do |e|
         render_not_found(code: not_found_code(e.model), detail: not_found_detail(e.model))
       end
@@ -55,7 +59,9 @@ module Api
         submitted = params.require(resource_param_key)
 
         reject_unaccepted_members(submitted, scalars + lists.keys)
+        scalars.each   { |member| require_scalar(submitted, member) }
         lists.each_key { |member| require_list(submitted, member) }
+        lists.each_key { |member| require_within_limit(submitted, member) }
 
         submitted.permit(*scalars, **lists)
       end
@@ -73,12 +79,19 @@ module Api
         raise InvalidParam.new(json_pointer([ member ]), "#{member} must be an array")
       end
 
-      # Renders and returns true when a request carries more items than one call may.
-      def reject_oversized(member, items)
-        return false if Array(items).size <= BATCH_LIMIT
+      # Without this, permit silently discards an array or object sent for a scalar member.
+      def require_scalar(submitted, member)
+        value = submitted[member]
+        return unless value.is_a?(Array) || value.is_a?(ActionController::Parameters)
 
-        render_validation_errors(member => [ "size cannot be greater than #{BATCH_LIMIT}" ])
-        true
+        raise InvalidParam.new(json_pointer([ member ]), "#{member} must be a single value")
+      end
+
+      # Every declared list is capped, so BATCH_LIMIT holds without an action opting in.
+      def require_within_limit(submitted, member)
+        return if Array(submitted[member]).size <= BATCH_LIMIT
+
+        raise OversizedMember, member
       end
 
       # Renders and returns true when a version tag cannot be resolved.
