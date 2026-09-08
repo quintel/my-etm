@@ -82,9 +82,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     end
 
     def capped
-      return if reject_oversized(:tags, params.require(:thing)[:tags])
-
-      render_ok
+      render_ok(accepted: resource_params(tags: []).to_h)
     end
 
     private
@@ -299,6 +297,24 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       )
     end
 
+    it "refuses a scalar member that arrived as a list, rather than dropping it" do
+      post :strict, params: { thing: { title: [ "a", "b" ] } }, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "param_invalid",
+        "detail" => "title must be a single value",
+        "source" => { "pointer" => "/thing/title" }
+      )
+    end
+
+    it "refuses a scalar member that arrived as an object, rather than dropping it" do
+      post :strict, params: { thing: { title: { nested: "a" } } }, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body.dig("errors", 0, "detail")).to eq("title must be a single value")
+    end
+
     it "leaves an absent list member absent rather than refusing it" do
       post :strict, params: { thing: { title: "Example" } }, as: :json
 
@@ -306,6 +322,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     end
   end
 
+  # The cap comes from declaring the member a list.
   describe "POST capped" do
     before { self.class.controller_class.resource_param_key = :thing }
 
