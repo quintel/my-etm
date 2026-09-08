@@ -39,6 +39,15 @@ RSpec.describe Api::V2::BaseController, type: :controller do
   controller(described_class) do
     skip_authorization_check
 
+    # The envelope shapes are what is under test here, not who may reach them. `authenticated` puts
+    # the filter back, so the base's default is exercised by an action that does nothing to ask.
+    skip_before_action :require_user
+    before_action :require_user, only: :authenticated
+
+    def authenticated
+      render_ok
+    end
+
     def resource
       render_resource({ id: 1, name: "Example" }, with: PassthroughSerialiser)
     end
@@ -94,17 +103,42 @@ RSpec.describe Api::V2::BaseController, type: :controller do
 
   before do
     routes.draw do
-      get "resource"   => "api/v2/base#resource"
-      get "collection" => "api/v2/base#collection"
-      get "ok"         => "api/v2/base#ok"
-      get "no_content" => "api/v2/base#no_content"
-      get "error"      => "api/v2/base#error"
-      get "malformed"  => "api/v2/base#malformed"
-      get "bulk"       => "api/v2/base#bulk"
-      get "invalid"    => "api/v2/base#invalid"
-      post "strict"    => "api/v2/base#strict"
-      post "versioned" => "api/v2/base#versioned"
-      post "capped"    => "api/v2/base#capped"
+      get "authenticated"   => "api/v2/base#authenticated"
+      get "resource"        => "api/v2/base#resource"
+      get "collection"      => "api/v2/base#collection"
+      get "ok"              => "api/v2/base#ok"
+      get "no_content"      => "api/v2/base#no_content"
+      get "error"           => "api/v2/base#error"
+      get "malformed"       => "api/v2/base#malformed"
+      get "bulk"            => "api/v2/base#bulk"
+      get "invalid"         => "api/v2/base#invalid"
+      post "strict"         => "api/v2/base#strict"
+      post "versioned"      => "api/v2/base#versioned"
+      post "capped"         => "api/v2/base#capped"
+    end
+  end
+
+  # An endpoint is authenticated by default because it inherits the base.
+  describe "GET authenticated" do
+    it "answers 401 to an unauthenticated caller, without the action opting in" do
+      get :authenticated
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body.dig("errors", 0, "code")).to eq("unauthenticated")
+    end
+
+    it "names the scheme on that 401" do
+      get :authenticated
+
+      expect(response.headers["WWW-Authenticate"]).to eq('Bearer realm="api"')
+    end
+
+    it "lets an authenticated caller through" do
+      request.headers.merge!(access_token_header(create(:user), :read))
+
+      get :authenticated
+
+      expect(response).to have_http_status(:ok)
     end
   end
 

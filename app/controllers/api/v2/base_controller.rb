@@ -11,6 +11,9 @@ module Api
 
       check_authorization
 
+      # Authenticated by default: an endpoint open to anonymous callers skips this deliberately.
+      before_action :require_user
+
       after_action :track_token_use
 
       rescue_from ActionController::ParameterMissing do |e|
