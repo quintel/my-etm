@@ -9,6 +9,10 @@ module Api
       # The most items one v2 request may carry, whether as a batch or as a member list.
       BATCH_LIMIT = 100
 
+      # A member by this name carries an ETM version tag, and is checked when an action accepts it,
+      # meaning it is declared in resource_params (`version` is a reserved scalar member name
+      VERSION_MEMBER = :version
+
       check_authorization
 
       # Authenticated by default: an endpoint open to anonymous callers skips this deliberately.
@@ -35,6 +39,10 @@ module Api
 
       rescue_from OversizedMember do |e|
         render_validation_errors(e.member => [ "size cannot be greater than #{BATCH_LIMIT}" ])
+      end
+
+      rescue_from UnknownVersion do |e|
+        render_validation_errors(e.member => [ "is not a known version" ])
       end
 
       rescue_from ActiveRecord::RecordNotFound do |e|
@@ -65,6 +73,7 @@ module Api
         scalars.each   { |member| require_scalar(submitted, member) }
         lists.each_key { |member| require_list(submitted, member) }
         lists.each_key { |member| require_within_limit(submitted, member) }
+        require_known_version(submitted) if scalars.include?(VERSION_MEMBER)
 
         submitted.permit(*scalars, **lists)
       end
@@ -97,12 +106,12 @@ module Api
         raise OversizedMember, member
       end
 
-      # Renders and returns true when a version tag cannot be resolved.
-      def reject_unknown_version(tag)
-        return false if tag.blank? || Version.exists?(tag: tag)
+      # An absent or unresolvable tag is silently swapped for the default further down, so an action
+      # that accepts a version asks for a resolvable one rather than inheriting whatever is current.
+      def require_known_version(submitted)
+        return if Version.exists?(tag: submitted[VERSION_MEMBER])
 
-        render_validation_errors(version: [ "is not a known version" ])
-        true
+        raise UnknownVersion, VERSION_MEMBER
       end
 
       def param_source(param)
