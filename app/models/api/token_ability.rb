@@ -62,7 +62,7 @@ module Api
         can :read, Collection
       else
         can :read, SavedScenario, id: viewer_saved_scenario_ids
-        can :read, Collection, id: user_collection_ids
+        can :read, Collection, id: readable_collection_ids
       end
     end
 
@@ -119,6 +119,11 @@ module Api
     # Helper method for fetching Collection IDs for the user.
     def user_collection_ids
       Collection.where(user_id: @user.id).pluck(:id)
+    end
+
+    # Collections the user may read: their own, plus any whose every scenario they can read.
+    def readable_collection_ids
+      user_collection_ids | Collection.fully_readable_by(@user).pluck(:id)
     end
   end
 end

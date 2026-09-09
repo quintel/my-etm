@@ -88,22 +88,47 @@ class Collection < ApplicationRecord
     interpolation
   end
 
+  # Public: Collections every one of whose saved scenarios the viewer may read. Collections with no
+  # saved scenarios are excluded: nothing local says whether their ETEngine scenarios are private.
+  #
+  # user - the viewer, or nil when unauthenticated.
+  #
+  # Returns an ActiveRecord::Relation.
+  def self.fully_readable_by(user)
+    viewable_ids = user ? SavedScenario.viewable_by?(user).pluck(:id) : []
+
+    with_scenarios = joins(:saved_scenarios).distinct
+
+    unreadable = with_scenarios
+      .where(saved_scenarios: { private: true })
+      .where.not(saved_scenarios: { id: viewable_ids })
+
+    with_scenarios.where.not(id: unreadable)
+  end
+
+  # Public: Every scenario in the collection, each paired with the saved scenario it came from.
+  # Scenarios held directly have no SavedScenario, so their saved_scenario_id and title are nil:
+  # nothing local names them.
+  #
+  # Returns an array of hashes, in the order the scenarios should be shown.
+  def scenario_members_as_json
+    direct = scenarios.map do |scenario|
+      { "saved_scenario_id" => nil, "scenario_id" => scenario.scenario_id, "title" => nil }
+    end
+
+    direct + saved_scenarios.map do |saved_scenario|
+      {
+        "saved_scenario_id" => saved_scenario.id,
+        "scenario_id" => saved_scenario.scenario_id,
+        "title" => saved_scenario.title
+      }
+    end
+  end
+
   # Public: returns the direct scenario_id's and the active scenario_id's of any
   # linked saved scenarios
   def latest_scenario_ids
     scenarios.pluck(:scenario_id) + saved_scenarios.pluck(:scenario_id)
-  end
-
-  # Public: Returns an way for the MYC app to identify this instance, to use
-  # used when directing to the application.
-  #
-  # For example:
-  #
-  #   redirect_to(collection_url(myc.redirect_slug))
-  #
-  # Returns an array.
-  def redirect_slug
-    latest_scenario_ids.join(",")
   end
 
   def as_json(options = {})
@@ -115,6 +140,7 @@ class Collection < ApplicationRecord
       "owner" => user.as_json(only: %i[id name]),
       "saved_scenario_ids" => saved_scenarios.pluck(:id),
       "scenario_ids" => scenarios.pluck(:scenario_id),
+      "scenarios" => scenario_members_as_json,
       "collections_app_url" => CollectionUrlBuilder.collections_app_url(self)
     }
 

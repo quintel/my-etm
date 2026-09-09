@@ -43,6 +43,40 @@ RSpec.describe Collection, type: :model do
     end
   end
 
+  describe '#scenario_members_as_json' do
+    let(:user) { create(:user) }
+    let(:collection) { create(:collection, user:, scenarios_count: 1) }
+
+    it 'pairs a saved scenario with its engine scenario' do
+      saved_scenario = create(:saved_scenario, scenario_id: 111, title: 'Dutch net zero', user:)
+      create(:collection_saved_scenario, collection:, saved_scenario:)
+
+      expect(collection.reload.scenario_members_as_json).to include(
+        {
+          "saved_scenario_id" => saved_scenario.id,
+          "scenario_id" => 111,
+          "title" => 'Dutch net zero'
+        }
+      )
+    end
+
+    it 'has no saved scenario for a scenario the collection holds directly' do
+      direct = collection.scenarios.first
+
+      expect(collection.scenario_members_as_json).to include(
+        { "saved_scenario_id" => nil, "scenario_id" => direct.scenario_id, "title" => nil }
+      )
+    end
+
+    it 'lists the scenarios in the order they should be shown' do
+      saved_scenario = create(:saved_scenario, scenario_id: 111, user:)
+      create(:collection_saved_scenario, collection:, saved_scenario:)
+
+      expect(collection.reload.scenario_members_as_json.pluck("scenario_id"))
+        .to eq(collection.latest_scenario_ids)
+    end
+  end
+
   describe '#latest_scenario_ids' do
     let(:user) { create(:user) }
     let(:myc) { create(:collection, user: user) }

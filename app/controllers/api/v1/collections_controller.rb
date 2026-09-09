@@ -7,6 +7,8 @@ module Api
 
       load_and_authorize_resource(class: Collection, only: %i[index show destroy update])
 
+      before_action :require_user, only: %i[index]
+
       before_action only: %i[create] do
         # Only check that the user can create, don't load resource as association is not yet made.
         authorize!(:create, Collection)
