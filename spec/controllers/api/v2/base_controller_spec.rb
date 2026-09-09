@@ -85,9 +85,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     end
 
     def versioned
-      return if reject_unknown_version(params.require(:thing)[:version])
-
-      render_ok
+      render_ok(accepted: resource_params(:title, :version).to_h)
     end
 
     def capped
@@ -390,10 +388,19 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       expect(response).to have_http_status(:ok)
     end
 
-    it "accepts an absent tag, leaving the default to the service" do
+    it "refuses an absent tag, rather than inheriting whatever version is current" do
       post :versioned, params: { thing: { title: "Example" } }, as: :json
 
-      expect(response).to have_http_status(:ok)
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("errors", 0, "detail")).to eq("is not a known version")
+    end
+
+    # A blank tag used to reach the service as an absent one, and became the default there.
+    it "refuses a blank tag" do
+      post :versioned, params: { thing: { version: "" } }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("errors", 0, "detail")).to eq("is not a known version")
     end
 
     it "refuses a tag that does not resolve, rather than quietly substituting the default" do
