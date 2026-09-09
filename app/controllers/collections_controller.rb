@@ -97,7 +97,7 @@ class CollectionsController < ApplicationController
   #
   # POST /collections/create_transition
   def create_transition
-    saved_scenario = current_user.saved_scenarios.find(create_transition_params[:saved_scenario_ids])
+    saved_scenario = elegible_scenarios.find(create_transition_params[:saved_scenario_ids])
 
     result = CreateInterpolatedCollection.call(
       engine_client(saved_scenario.version),

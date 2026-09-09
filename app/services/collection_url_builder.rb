@@ -19,8 +19,6 @@ module CollectionUrlBuilder
     end
   end
 
-  private
-
   # Internal: One old version (2025-S1) uses straight session ids and a title param in the url
   # instead of a collection ID
   def collections_app_url_backwards_compatible(collection)
@@ -30,4 +28,5 @@ module CollectionUrlBuilder
 
     "#{base}/#{slug}?#{query}"
   end
+  private_class_method :collections_app_url_backwards_compatible
 end

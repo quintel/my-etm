@@ -135,6 +135,18 @@ describe CollectionsController do
       end
     end
 
+    context 'when signed in and given a saved scenario which does not end in 2050' do
+      let(:scenario) { create(:saved_scenario, end_year: 2040, user: user) }
+      let(:user) { create(:user) }
+
+      before { sign_in user }
+
+      it 'raises a Not Found error' do
+        post(:create_transition, params: { collection: { saved_scenario_ids: scenario.id } })
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
     context 'when signed in and the CreateInterpolatedCollection service fails' do
       let(:scenario) { create(:saved_scenario, end_year: 2050, user: user) }
       let(:user) { create(:user) }

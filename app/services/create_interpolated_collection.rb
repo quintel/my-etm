@@ -42,7 +42,7 @@ class CreateInterpolatedCollection
       # on the first failure.
       ServiceResult.failure(interpolations.values.last.errors)
     end
-  rescue ActiveRecord::RecordInvalid => e
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
     clean_up_failure
 
     # The user does not provide any data which should cause saving the collection to
@@ -65,6 +65,10 @@ class CreateInterpolatedCollection
         # Saved and owned first: a collection may only link a scenario its owner can read.
         saved_scenario.save!
         saved_scenario.user = @user
+
+        unless saved_scenario.owner?(@user)
+          raise ActiveRecord::RecordNotSaved.new("could not set owner", saved_scenario)
+        end
       end
 
       # Numbered so that the transition path runs from its earliest end year to its latest. The

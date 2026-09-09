@@ -23,6 +23,28 @@ describe CreateInterpolatedCollection, type: :service do
 
   # --
 
+  context 'when the interpolated scenario cannot be given an owner' do
+    let(:years) { [2030] }
+
+    before do
+      stub_successful_interpolation(2030, 2)
+      allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible).with(nil, 2)
+      allow(SavedScenarioUser).to receive(:create).and_return(SavedScenarioUser.new)
+    end
+
+    it 'raises rather than committing a scenario nobody owns' do
+      expect { result }.to raise_error(ActiveRecord::RecordNotSaved)
+    end
+
+    it 'saves no interpolated scenario' do
+      expect { result rescue nil }.not_to change(SavedScenario, :count)
+    end
+
+    it 'creates no Collection' do
+      expect { result rescue nil }.not_to change(Collection, :count)
+    end
+  end
+
   context 'when creating scenarios for 2030, 2040' do
     let(:years) { [2030, 2040] }
 
@@ -177,13 +199,13 @@ describe CreateInterpolatedCollection, type: :service do
     end
 
     it 'raises the error' do
-      expect { result }.to raise_error(ActiveRecord::RecordInvalid)
+      expect { result }.to raise_error(ActiveRecord::RecordNotSaved)
     end
 
     it 'unprotects the 2030 scenario' do
       begin
         result
-      rescue ActiveRecord::RecordInvalid
+      rescue ActiveRecord::RecordNotSaved
         nil
       end
 
