@@ -22,21 +22,11 @@
 <div class="pt-5 border-t border-solid border-gray-200">
   <% if @collection.interpolated? %>
     <%= t('collections.interpolated.long_description') %>
-
-    <% if @collection.saved_scenarios.present? %>
-      <div class="mt-5 text-midnight-400 text-sm">
-        <%= t('collections.interpolated.based_on') %>
-      </div>
-      <div class="w-fit">
-        <%= render(Collections::SavedScenario::Component.new(
-          path: saved_scenario_path(@collection.saved_scenarios.first),
-          saved_scenario: @collection.saved_scenarios.first,
-          access: !@collection.saved_scenarios.first.private? || @collection.saved_scenarios.first.viewer?(current_user)
-        ))%>
-      </div>
-    <% end %>
   <% elsif @collection.saved_scenarios.present? %>
     <%= t('collections.contains') %>
+  <% end %>
+
+  <% if @collection.saved_scenarios.present? %>
     <div class="mt-5">
       <% @collection.saved_scenarios.each do |saved_scenario| %>
         <%= render(Collections::SavedScenario::Component.new(

@@ -42,17 +42,13 @@ class Collection < ApplicationRecord
   #
   # Returns an unsaved Collection.
   def self.new_from_saved_scenario(scenario, attrs)
-    collection = new({
+    new({
       area_code: scenario.area_code,
       end_year: scenario.end_year,
       title: scenario.title,
       interpolation: true,
       version: scenario.version
     }.merge(attrs))
-
-    collection.collection_saved_scenarios.build(saved_scenario: scenario)
-
-    collection
   end
 
   # Public: Used to filter collections.
@@ -131,6 +127,33 @@ class Collection < ApplicationRecord
     scenarios.pluck(:scenario_id) + saved_scenarios.pluck(:scenario_id)
   end
 
+  # Public: Returns an way for the MYC app to identify this instance, to use
+  # used when directing to the application.
+  #
+  # For example:
+  #
+  #   redirect_to(collection_url(myc.redirect_slug))
+  #
+  # Returns an array.
+  def redirect_slug
+    latest_scenario_ids.join(",")
+  end
+
+  # Public: The title for one of the collection's interpolated scenarios.
+  #
+  # The suffix marks the scenario as one leg of a transition path. The collection title is
+  # truncated so that the result fits in the SavedScenario title column.
+  #
+  # end_year - The end year of the interpolated scenario.
+  #
+  # Returns a string.
+  def interpolated_scenario_title(end_year)
+    suffix = " (Interpolated #{end_year})"
+    limit = SavedScenario.columns_hash["title"].limit
+
+    "#{title.truncate(limit - suffix.length)}#{suffix}"
+  end
+
   def as_json(options = {})
     options[:except] ||= %i[area_code end_year user_id version_id]
 
@@ -148,7 +171,7 @@ class Collection < ApplicationRecord
       extra_attrs = extra_attrs.merge(
         "interpolation_params" => {
           "area_code" => area_code,
-          "end_years" => CreateInterpolatedCollection::DEFAULT_YEARS + [end_year] # Future-proofing for possible custom years
+          "end_years" => saved_scenarios.map(&:end_year) # Only CollectionSavedScenarios have end_year;
         }
       )
     end
@@ -202,10 +225,20 @@ class Collection < ApplicationRecord
   end
 
   def validate_interpolated
-    # Ensure interpolated collections (AKA transition paths) have no saved scenarios
-    active_saved_scenarios = collection_saved_scenarios.reject(&:marked_for_destruction?)
-    if self.interpolated? && active_saved_scenarios.size > 1
-      errors.add(:scenarios, "interpolated collections cannot have more than 1 saved scenario")
+    # An interpolated collection (AKA transition path) holds one scenario per end year,
+    # all for the same area.
+    return unless interpolated?
+
+    active_saved = collection_saved_scenarios.reject(&:marked_for_destruction?)
+    saved = active_saved.map(&:saved_scenario)
+    return if saved.size < 2
+
+    if saved.map(&:area_code).uniq.size > 1
+      errors.add(:scenarios, "must all have the same area code in an interpolated collection")
+    end
+
+    if saved.map(&:end_year).uniq.size < saved.size
+      errors.add(:scenarios, "must all have a different end year in an interpolated collection")
     end
   end
 
