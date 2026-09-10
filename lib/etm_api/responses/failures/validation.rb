@@ -11,7 +11,7 @@ module EtmApi
           validation_failures(errors.to_hash).map do |path, message|
             SingularError.new(
               :unprocessable_content,
-              EtmApiResponses::Errors::Codes::VALIDATION_FAILED,
+              EtmApi::Errors::Codes::VALIDATION_FAILED,
               message,
               member_source(path)
             )
