@@ -23,25 +23,25 @@ module Api
       rescue_from ActionController::ParameterMissing do |e|
         render_error(
           status: :bad_request,
-          code: ErrorCodes::PARAM_MISSING,
+          code: EtmApi::Errors::Codes::PARAM_MISSING,
           detail: "param is missing or the value is empty: #{e.param}",
           source: param_source(e.param)
         )
       end
 
-      rescue_from InvalidParam do |e|
+      rescue_from EtmApi::Errors::InvalidParam do |e|
         render_invalid_param(pointer: e.pointer, detail: e.message)
       end
 
-      rescue_from UnacceptedMembers do |e|
+      rescue_from EtmApi::Errors::UnacceptedMembers do |e|
         render_rejected_members(e.members)
       end
 
-      rescue_from OversizedMember do |e|
+      rescue_from EtmApi::Errors::OversizedMember do |e|
         render_validation_errors(e.member => [ "size cannot be greater than #{BATCH_LIMIT}" ])
       end
 
-      rescue_from UnknownVersion do |e|
+      rescue_from EtmApi::Errors::UnknownVersion do |e|
         render_validation_errors(e.member => [ "is not a known version" ])
       end
 
@@ -50,7 +50,7 @@ module Api
       end
 
       rescue_from ActiveModel::RangeError do
-        render_not_found(code: ErrorCodes::NOT_FOUND, detail: "Not found")
+        render_not_found(code: EtmApi::Errors::Codes::NOT_FOUND, detail: "Not found")
       end
 
       rescue_from CanCan::AccessDenied do |e|
@@ -60,7 +60,11 @@ module Api
       def process_action(*args)
         super
       rescue ActionDispatch::Http::Parameters::ParseError => e
-        render_error(status: :bad_request, code: ErrorCodes::PARSE_ERROR, detail: e.message)
+        render_error(
+          status: :bad_request,
+          code: EtmApi::Errors::Codes::PARSE_ERROR,
+          detail: e.message
+        )
       end
 
       private
@@ -81,14 +85,16 @@ module Api
       # Read-only members are ignored, not refused, so a caller can send back what it fetched.
       def reject_unaccepted_members(submitted, accepted)
         unaccepted = submitted.keys.map(&:to_sym) - accepted - readonly_members
-        raise UnacceptedMembers, unaccepted if unaccepted.any?
+        raise EtmApi::Errors::UnacceptedMembers, unaccepted if unaccepted.any?
       end
 
       def require_list(submitted, member)
         value = submitted[member]
         return if value.nil? || value.is_a?(Array)
 
-        raise InvalidParam.new(json_pointer([ member ]), "#{member} must be an array")
+        raise EtmApi::Errors::InvalidParam.new(
+          json_pointer([ member ]), "#{member} must be an array"
+        )
       end
 
       # Without this, permit silently discards an array or object sent for a scalar member.
@@ -96,14 +102,16 @@ module Api
         value = submitted[member]
         return unless value.is_a?(Array) || value.is_a?(ActionController::Parameters)
 
-        raise InvalidParam.new(json_pointer([ member ]), "#{member} must be a single value")
+        raise EtmApi::Errors::InvalidParam.new(
+          json_pointer([ member ]), "#{member} must be a single value"
+        )
       end
 
       # Every declared list is capped, so BATCH_LIMIT holds without an action opting in.
       def require_within_limit(submitted, member)
         return if Array(submitted[member]).size <= BATCH_LIMIT
 
-        raise OversizedMember, member
+        raise EtmApi::Errors::OversizedMember, member
       end
 
       # An absent or unresolvable tag is silently swapped for the default further down, so an action
@@ -111,7 +119,7 @@ module Api
       def require_known_version(submitted)
         return if Version.exists?(tag: submitted[VERSION_MEMBER])
 
-        raise UnknownVersion, VERSION_MEMBER
+        raise EtmApi::Errors::UnknownVersion, VERSION_MEMBER
       end
 
       def param_source(param)
@@ -123,7 +131,7 @@ module Api
       def render_invalid_param(pointer:, detail:)
         render_error(
           status: :bad_request,
-          code: ErrorCodes::PARAM_INVALID,
+          code: EtmApi::Errors::Codes::PARAM_INVALID,
           detail: detail,
           source: { pointer: pointer }
         )
@@ -134,9 +142,17 @@ module Api
         return render_unauthenticated unless current_user
 
         if subject.is_a?(Class) || current_ability.can?(:read, subject)
-          render_error(status: :forbidden, code: ErrorCodes::FORBIDDEN, detail: denied_detail(subject))
+          render_error(
+            status: :forbidden,
+            code: EtmApi::Errors::Codes::FORBIDDEN,
+            detail: denied_detail(subject)
+          )
         else
-          render_error(status: :not_found, code: ErrorCodes::NOT_FOUND, detail: "Not found")
+          render_error(
+            status: :not_found,
+            code: EtmApi::Errors::Codes::NOT_FOUND,
+            detail: "Not found"
+          )
         end
       end
 
@@ -144,7 +160,11 @@ module Api
       def render_not_found(code:, detail:)
         return render_unauthenticated unless current_user
 
-        render_error(status: :not_found, code: code, detail: detail)
+        render_error(
+          status: :not_found,
+          code: code,
+          detail: detail
+        )
       end
 
       def denied_detail(subject)
@@ -153,7 +173,7 @@ module Api
       end
 
       def not_found_code(model)
-        model == "SavedScenario" ? ErrorCodes::SCENARIO_NOT_FOUND : ErrorCodes::NOT_FOUND
+        model == "SavedScenario" ? EtmApi::Errors::Codes::SCENARIO_NOT_FOUND : EtmApi::Errors::Codes::NOT_FOUND
       end
 
       def not_found_detail(model)
@@ -200,7 +220,11 @@ module Api
       def render_unauthenticated
         response.set_header("WWW-Authenticate", 'Bearer realm="api"')
 
-        render_error(status: :unauthorized, code: ErrorCodes::UNAUTHENTICATED, detail: "Not authenticated")
+        render_error(
+          status: :unauthorized,
+          code: EtmApi::Errors::Codes::UNAUTHENTICATED,
+          detail: "Not authenticated"
+        )
       end
 
       # PAT usage reporting

@@ -15,7 +15,7 @@ module EtmApi
         def self.render(*params)
           response = self.new(*params)
 
-          EtmApiResponses::Responses::Error.render(
+          EtmApi::Responses::Error.render(
             errors: response.error_objects, status: response.status
           )
         end
