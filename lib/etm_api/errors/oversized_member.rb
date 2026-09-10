@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Api
-  module V2
+module EtmApi
+  module Errors
     # Raised when a request body carries more items in one member than a call may.
     class OversizedMember < StandardError
       attr_reader :member

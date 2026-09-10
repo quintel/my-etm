@@ -8,7 +8,7 @@ module EtmApi
 
       # validate status, validate error pattern (should be of same type?)
 
-      def self.render(errors:, status: )
+      def self.render(errors:, status:)
         self.new(errors:, status:).render
       end
 
