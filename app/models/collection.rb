@@ -215,12 +215,12 @@ class Collection < ApplicationRecord
     # Ensure all scenarios match the collection's version,
     # including in-memory associations that haven't been saved yet
     active_saved = collection_saved_scenarios.reject(&:marked_for_destruction?)
-    invalid_scenarios = active_saved.map(&:saved_scenario).reject do |saved_scenario|
+    invalid_scenarios = active_saved.filter_map(&:saved_scenario).reject do |saved_scenario|
       saved_scenario.version == version
     end
 
     if invalid_scenarios.any?
-      errors.add(:scenarios, "must all belong to the collection's version (#{version})")
+      errors.add(:scenarios, "must all belong to the collection's version (#{version&.tag})")
     end
   end
 
