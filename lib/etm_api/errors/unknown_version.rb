@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Api
-  module V2
+module EtmApi
+  module Errors
     # Raised when a request names a version tag that does not resolve.
     class UnknownVersion < StandardError
       attr_reader :member

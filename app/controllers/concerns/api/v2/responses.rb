@@ -10,10 +10,10 @@ module Api
       # TODO: v1 compares these symbols directly rather than the rendered code, so the services
       # cannot name codes themselves. Revisit when v1 retires.
       ITEM_CODES = {
-        not_found: ErrorCodes::NOT_FOUND,
-        forbidden: ErrorCodes::FORBIDDEN,
-        validation_failed: ErrorCodes::VALIDATION_FAILED,
-        internal_error: ErrorCodes::INTERNAL_ERROR
+        not_found: EtmApi::Errors::Codes::NOT_FOUND,
+        forbidden: EtmApi::Errors::Codes::FORBIDDEN,
+        validation_failed: EtmApi::Errors::Codes::VALIDATION_FAILED,
+        internal_error: EtmApi::Errors::Codes::INTERNAL_ERROR
       }.freeze
 
       included do
@@ -55,7 +55,7 @@ module Api
       def render_rejected_members(members)
         objects = members.map do |member|
           error_object(
-            :bad_request, ErrorCodes::PARAM_INVALID, rejection_detail(member),
+            :bad_request, EtmApi::Errors::Codes::PARAM_INVALID, rejection_detail(member),
             { pointer: json_pointer([ member ]) }
           )
         end
@@ -80,7 +80,10 @@ module Api
       def render_validation_errors(errors)
         objects = validation_failures(errors.to_hash).map do |path, message|
           error_object(
-            :unprocessable_content, ErrorCodes::VALIDATION_FAILED, message, member_source(path)
+            :unprocessable_content,
+            EtmApi::Errors::Codes::VALIDATION_FAILED,
+            message,
+            member_source(path)
           )
         end
 
@@ -107,7 +110,9 @@ module Api
 
       # Read-only members are ignored before rejection, so only these two cases reach here.
       def rejection_detail(member)
-        request_members.include?(member) ? "cannot be set by this action" : "is not a member of this resource"
+        return "cannot be set by this action" if request_members.include?(member)
+
+        "is not a member of this resource"
       end
 
       # A contract reports a failing collection member as { key => { index => [messages] } }
@@ -147,7 +152,10 @@ module Api
 
       def validation_failed_without_detail
         error_object(
-          :unprocessable_content, ErrorCodes::VALIDATION_FAILED, "The request could not be applied", nil
+          :unprocessable_content,
+          EtmApi::Errors::Codes::VALIDATION_FAILED,
+          "The request could not be applied",
+          nil
         )
       end
 
@@ -171,7 +179,7 @@ module Api
       def item_code(code)
         ITEM_CODES.fetch(code) do
           Sentry.capture_message("Undocumented Api::V2 batch item code: #{code.inspect}")
-          ErrorCodes::INTERNAL_ERROR
+          EtmApi::Errors::Codes::INTERNAL_ERROR
         end
       end
     end
