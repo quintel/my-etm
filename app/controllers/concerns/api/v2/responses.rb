@@ -54,9 +54,11 @@ module Api
       # Every member the action does not accept, one error object each.
       def render_rejected_members(members)
         objects = members.map do |member|
-          error_object(
-            :bad_request, EtmApi::Errors::Codes::PARAM_INVALID, rejection_detail(member),
-            { pointer: json_pointer([ member ]) }
+          EtmApi::Responses::ErrorObject.build(
+            status: :bad_request,
+            code: EtmApi::Errors::Codes::PARAM_INVALID,
+            detail: rejection_detail(member),
+            source: { pointer: json_pointer([ member ]) }
           )
         end
 
@@ -73,22 +75,25 @@ module Api
       end
 
       def render_error(status:, code:, detail:, source: nil)
-        render json: { errors: [ error_object(status, code, detail, source) ] }, status: status
+        object = EtmApi::Responses::ErrorObject.build(
+          status: status, code: code, detail: detail, source: source
+        )
+
+        render json: { errors: [ object ] }, status: status
       end
 
       # Every failing key, one error object each.
       def render_validation_errors(errors)
-        objects = validation_failures(errors.to_hash).map do |path, message|
-          error_object(
-            :unprocessable_content,
-            EtmApi::Errors::Codes::VALIDATION_FAILED,
-            message,
-            member_source(path)
+        objects = EtmApi::Responses::Validation.failures(errors.to_hash).map do |path, message|
+          EtmApi::Responses::ErrorObject.build(
+            status: :unprocessable_content,
+            code: EtmApi::Errors::Codes::VALIDATION_FAILED,
+            detail: message,
+            source: member_source(path)
           )
         end
 
-        # `errors` is required to hold at least one object, a failure can arrive carrying none.
-        objects << validation_failed_without_detail if objects.empty?
+        objects << EtmApi::Responses::Validation.unspecified_failure if objects.empty?
 
         render json: { errors: objects }, status: :unprocessable_content
       end
@@ -115,15 +120,6 @@ module Api
         "is not a member of this resource"
       end
 
-      # A contract reports a failing collection member as { key => { index => [messages] } }
-      def validation_failures(node, path = [])
-        case node
-        when Hash  then node.flat_map { |key, value| validation_failures(value, path + [ key ]) }
-        when Array then node.flat_map { |value| validation_failures(value, path) }
-        else [ [ path, node.to_s ] ]
-        end
-      end
-
       def member_source(path)
         member, *rest = path
         member = member_aliases.fetch(member.to_s.to_sym) { member.to_s.to_sym }
@@ -148,21 +144,6 @@ module Api
       # Model attribute names that differ from the request member they describe.
       def member_aliases
         {}
-      end
-
-      def validation_failed_without_detail
-        error_object(
-          :unprocessable_content,
-          EtmApi::Errors::Codes::VALIDATION_FAILED,
-          "The request could not be applied",
-          nil
-        )
-      end
-
-      def error_object(status, code, detail, source)
-        object = { status: Rack::Utils.status_code(status), code: code.to_s, detail: detail }
-        object[:source] = source if source
-        object
       end
 
       def batch_item(item, serialiser, pointer, options)
