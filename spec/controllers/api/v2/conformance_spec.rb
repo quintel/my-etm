@@ -73,7 +73,7 @@ RSpec.describe "Api::V2 envelope conformance" do
 
       expect(calls).to be_empty,
         "#{file} calls #{calls.join(', ')} directly, out of contract for Api::V2; " \
-        "use an Api::V2::Responses envelope helper instead"
+        "use an Api::V2::Rendering envelope helper instead"
     end
   end
 end

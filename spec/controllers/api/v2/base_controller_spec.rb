@@ -72,8 +72,8 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       render json: { data: {}, errors: [] }
     end
 
-    def bulk
-      render_bulk(BulkResult.new(BulkFixtureItems), with: PassthroughSerialiser, pointer: "/items")
+    def batch
+      render_batch(BulkResult.new(BulkFixtureItems), with: PassthroughSerialiser, pointer: "/items")
     end
 
     def invalid
@@ -108,7 +108,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       get "no_content"      => "api/v2/base#no_content"
       get "error"           => "api/v2/base#error"
       get "malformed"       => "api/v2/base#malformed"
-      get "bulk"            => "api/v2/base#bulk"
+      get "batch"           => "api/v2/base#batch"
       get "invalid"         => "api/v2/base#invalid"
       post "strict"         => "api/v2/base#strict"
       post "versioned"      => "api/v2/base#versioned"
@@ -191,8 +191,8 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     expect(response.parsed_body).not_to validate_against_the_v2_envelope
   end
 
-  describe "GET bulk" do
-    before { get :bulk }
+  describe "GET batch" do
+    before { get :batch }
 
     it_behaves_like "a v2 batch response"
 
@@ -222,7 +222,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       codes = response.parsed_body["data"].filter_map { |item| item["code"] }
 
       expect(codes).not_to be_empty
-      expect(codes).to all(be_in(Api::V2::Responses::ITEM_CODES.values))
+      expect(codes).to all(be_in(EtmApi::Responses::ITEM_CODES.values))
     end
   end
 
@@ -234,7 +234,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
     it "answers internal_error rather than inventing a code, and reports it" do
       expect(Sentry).to receive(:capture_message).with(/Undocumented Api::V2 batch item code: :teapot/)
 
-      get :bulk
+      get :batch
 
       expect(response.parsed_body.dig("data", 0, "code")).to eq("internal_error")
       expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
