@@ -10,13 +10,8 @@ module EtmApi
   module Envelope
     KINDS = %i[resource collection batch ok no_content error].freeze
 
-    # The codes a batch item may carry, from the one place codes are named.
-    ITEM_CODES = [
-      Errors::Codes::NOT_FOUND,
-      Errors::Codes::FORBIDDEN,
-      Errors::Codes::VALIDATION_FAILED,
-      Errors::Codes::INTERNAL_ERROR
-    ].freeze
+    # Validated against the same map the batch builder uses, so the two cannot disagree.
+    ITEM_CODES = Responses::ITEM_CODES.values.freeze
 
     class << self
       # The reasons `body` is not a valid `kind`. Empty means it is.
