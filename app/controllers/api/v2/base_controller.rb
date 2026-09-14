@@ -4,7 +4,7 @@ module Api
   module V2
     class BaseController < ActionController::API
       include ActionController::MimeResponds
-      include Api::V2::Responses
+      include Api::V2::Rendering
 
       # The most items one v2 request may carry, whether as a batch or as a member list.
       BATCH_LIMIT = 100

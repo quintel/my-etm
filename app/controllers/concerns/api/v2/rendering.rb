@@ -1,20 +1,11 @@
 module Api
   module V2
-    # The render helpers for the Api::V2 response envelope: one per response kind.
+    # Renders each Api::V2 response kind. The payloads themselves are built by EtmApi::Responses.
     #
     # Every resource-bearing helper takes an explicit `with:` serialiser, so a model can never reach
     # the response through its own as_json.
-    module Responses
+    module Rendering
       extend ActiveSupport::Concern
-
-      # TODO: v1 compares these symbols directly rather than the rendered code, so the services
-      # cannot name codes themselves. Revisit when v1 retires.
-      ITEM_CODES = {
-        not_found: EtmApi::Errors::Codes::NOT_FOUND,
-        forbidden: EtmApi::Errors::Codes::FORBIDDEN,
-        validation_failed: EtmApi::Errors::Codes::VALIDATION_FAILED,
-        internal_error: EtmApi::Errors::Codes::INTERNAL_ERROR
-      }.freeze
 
       included do
         # The request member wrapping this resource. Prefixes every error pointer.
@@ -22,29 +13,27 @@ module Api
       end
 
       def render_resource(object, with:, options: {}, meta: {}, status: :ok)
-        render json: { data: with.new(object, **options).as_json, meta: meta }, status: status
+        payload = EtmApi::Responses.data(with.new(object, **options).as_json, meta: meta)
+
+        render json: payload, status: status
       end
 
       def render_collection(objects, with:, options: {}, meta: {})
-        data = objects.map { |object| with.new(object, **options).as_json }
+        serialised = objects.map { |object| with.new(object, **options).as_json }
 
-        render json: { data: data, meta: meta }, status: :ok
+        render json: EtmApi::Responses.data(serialised, meta: meta), status: :ok
       end
 
       # Batch kind, always 207 regardless of whether every item succeeded. One item out per item in,
       # addressed by its position in the request.
-      def render_bulk(result, with:, pointer:, options: {})
+      def render_batch(result, with:, pointer:, options: {})
         items = result.items.map { |item| batch_item(item, with, pointer, options) }
-        succeeded = items.count { |item| item[:status] == "ok" }
 
-        render json: {
-          data: items,
-          meta: { batch: { succeeded: succeeded, failed: items.size - succeeded, total: items.size } }
-        }, status: :multi_status
+        render json: EtmApi::Responses.batch(items), status: :multi_status
       end
 
       def render_write(result, with:, options: {}, status: :ok)
-        record, errors = normalise_result(result)
+        record, errors = EtmApi::Responses.normalise_result(result)
 
         return render_resource(record, with: with, options: options, status: status) if errors.nil?
 
@@ -62,11 +51,11 @@ module Api
           )
         end
 
-        render json: { errors: objects }, status: :bad_request
+        render json: EtmApi::Responses.errors(objects), status: :bad_request
       end
 
       def render_ok(extra = {})
-        render json: { data: { status: "ok", **extra }, meta: {} }, status: :ok
+        render json: EtmApi::Responses.ok(extra), status: :ok
       end
 
       # The one route to a 204, so it stays inside the closed set of kinds.
@@ -79,7 +68,7 @@ module Api
           status: status, code: code, detail: detail, source: source
         )
 
-        render json: { errors: [ object ] }, status: status
+        render json: EtmApi::Responses.errors([ object ]), status: status
       end
 
       # Every failing key, one error object each.
@@ -95,23 +84,10 @@ module Api
 
         objects << EtmApi::Responses::Validation.unspecified_failure if objects.empty?
 
-        render json: { errors: objects }, status: :unprocessable_content
+        render json: EtmApi::Responses.errors(objects), status: :unprocessable_content
       end
 
       private
-
-      # Reduces a ServiceResult or a Dry::Monads result to [record, errors], errors nil on success.
-      def normalise_result(result)
-        return [ result.value!, nil ] if dry_result?(result) && result.success?
-        return [ nil, result.failure ] if dry_result?(result)
-        return [ result.value, nil ] if result.successful?
-
-        [ nil, result.value&.errors || { base: result.errors } ]
-      end
-
-      def dry_result?(result)
-        result.is_a?(Dry::Monads::Result)
-      end
 
       # Read-only members are ignored before rejection, so only these two cases reach here.
       def rejection_detail(member)
@@ -147,18 +123,18 @@ module Api
       end
 
       def batch_item(item, serialiser, pointer, options)
-        return { status: "ok", data: serialiser.new(item.value, **options).as_json } if item.ok?
+        return EtmApi::Responses.batch_ok(serialiser.new(item.value, **options).as_json) if item.ok?
 
-        {
-          status: "error",
+        EtmApi::Responses.batch_error(
           code: item_code(item.code),
           detail: item.messages.join(", "),
-          source: { pointer: "#{pointer}/#{item.index}" }
-        }
+          pointer: "#{pointer}/#{item.index}"
+        )
       end
 
+      # Reporting an undocumented code is this app's policy, so it stays out of the shared map.
       def item_code(code)
-        ITEM_CODES.fetch(code) do
+        EtmApi::Responses.item_code(code) || begin
           Sentry.capture_message("Undocumented Api::V2 batch item code: #{code.inspect}")
           EtmApi::Errors::Codes::INTERNAL_ERROR
         end
