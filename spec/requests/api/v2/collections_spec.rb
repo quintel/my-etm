@@ -1,9 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe "Api::V2::Collections", type: :request, api: true do
-  let(:class_sym)  { :collection }
-  let(:owner)      { create(:user) }
-  let(:serialiser) { Api::V2::CollectionSerialiser }
+  let(:class_sym)   { :collection }
+  let(:owner)       { create(:user) }
+  let(:owner_assoc) { :collections }
+  let(:serialiser)  { Api::V2::CollectionSerialiser }
 
   def count_queries
     count = 0
@@ -98,9 +99,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     end
 
     it_behaves_like 'a serialisable resource on create'
-    it_behaves_like 'a persistant resource on create' do
-      let(:resource_name) { :collections }
-    end
+    it_behaves_like 'a persistant resource on create'
 
     it 'is refused, not hidden, with only the read scope' do
       post(path, headers: v2_bearer(owner, :read), params: { collection: resource_attributes }, as: :json)
@@ -383,8 +382,6 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     let(:resource) { create(:collection, user: owner, interpolation: false) }
     let(:path)     { "/api/v2/collections/#{resource.id}" }
 
-    let(:strict_attribute)       { :end_year }
-    let(:unupdateable_attribute) { :version }
     let(:resource_attributes) do
       { title: 'My new collection' }
     end
@@ -393,9 +390,18 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       let(:body) { { collection: resource_attributes } }
     end
     it_behaves_like 'a serialisable resource on update'
-    it_behaves_like 'a persistant resource on update' do
-      let(:resource_name) { :collections }
+    it_behaves_like 'a persistant resource on update'
+
+    it_behaves_like 'a serialisable resource that refuses an unupdateable member' do
+      let(:unupdateable_attribute) { :version }
     end
+
+    # Shared by the two examples below: the member that refuses the value it is given.
+    let(:strict_attribute)       { :end_year }
+    let(:strict_attribute_value) { :winnie_the_pooh }
+
+    it_behaves_like 'a serialisable resource that refuses an invalid member'
+    it_behaves_like 'a persistant resource that refuses an invalid member'
 
     it 'does not discard through the general update action' do
       put(path, headers: v2_bearer(owner, :write), params: { collection: { discarded: true } }, as: :json)
@@ -491,9 +497,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
 
     it_behaves_like 'a delete-protected resource'
     it_behaves_like 'a serialisable resource on delete'
-    it_behaves_like 'a persistant resource on delete' do
-      let(:resource_name) { :collections }
-    end
+    it_behaves_like 'a persistant resource on delete'
 
     it 'hard-deletes and answers 204' do
       delete(path, headers: v2_bearer(owner, :delete), as: :json)

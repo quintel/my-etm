@@ -78,11 +78,12 @@ end
 # For create endpoints
 #
 # Expects the following declared:
+#     let(:owner)     { create(:user) }
+#     let(:path)      { "/api/v2/collections" }
+#     let(:class_sym) { :collection }
 #
-#     let(:owner)    { create(:user) }
-#     let(:path)     { "/api/v2/collections" }
-#
-#     let(:required_strict_attribute) { :version }
+#     let(:required_attribute) { :title }
+#     let(:strict_attribute)   { :end_year }
 #     let(:resource_attributes) do
 #       {
 #         area_code: 'nl2023',
@@ -173,16 +174,17 @@ end
 # For update endpoints
 #
 # Expects the following declared:
+#     let(:owner)     { create(:user) }
+#     let(:resource)  { create(:collection, user: owner) }
+#     let(:path)      { "/api/v2/collections/:id" }
+#     let(:class_sym) { :collection }
 #
-#     let(:owner)    { create(:user) }
-#     let(:resource) { create(:collection, user: owner) }
-#     let(:path)     { "/api/v2/collections/:id" }
-#
-#     let(:unupdateable_attribute) { :version }
-#     let(:strict_attribute) { :end_year }
 #     let(:resource_attributes) do
 #       { title: 'My new collection' }
 #     end
+#
+# The contexts for a member the action will not update, and for one given a value it refuses, are
+# separate shared examples: not every resource has such a member.
 RSpec.shared_examples('a serialisable resource on update') do
   before do
     put(
@@ -198,6 +200,46 @@ RSpec.shared_examples('a serialisable resource on update') do
       key = resource_attributes.keys.first
       expect(response.parsed_body['data'][key.to_s]).to eq(resource_attributes[key].to_s)
     end
+  end
+
+  context 'when an attribute does not exist' do
+    let(:resource_attributes) { { winnie_the_pooh: :winnie_the_pooh } }
+
+    it 'contains an error field' do
+      expect(response.parsed_body['errors']).not_to be_nil
+    end
+
+    it 'contains resource errors in the error field' do
+      expect(response.parsed_body['errors'].first).to be_a(Hash)
+    end
+
+    it 'points to the failed attribute in the error field' do
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/winnie_the_pooh")
+    end
+  end
+end
+
+# For an update endpoint whose resource has a member the action will not update.
+#
+# Expects the following declared:
+#     let(:owner)     { create(:user) }
+#     let(:resource)  { create(:collection, user: owner) }
+#     let(:path)      { "/api/v2/collections/:id" }
+#     let(:class_sym) { :collection }
+#
+#     let(:resource_attributes) do
+#       { title: 'My new collection' }
+#     end
+#
+#     let(:unupdateable_attribute) { :version }
+RSpec.shared_examples('a serialisable resource that refuses an unupdateable member') do
+  before do
+    put(
+      path,
+      headers: v2_bearer(owner),
+      params: { class_sym => resource_attributes },
+      as: :json
+    )
   end
 
   context 'when an attribute is not updateable' do
@@ -254,11 +296,44 @@ RSpec.shared_examples('a serialisable resource on update') do
       end
     end
   end
+end
+
+# For an update endpoint whose resource has a member that refuses a value.
+#
+# Expects the following declared:
+#     let(:owner)     { create(:user) }
+#     let(:resource)  { create(:collection, user: owner) }
+#     let(:path)      { "/api/v2/collections/:id" }
+#     let(:class_sym) { :collection }
+#
+#     let(:resource_attributes) do
+#       { title: 'My new collection' }
+#     end
+#
+#     let(:strict_attribute)       { :end_year }
+#     let(:strict_attribute_value) { :winnie_the_pooh }
+RSpec.shared_examples('a serialisable resource that refuses an invalid member') do
+  # A member holding a list is refused for the element that failed rather than for the member, and
+  # the value given carries one bad element, so it is the first.
+  let(:strict_attribute_pointer) do
+    pointer = "/#{class_sym}/#{strict_attribute}"
+
+    strict_attribute_value.is_a?(Array) ? "#{pointer}/0" : pointer
+  end
+
+  before do
+    put(
+      path,
+      headers: v2_bearer(owner),
+      params: { class_sym => resource_attributes },
+      as: :json
+    )
+  end
 
   context 'when an attribute has an invalid value' do
     let(:resource_attributes) do
       attrs = super()
-      attrs[strict_attribute] = :winnie_the_pooh
+      attrs[strict_attribute] = strict_attribute_value
 
       attrs
     end
@@ -276,23 +351,7 @@ RSpec.shared_examples('a serialisable resource on update') do
     end
 
     it 'points to the failed attribute in the error field' do
-      expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/#{strict_attribute}")
-    end
-  end
-
-  context 'when an attribute does not exist' do
-    let(:resource_attributes) { { winnie_the_pooh: :winnie_the_pooh } }
-
-    it 'contains an error field' do
-      expect(response.parsed_body['errors']).not_to be_nil
-    end
-
-    it 'contains resource errors in the error field' do
-      expect(response.parsed_body['errors'].first).to be_a(Hash)
-    end
-
-    it 'points to the failed attribute in the error field' do
-      expect(response.parsed_body['errors'].first['source']['pointer']).to eq("/#{class_sym}/winnie_the_pooh")
+      expect(response.parsed_body['errors'].first['source']['pointer']).to eq(strict_attribute_pointer)
     end
   end
 end
