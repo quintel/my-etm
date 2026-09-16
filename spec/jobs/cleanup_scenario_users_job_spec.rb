@@ -61,10 +61,10 @@ RSpec.describe CleanupScenarioUsersJob, type: :job do
         allow(Sentry).to receive(:capture_exception)
       end
 
-      it 'captures exception and re-raises for retry' do
+      it 'captures the exception and retries the job' do
         expect do
           described_class.perform_now(user.id, version.id, scenario_ids)
-        end.to raise_error(StandardError)
+        end.to have_enqueued_job(described_class)
 
         expect(Sentry).to have_received(:capture_exception)
       end

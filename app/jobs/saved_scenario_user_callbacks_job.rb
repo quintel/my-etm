@@ -6,7 +6,7 @@ class SavedScenarioUserCallbacksJob < ApplicationJob
   queue_as :default
 
   # Retry on network errors and other transient failures
-  retry_on Faraday::Error, wait: :exponentially_longer, attempts: 5
+  retry_on Faraday::Error, wait: :polynomially_longer, attempts: 5
 
   # Retry on database record not found (e.g., if user/scenario was just created)
   retry_on ActiveRecord::RecordNotFound, wait: 2.seconds, attempts: 3

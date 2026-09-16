@@ -71,10 +71,10 @@ RSpec.describe CoupleUsersToEngineJob, type: :job do
         allow(http_client).to receive(:get).and_raise(Faraday::ConnectionFailed.new('Network error'))
       end
 
-      it 're-raises error to trigger job retry' do
+      it 'retries the job' do
         expect do
           described_class.perform_now(user.id, user_email, [ saved_scenario.id ])
-        end.to raise_error(StandardError)
+        end.to have_enqueued_job(described_class)
       end
     end
   end

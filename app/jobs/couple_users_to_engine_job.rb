@@ -5,7 +5,7 @@
 class CoupleUsersToEngineJob < ApplicationJob
   queue_as :default
 
-  retry_on Faraday::Error, wait: :exponentially_longer, attempts: 3
+  retry_on Faraday::Error, wait: :polynomially_longer, attempts: 3
 
   def perform(user_id, user_email, saved_scenario_ids)
     user = User.find(user_id)
