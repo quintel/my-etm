@@ -193,7 +193,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body['errors'].sole).to include(
-        'detail' => 'Saved scenario not found',
+        'detail' => "Saved scenario #{discarded.id} not found",
         'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
       )
     end
@@ -311,7 +311,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(response.parsed_body['errors']).to contain_exactly(
         hash_including(
           'code' => 'validation_failed',
-          'detail' => 'Saved scenario not found',
+          'detail' => 'Saved scenario 999999999 not found',
           'source' => { 'pointer' => '/collection/saved_scenario_ids/1' }
         )
       )
@@ -351,9 +351,10 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
         as: :json
       )
 
-      expect(hidden).to eq(response.parsed_body)
+      # The id the caller sent is echoed back, the rest of the response has to match.
+      expect(hidden).to eq(JSON.parse(response.body.gsub(/\b999999999\b/, inaccessible.id.to_s)))
       expect(hidden['errors'].first).to include(
-        'detail' => 'Saved scenario not found',
+        'detail' => "Saved scenario #{inaccessible.id} not found",
         'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
       )
     end
@@ -432,7 +433,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body['errors']).to contain_exactly(
         hash_including(
-          'detail' => 'Saved scenario not found',
+          'detail' => 'Saved scenario 999999999 not found',
           'source' => { 'pointer' => '/collection/saved_scenario_ids/0' }
         )
       )
