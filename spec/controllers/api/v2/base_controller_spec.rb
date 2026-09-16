@@ -4,7 +4,7 @@ require "rails_helper"
 
 # Exercises the envelope helpers themselves, on a throwaway controller, so the shapes are asserted
 # independently of any resource. Real models are covered by the per-resource request specs, which
-# validate every response against the kinds in spec/support/api/v2/envelope.rb.
+# validate every response against the kinds in lib/etm_api/envelope.rb.
 RSpec.describe Api::V2::BaseController, type: :controller do
   # Stands in for a resource serialiser: the helpers only require something that wraps an object and
   # answers as_json.
