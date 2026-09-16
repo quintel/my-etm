@@ -73,9 +73,8 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
 
       expect(response.parsed_body).to validate_against_the_v2_envelope(:resource)
       expect(response.parsed_body['data'].keys).to contain_exactly(
-        'id', 'title', 'area_code', 'end_year', 'version', 'interpolation', 'discarded_at',
-        'created_at', 'updated_at', 'owner', 'saved_scenario_ids', 'scenario_ids',
-        'collections_app_url'
+        'id', 'title', 'version', 'discarded_at', 'created_at', 'updated_at', 'owner',
+        'saved_scenario_ids', 'collections_app_url'
       )
       expect(response.parsed_body.dig('data', 'owner')).to eq('id' => owner.id, 'name' => owner.name)
     end
@@ -86,12 +85,10 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     let(:path) { "/api/v2/collections" }
 
     let(:saved_scenario)     { create(:saved_scenario, user: owner) }
-    let(:strict_attribute)   { :end_year }
+    let(:strict_attribute)   { :version }
     let(:required_attribute) { :title }
     let(:resource_attributes) do
       {
-        area_code: 'nl2023',
-        end_year: 2050,
         saved_scenario_ids: [ saved_scenario.id ],
         title: 'My collection',
         version: Version.default.tag
@@ -240,7 +237,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       )
     end
 
-    it 'accepts interpolation on create' do
+    it 'refuses interpolation, which v2 does not accept as a member' do
       post(
         path,
         headers: v2_bearer(owner, :write),
@@ -248,14 +245,20 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
         as: :json
       )
 
-      expect(response.parsed_body.dig('data', 'interpolation')).to be(true)
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body['errors'].sole).to include(
+        'code' => 'param_invalid',
+        'detail' => 'is not a member of this resource',
+        'source' => { 'pointer' => '/collection/interpolation' }
+      )
+      expect(Collection.where(title: 'My collection')).to be_empty
     end
 
-    it 'creates a plain collection when interpolation is not mentioned' do
+    it 'creates a plain collection, since the column defaults to interpolated' do
       post(path, headers: v2_bearer(owner, :write), params: { collection: resource_attributes }, as: :json)
 
       expect(response).to have_http_status(:created)
-      expect(response.parsed_body.dig('data', 'interpolation')).to be(false)
+      expect(Collection.find(response.parsed_body.dig('data', 'id'))).not_to be_interpolated
     end
 
     it 'accepts more than one member without being told about interpolation' do
@@ -270,27 +273,6 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
 
       expect(response).to have_http_status(:created)
       expect(response.parsed_body.dig('data', 'saved_scenario_ids')).to eq(members.map(&:id))
-    end
-
-    it 'refuses more than one member for a transition path, pointed at the member list' do
-      members = create_list(:saved_scenario, 2, user: owner, version: Version.default)
-
-      post(
-        path,
-        headers: v2_bearer(owner, :write),
-        params: {
-          collection: resource_attributes.merge(
-            interpolation: true, saved_scenario_ids: members.map(&:id)
-          )
-        },
-        as: :json
-      )
-
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body['errors'].first).to include(
-        'detail' => 'interpolated collections cannot have more than 1 saved scenario',
-        'source' => { 'pointer' => '/collection/saved_scenario_ids' }
-      )
     end
 
     it 'points an unresolvable member at its own position rather than raising' do
@@ -330,6 +312,10 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       detail = response.parsed_body.dig('errors', 0, 'detail')
       expect(detail).to include(Version.default.tag)
       expect(detail).not_to match(/#<Version/)
+
+      # Collection reports this against :scenarios, which member_aliases translates.
+      expect(response.parsed_body.dig('errors', 0, 'source'))
+        .to eq('pointer' => '/collection/saved_scenario_ids')
     end
 
     it 'describes a member it cannot see exactly as it describes an absent one' do
@@ -397,8 +383,8 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     end
 
     # Shared by the two examples below: the member that refuses the value it is given.
-    let(:strict_attribute)       { :end_year }
-    let(:strict_attribute_value) { :winnie_the_pooh }
+    let(:strict_attribute)       { :saved_scenario_ids }
+    let(:strict_attribute_value) { [ 'not-an-id' ] }
 
     it_behaves_like 'a serialisable resource that refuses an invalid member'
     it_behaves_like 'a persistant resource that refuses an invalid member'

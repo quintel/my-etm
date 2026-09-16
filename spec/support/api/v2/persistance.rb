@@ -12,21 +12,12 @@
 # For create endpoints
 #
 # Expects the following declared:
-#     let(:owner)       { create(:user) }
-#     let(:owner_assoc) { :collections }
-#     let(:path)        { "/api/v2/collections" }
-#     let(:class_sym)   { :collection }
-#
-#     let(:required_attribute) { :title }
-#     let(:resource_attributes) do
-#       {
-#         area_code: 'nl',
-#         end_year: 2050,
-#         saved_scenario_ids: [ saved_scenario.id ],
-#         title: 'My collection',
-#         version: Version.default.tag
-#       }
-#     end
+#     owner               - the user creating the resource
+#     owner_assoc         - the owner's association holding these records
+#     path                - the endpoint's path
+#     class_sym           - the member the request body wraps the resource in
+#     resource_attributes - a body the action accepts
+#     required_attribute  - a member the action refuses to do without
 RSpec.shared_examples('a persistant resource on create') do
   subject do
     post(
@@ -55,14 +46,11 @@ end
 # For update endpoints
 #
 # Expects the following declared:
-#     let(:owner)     { create(:user) }
-#     let(:resource)  { create(:collection, user: owner) }
-#     let(:path)      { "/api/v2/collections/:id" }
-#     let(:class_sym) { :collection }
-#
-#     let(:resource_attributes) do
-#       { title: 'My new collection' }
-#     end
+#     owner               - the user the resource belongs to
+#     resource            - the record under test
+#     path                - the endpoint's path for that record
+#     class_sym           - the member the request body wraps the resource in
+#     resource_attributes - a body the action accepts
 #
 # The context for a member given a value it refuses is a separate shared example: not every
 # resource has such a member.
@@ -106,17 +94,14 @@ end
 # Confirms the whole update is rejected, the valid member included.
 #
 # Expects the following declared:
-#     let(:owner)     { create(:user) }
-#     let(:resource)  { create(:collection, user: owner) }
-#     let(:path)      { "/api/v2/collections/:id" }
-#     let(:class_sym) { :collection }
-#
-#     let(:resource_attributes) do
-#       { title: 'My new collection' }
-#     end
-#
-#     let(:strict_attribute)       { :end_year }
-#     let(:strict_attribute_value) { :winnie_the_pooh }
+#     owner                  - the user the resource belongs to
+#     resource               - the record under test
+#     path                   - the endpoint's path for that record
+#     class_sym              - the member the request body wraps the resource in
+#     resource_attributes    - a body the action accepts
+#     strict_attribute       - a member that refuses strict_attribute_value
+#     strict_attribute_value - a value it refuses; a list if the member takes one, and the error
+#                              then points at the element rather than the member
 RSpec.shared_examples('a persistant resource that refuses an invalid member') do
   subject do
     put(
@@ -149,11 +134,10 @@ end
 # For delete endpoints
 #
 # Expects the following declared:
-#     let(:owner)       { create(:user) }
-#     let(:owner_assoc) { :collections }
-#     let(:resource)    { create(:collection, user: owner) }
-#     let(:path)        { "/api/v2/collections/:id" }
-#
+#     owner       - the user the resource belongs to
+#     owner_assoc - the owner's association holding these records
+#     resource    - the record under test
+#     path        - the endpoint's path for that record
 RSpec.shared_examples('a persistant resource on delete') do
   subject do
     delete(path, headers: v2_bearer(owner), as: :json)

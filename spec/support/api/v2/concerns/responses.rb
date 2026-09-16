@@ -53,10 +53,10 @@ end
 # For show endpoints
 #
 # Expects the following declared:
-#     let(:owner)      { create(:user) }
-#     let(:resource)   { create(:collection, user: owner) }
-#     let(:path)       { "/api/v2/collections/#{resource.id}" }
-#     let(:serialiser) { Api::V2::CollectionSerialiser }
+#     owner      - the user the resource belongs to
+#     resource   - the record under test
+#     path       - the endpoint's path for that record
+#     serialiser - the serialiser the endpoint renders with
 RSpec.shared_examples('a serialisable resource') do
 
   let(:serialiser_options) { {} }
@@ -78,21 +78,12 @@ end
 # For create endpoints
 #
 # Expects the following declared:
-#     let(:owner)     { create(:user) }
-#     let(:path)      { "/api/v2/collections" }
-#     let(:class_sym) { :collection }
-#
-#     let(:required_attribute) { :title }
-#     let(:strict_attribute)   { :end_year }
-#     let(:resource_attributes) do
-#       {
-#         area_code: 'nl2023',
-#         end_year: 2050,
-#         scenario_ids: [ 1, 2, 3 ],
-#         title: 'My collection',
-#         version: Version.default.tag
-#       }
-#     end
+#     owner               - the user creating the resource
+#     path                - the endpoint's path
+#     class_sym           - the member the request body wraps the resource in
+#     resource_attributes - a body the action accepts
+#     required_attribute  - a member the action refuses to do without
+#     strict_attribute    - a member that refuses :winnie_the_pooh
 RSpec.shared_examples('a serialisable resource on create') do
   before do
     post(
@@ -174,14 +165,11 @@ end
 # For update endpoints
 #
 # Expects the following declared:
-#     let(:owner)     { create(:user) }
-#     let(:resource)  { create(:collection, user: owner) }
-#     let(:path)      { "/api/v2/collections/:id" }
-#     let(:class_sym) { :collection }
-#
-#     let(:resource_attributes) do
-#       { title: 'My new collection' }
-#     end
+#     owner               - the user the resource belongs to
+#     resource            - the record under test
+#     path                - the endpoint's path for that record
+#     class_sym           - the member the request body wraps the resource in
+#     resource_attributes - a body the action accepts
 #
 # The contexts for a member the action will not update, and for one given a value it refuses, are
 # separate shared examples: not every resource has such a member.
@@ -222,16 +210,12 @@ end
 # For an update endpoint whose resource has a member the action will not update.
 #
 # Expects the following declared:
-#     let(:owner)     { create(:user) }
-#     let(:resource)  { create(:collection, user: owner) }
-#     let(:path)      { "/api/v2/collections/:id" }
-#     let(:class_sym) { :collection }
-#
-#     let(:resource_attributes) do
-#       { title: 'My new collection' }
-#     end
-#
-#     let(:unupdateable_attribute) { :version }
+#     owner                  - the user the resource belongs to
+#     resource               - the record under test
+#     path                   - the endpoint's path for that record
+#     class_sym              - the member the request body wraps the resource in
+#     resource_attributes    - a body the action accepts
+#     unupdateable_attribute - a member the action will not update
 RSpec.shared_examples('a serialisable resource that refuses an unupdateable member') do
   before do
     put(
@@ -301,17 +285,14 @@ end
 # For an update endpoint whose resource has a member that refuses a value.
 #
 # Expects the following declared:
-#     let(:owner)     { create(:user) }
-#     let(:resource)  { create(:collection, user: owner) }
-#     let(:path)      { "/api/v2/collections/:id" }
-#     let(:class_sym) { :collection }
-#
-#     let(:resource_attributes) do
-#       { title: 'My new collection' }
-#     end
-#
-#     let(:strict_attribute)       { :end_year }
-#     let(:strict_attribute_value) { :winnie_the_pooh }
+#     owner                  - the user the resource belongs to
+#     resource               - the record under test
+#     path                   - the endpoint's path for that record
+#     class_sym              - the member the request body wraps the resource in
+#     resource_attributes    - a body the action accepts
+#     strict_attribute       - a member that refuses strict_attribute_value
+#     strict_attribute_value - a value it refuses; a list if the member takes one, and the error
+#                              then points at the element rather than the member
 RSpec.shared_examples('a serialisable resource that refuses an invalid member') do
   # A member holding a list is refused for the element that failed rather than for the member, and
   # the value given carries one bad element, so it is the first.
@@ -359,12 +340,10 @@ end
 # For index endpoints
 #
 # Expects the following declared:
-#     let(:owner)      { create(:user) }
-#     let(:path)       { "/api/v2/collections" }
-#     let(:class_sym)  { :collection }
-#     let(:serialiser) { Api::V2::CollectionSerialiser }
-#
-# class_sym is used to Factory create different sizes of user resources
+#     owner      - the user the resource belongs to
+#     path       - the endpoint's path
+#     class_sym  - the resource's factory, used to create a few of them
+#     serialiser - the serialiser the endpoint renders with
 RSpec.shared_examples('a collection of serialisable resources') do
   before do
     resources
@@ -396,9 +375,9 @@ end
 # For delete endpoints
 #
 # Expects the following declared:
-#     let(:owner)    { create(:user) }
-#     let(:resource) { create(:collection, user: owner) }
-#     let(:path)     { "/api/v2/collections/#{resource.id}" }
+#     owner    - the user the resource belongs to
+#     resource - the record under test
+#     path     - the endpoint's path for that record
 RSpec.shared_examples('a serialisable resource on delete') do
   before do
     delete(path, headers: v2_bearer(owner), as: :json)

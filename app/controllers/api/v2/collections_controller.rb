@@ -82,7 +82,7 @@ module Api
       private
 
       def request_members
-        %i[title area_code end_year version interpolation saved_scenario_ids]
+        %i[title version saved_scenario_ids]
       end
 
       # Api::V1 renders Collection's error keys verbatim, so :scenarios is translated, not renamed.
@@ -90,16 +90,14 @@ module Api
         { scenarios: :saved_scenario_ids }
       end
 
-      # The column defaults to true, which would fail every collection with more than one member.
       def create_params
-        resource_params(
-          :title, :area_code, :end_year, :version, :interpolation, saved_scenario_ids: []
-        ).tap { |attributes| attributes.require(:saved_scenario_ids) }
-          .with_defaults(interpolation: false)
+        resource_params(:title, :version, saved_scenario_ids: [])
+          .tap { |attributes| attributes.require(:saved_scenario_ids) }
+          .with_defaults(interpolation: false) # Not a V2 member, but the column defaults to true
       end
 
       def update_params
-        resource_params(:title, :area_code, :end_year, saved_scenario_ids: [])
+        resource_params(:title, saved_scenario_ids: [])
       end
 
       # Renders and returns true when the request names something that cannot be resolved
