@@ -109,13 +109,14 @@ module Api
           reject_unresolvable_members(attributes[:saved_scenario_ids])
       end
 
-      # Renders and returns true when a member cannot be resolved, naming the position that failed.
+      # Renders and returns true when a member cannot be resolved. The pointer names the position
+      # that failed, since a JSON Pointer addresses an array by index; the detail names the id.
       def reject_unresolvable_members(ids)
         missing = unresolvable_member_indices(ids)
         return false if missing.empty?
 
         render_validation_errors(
-          saved_scenario_ids: missing.index_with { [ "Saved scenario not found" ] }
+          saved_scenario_ids: missing.index_with { |index| [ "Saved scenario #{ids[index]} not found" ] }
         )
         true
       end
@@ -130,15 +131,13 @@ module Api
         ids.each_index.reject { |index| ids[index] < 1 || visible.include?(ids[index]) }
       end
 
+      # Scoped to the submitted ids, so the set never holds more than one request's worth.
       def visible_member_ids(ids)
         owner = @collection&.user || current_user
         scenarios = SavedScenario.kept.where(id: ids)
         return scenarios.pluck(:id).to_set if owner.admin?
 
-        SavedScenarioUser
-          .where(saved_scenario_id: scenarios.select(:id), user_id: owner.id)
-          .pluck(:saved_scenario_id)
-          .to_set
+        scenarios.viewable_by?(owner).pluck(:id).to_set
       end
     end
   end
