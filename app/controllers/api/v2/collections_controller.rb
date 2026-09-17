@@ -37,7 +37,7 @@ module Api
       # POST api/v2/collections
       def create
         attributes = create_params
-        return if reject_request(attributes)
+        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
 
         render_write(
           Api::CreateCollection.new.call(user: current_user, params: attributes.to_h.symbolize_keys),
@@ -48,7 +48,7 @@ module Api
       # PUT/PATCH api/v2/collections/:id
       def update
         attributes = update_params
-        return if reject_request(attributes)
+        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
 
         render_write(
           Api::UpdateCollection.new.call(
@@ -62,7 +62,7 @@ module Api
       def destroy
         return render_validation_errors(@collection.errors) unless @collection.destroy
 
-        head :no_content
+        render_no_content
       end
 
       # PUT api/v2/collections/:id/discard
@@ -98,13 +98,6 @@ module Api
 
       def update_params
         resource_params(:title, saved_scenario_ids: [])
-      end
-
-      # Renders and returns true when the request names something that cannot be resolved
-      def reject_request(attributes)
-        reject_unknown_version(attributes[:version]) ||
-          reject_oversized(:saved_scenario_ids, attributes[:saved_scenario_ids]) ||
-          reject_unresolvable_members(attributes[:saved_scenario_ids])
       end
 
       # Renders and returns true when a member cannot be resolved. The pointer names the position

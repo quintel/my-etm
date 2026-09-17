@@ -211,7 +211,12 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     end
 
     it 'answers 400 param_missing when no members are given' do
-      post(path, headers: v2_bearer(owner, :write), params: { collection: { title: 'T' } }, as: :json)
+      post(
+        path,
+        headers: v2_bearer(owner, :write),
+        params: { collection: { title: 'T', version: Version.default.tag } },
+        as: :json
+      )
 
       expect(response).to have_http_status(:bad_request)
       expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
