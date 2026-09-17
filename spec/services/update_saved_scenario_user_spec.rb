@@ -46,6 +46,23 @@ describe UpdateSavedScenarioUser, type: :service do
     end
   end
 
+  context 'when addressing a user by an email their record no longer holds' do
+    it 'updates their role' do
+      viewer = FactoryBot.create(:user)
+      FactoryBot.create(
+        :saved_scenario_user,
+        saved_scenario: saved_scenario,
+        user: viewer,
+        role_id: User::Roles.index_of(:scenario_viewer)
+      )
+      users = [ { user_email: viewer.email, role_id: User::Roles.index_of(:scenario_collaborator) } ]
+
+      expect { described_class.call(client, saved_scenario, users) }.to change(
+        saved_scenario.collaborators, :count
+      ).from(0).to(1)
+    end
+  end
+
   context 'when downgrading the role of the last owner' do
     let(:saved_scenario_user) { saved_scenario.owners.first }
 

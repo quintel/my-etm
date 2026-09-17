@@ -142,4 +142,15 @@ describe SavedScenarioUser do
       expect { saved_scenario_user.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
+
+  describe '#as_json' do
+    it 'returns the email of a user who has an account' do
+      user = FactoryBot.create(:user)
+      saved_scenario_user = FactoryBot.create(
+        :saved_scenario_user, saved_scenario: saved_scenario, user: user
+      )
+
+      expect(saved_scenario_user.as_json['user_email']).to eq(user.email)
+    end
+  end
 end

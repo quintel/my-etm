@@ -51,7 +51,9 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
 
       it 'returns a list of all users' do
         expect(JSON.parse(response.body)).to include(
-          a_hash_including('user_id' => user.id, 'user_email' => nil, 'role' => 'scenario_owner')
+          a_hash_including(
+            'user_id' => user.id, 'user_email' => user.email, 'role' => 'scenario_owner'
+          )
         )
       end
     end
@@ -186,8 +188,12 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
 
       it 'updates the role for the given user' do
         expect(JSON.parse(response.body)).to include(
-          a_hash_including('user_id' => user_2.id, 'user_email' => nil, 'role' => 'scenario_owner'),
-          a_hash_including('user_id' => user_3.id, 'user_email' => nil, 'role' => 'scenario_viewer')
+          a_hash_including(
+            'user_id' => user_2.id, 'user_email' => user_2.email, 'role' => 'scenario_owner'
+          ),
+          a_hash_including(
+            'user_id' => user_3.id, 'user_email' => user_3.email, 'role' => 'scenario_viewer'
+          )
         )
       end
     end

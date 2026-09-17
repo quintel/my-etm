@@ -17,6 +17,7 @@ class SavedScenarioUser < ApplicationRecord
     params = super
 
     params["role"] = User::Roles.name_for(role_id).to_s
+    params["user_email"] = email if params.key?("user_email")
     params.except(:role_id)
   end
 
