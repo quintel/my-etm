@@ -88,7 +88,7 @@ class DestroySavedScenarioUser
     elsif user_params[:user_id]
       saved_scenario.saved_scenario_users.find_by(user_id: user_params[:user_id])
     elsif user_params[:user_email]
-      saved_scenario.saved_scenario_users.find_by(user_email: user_params[:user_email])
+      saved_scenario.user_by_email(user_params[:user_email])
     end
   end
 
