@@ -82,6 +82,16 @@ module Api
         submitted.permit(*scalars, **lists)
       end
 
+      # A batch endpoint's body is the list itself rather than a resource carrying one, so it names
+      # its member here instead of declaring it through resource_params. BATCH_LIMIT covers a batch
+      # as well as a member list, and this is where a batch gets it.
+      def batch_params(member, permit:)
+        require_list(params, member)
+        require_within_limit(params, member)
+
+        params.permit(member => permit).require(member)
+      end
+
       # Read-only members are ignored, not refused, so a caller can send back what it fetched.
       def reject_unaccepted_members(submitted, accepted)
         unaccepted = submitted.keys.map(&:to_sym) - accepted - readonly_members

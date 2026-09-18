@@ -92,10 +92,14 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       render_ok(accepted: resource_params(tags: []).to_h)
     end
 
+    def batched
+      render_ok(accepted: batch_params(:items, permit: %i[id role]).map(&:to_h))
+    end
+
     private
 
     def request_members
-      %i[title tags version]
+      %i[title tags version items]
     end
   end
 
@@ -113,6 +117,7 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       post "strict"         => "api/v2/base#strict"
       post "versioned"      => "api/v2/base#versioned"
       post "capped"         => "api/v2/base#capped"
+      post "batched"        => "api/v2/base#batched"
     end
   end
 
@@ -375,6 +380,67 @@ RSpec.describe Api::V2::BaseController, type: :controller do
         "detail" => "size cannot be greater than 100",
         "source" => { "pointer" => "/thing/tags" }
       )
+    end
+  end
+
+  # A batch endpoint carries its list at the top level, so it names no resource and its pointers are
+  # not nested under one.
+  describe "POST batched" do
+    before { self.class.controller_class.resource_param_key = nil }
+
+    def items(count) = Array.new(count) { |index| { id: index, role: "scenario_viewer" } }
+
+    it "accepts a batch at the limit" do
+      post :batched, params: { items: items(Api::V2::BaseController::BATCH_LIMIT) }, as: :json
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "refuses one item over the limit, as one error rather than one per item" do
+      post :batched, params: { items: items(Api::V2::BaseController::BATCH_LIMIT + 1) }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "validation_failed",
+        "detail" => "size cannot be greater than 100",
+        "source" => { "pointer" => "/items" }
+      )
+    end
+
+    it "refuses an object where a list belongs" do
+      post :batched, params: { items: { id: 1, role: "scenario_viewer" } }, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "param_invalid",
+        "detail" => "items must be an array",
+        "source" => { "pointer" => "/items" }
+      )
+    end
+
+    it "answers param_missing for an absent list" do
+      post :batched, params: {}, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "param_missing", "source" => { "pointer" => "/items" }
+      )
+    end
+
+    # An empty batch is a request to do nothing, which reads as a missing list rather than a batch
+    # of nothing.
+    it "answers param_missing for an empty list" do
+      post :batched, params: { items: [] }, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body.dig("errors", 0, "code")).to eq("param_missing")
+    end
+
+    it "keeps only the declared keys of each item" do
+      post :batched, params: { items: [ { id: 1, role: "scenario_viewer", secret: "x" } ] }, as: :json
+
+      expect(response.parsed_body.dig("data", "accepted"))
+        .to eq([ { "id" => 1, "role" => "scenario_viewer" } ])
     end
   end
 
