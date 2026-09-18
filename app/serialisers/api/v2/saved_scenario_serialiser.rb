@@ -5,7 +5,7 @@ module Api
     # Explicit attribute allow-list for SavedScenario, so a new column never joins the public contract
     # silently.
     #
-    # Deliberately carries no membership: see SavedScenarioWithUsersSerialiser.
+    # Membership is not part of it: that is read from the saved scenario users endpoint.
     class SavedScenarioSerialiser
       def initialize(saved_scenario)
         @saved_scenario = saved_scenario
