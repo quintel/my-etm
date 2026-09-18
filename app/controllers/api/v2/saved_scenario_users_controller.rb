@@ -91,24 +91,8 @@ module Api
         %i[saved_scenario_users]
       end
 
-      def permitted_params
-        params.permit(saved_scenario_users: %i[id role user_id user_email])
-      end
-
-      # `require` answers an absent or empty list as param_missing, but cannot tell a list from an
-      # object, so the shape is checked separately. BATCH_LIMIT covers a batch as well as a member
-      # list, but only resource_params applies it, and a batch body does not go through it.
       def submitted_items
-        submitted = permitted_params.require(:saved_scenario_users)
-        unless submitted.is_a?(Array)
-          raise EtmApi::Errors::InvalidParam.new(
-            "/saved_scenario_users", "saved_scenario_users must be an array"
-          )
-        end
-
-        raise EtmApi::Errors::OversizedMember, :saved_scenario_users if submitted.size > BATCH_LIMIT
-
-        submitted
+        batch_params(:saved_scenario_users, permit: %i[id role user_id user_email])
       end
 
       def scenario_user_params(user_params)
