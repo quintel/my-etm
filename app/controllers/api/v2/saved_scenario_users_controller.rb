@@ -46,14 +46,13 @@ module Api
 
         render_error(
           status: :conflict,
-          code: ErrorCodes::SCENARIO_DISCARDED,
+          code: EtmApi::Errors::Codes::SCENARIO_DISCARDED,
           detail: "Saved scenario is discarded"
         )
       end
 
       def apply(&service)
         submitted = submitted_items
-        return if reject_oversized(:saved_scenario_users, submitted)
         return if reject_item_ids(submitted)
 
         authorisation = SavedScenarioMemberAuthorisation.new(
@@ -72,7 +71,7 @@ module Api
 
         render_error(
           status: :bad_request,
-          code: ErrorCodes::PARAM_INVALID,
+          code: EtmApi::Errors::Codes::PARAM_INVALID,
           detail: "cannot be set when granting access",
           source: { pointer: "/saved_scenario_users/#{index}/id" }
         )
@@ -80,7 +79,7 @@ module Api
       end
 
       def render_users(result)
-        render_bulk(
+        render_batch(
           result,
           with: SavedScenarioUserSerialiser,
           options: { emails: true },
@@ -97,11 +96,17 @@ module Api
       end
 
       # `require` answers an absent or empty list as param_missing, but cannot tell a list from an
-      # object, so the shape is checked separately.
+      # object, so the shape is checked separately. BATCH_LIMIT covers a batch as well as a member
+      # list, but only resource_params applies it, and a batch body does not go through it.
       def submitted_items
         submitted = permitted_params.require(:saved_scenario_users)
-        raise InvalidParam.new("/saved_scenario_users", "saved_scenario_users must be an array") unless
-          submitted.is_a?(Array)
+        unless submitted.is_a?(Array)
+          raise EtmApi::Errors::InvalidParam.new(
+            "/saved_scenario_users", "saved_scenario_users must be an array"
+          )
+        end
+
+        raise EtmApi::Errors::OversizedMember, :saved_scenario_users if submitted.size > BATCH_LIMIT
 
         submitted
       end
