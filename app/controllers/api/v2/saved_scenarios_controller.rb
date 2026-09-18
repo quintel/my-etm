@@ -34,7 +34,7 @@ module Api
 
       # GET /api/v2/saved_scenarios/:id
       def show
-        render_resource(@saved_scenario, **view_for(@saved_scenario))
+        render_resource(@saved_scenario, with: SavedScenarioSerialiser)
       end
 
       # POST /api/v2/saved_scenarios
@@ -42,10 +42,11 @@ module Api
         attributes = validated(SavedScenarioCreateContract, create_params)
         return if attributes.nil?
 
-        result = SavedScenario::Create.call(nil, attributes.stringify_keys, current_user)
-        reset_ability! if result.successful?
-
-        render_write(result, with: caller_view, status: :created)
+        render_write(
+          SavedScenario::Create.call(nil, attributes.stringify_keys, current_user),
+          with: SavedScenarioSerialiser,
+          status: :created
+        )
       end
 
       # PUT/PATCH /api/v2/saved_scenarios/:id
@@ -54,7 +55,8 @@ module Api
         return if attributes.nil?
 
         render_write(
-          SavedScenario::Update.call(nil, @saved_scenario, attributes), with: caller_view
+          SavedScenario::Update.call(nil, @saved_scenario, attributes),
+          with: SavedScenarioSerialiser
         )
       end
 
@@ -69,14 +71,14 @@ module Api
       def discard
         @saved_scenario.discard
 
-        render_resource(@saved_scenario, **view_for(@saved_scenario))
+        render_resource(@saved_scenario, with: SavedScenarioSerialiser)
       end
 
       # PUT /api/v2/saved_scenarios/:id/restore
       def restore
         @saved_scenario.undiscard
 
-        render_resource(@saved_scenario, **view_for(@saved_scenario))
+        render_resource(@saved_scenario, with: SavedScenarioSerialiser)
       end
 
       private
@@ -90,10 +92,6 @@ module Api
         nil
       end
 
-      def caller_view
-        ->(saved_scenario) { view_for(saved_scenario) }
-      end
-
       def request_members
         %i[scenario_id title version description area_code end_year private]
       end
@@ -104,30 +102,6 @@ module Api
 
       def update_params
         resource_params(:title, :description, :area_code, :end_year, :private)
-      end
-
-      # A public scenario is readable by anyone, so :read is not sufficient here
-      def view_for(saved_scenario)
-        return { with: SavedScenarioSerialiser } unless role_holder?(saved_scenario)
-
-        emails = can?(:update, saved_scenario)
-        preload_members(saved_scenario) if emails
-
-        { with: SavedScenarioWithUsersSerialiser, options: { emails: emails } }
-      end
-
-      def role_holder?(saved_scenario)
-        return false unless current_user
-
-        current_user.admin? || saved_scenario.saved_scenario_users.any? do |member|
-          member.user_id == current_user.id
-        end
-      end
-
-      def preload_members(saved_scenario)
-        ActiveRecord::Associations::Preloader.new(
-          records: saved_scenario.saved_scenario_users.to_a, associations: :user
-        ).call
       end
     end
   end
