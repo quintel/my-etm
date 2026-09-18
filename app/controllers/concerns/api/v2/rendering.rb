@@ -32,12 +32,11 @@ module Api
         render json: EtmApi::Responses.batch(items), status: :multi_status
       end
 
-      # `with:` is a serialiser, or a callable answering { with:, options: } for the written record
       def render_write(result, with:, options: {}, status: :ok)
         if write_successful?(result)
           record = write_value(result)
 
-          return render_resource(record, **write_view(with, record, options), status: status)
+          return render_resource(record, with: with, options: options, status: status)
         end
 
         errors = write_errors(result)
@@ -119,11 +118,6 @@ module Api
           code: EtmApi::Errors::Codes::UPSTREAM_ERROR,
           detail: Array(result.errors).join(", ").presence || "The request could not be completed"
         )
-      end
-
-      # A serialiser names itself; a callable is asked what the written record should go out as.
-      def write_view(with, record, options)
-        with.respond_to?(:call) ? with.call(record) : { with: with, options: options }
       end
 
       # Read-only members are ignored before rejection, so only these two cases reach here.
