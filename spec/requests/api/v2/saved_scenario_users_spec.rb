@@ -27,8 +27,11 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
       item = response.parsed_body["data"].first
       expect(item).to eq(
-        "status" => "ok", "id" => collaborator.id, "user_id" => collaborator.user_id,
-        "user_email" => collaborator.email, "role" => "scenario_collaborator"
+        "status" => "ok",
+        "data" => {
+          "id" => collaborator.id, "user_id" => collaborator.user_id,
+          "user_email" => collaborator.email, "role" => "scenario_collaborator"
+        }
       )
     end
 
@@ -220,8 +223,11 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
       item = response.parsed_body["data"].first
       expect(item).to eq(
-        "status" => "ok", "id" => created.id, "user_id" => nil,
-        "user_email" => "new@example.com", "role" => "scenario_viewer"
+        "status" => "ok",
+        "data" => {
+          "id" => created.id, "user_id" => nil,
+          "user_email" => "new@example.com", "role" => "scenario_viewer"
+        }
       )
     end
 
@@ -237,7 +243,10 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
       expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 0, "total" => 1)
       expect(response.parsed_body["data"].first).to include(
-        "status" => "ok", "user_id" => invitee.id, "user_email" => invitee.email, "role" => "scenario_viewer"
+        "status" => "ok",
+        "data" => hash_including(
+          "user_id" => invitee.id, "user_email" => invitee.email, "role" => "scenario_viewer"
+        )
       )
     end
 
@@ -532,8 +541,11 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
       item = response.parsed_body["data"].first
       expect(item).to eq(
-        "status" => "ok", "id" => collaborator.id, "user_id" => collaborator.user_id,
-        "user_email" => collaborator.email, "role" => "scenario_viewer"
+        "status" => "ok",
+        "data" => {
+          "id" => collaborator.id, "user_id" => collaborator.user_id,
+          "user_email" => collaborator.email, "role" => "scenario_viewer"
+        }
       )
     end
 
