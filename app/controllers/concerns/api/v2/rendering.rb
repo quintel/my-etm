@@ -33,11 +33,16 @@ module Api
       end
 
       def render_write(result, with:, options: {}, status: :ok)
-        record, errors = EtmApi::Responses.normalise_result(result)
+        if write_successful?(result)
+          record = write_value(result)
 
-        return render_resource(record, with: with, options: options, status: status) if errors.nil?
+          return render_resource(record, with: with, options: options, status: status)
+        end
 
-        render_validation_errors(errors)
+        errors = write_errors(result)
+        return render_validation_errors(errors) if errors
+
+        render_upstream_error(result)
       end
 
       # Every member the action does not accept, one error object each.
@@ -88,6 +93,32 @@ module Api
       end
 
       private
+
+      def dry_result?(result)
+        result.is_a?(Dry::Monads::Result)
+      end
+
+      def write_successful?(result)
+        dry_result?(result) ? result.success? : result.successful?
+      end
+
+      def write_value(result)
+        dry_result?(result) ? result.value! : result.value
+      end
+
+      # A failure naming no record did not come from a request member, so it is not the caller's to
+      # fix and must not read as a validation failure.
+      def write_errors(result)
+        dry_result?(result) ? result.failure : result.value&.errors
+      end
+
+      def render_upstream_error(result)
+        render_error(
+          status: :bad_gateway,
+          code: EtmApi::Errors::Codes::UPSTREAM_ERROR,
+          detail: Array(result.errors).join(", ").presence || "The request could not be completed"
+        )
+      end
 
       # Read-only members are ignored before rejection, so only these two cases reach here.
       def rejection_detail(member)
