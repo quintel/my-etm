@@ -46,13 +46,13 @@ module Api
       end
 
       # Every member the action does not accept, one error object each.
-      def render_rejected_members(members)
+      def render_rejected_members(members, path: [])
         objects = members.map do |member|
           EtmApi::Responses::ErrorObject.build(
             status: :bad_request,
             code: EtmApi::Errors::Codes::PARAM_INVALID,
             detail: rejection_detail(member),
-            source: { pointer: json_pointer([ member ]) }
+            source: { pointer: json_pointer([ *path, member ]) }
           )
         end
 

@@ -34,7 +34,7 @@ module Api
       end
 
       rescue_from EtmApi::Errors::UnacceptedMembers do |e|
-        render_rejected_members(e.members)
+        render_rejected_members(e.members, path: e.path)
       end
 
       rescue_from EtmApi::Errors::OversizedMember do |e|
@@ -88,14 +88,25 @@ module Api
       def batch_params(member, permit:)
         require_list(params, member)
         require_within_limit(params, member)
+        reject_unaccepted_item_members(member, permit)
 
         params.permit(member => permit).require(member)
       end
 
       # Read-only members are ignored, not refused, so a caller can send back what it fetched.
-      def reject_unaccepted_members(submitted, accepted)
+      def reject_unaccepted_members(submitted, accepted, path: [])
         unaccepted = submitted.keys.map(&:to_sym) - accepted - readonly_members
-        raise EtmApi::Errors::UnacceptedMembers, unaccepted if unaccepted.any?
+        raise EtmApi::Errors::UnacceptedMembers.new(unaccepted, path: path) if unaccepted.any?
+      end
+
+      # An item declares its members through `permit`, so the same rule a resource gets applies to
+      # each one, naming the position it arrived at.
+      def reject_unaccepted_item_members(member, permit)
+        Array(params[member]).each_with_index do |item, index|
+          next unless item.respond_to?(:keys)
+
+          reject_unaccepted_members(item, permit, path: [ member, index ])
+        end
       end
 
       def require_list(submitted, member)
