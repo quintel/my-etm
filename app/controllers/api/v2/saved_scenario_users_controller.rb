@@ -24,8 +24,7 @@ module Api
       def index
         render_collection(
           @saved_scenario.saved_scenario_users.includes(:user).order(:id),
-          with: SavedScenarioUserSerialiser,
-          options: { emails: true }
+          with: SavedScenarioUserSerialiser
         )
       end
 
@@ -71,22 +70,24 @@ module Api
 
       def apply
         submitted = submitted_items
-        return if reject_item_ids(submitted)
+        return if reject_unaddressed_items(submitted)
 
         render_users(yield(submitted.map { |item| scenario_user_params(item) }))
       end
 
-      def reject_item_ids(submitted)
-        return false unless action_name == "create"
-
-        index = submitted.index { |item| item[:id].present? }
+      # An item naming nobody addresses nothing. Left to the model it answers "Either user_id or
+      # user_email should be present", naming members V2 does not have.
+      #
+      # TODO: drop once v1 and v3 retire; the services can then take an address and say so.
+      def reject_unaddressed_items(submitted)
+        index = submitted.index { |item| item[:email].blank? }
         return false if index.nil?
 
         render_error(
           status: :bad_request,
           code: EtmApi::Errors::Codes::PARAM_INVALID,
-          detail: "cannot be set when granting access",
-          source: { pointer: "/saved_scenario_users/#{index}/id" }
+          detail: "is required to address a member",
+          source: { pointer: "/saved_scenario_users/#{index}/email" }
         )
         true
       end
@@ -95,7 +96,6 @@ module Api
         render_batch(
           result,
           with: SavedScenarioUserSerialiser,
-          options: { emails: true },
           pointer: "/saved_scenario_users"
         )
       end
@@ -104,16 +104,20 @@ module Api
         %i[saved_scenario_users]
       end
 
+      # The default read-only set is a resource's; an item here carries only what it is told, and
+      # `pending` is the one thing a caller can send back having fetched it.
+      def readonly_members
+        %i[pending]
+      end
+
       def submitted_items
-        batch_params(:saved_scenario_users, permit: %i[id role user_id user_email])
+        batch_params(:saved_scenario_users, permit: %i[role email])
       end
 
       def scenario_user_params(user_params)
         {
-          id: user_params[:id]&.to_i,
           role_id: User::Roles.index_of(user_params[:role].to_s.presence&.to_sym),
-          user_id: user_params[:user_id].presence&.to_i,
-          user_email: user_params[:user_email]
+          user_email: user_params[:email]
         }
       end
     end
