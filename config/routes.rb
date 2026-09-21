@@ -91,7 +91,7 @@ Rails.application.routes.draw do
           put :restore
         end
 
-        resources :users, only: %i[create], controller: 'saved_scenario_users' do
+        resources :users, only: %i[index create], controller: 'saved_scenario_users' do
           collection do
             put :update
             patch :update

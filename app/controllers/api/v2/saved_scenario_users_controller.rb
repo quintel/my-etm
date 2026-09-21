@@ -3,13 +3,27 @@
 module Api
   module V2
     class SavedScenarioUsersController < BaseController
-      load_and_authorize_resource :saved_scenario, only: %i[create update destroy]
+      load_and_authorize_resource :saved_scenario, only: %i[index create update destroy]
 
-      before_action only: %i[create update destroy] do
+      before_action only: %i[index create update destroy] do
         authorize!(:manage_members, @saved_scenario)
       end
 
       before_action :reject_discarded_scenario, only: %i[create]
+
+      # GET /api/v2/saved_scenarios/:saved_scenario_id/users
+      #
+      # Emails are served because only a caller who may manage access reaches this action. The id is
+      # what the batch actions address a membership by, including one that is still an invitation.
+      #
+      # TODO: Rework of confirm a viewer shoudn't see who has access, and that reading needs write scope.
+      def index
+        render_collection(
+          @saved_scenario.saved_scenario_users.includes(:user).order(:id),
+          with: SavedScenarioUserSerialiser,
+          options: { emails: true }
+        )
+      end
 
       # POST /api/v2/saved_scenarios/:saved_scenario_id/users
       def create
