@@ -7,6 +7,121 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
   let(:saved_scenario) { create(:saved_scenario, user: owner, private: true) }
   let(:path)           { "/api/v2/saved_scenarios/#{saved_scenario.id}/users" }
 
+  describe "GET /api/v2/saved_scenarios/:saved_scenario_id/users" do
+    let!(:viewer_membership) do
+      create(
+        :saved_scenario_user,
+        saved_scenario: saved_scenario, role_id: User::Roles.index_of(:scenario_viewer)
+      )
+    end
+
+    # Counts the SQL queries a block issues: an N+1 shows up as a count that grows with the data.
+    def count_queries
+      count = 0
+      callback = ->(*) { count += 1 }
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { yield }
+
+      count
+    end
+
+    it "lists every membership, with the email of each" do
+      get(path, headers: v2_bearer(owner, :write), as: :json)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:collection)
+      expect(response.parsed_body["data"]).to contain_exactly(
+        { "id" => saved_scenario.saved_scenario_users.find_by(user: owner).id,
+          "user_id" => owner.id, "user_email" => owner.email, "role" => "scenario_owner" },
+        { "id" => viewer_membership.id, "user_id" => viewer_membership.user_id,
+          "user_email" => viewer_membership.email, "role" => "scenario_viewer" }
+      )
+    end
+
+    # A caller cannot address a membership in a batch without the id this action reports.
+    it "reports a pending invitee by id, which the batch actions address it by" do
+      invitee = create(
+        :saved_scenario_user,
+        saved_scenario: saved_scenario, user: nil, user_email: "pending@example.com",
+        role_id: User::Roles.index_of(:scenario_viewer)
+      )
+
+      get(path, headers: v2_bearer(owner, :write), as: :json)
+
+      expect(response.parsed_body["data"]).to include(
+        { "id" => invitee.id, "user_id" => nil,
+          "user_email" => "pending@example.com", "role" => "scenario_viewer" }
+      )
+    end
+
+    it "distinguishes one pending invitee from another" do
+      first  = create(
+        :saved_scenario_user, saved_scenario: saved_scenario, user: nil,
+        user_email: "first@example.com", role_id: User::Roles.index_of(:scenario_viewer)
+      )
+      second = create(
+        :saved_scenario_user, saved_scenario: saved_scenario, user: nil,
+        user_email: "second@example.com", role_id: User::Roles.index_of(:scenario_viewer)
+      )
+
+      get(path, headers: v2_bearer(owner, :write), as: :json)
+
+      pending = response.parsed_body["data"].select { |member| member["user_id"].nil? }
+      expect(pending.map { |member| member["id"] }).to contain_exactly(first.id, second.id)
+    end
+
+    it "is readable by an admin" do
+      get(path, headers: v2_bearer(create(:user, admin: true), :write), as: :json)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["data"].length).to eq(2)
+    end
+
+    it "is hidden to a stranger" do
+      get(path, headers: v2_bearer(create(:user), :write), as: :json)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    # A viewer holds a role without being allowed to see who else does. The scenario is not hidden
+    # from them, since they may read it, so this is a refusal rather than a 404.
+    it "is refused to a caller who may read the scenario but not manage access" do
+      get(path, headers: v2_bearer(viewer_membership.user, :write), as: :json)
+
+      expect(response).to have_http_status(:forbidden)
+      expect(response.parsed_body.dig("errors", 0, "code")).to eq("forbidden")
+    end
+
+    # manage_members comes with the write scope, so reading membership needs it too.
+    it "is refused, not hidden, with only the read scope" do
+      get(path, headers: v2_bearer(owner, :read), as: :json)
+
+      expect(response).to have_http_status(:forbidden)
+      expect(response.parsed_body.dig("errors", 0, "code")).to eq("forbidden")
+    end
+
+    it "is told to authenticate when signed out" do
+      get(path, as: :json)
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(response.parsed_body.dig("errors", 0, "code")).to eq("unauthenticated")
+    end
+
+    it "issues no further query for each additional member" do
+      headers = v2_bearer(owner, :write)
+      get(path, headers: headers, as: :json)
+
+      few = count_queries { get(path, headers: headers, as: :json) }
+      create_list(
+        :saved_scenario_user, 9,
+        saved_scenario: saved_scenario, role_id: User::Roles.index_of(:scenario_viewer)
+      )
+      many = count_queries { get(path, headers: headers, as: :json) }
+
+      expect(many).to eq(few)
+    end
+  end
+
   describe "PUT /api/v2/saved_scenarios/:saved_scenario_id/users" do
     let!(:collaborator) do
       create(:saved_scenario_user, saved_scenario: saved_scenario, role_id: User::Roles.index_of(:scenario_viewer))
