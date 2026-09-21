@@ -60,9 +60,13 @@ module Api
         # Admins with read scope can read all saved scenarios and collections.
         can :read, SavedScenario
         can :read, Collection
+        can :read_members, SavedScenario
       else
         can :read, SavedScenario, id: viewer_saved_scenario_ids
         can :read, Collection, id: user_collection_ids
+
+        # Who holds a role on a scenario is the owner's business, so only an owner reads it.
+        can :read_members, SavedScenario, id: owner_saved_scenario_ids
       end
     end
 
@@ -78,18 +82,6 @@ module Api
       else
         can :update, SavedScenario, id: collaborator_saved_scenario_ids
         can :update, Collection, id: user_collection_ids
-      end
-
-      allow_membership_management
-    end
-
-    def allow_membership_management
-      if admin?
-        can :manage_members, SavedScenario
-        can :manage_owners, SavedScenario
-      else
-        can :manage_members, SavedScenario, id: collaborator_saved_scenario_ids
-        can :manage_owners, SavedScenario, id: owner_saved_scenario_ids
       end
     end
 

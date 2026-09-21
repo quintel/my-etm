@@ -39,8 +39,19 @@ class UpdateSavedScenarioUser
     user_params_or_object.is_a?(Array)
   end
 
+  # Ownership is granted before any is given up, so one batch can hand a scenario over and step
+  # down without the last-owner guard refusing the step-down. Items are still reported in the
+  # order they were submitted, whatever order they were applied in.
   def update_all(user_params_list)
-    user_params_list.each_with_index.map { |user_params, index| update_one(user_params, index) }
+    user_params_list
+      .each_with_index
+      .sort_by { |user_params, index| [ grants_ownership?(user_params) ? 0 : 1, index ] }
+      .map { |user_params, index| update_one(user_params, index) }
+      .sort_by(&:index)
+  end
+
+  def grants_ownership?(user_params)
+    user_params[:role_id] == User::Roles.index_of(:scenario_owner)
   end
 
   def update_one(user_params, index)

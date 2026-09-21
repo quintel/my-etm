@@ -5,8 +5,14 @@ module Api
     class SavedScenarioUsersController < BaseController
       load_and_authorize_resource :saved_scenario, only: %i[index create update destroy]
 
-      before_action only: %i[index create update destroy] do
-        authorize!(:manage_members, @saved_scenario)
+      before_action only: %i[index] do
+        authorize!(:read_members, @saved_scenario)
+      end
+
+      # Managing access is owner-only, as it is in the UI, so it answers to the same rule as
+      # destroying the scenario itself.
+      before_action only: %i[create update destroy] do
+        authorize!(:destroy, @saved_scenario)
       end
 
       before_action :reject_discarded_scenario, only: %i[create]
@@ -15,8 +21,6 @@ module Api
       #
       # Emails are served because only a caller who may manage access reaches this action. The id is
       # what the batch actions address a membership by, including one that is still an invitation.
-      #
-      # TODO: Rework of confirm a viewer shoudn't see who has access, and that reading needs write scope.
       def index
         render_collection(
           @saved_scenario.saved_scenario_users.includes(:user).order(:id),
@@ -65,16 +69,11 @@ module Api
         )
       end
 
-      def apply(&service)
+      def apply
         submitted = submitted_items
         return if reject_item_ids(submitted)
 
-        authorisation = SavedScenarioMemberAuthorisation.new(
-          @saved_scenario, submitted.map { |item| scenario_user_params(item) },
-          permit_owners: can?(:manage_owners, @saved_scenario)
-        )
-
-        render_users(authorisation.apply(&service))
+        render_users(yield(submitted.map { |item| scenario_user_params(item) }))
       end
 
       def reject_item_ids(submitted)
