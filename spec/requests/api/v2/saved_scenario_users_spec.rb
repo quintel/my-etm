@@ -31,16 +31,15 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to validate_against_the_v2_envelope(:collection)
       expect(response.parsed_body["data"]).to contain_exactly(
-        { "id" => saved_scenario.saved_scenario_users.find_by(user: owner).id,
-          "user_id" => owner.id, "user_email" => owner.email, "role" => "scenario_owner" },
-        { "id" => viewer_membership.id, "user_id" => viewer_membership.user_id,
-          "user_email" => viewer_membership.email, "role" => "scenario_viewer" }
+        { "email" => owner.email, "role" => "scenario_owner", "pending" => false },
+        { "email" => viewer_membership.email, "role" => "scenario_viewer", "pending" => false }
       )
     end
 
-    # A caller cannot address a membership in a batch without the id this action reports.
-    it "reports a pending invitee by id, which the batch actions address it by" do
-      invitee = create(
+    # Someone invited at an address they have no account for is addressed by that same address,
+    # and the roster says they have not signed up rather than leaving it to be inferred.
+    it "reports an invitee with no account as pending" do
+      create(
         :saved_scenario_user,
         saved_scenario: saved_scenario, user: nil, user_email: "pending@example.com",
         role_id: User::Roles.index_of(:scenario_viewer)
@@ -49,25 +48,25 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       get(path, headers: v2_bearer(owner, :read), as: :json)
 
       expect(response.parsed_body["data"]).to include(
-        { "id" => invitee.id, "user_id" => nil,
-          "user_email" => "pending@example.com", "role" => "scenario_viewer" }
+        { "email" => "pending@example.com", "role" => "scenario_viewer", "pending" => true }
       )
     end
 
     it "distinguishes one pending invitee from another" do
-      first  = create(
+      create(
         :saved_scenario_user, saved_scenario: saved_scenario, user: nil,
         user_email: "first@example.com", role_id: User::Roles.index_of(:scenario_viewer)
       )
-      second = create(
+      create(
         :saved_scenario_user, saved_scenario: saved_scenario, user: nil,
         user_email: "second@example.com", role_id: User::Roles.index_of(:scenario_viewer)
       )
 
       get(path, headers: v2_bearer(owner, :read), as: :json)
 
-      pending = response.parsed_body["data"].select { |member| member["user_id"].nil? }
-      expect(pending.map { |member| member["id"] }).to contain_exactly(first.id, second.id)
+      pending = response.parsed_body["data"].select { |member| member["pending"] }
+      expect(pending.map { |member| member["email"] })
+        .to contain_exactly("first@example.com", "second@example.com")
     end
 
     it "is readable by an admin" do
@@ -137,7 +136,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: collaborator.id, role: "scenario_collaborator" } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email, role: "scenario_collaborator" } ] },
         as: :json
       )
 
@@ -150,10 +149,27 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(item).to eq(
         "status" => "ok",
         "data" => {
-          "id" => collaborator.id, "user_id" => collaborator.user_id,
-          "user_email" => collaborator.email, "role" => "scenario_collaborator"
+          "email" => collaborator.email, "role" => "scenario_collaborator", "pending" => false
         }
       )
+    end
+
+    # Read-only members are ignored rather than refused, so a caller can send an item back as the
+    # index gave it to them.
+    it "ignores pending, which a caller can only have fetched" do
+      put(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: {
+          saved_scenario_users: [
+            { email: collaborator.email, role: "scenario_collaborator", pending: false }
+          ]
+        },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:multi_status)
+      expect(collaborator.reload.role).to eq(:scenario_collaborator)
     end
 
     it "persists the valid items and reports the invalid ones per item, still as 207" do
@@ -162,8 +178,8 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { id: collaborator.id, role: "scenario_collaborator" },
-            { id: -1, role: "scenario_viewer" }
+            { email: collaborator.email, role: "scenario_collaborator" },
+            { email: "missing1@example.com", role: "scenario_viewer" }
           ]
         },
         as: :json
@@ -185,7 +201,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: collaborator.id, role: "not_a_real_role" } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email, role: "not_a_real_role" } ] },
         as: :json
       )
 
@@ -204,8 +220,8 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { id: collaborator.id, role: "not_a_real_role" },
-            { id: collaborator.id, role: "also_not_real" }
+            { email: collaborator.email, role: "not_a_real_role" },
+            { email: collaborator.email, role: "also_not_real" }
           ]
         },
         as: :json
@@ -228,7 +244,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: { id: collaborator.id, role: "scenario_viewer" } },
+        params: { saved_scenario_users: { email: collaborator.email, role: "scenario_viewer" } },
         as: :json
       )
 
@@ -246,7 +262,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: member.id, role: "scenario_collaborator" } ] },
+        params: { saved_scenario_users: [ { email: member.email, role: "scenario_collaborator" } ] },
         as: :json
       )
 
@@ -256,7 +272,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
     it "refuses a batch over the limit" do
       over = Api::V2::BaseController::BATCH_LIMIT + 1
-      items = Array.new(over) { { id: collaborator.id, role: "scenario_viewer" } }
+      items = Array.new(over) { { email: collaborator.email, role: "scenario_viewer" } }
 
       put(path, headers: v2_bearer(owner, :delete), params: { saved_scenario_users: items }, as: :json)
 
@@ -275,7 +291,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         path,
         headers: v2_bearer(owner, :delete),
         params: {
-          saved_scenario_users: [ { user_email: "coupled@example.com", role: "scenario_collaborator" } ]
+          saved_scenario_users: [ { email: "coupled@example.com", role: "scenario_collaborator" } ]
         },
         as: :json
       )
@@ -285,7 +301,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
     end
 
     it "is told to authenticate when signed out" do
-      put(path, params: { saved_scenario_users: [ { id: collaborator.id, role: "scenario_viewer" } ] }, as: :json)
+      put(path, params: { saved_scenario_users: [ { email: collaborator.email, role: "scenario_viewer" } ] }, as: :json)
 
       expect(response).to have_http_status(:unauthorized)
       expect(response.parsed_body.dig("errors", 0, "code")).to eq("unauthenticated")
@@ -295,7 +311,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(create(:user), :delete),
-        params: { saved_scenario_users: [ { id: collaborator.id, role: "scenario_collaborator" } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email, role: "scenario_collaborator" } ] },
         as: :json
       )
 
@@ -308,7 +324,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: collaborator.id, role: "scenario_collaborator" } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email, role: "scenario_collaborator" } ] },
         as: :json
       )
     end
@@ -317,7 +333,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(owner, :read),
-        params: { saved_scenario_users: [ { id: collaborator.id, role: "scenario_collaborator" } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email, role: "scenario_collaborator" } ] },
         as: :json
       )
 
@@ -331,7 +347,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       post(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { user_email: "new@example.com", role: "scenario_viewer" } ] },
+        params: { saved_scenario_users: [ { email: "new@example.com", role: "scenario_viewer" } ] },
         as: :json
       )
 
@@ -346,19 +362,18 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(item).to eq(
         "status" => "ok",
         "data" => {
-          "id" => created.id, "user_id" => nil,
-          "user_email" => "new@example.com", "role" => "scenario_viewer"
+          "email" => "new@example.com", "role" => "scenario_viewer", "pending" => true
         }
       )
     end
 
-    it "attaches an existing user by id" do
+    it "attaches an existing user by their address" do
       invitee = create(:user)
 
       post(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { user_id: invitee.id, role: "scenario_viewer" } ] },
+        params: { saved_scenario_users: [ { email: invitee.email, role: "scenario_viewer" } ] },
         as: :json
       )
 
@@ -366,35 +381,40 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(response.parsed_body["data"].first).to include(
         "status" => "ok",
         "data" => hash_including(
-          "user_id" => invitee.id, "user_email" => invitee.email, "role" => "scenario_viewer"
+          "email" => invitee.email, "role" => "scenario_viewer", "pending" => false
         )
       )
     end
 
-    it "reports an unknown user id as not_found against the item that named it" do
+    # There is no account to fail to find: an address nobody has registered is an invitation.
+    it "invites an address that has no account yet" do
       post(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { user_id: -1, role: "scenario_viewer" } ] },
+        params: {
+          saved_scenario_users: [ { email: "nobody@example.com", role: "scenario_viewer" } ]
+        },
         as: :json
       )
 
       expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
       expect(response.parsed_body["data"].first).to eq(
-        "status" => "error", "code" => "not_found", "detail" => "User not found",
-        "source" => { "pointer" => "/saved_scenario_users/0" }
+        "status" => "ok",
+        "data" => {
+          "email" => "nobody@example.com", "role" => "scenario_viewer", "pending" => true
+        }
       )
     end
 
-    it "reports every failing item, even when they share an identifier" do
+    it "reports every failing item at its own position" do
       post(
         path,
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { user_id: -1, role: "scenario_viewer" },
-            { user_id: -2, role: "scenario_viewer" },
-            { user_id: -3, role: "scenario_viewer" }
+            { email: "a@example.com", role: "not_a_real_role" },
+            { email: "b@example.com", role: "not_a_real_role" },
+            { email: "c@example.com", role: "not_a_real_role" }
           ]
         },
         as: :json
@@ -406,7 +426,10 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       )
     end
 
-    it "reports every validation message for an item in one entry" do
+    # Left to the model this answers "Either user_id or user_email should be present", naming two
+    # members V2 does not have, so the controller refuses it first - and refuses the whole batch,
+    # as it does for an item naming an id.
+    it "refuses an item that addresses nobody" do
       post(
         path,
         headers: v2_bearer(owner, :delete),
@@ -414,8 +437,13 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         as: :json
       )
 
-      expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 0, "failed" => 1, "total" => 1)
-      expect(response.parsed_body["data"].first["detail"]).to include("Either user_id or user_email")
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "param_invalid",
+        "detail" => "is required to address a member",
+        "source" => { "pointer" => "/saved_scenario_users/0/email" }
+      )
     end
 
     it "persists the valid items and reports the invalid ones per item, still as 207" do
@@ -424,8 +452,8 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { user_email: "valid@example.com", role: "scenario_viewer" },
-            { user_email: "invalid@example.com", role: "not_a_real_role" }
+            { email: "valid@example.com", role: "scenario_viewer" },
+            { email: "invalid@example.com", role: "not_a_real_role" }
           ]
         },
         as: :json
@@ -446,8 +474,8 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { user_email: "dup@example.com", role: "scenario_viewer" },
-            { user_email: "dup@example.com", role: "scenario_viewer" }
+            { email: "dup@example.com", role: "scenario_viewer" },
+            { email: "dup@example.com", role: "scenario_viewer" }
           ]
         },
         as: :json
@@ -468,8 +496,8 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { user_email: "kept@example.com", role: "scenario_viewer" },
-            { user_id: -1, role: "scenario_viewer" }
+            { email: "kept@example.com", role: "scenario_viewer" },
+            { email: "bad@example.com", role: "not_a_real_role" }
           ]
         },
         as: :json
@@ -487,27 +515,25 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       post(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { user_email: "new2@example.com", role: "scenario_viewer" } ] },
+        params: { saved_scenario_users: [ { email: "new2@example.com", role: "scenario_viewer" } ] },
         as: :json
       )
     end
 
     it "is told to authenticate when signed out" do
-      post(path, params: { saved_scenario_users: [ { user_email: "a@example.com", role: "scenario_viewer" } ] }, as: :json)
+      post(path, params: { saved_scenario_users: [ { email: "a@example.com", role: "scenario_viewer" } ] }, as: :json)
 
       expect(response).to have_http_status(:unauthorized)
     end
 
-    it "refuses an item naming an id, which would choose the row's primary key" do
-      invitee = create(:user)
-
+    it "refuses an item naming an internal id, rather than dropping it without a word" do
       post(
         path,
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { user_email: "first@example.com", role: "scenario_viewer" },
-            { id: 4242, user_id: invitee.id, role: "scenario_viewer" }
+            { email: "first@example.com", role: "scenario_viewer" },
+            { id: 4242, role: "scenario_viewer" }
           ]
         },
         as: :json
@@ -517,7 +543,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
       expect(response.parsed_body["errors"].sole).to include(
         "code" => "param_invalid",
-        "detail" => "cannot be set when granting access",
+        "detail" => "is not a member of this resource",
         "source" => { "pointer" => "/saved_scenario_users/1/id" }
       )
       expect(SavedScenarioUser.exists?(4242)).to be(false)
@@ -529,8 +555,8 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         headers: v2_bearer(owner, :delete),
         params: {
           saved_scenario_users: [
-            { user_email: "kept@example.com", role: "scenario_viewer" },
-            { id: 4243, user_email: "other@example.com", role: "scenario_viewer" }
+            { email: "kept@example.com", role: "scenario_viewer" },
+            { id: 4243, email: "other@example.com", role: "scenario_viewer" }
           ]
         },
         as: :json
@@ -542,7 +568,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
     it "refuses a batch over the limit, as one error rather than one per item" do
       over = Api::V2::BaseController::BATCH_LIMIT + 1
-      items = Array.new(over) { |i| { user_email: "bulk#{i}@example.com", role: "scenario_viewer" } }
+      items = Array.new(over) { |i| { email: "bulk#{i}@example.com", role: "scenario_viewer" } }
 
       post(path, headers: v2_bearer(owner, :delete), params: { saved_scenario_users: items }, as: :json)
 
@@ -558,7 +584,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
     it "accepts a batch at the limit" do
       items = Array.new(Api::V2::BaseController::BATCH_LIMIT) do |i|
-        { user_email: "atlimit#{i}@example.com", role: "scenario_viewer" }
+        { email: "atlimit#{i}@example.com", role: "scenario_viewer" }
       end
 
       post(path, headers: v2_bearer(owner, :delete), params: { saved_scenario_users: items }, as: :json)
@@ -575,7 +601,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         post(
           path,
           headers: v2_bearer(owner, :delete),
-          params: { saved_scenario_users: [ { user_email: "binned@example.com", role: "scenario_viewer" } ] },
+          params: { saved_scenario_users: [ { email: "binned@example.com", role: "scenario_viewer" } ] },
           as: :json
         )
 
@@ -591,7 +617,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         post(
           path,
           headers: v2_bearer(create(:user), :delete),
-          params: { saved_scenario_users: [ { user_email: "binned@example.com", role: "scenario_viewer" } ] },
+          params: { saved_scenario_users: [ { email: "binned@example.com", role: "scenario_viewer" } ] },
           as: :json
         )
 
@@ -606,7 +632,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
         delete(
           path, headers: v2_bearer(owner, :delete),
-          params: { saved_scenario_users: [ { id: member.id } ] }, as: :json
+          params: { saved_scenario_users: [ { email: member.email } ] }, as: :json
         )
 
         expect(response).to have_http_status(:multi_status)
@@ -621,7 +647,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
         put(
           path, headers: v2_bearer(owner, :delete),
-          params: { saved_scenario_users: [ { id: member.id, role: "scenario_collaborator" } ] },
+          params: { saved_scenario_users: [ { email: member.email, role: "scenario_collaborator" } ] },
           as: :json
         )
 
@@ -634,7 +660,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       post(
         path,
         headers: v2_bearer(owner, :read),
-        params: { saved_scenario_users: [ { user_email: "new3@example.com", role: "scenario_viewer" } ] },
+        params: { saved_scenario_users: [ { email: "new3@example.com", role: "scenario_viewer" } ] },
         as: :json
       )
 
@@ -651,7 +677,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: collaborator.id } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email } ] },
         as: :json
       )
 
@@ -664,8 +690,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(item).to eq(
         "status" => "ok",
         "data" => {
-          "id" => collaborator.id, "user_id" => collaborator.user_id,
-          "user_email" => collaborator.email, "role" => "scenario_viewer"
+          "email" => collaborator.email, "role" => "scenario_viewer", "pending" => false
         }
       )
     end
@@ -680,7 +705,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: member.id, role: "scenario_viewer" } ] },
+        params: { saved_scenario_users: [ { email: member.email, role: "scenario_viewer" } ] },
         as: :json
       )
       updated_item = response.parsed_body["data"].first
@@ -688,7 +713,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: member.id } ] },
+        params: { saved_scenario_users: [ { email: member.email } ] },
         as: :json
       )
 
@@ -699,7 +724,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: collaborator.id }, { id: -1 } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email }, { email: "missing1@example.com" } ] },
         as: :json
       )
 
@@ -724,7 +749,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { user_email: "coupled@example.com" } ] },
+        params: { saved_scenario_users: [ { email: "coupled@example.com" } ] },
         as: :json
       )
 
@@ -736,7 +761,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { user_id: owner.id } ] },
+        params: { saved_scenario_users: [ { email: owner.email } ] },
         as: :json
       )
 
@@ -751,13 +776,13 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { id: collaborator.id } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email } ] },
         as: :json
       )
     end
 
     it "is told to authenticate when signed out" do
-      delete(path, params: { saved_scenario_users: [ { id: collaborator.id } ] }, as: :json)
+      delete(path, params: { saved_scenario_users: [ { email: collaborator.email } ] }, as: :json)
 
       expect(response).to have_http_status(:unauthorized)
     end
@@ -766,7 +791,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(owner, :read),
-        params: { saved_scenario_users: [ { id: collaborator.id } ] },
+        params: { saved_scenario_users: [ { email: collaborator.email } ] },
         as: :json
       )
 
@@ -798,7 +823,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       put(
         path,
         headers: v2_bearer(actor, :delete),
-        params: { saved_scenario_users: [ { id: membership.id, role: role } ] },
+        params: { saved_scenario_users: [ { email: membership.email, role: role } ] },
         as: :json
       )
     end
@@ -807,7 +832,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       delete(
         path,
         headers: v2_bearer(actor, :delete),
-        params: { saved_scenario_users: [ { id: membership.id } ] },
+        params: { saved_scenario_users: [ { email: membership.email } ] },
         as: :json
       )
     end
@@ -853,7 +878,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
           path,
           headers: v2_bearer(collaborator, :delete),
           params: {
-            saved_scenario_users: [ { user_email: "new@example.com", role: "scenario_viewer" } ]
+            saved_scenario_users: [ { email: "new@example.com", role: "scenario_viewer" } ]
           },
           as: :json
         )
@@ -887,7 +912,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         path,
         headers: v2_bearer(owner, :write),
         params: {
-          saved_scenario_users: [ { id: viewer_membership.id, role: "scenario_collaborator" } ]
+          saved_scenario_users: [ { email: viewer_membership.email, role: "scenario_collaborator" } ]
         },
         as: :json
       )
@@ -909,7 +934,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
         put(
           path,
           headers: v2_bearer(owner, :delete),
-          params: { saved_scenario_users: [ { id: member.id, role: role } ] },
+          params: { saved_scenario_users: [ { email: member.email, role: role } ] },
           as: :json
         )
 

@@ -436,11 +436,28 @@ RSpec.describe Api::V2::BaseController, type: :controller do
       expect(response.parsed_body.dig("errors", 0, "code")).to eq("param_missing")
     end
 
-    it "keeps only the declared keys of each item" do
-      post :batched, params: { items: [ { id: 1, role: "scenario_viewer", secret: "x" } ] }, as: :json
+    it "keeps the declared keys of each item" do
+      post :batched, params: { items: [ { id: 1, role: "scenario_viewer" } ] }, as: :json
 
       expect(response.parsed_body.dig("data", "accepted"))
         .to eq([ { "id" => 1, "role" => "scenario_viewer" } ])
+    end
+
+    # A resource refuses a member it does not accept rather than ignoring it; an item does the same,
+    # naming the position it arrived at.
+    it "refuses a member the item does not accept, at the position it was sent" do
+      post(
+        :batched,
+        params: { items: [ { id: 1, role: "scenario_viewer" }, { id: 2, secret: "x" } ] },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["errors"].sole).to include(
+        "code" => "param_invalid",
+        "detail" => "is not a member of this resource",
+        "source" => { "pointer" => "/items/1/secret" }
+      )
     end
   end
 
