@@ -3,7 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
-  let(:class_sym)  { :saved_scenario }
+  let(:class_sym)   { :saved_scenario }
+  let(:owner_assoc) { :saved_scenarios }
   let(:owner)      { create(:user) }
   let(:serialiser) { Api::V2::SavedScenarioSerialiser }
 
@@ -151,9 +152,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     let(:resource_attributes) { attributes }
 
     it_behaves_like "a serialisable resource on create"
-    it_behaves_like "a persistant resource on create" do
-      let(:resource_name) { :saved_scenarios }
-    end
+    it_behaves_like "a persistant resource on create"
 
     it "creates the scenario and renders the single-resource kind" do
       post(path, headers: v2_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json)
@@ -297,6 +296,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     let(:path)     { "/api/v2/saved_scenarios/#{resource.id}" }
 
     let(:strict_attribute)       { :end_year }
+    let(:strict_attribute_value) { :winnie_the_pooh }
     let(:unupdateable_attribute) { :version }
     let(:resource_attributes)    { { title: "My new scenario" } }
 
@@ -304,9 +304,11 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       let(:body) { { saved_scenario: resource_attributes } }
     end
     it_behaves_like "a serialisable resource on update"
-    it_behaves_like "a persistant resource on update" do
-      let(:resource_name) { :saved_scenarios }
-    end
+    it_behaves_like "a persistant resource on update"
+
+    it_behaves_like "a serialisable resource that refuses an unupdateable member"
+    it_behaves_like "a serialisable resource that refuses an invalid member"
+    it_behaves_like "a persistant resource that refuses an invalid member"
 
     it "updates the writable attributes" do
       put(
@@ -440,9 +442,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
 
     it_behaves_like "a delete-protected resource"
     it_behaves_like "a serialisable resource on delete"
-    it_behaves_like "a persistant resource on delete" do
-      let(:resource_name) { :saved_scenarios }
-    end
+    it_behaves_like "a persistant resource on delete"
 
     it "hard-deletes and answers 204" do
       delete(path, headers: v2_bearer(owner, :delete), as: :json)
