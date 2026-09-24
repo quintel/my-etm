@@ -423,7 +423,9 @@ RSpec.describe Api::TokenAbility do
       ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { ability }
 
       expect(queries.grep(/FROM `saved_scenario_users`/).size).to eq(1)
-      expect(queries.grep(/FROM `collections`/).size).to eq(1)
+      # Collections are read twice: the user's own, and those whose every scenario they can
+      # read. Two sets, one query each, neither growing with the number of rules.
+      expect(queries.grep(/FROM `collections`/).size).to eq(2)
     end
   end
 end
