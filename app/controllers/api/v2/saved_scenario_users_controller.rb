@@ -30,7 +30,7 @@ module Api
 
       # POST /api/v2/saved_scenarios/:saved_scenario_id/users
       def create
-        apply do |members|
+        apply(SavedScenarioUserContract) do |members|
           CreateSavedScenarioUser.call(
             nil, @saved_scenario, current_user.name, members,
             user: current_user, sync_to_engine: false
@@ -40,7 +40,7 @@ module Api
 
       # PUT/PATCH /api/v2/saved_scenarios/:saved_scenario_id/users
       def update
-        apply do |members|
+        apply(SavedScenarioUserContract) do |members|
           UpdateSavedScenarioUser.call(
             nil, @saved_scenario, members, user: current_user, sync_to_engine: false
           )
@@ -49,7 +49,7 @@ module Api
 
       # DELETE /api/v2/saved_scenarios/:saved_scenario_id/users
       def destroy
-        apply do |members|
+        apply(SavedScenarioUserRemovalContract) do |members|
           DestroySavedScenarioUser.call(
             nil, @saved_scenario, members, user: current_user, sync_to_engine: false
           )
@@ -68,30 +68,50 @@ module Api
         )
       end
 
-      def apply
-        submitted = submitted_items
-        return if reject_unaddressed_items(submitted)
+      # An item the contract refuses never reaches the service, and is reported at the position it
+      # was submitted at, beside the results of the items that did.
+      def apply(contract)
+        accepted, refused = read_items(contract)
+        applied = accepted.any? ? yield(accepted.map { |_, item| scenario_user_params(item) }) : nil
 
-        render_users(yield(submitted.map { |item| scenario_user_params(item) }))
+        attempted = at_submitted_positions(applied, accepted.map(&:first))
+        render_users(BulkResult.new((refused + attempted).sort_by(&:index)))
       end
 
-      # An item naming nobody addresses nothing, so the whole request is refused rather than the
-      # item failing on its own: a batch reports per item only once it knows who each item is
-      # about. Left to the model it answers "Either user_id or user_email should be present",
-      # naming members v2 does not have.
-      #
-      # TODO: drop once v1 and v3 retire; the services can then take an address and say so.
-      def reject_unaddressed_items(submitted)
-        index = submitted.index { |item| item[:email].blank? }
-        return false if index.nil?
+      # Every item keeps the position it arrived at, so a refusal and a result are addressed alike
+      # however few items the service was given. Returns the accepted items first, then the refusals.
+      def read_items(contract)
+        accepted = []
+        refused = []
 
-        render_error(
-          status: :bad_request,
-          code: EtmApi::Errors::Codes::PARAM_INVALID,
-          detail: "is required to address a member",
-          source: member_source([ :saved_scenario_users, index, :email ])
+        submitted_items.each_with_index do |item, index|
+          result = contract.new.call(item.to_h.symbolize_keys)
+
+          if result.success?
+            accepted << [ index, result.to_h ]
+          else
+            refused << refusal(index, item, result)
+          end
+        end
+
+        [ accepted, refused ]
+      end
+
+      def refusal(index, item, result)
+        BulkResult::Item.error(
+          index: index,
+          identifier: item[:email],
+          code: :validation_failed,
+          messages: result.errors.map { |error| "#{error.path.join('/')} #{error.text}" }
         )
-        true
+      end
+
+      # A service numbers the list it was handed, which holds only the accepted items, so each
+      # result is moved back onto the position its item was submitted at.
+      def at_submitted_positions(applied, positions)
+        return [] if applied.nil?
+
+        applied.items.map { |item| item.with(index: positions[item.index]) }
       end
 
       def render_users(result)

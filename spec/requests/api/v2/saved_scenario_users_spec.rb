@@ -427,23 +427,76 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
     end
 
     # Left to the model this answers "Either user_id or user_email should be present", naming two
-    # members V2 does not have, so the controller refuses it first - and refuses the whole batch,
-    # as it does for an item naming an id.
-    it "refuses an item that addresses nobody" do
+    # members V2 does not have, so the contract refuses it first - as an item, because the rest of
+    # the batch is unaffected by one item naming nobody.
+    it "refuses an item that addresses nobody, leaving the rest of the batch alone" do
       post(
         path,
         headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { role: "scenario_viewer" } ] },
+        params: {
+          saved_scenario_users: [
+            { role: "scenario_viewer" },
+            { email: "named@example.com", role: "scenario_viewer" }
+          ]
+        },
         as: :json
       )
 
-      expect(response).to have_http_status(:bad_request)
-      expect(response.parsed_body).to validate_against_the_v2_envelope(:error)
-      expect(response.parsed_body["errors"].sole).to include(
-        "code" => "param_invalid",
-        "detail" => "is required to address a member",
-        "source" => { "pointer" => "/saved_scenario_users/0/email" }
+      expect(response).to have_http_status(:multi_status)
+      expect(response.parsed_body).to validate_against_the_v2_envelope(:batch)
+      expect(response.parsed_body.dig("meta", "batch")).to eq("succeeded" => 1, "failed" => 1, "total" => 2)
+      expect(response.parsed_body["data"].first).to include(
+        "status" => "error",
+        "code" => "validation_failed",
+        "detail" => "email is missing",
+        "source" => { "pointer" => "/saved_scenario_users/0" }
       )
+      expect(SavedScenarioUser.exists?(saved_scenario: saved_scenario, user_email: "named@example.com")).to be(true)
+    end
+
+    # The service only ever sees the accepted items, so it numbers them from zero. Two refusals in
+    # the middle are what makes a result reported at the service's position land in the wrong place
+    # rather than merely tie with the right one.
+    it "reports an applied item at its own position, not the one the service gave it" do
+      post(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: {
+          saved_scenario_users: [
+            { email: "first@example.com", role: "scenario_viewer" },
+            { role: "scenario_viewer" },
+            { email: "third@example.com", role: "invalid_role" },
+            { email: "fourth@example.com", role: "scenario_viewer" }
+          ]
+        },
+        as: :json
+      )
+
+      items = response.parsed_body["data"]
+
+      expect(items.map { |item| item["status"] }).to eq(%w[ok error error ok])
+      expect(items.values_at(1, 2).map { |item| item["source"] }).to eq(
+        [ { "pointer" => "/saved_scenario_users/1" }, { "pointer" => "/saved_scenario_users/2" } ]
+      )
+      expect(items.values_at(0, 3).map { |item| item.dig("data", "email") })
+        .to eq([ "first@example.com", "fourth@example.com" ])
+    end
+
+    it "refuses an item asking for a role that does not exist" do
+      post(
+        path,
+        headers: v2_bearer(owner, :delete),
+        params: { saved_scenario_users: [ { email: "named@example.com", role: "invalid_role" } ] },
+        as: :json
+      )
+
+      expect(response).to have_http_status(:multi_status)
+      expect(response.parsed_body["data"].sole).to include(
+        "status" => "error",
+        "code" => "validation_failed",
+        "source" => { "pointer" => "/saved_scenario_users/0" }
+      )
+      expect(SavedScenarioUser.exists?(saved_scenario: saved_scenario, user_email: "named@example.com")).to be(false)
     end
 
     it "persists the valid items and reports the invalid ones per item, still as 207" do
