@@ -128,7 +128,7 @@ module Api
 
     # Collections the user may read: their own, plus any whose every scenario they can read.
     def readable_collection_ids
-      user_collection_ids | Collection.fully_readable_by(@user).pluck(:id)
+      @readable_collection_ids ||= user_collection_ids | Collection.fully_readable_by(@user).pluck(:id)
     end
   end
 end
