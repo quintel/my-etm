@@ -14,14 +14,6 @@ module SavedScenario::Users
     saved_scenario_users.where(role_id: User::Roles.index_of(:scenario_viewer))
   end
 
-  def user_by_email(email)
-    invited = saved_scenario_users.find_by(user_email: email)
-    return invited if invited
-
-    user = User.find_by(email: email)
-    saved_scenario_users.find_by(user_id: user.id) if user
-  end
-
   def single_owner?
     owners.count == 1
   end
