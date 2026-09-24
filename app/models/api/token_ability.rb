@@ -6,8 +6,8 @@ module Api
     include CanCan::Ability
 
     def initialize(token, user)
-      # Discard uses the same permissions as destroy (both are owner-only actions)
-      alias_action(:discard, to: :destroy)
+      # Discard and restore use the same permissions as destroy (all owner-only actions)
+      alias_action(:discard, :restore, to: :destroy)
 
       @scopes = extract_scopes(token)
       @user   = user
@@ -60,9 +60,13 @@ module Api
         # Admins with read scope can read all saved scenarios and collections.
         can :read, SavedScenario
         can :read, Collection
+        can :read_members, SavedScenario
       else
         can :read, SavedScenario, id: viewer_saved_scenario_ids
         can :read, Collection, id: readable_collection_ids
+
+        # Who holds a role on a scenario is the owner's business, so only an owner reads it.
+        can :read_members, SavedScenario, id: owner_saved_scenario_ids
       end
     end
 
@@ -95,35 +99,36 @@ module Api
 
     # Helper methods to fetch associated IDs for SavedScenario based on the user's role.
 
+    def memberships
+      @memberships ||= SavedScenarioUser.where(user_id: @user.id).pluck(:saved_scenario_id, :role_id)
+    end
+
+    def saved_scenario_ids_from(role)
+      minimum = User::Roles.index_of(role)
+
+      memberships.filter_map { |saved_scenario_id, role_id| saved_scenario_id if role_id >= minimum }
+    end
+
     def viewer_saved_scenario_ids
-      SavedScenarioUser.where(
-        user_id: @user.id,
-        role_id: User::Roles.index_of(:scenario_viewer)..
-      ).pluck(:saved_scenario_id)
+      saved_scenario_ids_from(:scenario_viewer)
     end
 
     def collaborator_saved_scenario_ids
-      SavedScenarioUser.where(
-        user_id: @user.id,
-        role_id: User::Roles.index_of(:scenario_collaborator)..
-      ).pluck(:saved_scenario_id)
+      saved_scenario_ids_from(:scenario_collaborator)
     end
 
     def owner_saved_scenario_ids
-      SavedScenarioUser.where(
-        user_id: @user.id,
-        role_id: User::Roles.index_of(:scenario_owner)
-      ).pluck(:saved_scenario_id)
+      saved_scenario_ids_from(:scenario_owner)
     end
 
     # Helper method for fetching Collection IDs for the user.
     def user_collection_ids
-      Collection.where(user_id: @user.id).pluck(:id)
+      @user_collection_ids ||= Collection.where(user_id: @user.id).pluck(:id)
     end
 
     # Collections the user may read: their own, plus any whose every scenario they can read.
     def readable_collection_ids
-      user_collection_ids | Collection.fully_readable_by(@user).pluck(:id)
+      @readable_collection_ids ||= user_collection_ids | Collection.fully_readable_by(@user).pluck(:id)
     end
   end
 end

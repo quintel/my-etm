@@ -362,4 +362,70 @@ RSpec.describe Api::TokenAbility do
       end
     end
   end
+
+  # Who holds a role on a scenario is the owner's business, so only an owner may read it - but it
+  # is a read, and asks for no more than the read scope. Changing it answers to :destroy.
+  describe "reading membership" do
+    let(:scopes) { "public scenarios:read" }
+
+    context "as an owner" do
+      let(:user) { owner_user }
+
+      it "may read the members with only the read scope" do
+        expect(ability).to be_able_to(:read_members, private_saved_scenario)
+      end
+
+      it "may not change them without the delete scope" do
+        expect(ability).not_to be_able_to(:destroy, private_saved_scenario)
+      end
+    end
+
+    context "as a collaborator" do
+      let(:user) { collaborator_user }
+
+      it "may not read the members, though it may read the scenario" do
+        expect(ability).not_to be_able_to(:read_members, public_saved_scenario)
+      end
+    end
+
+    context "as a viewer" do
+      let(:user) { viewer_user }
+
+      it "may not read the members" do
+        expect(ability).not_to be_able_to(:read_members, private_saved_scenario)
+      end
+    end
+
+    context "as an admin" do
+      let(:user) { create(:user, admin: true) }
+
+      it "may read the members of a scenario they hold no role on" do
+        expect(ability).to be_able_to(:read_members, other_private_saved_scenario)
+      end
+    end
+  end
+
+  describe "the cost of building the ability" do
+    let(:user)   { create(:user, admin: false) }
+    let(:scopes) { "public scenarios:read scenarios:write scenarios:delete" }
+
+    before do
+      create_list(:saved_scenario, 3, user: user)
+      create_list(:collection, 2, user: user)
+    end
+
+    it "reads each table once, however many rules depend on it" do
+      queries = []
+      callback = lambda do |*, payload|
+        queries << payload[:sql] unless payload[:sql].match?(/\A(BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)/i)
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { ability }
+
+      expect(queries.grep(/FROM `saved_scenario_users`/).size).to eq(1)
+      # Collections are read twice: the user's own, and those whose every scenario they can
+      # read. Two sets, one query each, neither growing with the number of rules.
+      expect(queries.grep(/FROM `collections`/).size).to eq(2)
+    end
+  end
 end

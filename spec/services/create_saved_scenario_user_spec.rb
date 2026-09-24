@@ -52,6 +52,18 @@ describe CreateSavedScenarioUser, type: :service do
         # Expect two calls: one for current scenario (with scenario_id), one for historical scenarios
         expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later).twice
       end
+
+      context "when sync_to_engine is false" do
+        let(:service) do
+          described_class.new(http_client, saved_scenario, user.name, settings, sync_to_engine: false)
+        end
+
+        it "does not enqueue a sync to ETEngine" do
+          expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+
+          service.call
+        end
+      end
     end
 
     context "when the SavedScenarioUser is invalid" do
@@ -90,10 +102,10 @@ describe CreateSavedScenarioUser, type: :service do
         create(:saved_scenario_user, :with_email, saved_scenario: saved_scenario, role_id: 1)
       end
 
-      it 'returns a failure ServiceResult with "duplicate" error' do
+      it 'returns a failure ServiceResult naming the existing access' do
         result = service.call
         expect(result).not_to be_successful
-        expect(result.errors).to eq([ "duplicate" ])
+        expect(result.errors).to eq([ "This user already has access to this scenario" ])
       end
     end
 

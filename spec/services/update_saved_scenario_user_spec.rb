@@ -46,6 +46,26 @@ describe UpdateSavedScenarioUser, type: :service do
     end
   end
 
+  context 'sync_to_engine' do
+    it 'enqueues a sync to ETEngine by default' do
+      expect(SavedScenarioUserCallbacksJob).to receive(:perform_later)
+
+      result
+    end
+
+    context 'when explicitly disabled' do
+      let(:result) do
+        described_class.call(client, saved_scenario, saved_scenario_user, 2, sync_to_engine: false)
+      end
+
+      it 'does not enqueue a sync to ETEngine' do
+        expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+
+        result
+      end
+    end
+  end
+
   context 'when addressing a user by an email their record no longer holds' do
     it 'updates their role' do
       viewer = FactoryBot.create(:user)
@@ -82,6 +102,34 @@ describe UpdateSavedScenarioUser, type: :service do
       expect { result }.not_to change(
         saved_scenario.owners, :count
       )
+    end
+  end
+
+  # The last-owner guard reads the roles as they stand when each item is saved, so a batch that
+  # hands over ownership and steps down depends on ownership being granted before it is given up.
+  context 'when one batch transfers ownership and steps down' do
+    let(:owner_membership) { saved_scenario.owners.first }
+    let(:items) do
+      [
+        { id: owner_membership.id, role_id: User::Roles.index_of(:scenario_viewer) },
+        { id: saved_scenario_user.id, role_id: User::Roles.index_of(:scenario_owner) }
+      ]
+    end
+
+    let(:result) { described_class.call(client, saved_scenario, items, sync_to_engine: false) }
+
+    it 'applies both items even though the step-down was submitted first' do
+      expect(result.items.map(&:ok?)).to eq([ true, true ])
+    end
+
+    it 'leaves the scenario with exactly one owner' do
+      result
+
+      expect(saved_scenario.owners.reload.map(&:id)).to eq([ saved_scenario_user.id ])
+    end
+
+    it 'reports each item at the position it was submitted' do
+      expect(result.items.map(&:index)).to eq([ 0, 1 ])
     end
   end
 end
