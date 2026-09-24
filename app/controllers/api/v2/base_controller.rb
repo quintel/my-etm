@@ -82,6 +82,22 @@ module Api
         submitted.permit(*scalars, **lists)
       end
 
+      # Reads the members an action's contract accepts, rendering and returning nil when the
+      # contract refuses one. Every action that takes a body validates through its own contract.
+      def validated(contract, submitted)
+        result = contract.new.call(submitted.to_h.symbolize_keys)
+        return result.to_h if result.success?
+
+        render_validation_errors(result.errors.to_h)
+        nil
+      end
+
+      # The members an action's contracts accept. Read from the contracts rather than repeated, so
+      # a member added to one stays addressable by an error pointer without a second edit.
+      def members_of(*contracts)
+        contracts.flat_map { |contract| contract.schema.key_map.map { |key| key.name.to_sym } }.uniq
+      end
+
       # A batch endpoint's body is the list itself rather than a resource carrying one, so it names
       # its member here instead of declaring it through resource_params. BATCH_LIMIT covers a batch
       # as well as a member list, and this is where a batch gets it.

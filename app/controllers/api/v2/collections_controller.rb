@@ -36,24 +36,28 @@ module Api
 
       # POST api/v2/collections
       def create
-        attributes = create_params
+        attributes = validated(CollectionCreateContract, create_params)
+        return if attributes.nil?
         return if reject_unresolvable_members(attributes[:saved_scenario_ids])
 
         render_write(
-          Api::CreateCollection.new.call(user: current_user, params: attributes.to_h.symbolize_keys),
+          Api::CreateCollection.new.call(
+            user: current_user,
+            # Not a v2 member, temporary workaround because the column defaults to true.
+            params: attributes.merge(interpolation: false)
+          ),
           with: CollectionSerialiser, status: :created
         )
       end
 
       # PUT/PATCH api/v2/collections/:id
       def update
-        attributes = update_params
+        attributes = validated(CollectionUpdateContract, update_params)
+        return if attributes.nil?
         return if reject_unresolvable_members(attributes[:saved_scenario_ids])
 
         render_write(
-          Api::UpdateCollection.new.call(
-            collection: @collection, params: attributes.to_h.symbolize_keys
-          ),
+          Api::UpdateCollection.new.call(collection: @collection, params: attributes),
           with: CollectionSerialiser
         )
       end
@@ -82,7 +86,7 @@ module Api
       private
 
       def request_members
-        %i[title version saved_scenario_ids]
+        members_of(CollectionCreateContract, CollectionUpdateContract)
       end
 
       # Api::V1 renders Collection's error keys verbatim, so :scenarios is translated, not renamed.
@@ -93,7 +97,6 @@ module Api
       def create_params
         resource_params(:title, :version, saved_scenario_ids: [])
           .tap { |attributes| attributes.require(:saved_scenario_ids) }
-          .with_defaults(interpolation: false) # Not a V2 member, but the column defaults to true
       end
 
       def update_params

@@ -83,17 +83,8 @@ module Api
 
       private
 
-      # Renders and returns nil when the contract rejects a member
-      def validated(contract, attributes)
-        result = contract.new.call(attributes.to_h.symbolize_keys)
-        return result.to_h if result.success?
-
-        render_validation_errors(result.errors.to_h)
-        nil
-      end
-
       def request_members
-        %i[scenario_id title version description area_code end_year private]
+        members_of(SavedScenarioCreateContract, SavedScenarioUpdateContract)
       end
 
       def create_params
