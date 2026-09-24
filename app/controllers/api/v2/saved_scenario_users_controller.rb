@@ -75,8 +75,10 @@ module Api
         render_users(yield(submitted.map { |item| scenario_user_params(item) }))
       end
 
-      # An item naming nobody addresses nothing. Left to the model it answers "Either user_id or
-      # user_email should be present", naming members V2 does not have.
+      # An item naming nobody addresses nothing, so the whole request is refused rather than the
+      # item failing on its own: a batch reports per item only once it knows who each item is
+      # about. Left to the model it answers "Either user_id or user_email should be present",
+      # naming members v2 does not have.
       #
       # TODO: drop once v1 and v3 retire; the services can then take an address and say so.
       def reject_unaddressed_items(submitted)
@@ -87,7 +89,7 @@ module Api
           status: :bad_request,
           code: EtmApi::Errors::Codes::PARAM_INVALID,
           detail: "is required to address a member",
-          source: { pointer: "/saved_scenario_users/#{index}/email" }
+          source: member_source([ :saved_scenario_users, index, :email ])
         )
         true
       end
