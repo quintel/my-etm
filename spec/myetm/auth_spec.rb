@@ -1,6 +1,20 @@
 # frozen_string_literal: true
 
 RSpec.describe MyEtm::Auth do
+  describe '.sign_event' do
+    let(:token) { described_class.sign_event({ scenario_id: 1 }, audience: 'collections-events') }
+    let(:header) { JWT.decode(token, described_class.signing_key.public_key, true, algorithms: [ 'RS256' ], aud: 'collections-events', verify_aud: true).last }
+
+    it 'names the key the JWKS publishes' do
+      expect(header['kid']).to eq(Doorkeeper::OpenidConnect.signing_key.kid)
+    end
+
+    # Identity decoders key on the subject and audience; an event must never pass as a credential
+    it 'cannot pass as an identity token' do
+      expect(described_class.verify_jwt(token)).to be_nil
+    end
+  end
+
   describe '.verify_jwt' do
     let(:user) { create(:user) }
 

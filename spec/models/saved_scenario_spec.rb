@@ -1,6 +1,15 @@
 require 'rails_helper'
 
 RSpec.describe SavedScenario, type: :model do
+  describe 'publishing to Collections' do
+    it 'enqueues an event when the saved scenario is updated' do
+      saved_scenario = create(:saved_scenario)
+
+      expect { saved_scenario.update!(scenario_id: 202) }
+        .to have_enqueued_job(InvalidateCollectionScenarioJob).with(saved_scenario)
+    end
+  end
+
   describe "#scenario_id_history" do
     subject { SavedScenario.new.scenario_id_history }
     it { is_expected.to be_a(Array) }

@@ -16,6 +16,8 @@ class SavedScenario < ApplicationRecord
   # Clean up zombie ScenarioUsers in ETEngine when SavedScenario is soft-deleted
   after_discard :cleanup_scenario_users
 
+  after_update_commit { InvalidateCollectionScenarioJob.perform_later(self) }
+
   # Used by Fiterable Concern
   FILTER_PARAMS = [ :search, :version, :featured, area_codes: [], end_years: [] ].freeze
 
