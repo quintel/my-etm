@@ -13,6 +13,10 @@ module Api
       # meaning it is declared in resource_params (`version` is a reserved scalar member name
       VERSION_MEMBER = :version
 
+      # Off because it rebuilds a body that arrived without its wrapper key from the model's column
+      # names, which would otherwise leave resource_params nothing to refuse.
+      wrap_parameters false
+
       check_authorization
 
       # Authenticated by default: an endpoint open to anonymous callers skips this deliberately.

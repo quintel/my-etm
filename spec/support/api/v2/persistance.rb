@@ -131,6 +131,46 @@ RSpec.shared_examples('a persistant resource that refuses an invalid member') do
   end
 end
 
+# For an update endpoint whose resource shows members no request may set.
+#
+# Read-only members are ignored rather than refused, so a caller can send a resource back as they
+# fetched it. Every member of the list is sent, so one leaving it fails here.
+#
+# Expects the following declared:
+#     owner               - the user the resource belongs to
+#     resource            - the record under test
+#     path                - the endpoint's path for that record
+#     class_sym           - the member the request body wraps the resource in
+#     resource_attributes - a body the action accepts
+RSpec.shared_examples('a persistant resource that ignores its read-only members') do
+  let(:sent) { 5.years.ago }
+
+  # Read before the update runs, so hook order matters: let! declared above the request.
+  let!(:created_at) { resource.created_at }
+
+  before do
+    put(
+      path,
+      headers: v2_bearer(owner),
+      params: {
+        class_sym => resource_attributes.merge(
+          id: resource.id + 1, created_at: sent, updated_at: sent, discarded_at: sent
+        )
+      },
+      as: :json
+    )
+  end
+
+  it 'applies none of them, and still answers for the record addressed' do
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body.dig('data', 'id')).to eq(resource.id)
+    expect(resource.reload.created_at).to be_within(1.second).of(created_at)
+    expect(resource.discarded_at).to be_nil
+    # The update itself bumps updated_at, so the check is that it moved to now, not to what was sent.
+    expect(resource.updated_at).to be > sent
+  end
+end
+
 # For delete endpoints
 #
 # Expects the following declared:
