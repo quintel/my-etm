@@ -91,6 +91,15 @@ module MyEtm
       nil
     end
 
+    # Signs an inter-app event, verified by subscribers against the JWKS like an identity token
+    def sign_event(claims, audience:)
+      JWT.encode(
+        { iss: Settings.auth.issuer, aud: audience, iat: Time.now.to_i, exp: 5.minutes.from_now.to_i }
+          .merge(claims),
+        signing_key, "RS256", { kid: Doorkeeper::OpenidConnect.signing_key.kid }
+      )
+    end
+
     # Mints a short-lived Doorkeeper access token scoped to the given client app and returns its JWT.
     # Doorkeeper::JWT (configured in doorkeeper_jwt.rb) is the only JWT minter system-wide, so this is
     # a real, persisted (if short-lived) token rather than a second, independently-signed JWT.
