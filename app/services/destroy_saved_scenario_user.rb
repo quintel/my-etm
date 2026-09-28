@@ -49,7 +49,7 @@ class DestroySavedScenarioUser
 
     unless saved_scenario_user
       return BulkResult::Item.error(
-        index:, identifier:, code: :not_found, messages: [ "User not found" ]
+        index:, identifier:, code: :not_found, messages: [ "Saved scenario user not found" ]
       )
     end
 
