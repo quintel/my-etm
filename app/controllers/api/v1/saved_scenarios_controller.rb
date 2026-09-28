@@ -39,10 +39,10 @@ module Api
           current_user
         )
 
-        if result.successful?
-          render json: result.value, status: :created
+        if result.success?
+          render json: result.value!, status: :created
         else
-          render json: { errors: result.errors }, status: :unprocessable_entity
+          render json: { errors: failure_messages(result.failure) }, status: :unprocessable_entity
         end
       end
 
@@ -54,10 +54,10 @@ module Api
           saved_scenario_params.except(:version)
         )
 
-        if result.successful?
-          render json: result.value, status: :ok
+        if result.success?
+          render json: result.value!, status: :ok
         else
-          render json: { errors: result.errors }, status: :unprocessable_entity
+          render json: { errors: failure_messages(result.failure) }, status: :unprocessable_entity
         end
       end
 
@@ -89,6 +89,13 @@ module Api
       end
 
       private
+
+      # The service answers a dry-monads failure: the record's errors when the caller is at fault,
+      # or a [:upstream, messages] pair when something this request depends on failed. V1 renders
+      # both as the same list of strings, as it always has.
+      def failure_messages(failure)
+        failure.is_a?(Array) ? failure.last : failure.full_messages
+      end
 
       # Only allow a list of trusted parameters through.
       def saved_scenario_params

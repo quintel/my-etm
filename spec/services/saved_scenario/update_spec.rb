@@ -33,12 +33,12 @@ describe SavedScenario::Update, type: :service do
     context 'when discarding a scenario' do
       let(:params) { { discarded: true } }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'sets discarded at' do
@@ -53,12 +53,12 @@ describe SavedScenario::Update, type: :service do
 
       before { saved_scenario.update!(discarded_at: 1.day.ago) }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'sets discarded at' do
@@ -72,12 +72,12 @@ describe SavedScenario::Update, type: :service do
 
       before { saved_scenario.update!(discarded_at: 1.day.ago) }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'unsets discarded at' do
@@ -90,12 +90,12 @@ describe SavedScenario::Update, type: :service do
     context 'when given a new scenario_id' do
       let(:params) { { scenario_id: 2 } }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'updates the scenario_id' do
@@ -114,12 +114,12 @@ describe SavedScenario::Update, type: :service do
     context 'when given no scenario_id' do
       let(:params) { { title: 'New title' } }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'does not update the scenario_id' do
@@ -138,12 +138,12 @@ describe SavedScenario::Update, type: :service do
     context 'when given the same scenario_id' do
       let(:params) { { scenario_id: 1, title: 'New title' } }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'does not update the scenario_id' do
@@ -164,12 +164,12 @@ describe SavedScenario::Update, type: :service do
 
       before { saved_scenario.update(scenario_id_history: [ 2, 3 ]) }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'updates the scenario_id' do
