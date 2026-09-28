@@ -39,9 +39,12 @@ module EtmApi
         body.nil? || body == "" ? [] : [ "a no_content response must carry no body" ]
       end
 
+      # The status is read only once resource_violations is empty, which leaves `data` an object.
       def ok_violations(body)
-        resource_violations(body) +
-          (body.dig("data", "status") == "ok" ? [] : [ "data/status must be \"ok\"" ])
+        violations = resource_violations(body)
+        return violations if violations.any?
+
+        body["data"]["status"] == "ok" ? [] : [ "data/status must be \"ok\"" ]
       end
 
       def batch_violations(body)
