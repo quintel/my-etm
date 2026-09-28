@@ -72,6 +72,11 @@ RSpec.describe EtmApi::Envelope do
         expect(violations({ "data" => { "status" => "error" }, "meta" => {} }, :ok))
           .to include('data/status must be "ok"')
       end
+
+      # The ok kind reads into data for a status, so it answers for a data that cannot hold one.
+      it "reports a data that is not an object" do
+        expect(violations({ "data" => [], "meta" => {} }, :ok)).to eq([ "data must be an object" ])
+      end
     end
 
     describe "the no_content kind" do
