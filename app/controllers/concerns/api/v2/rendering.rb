@@ -113,12 +113,26 @@ module Api
         "is not a member of this resource"
       end
 
+      # Rails names an error on an indexed association `members[1].attribute`. The member and the
+      # position are what a pointer needs; `base` names the record as a whole, so it adds nothing.
+      INDEXED_MEMBER = /\A(?<member>\w+)\[(?<index>\d+)\]\.(?<attribute>\w+)\z/
+
       def member_source(path)
-        member, *rest = path
+        member, *rest = at_index(path)
         member = member_aliases.fetch(member.to_s.to_sym) { member.to_s.to_sym }
         return nil unless request_members.include?(member)
 
         { pointer: json_pointer([ member, *rest ]) }
+      end
+
+      def at_index(path)
+        first, *rest = path
+        match = INDEXED_MEMBER.match(first.to_s)
+        return path unless match
+
+        attribute = match[:attribute] == "base" ? [] : [ match[:attribute].to_sym ]
+
+        [ match[:member], match[:index].to_i, *attribute, *rest ]
       end
 
       def json_pointer(path)

@@ -18,7 +18,7 @@ class Collection < ApplicationRecord
     class_name: "CollectionScenario",
     dependent: :delete_all
 
-  has_many :collection_saved_scenarios, dependent: :destroy,  autosave: true, inverse_of: :collection
+  has_many :collection_saved_scenarios, dependent: :destroy,  autosave: true, inverse_of: :collection, index_errors: true
   has_many :saved_scenarios,
     -> { order("collection_saved_scenarios.saved_scenario_order ASC") },
     through: :collection_saved_scenarios
@@ -230,7 +230,9 @@ class Collection < ApplicationRecord
     return unless interpolated?
 
     active_saved = collection_saved_scenarios.reject(&:marked_for_destruction?)
-    saved = active_saved.map(&:saved_scenario)
+    # A member that resolved to nothing is already refused by CollectionSavedScenario, and asking it
+    # for an area code would raise before that refusal could be rendered.
+    saved = active_saved.filter_map(&:saved_scenario)
     return if saved.size < 2
 
     if saved.map(&:area_code).uniq.size > 1

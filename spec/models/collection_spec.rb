@@ -147,6 +147,38 @@ RSpec.describe Collection, type: :model do
     end
   end
 
+  describe 'a member that resolves to nothing' do
+    let(:user)   { create(:user) }
+    let(:other)  { create(:user) }
+    let(:known)  { create(:saved_scenario, user: user) }
+
+    def collection_with(ids, interpolation: false)
+      Collection.new(
+        user: user, title: 'c', version: Version.default, interpolation: interpolation
+      ).tap do |collection|
+        collection.saved_scenario_ids = ids
+        collection.valid?
+      end
+    end
+
+    it 'is refused rather than raising, even on an interpolated collection' do
+      collection = collection_with([ known.id, 999_999_999 ], interpolation: true)
+
+      expect(collection.errors).not_to be_empty
+    end
+
+    it 'is described the same way whether it is absent, discarded or another user\'s' do
+      discarded   = create(:saved_scenario, user: user).tap(&:discard)
+      inaccessible = create(:saved_scenario, user: other, private: true)
+
+      details = [ 999_999_999, discarded.id, inaccessible.id ].map do |id|
+        collection_with([ id ]).errors.map(&:message).map { |message| message.sub(id.to_s, '<id>') }
+      end
+
+      expect(details.uniq.size).to eq(1)
+    end
+  end
+
   describe '.saved_scenario_ids=' do
     let(:user) { create(:user) }
 
