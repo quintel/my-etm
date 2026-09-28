@@ -47,13 +47,25 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       expect(ids).to eq([ kept.id ])
     end
 
+    # Every collection v2 creates holds at least one saved scenario, so a collection without one
+    # exercises neither the preload nor the ordering the association carries.
+    it 'lists a collection holding saved scenarios' do
+      collection = create(:collection, user: owner, saved_scenarios_count: 2)
+
+      get(path, headers: v2_bearer(owner, :read), as: :json)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body['data'].first['saved_scenario_ids'])
+        .to eq(collection.saved_scenario_ids)
+    end
+
     it 'issues no further query for each additional collection' do
-      create_list(:collection, 5, user: owner)
+      create_list(:collection, 5, user: owner, saved_scenarios_count: 1)
       headers = v2_bearer(owner, :read)
       get(path, headers: headers, as: :json)
 
       few = count_queries { get(path, headers: headers, as: :json) }
-      create_list(:collection, 20, user: owner)
+      create_list(:collection, 20, user: owner, saved_scenarios_count: 1)
       many = count_queries { get(path, headers: headers, as: :json) }
 
       expect(many).to eq(few)

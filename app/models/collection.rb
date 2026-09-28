@@ -18,10 +18,13 @@ class Collection < ApplicationRecord
     class_name: "CollectionScenario",
     dependent: :delete_all
 
-  has_many :collection_saved_scenarios, dependent: :destroy,  autosave: true, inverse_of: :collection, index_errors: true
-  has_many :saved_scenarios,
-    -> { order("collection_saved_scenarios.saved_scenario_order ASC") },
-    through: :collection_saved_scenarios
+  # saved_scenarios inherits this order. It cannot carry its own: `includes(:saved_scenarios)`
+  # preloads that table alone, and saved_scenario_order is not on it.
+  has_many :collection_saved_scenarios,
+    -> { order(:saved_scenario_order) },
+    dependent: :destroy, autosave: true, inverse_of: :collection, index_errors: true
+
+  has_many :saved_scenarios, through: :collection_saved_scenarios
 
   # Allow nested attributes so child changes are saved/validated with parent
   accepts_nested_attributes_for :collection_saved_scenarios, allow_destroy: true

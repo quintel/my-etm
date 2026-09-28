@@ -10,6 +10,10 @@ FactoryBot.define do
 
     transient do
       scenarios_count { 2 }
+      # Linked saved scenarios, which v2 requires at least one of on create. Off by default: a
+      # member built here is public, and a collection whose members are all public is readable by
+      # a signed-out caller, so defaulting it would change what unrelated specs test.
+      saved_scenarios_count { 0 }
     end
 
     after(:create) do |myc, evaluator|
@@ -18,6 +22,15 @@ FactoryBot.define do
         evaluator.scenarios_count,
         collection: myc
       )
+
+      evaluator.saved_scenarios_count.times do |index|
+        create(
+          :collection_saved_scenario,
+          collection: myc,
+          saved_scenario: create(:saved_scenario, user: myc.user, end_year: 2050 + index),
+          saved_scenario_order: index + 1
+        )
+      end
     end
   end
 
