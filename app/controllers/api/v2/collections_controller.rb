@@ -38,7 +38,6 @@ module Api
       def create
         attributes = validated(CollectionCreateContract, create_params)
         return if attributes.nil?
-        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
 
         render_write(
           Api::CreateCollection.new.call(
@@ -54,7 +53,6 @@ module Api
       def update
         attributes = validated(CollectionUpdateContract, update_params)
         return if attributes.nil?
-        return if reject_unresolvable_members(attributes[:saved_scenario_ids])
 
         render_write(
           Api::UpdateCollection.new.call(collection: @collection, params: attributes),
@@ -89,9 +87,9 @@ module Api
         members_of(CollectionCreateContract, CollectionUpdateContract)
       end
 
-      # Api::V1 renders Collection's error keys verbatim, so :scenarios is translated, not renamed.
+      # Api::V1 renders Collection's error keys verbatim, so these are translated, not renamed.
       def member_aliases
-        { scenarios: :saved_scenario_ids }
+        { scenarios: :saved_scenario_ids, collection_saved_scenarios: :saved_scenario_ids }
       end
 
       def create_params
@@ -101,37 +99,6 @@ module Api
 
       def update_params
         resource_params(:title, saved_scenario_ids: [])
-      end
-
-      # Renders and returns true when a member cannot be resolved. The pointer names the position
-      # that failed, since a JSON Pointer addresses an array by index; the detail names the id.
-      def reject_unresolvable_members(ids)
-        missing = unresolvable_member_indices(ids)
-        return false if missing.empty?
-
-        render_validation_errors(
-          saved_scenario_ids: missing.index_with { |index| [ "Saved scenario #{ids[index]} not found" ] }
-        )
-        true
-      end
-
-      # Ids the contract itself rejects are left to it, so a malformed id still reads as malformed.
-      def unresolvable_member_indices(ids)
-        ids = Array(ids).map(&:to_i)
-        return [] if ids.empty?
-
-        visible = visible_member_ids(ids)
-
-        ids.each_index.reject { |index| ids[index] < 1 || visible.include?(ids[index]) }
-      end
-
-      # Scoped to the submitted ids, so the set never holds more than one request's worth.
-      def visible_member_ids(ids)
-        owner = @collection&.user || current_user
-        scenarios = SavedScenario.kept.where(id: ids)
-        return scenarios.pluck(:id).to_set if owner.admin?
-
-        scenarios.viewable_by?(owner).pluck(:id).to_set
       end
     end
   end
