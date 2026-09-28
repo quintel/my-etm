@@ -787,7 +787,7 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
 
       failed_item = response.parsed_body["data"].find { |item| item["status"] == "error" }
       expect(failed_item).to eq(
-        "status" => "error", "code" => "not_found", "detail" => "User not found",
+        "status" => "error", "code" => "not_found", "detail" => "Saved scenario user not found",
         "source" => { "pointer" => "/saved_scenario_users/1" }
       )
     end
