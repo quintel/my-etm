@@ -2,7 +2,8 @@
 
 # The outcome of a bulk service call: exactly one Item per submitted item, in the order submitted.
 #
-# `identifier` is retained only so Api::V1 can keep rendering its identifier-keyed error hash.
+# TODO: drop `identifier` once v1 and v3 retire; only Api::V1's identifier-keyed error hash reads
+# it, and a v2 batch names an item by the position it was submitted at.
 class BulkResult
   Item = Data.define(:index, :identifier, :value, :code, :messages) do
     def self.ok(index:, identifier:, value:)
@@ -21,7 +22,8 @@ class BulkResult
       code.nil?
     end
 
-    # Collapses a single item back onto the ServiceResult the non-bulk callers expect.
+    # A non-bulk caller is handed this instead of a BulkResult. Every one of them is the web UI, so
+    # it stays when v1 goes.
     def to_service_result
       ok? ? ServiceResult.success(value) : ServiceResult.failure(messages)
     end
@@ -33,6 +35,11 @@ class BulkResult
     @items = items
   end
 
+  # A bulk call's outcome is rendered by v2 from the items themselves. successful?, failure? and
+  # value are a v1-compatible face, added so Api::V1's existing controller kept working when the
+  # services changed to answer with this.
+  #
+  # TODO: drop successful?, failure? and value once v1 and v3 retire.
   def successful?
     items.all?(&:ok?)
   end
