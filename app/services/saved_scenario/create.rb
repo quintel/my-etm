@@ -7,10 +7,11 @@
 # settings        - Optional extra scenario data to be sent to ETEngine when
 #                   creating the new API scenario.
 #
-# Returns a ServiceResult with the saved scenario.
+# Returns a Dry::Monads::Result with the saved scenario, or the record's errors.
 class SavedScenario::Create
   extend Dry::Initializer
   include Service
+  include Dry::Monads[:result]
 
   param :http_client
   param :saved_scenario_params
@@ -24,7 +25,7 @@ class SavedScenario::Create
     saved_scenario.save
     enqueue_callbacks
 
-    ServiceResult.success(saved_scenario)
+    Success(saved_scenario)
   end
 
   private
@@ -63,6 +64,6 @@ class SavedScenario::Create
   end
 
   def failure
-    ServiceResult.failure(saved_scenario.errors.map(&:full_message), saved_scenario)
+    Failure(saved_scenario.errors)
   end
 end

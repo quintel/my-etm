@@ -5,10 +5,12 @@
 # saved_scenario  - The scenario to be updated
 # scenario_id     - The ID of the scenario to be restored.
 #
-# Returns a ServiceResult with the saved scenario.
+# Returns a Dry::Monads::Result with the saved scenario. A failure carries the record's errors, or
+# a [:upstream, messages] pair when a service this update depends on is what failed.
 class SavedScenario::Update
   extend Dry::Initializer
   include Service
+  include Dry::Monads[:result]
 
   param :http_client
   param :saved_scenario
@@ -35,7 +37,7 @@ class SavedScenario::Update
       ss.save
     end
 
-    ServiceResult.success(saved_scenario)
+    Success(saved_scenario)
   end
 
   private
@@ -60,11 +62,12 @@ class SavedScenario::Update
     end
   end
 
+  # Tagged, because nothing the caller sent is at fault and the response says so with a 502.
   def update_scenario_failure
-    ServiceResult.failure(update_scenario_result.errors)
+    Failure([ :upstream, update_scenario_result.errors ])
   end
 
   def failure
-    ServiceResult.failure(saved_scenario.errors.map(&:full_message), saved_scenario)
+    Failure(saved_scenario.errors)
   end
 end

@@ -363,6 +363,11 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
         expect(response).to have_http_status(:unprocessable_content)
       end
 
+      it 'answers the failure as a list of full messages' do
+        request
+        expect(response.parsed_body).to eq('errors' => [ "Area code can't be blank" ])
+      end
+
       it 'does not create a saved scenario' do
         expect { request }.not_to change(user.saved_scenarios, :count)
       end
@@ -512,6 +517,11 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
       it 'returns unprocessable entity' do
         request
         expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it 'answers the failure as a list of full messages' do
+        request
+        expect(response.parsed_body).to eq('errors' => [ "Title can't be blank" ])
       end
     end
 

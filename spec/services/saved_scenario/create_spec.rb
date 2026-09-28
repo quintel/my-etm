@@ -21,32 +21,32 @@ describe SavedScenario::Create, type: :service do
     context 'when given valid params' do
       let(:params) { { scenario_id: 1, area_code: :nl2016, end_year: 2050, title: 'Hey' } }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'returns a SavedScenario' do
-        expect(result.value).to be_a(SavedScenario)
+        expect(result.value!).to be_a(SavedScenario)
       end
 
       it 'sets the scenario_id' do
-        expect(result.value.scenario_id).to eq(1)
+        expect(result.value!.scenario_id).to eq(1)
       end
     end
 
     context 'when given no scenario_id' do
       let(:params) { { area_code: :nl2019, end_year: 2050, title: 'Hey' } }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is not successful' do
-        expect(result).not_to be_successful
+        expect(result).to be_failure
       end
     end
 
@@ -55,20 +55,20 @@ describe SavedScenario::Create, type: :service do
 
       before { user.update(private_scenarios: true) }
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
+      it 'returns a Dry::Monads::Result' do
+        expect(result).to be_a(Dry::Monads::Result)
       end
 
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'returns a SavedScenario' do
-        expect(result.value).to be_a(SavedScenario)
+        expect(result.value!).to be_a(SavedScenario)
       end
 
       it 'sets the scenarios privacy' do
-        expect(result.value.private).to be_truthy
+        expect(result.value!.private).to be_truthy
       end
     end
 
@@ -78,11 +78,11 @@ describe SavedScenario::Create, type: :service do
       before { user.update(private_scenarios: true) }
 
       it 'sets the provided private parameter' do
-        expect(result.value.private).to be_falsey
+        expect(result.value!.private).to be_falsey
       end
 
       it 'does not use the users default privacy setting' do
-        expect(result.value.private).not_to eq(user.private_scenarios)
+        expect(result.value!.private).not_to eq(user.private_scenarios)
       end
     end
 
@@ -92,11 +92,11 @@ describe SavedScenario::Create, type: :service do
       before { user.update(private_scenarios: false) }
 
       it 'sets the provided private parameter' do
-        expect(result.value.private).to be_truthy
+        expect(result.value!.private).to be_truthy
       end
 
       it 'does not use the users default privacy setting' do
-        expect(result.value.private).not_to eq(user.private_scenarios)
+        expect(result.value!.private).not_to eq(user.private_scenarios)
       end
     end
   end

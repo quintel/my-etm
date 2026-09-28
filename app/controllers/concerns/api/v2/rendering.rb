@@ -33,16 +33,14 @@ module Api
       end
 
       def render_write(result, with:, options: {}, status: :ok)
-        if write_successful?(result)
-          record = write_value(result)
-
-          return render_resource(record, with: with, options: options, status: status)
+        if result.success?
+          return render_resource(result.value!, with: with, options: options, status: status)
         end
 
-        errors = write_errors(result)
-        return render_validation_errors(errors) if errors
+        failure = result.failure
+        return render_upstream_error(failure.last) if upstream_failure?(failure)
 
-        render_upstream_error(result)
+        render_validation_errors(failure)
       end
 
       # Every member the action does not accept, one error object each.
@@ -94,29 +92,17 @@ module Api
 
       private
 
-      def dry_result?(result)
-        result.is_a?(Dry::Monads::Result)
+      # A failure naming no request member is not the caller's to fix, so it must not read as a
+      # validation failure. A service says so by tagging it.
+      def upstream_failure?(failure)
+        failure.is_a?(Array) && failure.first == :upstream
       end
 
-      def write_successful?(result)
-        dry_result?(result) ? result.success? : result.successful?
-      end
-
-      def write_value(result)
-        dry_result?(result) ? result.value! : result.value
-      end
-
-      # A failure naming no record did not come from a request member, so it is not the caller's to
-      # fix and must not read as a validation failure.
-      def write_errors(result)
-        dry_result?(result) ? result.failure : result.value&.errors
-      end
-
-      def render_upstream_error(result)
+      def render_upstream_error(messages)
         render_error(
           status: :bad_gateway,
           code: EtmApi::Errors::Codes::UPSTREAM_ERROR,
-          detail: Array(result.errors).join(", ").presence || "The request could not be completed"
+          detail: Array(messages).join(", ").presence || "The request could not be completed"
         )
       end
 

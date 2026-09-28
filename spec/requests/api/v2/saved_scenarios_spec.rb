@@ -399,7 +399,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     # v2 makes no synchronous engine call today, so this is asserted through the service.
     it "reports a failure that is not the caller's to fix as upstream, not as validation" do
       allow(SavedScenario::Update).to receive(:call)
-        .and_return(ServiceResult.failure([ "Engine unreachable" ]))
+        .and_return(Dry::Monads::Failure([ :upstream, [ "Engine unreachable" ] ]))
 
       put(path, headers: v2_bearer(owner, :write), params: { saved_scenario: { title: "x" } }, as: :json)
 
@@ -413,7 +413,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     it "still reports a record's own errors as validation failures" do
       allow(SavedScenario::Update).to receive(:call) do
         resource.errors.add(:title, "is too short")
-        ServiceResult.failure([ "Title is too short" ], resource)
+        Dry::Monads::Failure(resource.errors)
       end
 
       put(path, headers: v2_bearer(owner, :write), params: { saved_scenario: { title: "x" } }, as: :json)
