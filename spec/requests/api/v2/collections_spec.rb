@@ -90,6 +90,50 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
       )
       expect(response.parsed_body.dig('data', 'owner')).to eq('id' => owner.id, 'name' => owner.name)
     end
+
+    # Collection.fully_readable_by: a collection is readable by anyone who can read every one of
+    # its saved scenarios, which for an all-public collection means everyone. It is the one v2
+    # resource an anonymous caller reaches, so the base controller's require_user is declared for
+    # index alone here.
+    context 'when every member is public' do
+      let(:resource) { create(:collection, user: owner, saved_scenarios_count: 1) }
+
+      it 'is readable by a stranger' do
+        get(path, headers: v2_bearer(create(:user), :read), as: :json)
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'is readable without a credential at all' do
+        get(path, as: :json)
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context 'when a member is private' do
+      let(:resource) { create(:collection, user: owner) }
+
+      before do
+        create(
+          :collection_saved_scenario,
+          collection: resource,
+          saved_scenario: create(:saved_scenario, user: owner, private: true)
+        )
+      end
+
+      it 'is hidden from a stranger' do
+        get(path, headers: v2_bearer(create(:user), :read), as: :json)
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'tells an anonymous caller to authenticate' do
+        get(path, as: :json)
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
   end
 
   # Action: create
