@@ -109,6 +109,9 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
 
     it_behaves_like 'a serialisable resource on create'
     it_behaves_like 'a persistant resource on create'
+    it_behaves_like 'an action that requires the wrapper key' do
+      let(:verb) { :post }
+    end
 
     it 'is refused, not hidden, with only the read scope' do
       post(path, headers: v2_bearer(owner, :read), params: { collection: resource_attributes }, as: :json)
@@ -394,10 +397,14 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     end
     it_behaves_like 'a serialisable resource on update'
     it_behaves_like 'a persistant resource on update'
+    it_behaves_like 'an action that requires the wrapper key' do
+      let(:verb) { :put }
+    end
 
     it_behaves_like 'a serialisable resource that refuses an unupdateable member' do
       let(:unupdateable_attribute) { :version }
     end
+    it_behaves_like 'a persistant resource that ignores its read-only members'
 
     # Shared by the two examples below: the member that refuses the value it is given.
     let(:strict_attribute)       { :saved_scenario_ids }

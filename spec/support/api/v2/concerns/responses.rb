@@ -387,3 +387,26 @@ RSpec.shared_examples('a serialisable resource on delete') do
     it_behaves_like 'a v2 no_content response'
   end
 end
+
+# For any action reading a wrapped resource body.
+#
+# ParamsWrapper would otherwise rebuild an unwrapped body from the model's column names, dropping
+# every member that is not a column before the action could refuse it.
+#
+# Expects the following declared:
+#     owner               - the user the resource belongs to
+#     path                - the endpoint's path
+#     class_sym           - the member the request body wraps the resource in
+#     verb                - :post or :put
+#     resource_attributes - a body the action accepts, sent here without its wrapper
+RSpec.shared_examples('an action that requires the wrapper key') do
+  before do
+    public_send(verb, path, headers: v2_bearer(owner), params: resource_attributes, as: :json)
+  end
+
+  it 'refuses a body sent without its wrapper key' do
+    expect(response).to have_http_status(:bad_request)
+    expect(response.parsed_body.dig('errors', 0, 'code')).to eq('param_missing')
+    expect(response.parsed_body.dig('errors', 0, 'source', 'pointer')).to eq("/#{class_sym}")
+  end
+end

@@ -153,6 +153,9 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
 
     it_behaves_like "a serialisable resource on create"
     it_behaves_like "a persistant resource on create"
+    it_behaves_like "an action that requires the wrapper key" do
+      let(:verb) { :post }
+    end
 
     it "creates the scenario and renders the single-resource kind" do
       post(path, headers: v2_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json)
@@ -305,8 +308,13 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     end
     it_behaves_like "a serialisable resource on update"
     it_behaves_like "a persistant resource on update"
+    it_behaves_like "an action that requires the wrapper key" do
+      let(:verb) { :put }
+    end
 
     it_behaves_like "a serialisable resource that refuses an unupdateable member"
+
+    it_behaves_like "a persistant resource that ignores its read-only members"
     it_behaves_like "a serialisable resource that refuses an invalid member"
     it_behaves_like "a persistant resource that refuses an invalid member"
 

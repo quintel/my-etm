@@ -145,7 +145,7 @@ module Api
 
       # Members the resource shows but doesn't accept
       def readonly_members
-        %i[id created_at updated_at]
+        %i[id created_at updated_at discarded_at]
       end
 
       # Model attribute names that differ from the request member they describe.
