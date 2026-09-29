@@ -410,3 +410,58 @@ RSpec.shared_examples('an action that requires the wrapper key') do
     expect(response.parsed_body.dig('errors', 0, 'source', 'pointer')).to eq("/#{class_sym}")
   end
 end
+
+# For an index that answers one page at a time.
+#
+# A caller reads a page with `page` and `limit`; `limit` is capped rather than refused, so no single
+# request can ask for the lot. What the page holds is reported under meta/pagination.
+#
+# Expects the following declared:
+#     owner     - the user the records belong to
+#     path      - the endpoint's path
+#     class_sym - the member the request body wraps the resource in, and the factory name
+RSpec.shared_examples('a paginated collection endpoint') do
+  before { create_list(class_sym, 3, user: owner) }
+
+  let(:headers) { v2_bearer(owner, :read) }
+
+  it 'answers a first page, and says how many records there are' do
+    get(path, headers: headers, as: :json)
+
+    expect(response.parsed_body['data'].size).to eq(3)
+    expect(response.parsed_body.dig('meta', 'pagination'))
+      .to eq('page' => 1, 'limit' => 25, 'pages' => 1, 'count' => 3)
+  end
+
+  it 'honours a limit, and reports the pages it implies' do
+    get("#{path}?limit=2", headers: headers, as: :json)
+
+    expect(response.parsed_body['data'].size).to eq(2)
+    expect(response.parsed_body.dig('meta', 'pagination'))
+      .to include('page' => 1, 'limit' => 2, 'pages' => 2, 'count' => 3)
+  end
+
+  it 'answers the remainder on the next page' do
+    get("#{path}?limit=2&page=2", headers: headers, as: :json)
+
+    expect(response.parsed_body['data'].size).to eq(1)
+    expect(response.parsed_body.dig('meta', 'pagination')).to include('page' => 2)
+  end
+
+  it 'caps a limit above the maximum rather than refusing it' do
+    get("#{path}?limit=9999", headers: headers, as: :json)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body.dig('meta', 'pagination', 'limit')).to eq(100)
+  end
+
+  # A page past the last is not the caller getting something wrong, and an empty page says so
+  # without needing an error code of its own.
+  it 'answers an empty page past the last, rather than an error' do
+    get("#{path}?page=99", headers: headers, as: :json)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to validate_against_the_v2_envelope(:collection)
+    expect(response.parsed_body['data']).to be_empty
+  end
+end

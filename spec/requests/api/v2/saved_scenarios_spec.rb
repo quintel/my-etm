@@ -22,6 +22,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
 
     it_behaves_like "a caller-scoped collection endpoint"
     it_behaves_like "a collection of serialisable resources"
+    it_behaves_like "a paginated collection endpoint"
 
     it "lists the caller's own scenarios" do
       own = create(:saved_scenario, user: owner, private: true)

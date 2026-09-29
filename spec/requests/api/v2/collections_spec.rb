@@ -20,6 +20,7 @@ RSpec.describe "Api::V2::Collections", type: :request, api: true do
     let(:path)      { "/api/v2/collections" }
 
     it_behaves_like 'a collection of serialisable resources'
+    it_behaves_like 'a paginated collection endpoint'
     it_behaves_like 'a caller-scoped collection endpoint' do
       let(:resource) { create(:collection, user: owner) }
     end

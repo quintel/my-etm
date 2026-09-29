@@ -20,16 +20,17 @@ module Api
       # GET /api/v2/saved_scenarios
       #
       # The caller's own scenarios, then filtered by the ability.
-      # TODO: unpaginated.
       def index
-        scenarios = current_user.saved_scenarios
-          .accessible_by(current_ability)
-          .kept
-          .includes(:version)
-          .with_rich_text_description
-          .order(updated_at: :desc)
+        page, scenarios = paginated(
+          current_user.saved_scenarios
+            .accessible_by(current_ability)
+            .kept
+            .includes(:version)
+            .with_rich_text_description
+            .order(updated_at: :desc)
+        )
 
-        render_collection(scenarios, with: SavedScenarioSerialiser)
+        render_collection(scenarios, with: SavedScenarioSerialiser, meta: pagination_meta(page))
       end
 
       # GET /api/v2/saved_scenarios/:id
