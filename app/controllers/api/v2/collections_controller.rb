@@ -18,15 +18,16 @@ module Api
       # GET api/v2/collections
       #
       # The caller's own collections, then filtered by the ability.
-      # TODO: unpaginated.
       def index
-        collections = current_user.collections
-          .accessible_by(current_ability)
-          .kept
-          .includes(:version, :user, :scenarios, :saved_scenarios)
-          .order(created_at: :desc)
+        page, collections = paginated(
+          current_user.collections
+            .accessible_by(current_ability)
+            .kept
+            .includes(:version, :user, :scenarios, :saved_scenarios)
+            .order(created_at: :desc)
+        )
 
-        render_collection(collections, with: CollectionSerialiser)
+        render_collection(collections, with: CollectionSerialiser, meta: pagination_meta(page))
       end
 
       # GET api/v2/collections/:id

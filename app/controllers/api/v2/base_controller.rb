@@ -5,9 +5,15 @@ module Api
     class BaseController < ActionController::API
       include ActionController::MimeResponds
       include Api::V2::Rendering
+      include Pagy::Method
 
       # The most items one v2 request may carry, whether as a batch or as a member list.
       BATCH_LIMIT = 100
+
+      # The items on one page of an index, which a caller sets with `limit`. PAGE_LIMIT is what they
+      # get having sent none; PAGE_MAX_LIMIT caps a larger one, rather than refusing it.
+      PAGE_LIMIT = 25
+      PAGE_MAX_LIMIT = 100
 
       # A member by this name carries an ETM version tag, and is checked when an action accepts it,
       # meaning it is declared in resource_params (`version` is a reserved scalar member name
@@ -163,6 +169,17 @@ module Api
         raise EtmApi::Errors::UnknownVersion, VERSION_MEMBER
       end
 
+      # One page of a collection, read from the `page` and `limit` members. Returns the page and the
+      # records on it.
+      def paginated(scope)
+        pagy(scope, limit: PAGE_LIMIT, client_max_limit: PAGE_MAX_LIMIT)
+      end
+
+      # What an index says about the page it answered with, so a caller knows there is more.
+      def pagination_meta(page)
+        { pagination: { page: page.page, limit: page.limit, pages: page.pages, count: page.count } }
+      end
+
       def param_source(param)
         return { pointer: "/#{param}" } if param.to_s == resource_param_key.to_s
 
@@ -178,7 +195,8 @@ module Api
         )
       end
 
-      # With a caller: hidden or refused, depending on access.
+      # With a caller: hidden or refused, depending on access. A hidden record answers the generic
+      # "Not found", where a record that does not exist is named by the not_found_detail below.
       def render_denied(subject)
         return render_unauthenticated unless current_user
 
@@ -213,6 +231,9 @@ module Api
         "Not permitted to #{action_name} this #{model.name.underscore.humanize.downcase}"
       end
 
+      # TODO: The wording here for a missing record (e.g. Saved scenario not found) is different
+      # from the one for hidden one (Not found) given by the render_denied when the caller has no
+      # permission, so a caller can still learn which ids exist. Both should use the same wording.
       def not_found_code(model)
         model == "SavedScenario" ? EtmApi::Errors::Codes::SCENARIO_NOT_FOUND : EtmApi::Errors::Codes::NOT_FOUND
       end
