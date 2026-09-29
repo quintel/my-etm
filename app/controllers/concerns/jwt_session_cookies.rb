@@ -82,14 +82,64 @@ module JwtSessionCookies
   # A sibling tab rotated this refresh token moments ago, so Doorkeeper will not honour it again.
   # Adopts the successor that tab minted instead of signing the browser out.
   def adopt_rotated_session
-    presented = cookies[REFRESH_COOKIE]
-    return false if presented.blank?
-
-    winner = Doorkeeper::AccessToken.find_by(previous_refresh_token: presented)
-    return false unless winner && !winner.revoked? && winner.created_at > ROTATION_GRACE.ago
+    winner = rotation_winner(cookies[REFRESH_COOKIE])
+    return false unless winner
 
     write_session_cookies(winner)
     true
+  end
+
+  def rotation_winner(presented)
+    return if presented.blank?
+
+    winner = Doorkeeper::AccessToken.find_by(previous_refresh_token: presented)
+    winner if winner && !winner.revoked? && winner.created_at > ROTATION_GRACE.ago
+  end
+
+  # Yields this browser's ScenarioAccess and stores what the block returns. Re-signs the anchor token
+  # in place rather than rotating.
+  def update_scenario_access
+    Doorkeeper::AccessToken.transaction do
+      anchor = lock_live_anchor
+      next unless anchor
+
+      held = ScenarioAccess.new(anchor.scenario_access)
+      updated = yield(held)
+      next if updated.pairs == held.pairs
+
+      resign_with_access(anchor, updated)
+      write_session_cookies(anchor)
+    end
+  end
+
+  def lock_live_anchor
+    anchor = Doorkeeper::AccessToken.by_refresh_token(cookies[REFRESH_COOKIE])&.lock!
+    anchor = rotation_winner(anchor.refresh_token)&.lock! if anchor&.revoked?
+    anchor if anchor && !anchor.revoked? && refresh_token_live?(anchor)
+  end
+
+  # Evicts the least recently opened entries until the token fits ScenarioAccess::TOKEN_BUDGET.
+  def resign_with_access(anchor, access)
+    anchor.created_at = Time.current
+
+    loop do
+      anchor.scenario_access = access.pairs.presence
+      anchor.token = Doorkeeper::JWT.generate(token_generator_attributes(anchor))
+      break if access.empty? || anchor.token.bytesize <= ScenarioAccess::TOKEN_BUDGET
+
+      access = access.without_oldest
+    end
+
+    anchor.save!
+  end
+
+  # What Doorkeeper hands its token generator when it mints a token itself.
+  def token_generator_attributes(anchor)
+    {
+      resource_owner_id: anchor.resource_owner_id, scopes: anchor.scopes, application: nil,
+      expires_in: anchor.expires_in, created_at: anchor.created_at,
+      scenario_access: anchor.scenario_access
+    }
   end
 
   def write_session_cookies(access)
