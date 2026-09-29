@@ -20,6 +20,11 @@ RSpec.describe JwtSessionCookies, type: :controller do
       revoke_all_jwt_sessions(User.find(params[:user_id]))
       head :ok
     end
+
+    def grant_access
+      update_scenario_access { |access| access.grant(JSON.parse(params[:entries])) }
+      head :ok
+    end
   end
 
   before do
@@ -27,6 +32,7 @@ RSpec.describe JwtSessionCookies, type: :controller do
       get "create_session" => "anonymous#create_session"
       get "destroy_session" => "anonymous#destroy_session"
       get "revoke_all_sessions" => "anonymous#revoke_all_sessions"
+      get "grant_access" => "anonymous#grant_access"
     end
     Version.default
   end
@@ -108,6 +114,82 @@ RSpec.describe JwtSessionCookies, type: :controller do
       get :revoke_all_sessions, params: { user_id: user.id }
 
       expect(pat.oauth_access_token.reload.revoked?).to be(false)
+    end
+  end
+
+  describe "#update_scenario_access" do
+    let(:anchor) do
+      user.access_tokens.create!(
+        expires_in: described_class::ACCESS_TTL,
+        scopes: described_class::SESSION_SCOPES,
+        use_refresh_token: true
+      )
+    end
+
+    def grant(entries, refresh_token: anchor.refresh_token)
+      request.cookies["etm_refresh"] = refresh_token
+      get(:grant_access, params: { entries: entries.to_json })
+    end
+
+    def claim
+      MyEtm::Auth.verify_jwt(response.cookies["etm_session"])&.fetch(ScenarioAccess::CLAIM, nil)
+    end
+
+    # Rotates a token exactly as renew_jwt_session does, returning the winner
+    def rotate(token)
+      winner = Doorkeeper::OAuth::RefreshTokenRequest.new(Doorkeeper.config, token, nil, {})
+        .authorize.token
+      token.revoke
+      winner
+    end
+
+    it "adds several Sessions in one write" do
+      grant([ [ 1, "write" ], [ 2, "read" ] ])
+
+      expect(claim).to eq("write" => [ 1 ], "read" => [ 2 ])
+    end
+
+    it "evicts the least recently opened until the token fits the budget" do
+      anchor.update!(scenario_access: (1..300).map { |id| [ 1_000_000 + id, "read" ] })
+      grant([ [ 9_999_999, "write" ] ])
+
+      held = claim.values.flatten
+      expect(response.cookies["etm_session"].bytesize).to be <= ScenarioAccess::TOKEN_BUDGET
+      expect(held).to include(9_999_999, 1_000_300)
+      expect(held).not_to include(1_000_001)
+    end
+
+    it "merges into the winner when a refresh rotated the anchor first" do
+      winner = rotate(anchor)
+      grant([ [ 1, "write" ] ])
+
+      expect(winner.reload.scenario_access).to eq([ [ 1, "write" ] ])
+      expect(response.cookies["etm_refresh"]).to eq(winner.refresh_token)
+    end
+
+    it "loses nothing when a stale cookie from an earlier open is presented" do
+      presented = anchor.refresh_token
+      grant([ [ 1, "write" ] ], refresh_token: presented)
+      grant([ [ 2, "read" ] ], refresh_token: presented)
+
+      expect(anchor.reload.scenario_access).to eq([ [ 1, "write" ], [ 2, "read" ] ])
+    end
+
+    it "carries the set through the next refresh" do
+      grant([ [ 1, "write" ] ])
+      winner = rotate(anchor.reload)
+
+      expect(winner.scenario_access).to eq([ [ 1, "write" ] ])
+      expect(MyEtm::Auth.verify_jwt(winner.token)[ScenarioAccess::CLAIM])
+        .to eq("write" => [ 1 ], "read" => [])
+    end
+
+    it "adds nothing and writes no cookie without a live anchor" do
+      anchor.revoke
+      grant([ [ 1, "write" ] ])
+
+      expect(response.cookies["etm_session"]).to be_blank
+      expect(anchor.reload.scenario_access).to be_nil
     end
   end
 

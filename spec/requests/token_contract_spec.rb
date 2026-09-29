@@ -71,6 +71,25 @@ RSpec.describe 'Token contract', type: :request do
     end
   end
 
+  describe 'the scenario_access claim' do
+    let(:granted_claims) do
+      token = Doorkeeper::AccessToken.create!(
+        resource_owner_id: user.id, expires_in: JwtSessionCookies::ACCESS_TTL,
+        scopes: JwtSessionCookies::SESSION_SCOPES, use_refresh_token: true,
+        scenario_access: [ [ 648_695, 'write' ], [ 612_000, 'read' ] ]
+      )
+      JWT.decode(token.token, MyEtm::Auth.signing_key.public_key, true, algorithms: [ 'RS256' ]).first
+    end
+
+    it 'groups Session IDs by level, as integers the engine compares to its own ids' do
+      expect(granted_claims['scenario_access']).to eq('write' => [ 648_695 ], 'read' => [ 612_000 ])
+    end
+
+    it 'is absent from a session token with nothing granted' do
+      expect(session_claims).not_to have_key('scenario_access')
+    end
+  end
+
   describe 'the JWKS' do
     subject(:keys) do
       get '/oauth/discovery/keys'
