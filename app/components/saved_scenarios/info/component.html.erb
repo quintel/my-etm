@@ -9,7 +9,7 @@
     </span>
   </div>
   <% if !@saved_scenario.discarded? %>
-    <%= link_to link_to_scenario, class: button_classes("mr-0 ml-auto max-h-9", color: :primary) do %>
+    <%= link_to link_to_scenario, class: button_classes("mr-0 ml-auto max-h-9", color: :primary), data: { turbo: false } do %>
       <%= @button_title %>
     <% end %>
   <% end %>
