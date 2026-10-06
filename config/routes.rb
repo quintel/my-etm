@@ -63,6 +63,7 @@ Rails.application.routes.draw do
       put :discard
       put :undiscard
       get :confirm_destroy
+      get :open, to: 'open_scenarios#show'
     end
 
     resources :users, controller: 'saved_scenario_users' do

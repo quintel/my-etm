@@ -14,6 +14,7 @@
 # then copy spec/fixtures/token_contract.json to:
 #   - identity_rails/spec/fixtures/token_contract.json   (covers ETEngine and ETModel)
 #   - multi-year-charts/__fixtures__/token_contract.json (covers Collections)
+#   - etengine/spec/fixtures/token_contract.json         (covers the scenario_access reader)
 #
 # If a consumer's suite goes red after regenerating, the change is breaking — that is the point.
 RSpec.describe 'Token contract', type: :request do
@@ -27,6 +28,14 @@ RSpec.describe 'Token contract', type: :request do
       scopes: JwtSessionCookies::SESSION_SCOPES,
       use_refresh_token: true
     )
+  end
+
+  let(:granted_token) do
+    Doorkeeper::AccessToken.create!(
+      resource_owner_id: user.id, expires_in: JwtSessionCookies::ACCESS_TTL,
+      scopes: JwtSessionCookies::SESSION_SCOPES, use_refresh_token: true,
+      scenario_access: [ [ 648_695, 'write' ], [ 612_000, 'read' ] ]
+    ).token
   end
 
   let(:session_claims) do
@@ -71,6 +80,20 @@ RSpec.describe 'Token contract', type: :request do
     end
   end
 
+  describe 'the scenario_access claim' do
+    let(:granted_claims) do
+      JWT.decode(granted_token, MyEtm::Auth.signing_key.public_key, true, algorithms: [ 'RS256' ]).first
+    end
+
+    it 'groups Session IDs by level, as integers the engine compares to its own ids' do
+      expect(granted_claims['scenario_access']).to eq('write' => [ 648_695 ], 'read' => [ 612_000 ])
+    end
+
+    it 'is absent from a session token with nothing granted' do
+      expect(session_claims).not_to have_key('scenario_access')
+    end
+  end
+
   describe 'the JWKS' do
     subject(:keys) do
       get '/oauth/discovery/keys'
@@ -96,6 +119,7 @@ RSpec.describe 'Token contract', type: :request do
       'jwks' => JSON.parse(response.body),
       'session_token' => anchor.token,
       'session_audience' => session_claims['aud'],
+      'granted_token' => granted_token,
       # A token in the pre-migration shape: legacy kid, space-delimited audience string. Consumers
       # must still verify this until the next major API break invalidates every pre-migration PAT,
       # at which point OAuth::DiscoveryController#legacy_key and TokenDecoder#verify_audience!'s
