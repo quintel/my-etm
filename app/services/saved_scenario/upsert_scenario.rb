@@ -7,6 +7,7 @@
 # scenario_id     - The ID of the scenario to be saved.
 # settings        - Optional extra scenario data to be sent to ETEngine when
 #                   creating the new API scenario.
+# user            - The user acting, who owns the token that binds the Session
 #
 # Returns a ServiceResult with the saved scenario.
 class SavedScenario::UpsertScenario
@@ -17,16 +18,20 @@ class SavedScenario::UpsertScenario
   param :saved_scenario
   param :scenario_id
   param :settings, default: proc { {} }
+  option :user
 
   def call
     saved_scenario.tap do |ss|
-      ss.add_id_to_history(ss.scenario_id)
+      evicted = ss.add_id_to_history(ss.scenario_id)
       ss.scenario_id = scenario_id
 
       unless ss.valid?
         unprotect
         return failure
       end
+
+      bound = bind(evicted)
+      return bound if bound.failure?
 
       protect
 
@@ -42,6 +47,14 @@ class SavedScenario::UpsertScenario
   end
 
   private
+
+  # Binds the new current Session, and unbinds the evicted Session if there was one
+  def bind(evicted)
+    result = ApiScenario::SetBound.call(user, saved_scenario.version, [ scenario_id ], true)
+    return result if result.failure? || evicted.nil?
+
+    ApiScenario::SetBound.call(user, saved_scenario.version, [ evicted ], false)
+  end
 
   def protect
     ApiScenario::SetCompatibility.keep_compatible(http_client, scenario_id)

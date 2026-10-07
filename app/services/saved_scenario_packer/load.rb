@@ -207,6 +207,8 @@ class SavedScenarioPacker::Load
   end
 
   def update_existing_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
+    return bind_failure(new_scenario_id) unless bind(saved_scenario.version, new_scenario_id)
+
     history = build_scenario_history(
       saved_scenario.scenario_id_history,
       saved_scenario_data[:scenario_id_history],
@@ -223,6 +225,14 @@ class SavedScenarioPacker::Load
     Failure("Failed to update existing scenario #{saved_scenario.id}: #{e.message}")
   end
 
+  def bind(version, scenario_id)
+    ApiScenario::SetBound.call(user, version, [ scenario_id ], true).successful?
+  end
+
+  def bind_failure(scenario_id)
+    Failure("Failed to bind scenario #{scenario_id} in ETEngine")
+  end
+
   def build_scenario_history(existing_history, dump_history, new_scenario_id)
     history = existing_history || []
     history += dump_history || []
@@ -232,6 +242,7 @@ class SavedScenarioPacker::Load
 
   def create_new_scenario(new_scenario_id, saved_scenario_data)
     version = Version.find_by(tag: saved_scenario_data[:version_tag]) || Version.default
+    return bind_failure(new_scenario_id) unless bind(version, new_scenario_id)
 
     # Preserve scenario history from the dump
     history = (saved_scenario_data[:scenario_id_history] || []) + [new_scenario_id]

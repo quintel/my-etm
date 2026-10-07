@@ -7,6 +7,8 @@ describe CreateInterpolatedCollection, type: :service do
   let(:user) { FactoryBot.create(:user) }
   let(:result) { described_class.call(nil, scenario, user, years) }
 
+  before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([])) }
+
   # --
 
   def stub_successful_interpolation(year, id)
@@ -108,6 +110,12 @@ describe CreateInterpolatedCollection, type: :service do
         expect(owned).to be(true)
       end
 
+      it 'binds the interpolated Sessions' do
+        result
+
+        expect(ApiScenario::SetBound).to have_received(:call).with(user, scenario.version, [ 2, 3 ], true)
+      end
+
       it 'asks ETEngine to protect and tag each interpolated scenario' do
         expect { result }
           .to have_enqueued_job(SavedScenarioCallbacksJob).twice
@@ -121,6 +129,25 @@ describe CreateInterpolatedCollection, type: :service do
 
           expect(privacy).to all(be(true))
         end
+      end
+    end
+
+    context 'when ETEngine fails to bind the interpolated Sessions' do
+      before do
+        stub_successful_interpolation(2030, 2)
+        stub_successful_interpolation(2040, 3)
+        allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))
+        allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible)
+      end
+
+      it 'creates no Collection' do
+        expect { result }.not_to change(Collection, :count)
+      end
+
+      it 'stops protecting the interpolated scenarios' do
+        result
+
+        expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).twice
       end
     end
 

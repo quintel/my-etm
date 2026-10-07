@@ -7,6 +7,7 @@ describe SavedScenario::Update, type: :service do
   let(:saved_scenario) { create(:saved_scenario, scenario_id: 1) }
 
   before do
+    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
     allow(client).to receive(:put).with(
       '/api/v3/scenarios/2', { scenario: { keep_compatible: true } }
     )
@@ -28,7 +29,7 @@ describe SavedScenario::Update, type: :service do
   end
 
   describe '#call' do
-    let(:result) { described_class.call(client, saved_scenario, params) }
+    let(:result) { described_class.call(client, saved_scenario, params, user: saved_scenario.users.first) }
 
     context 'when discarding a scenario' do
       let(:params) { { discarded: true } }
@@ -45,6 +46,20 @@ describe SavedScenario::Update, type: :service do
         expect { result }
           .to change(saved_scenario, :discarded_at)
           .from(nil)
+      end
+    end
+
+    context 'when ETEngine fails to unbind a discarded scenario' do
+      let(:params) { { discarded: true } }
+
+      before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down')) }
+
+      it 'returns an upstream failure' do
+        expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
+      end
+
+      it 'leaves the scenario kept' do
+        expect { result }.not_to(change { saved_scenario.reload.discarded_at })
       end
     end
 

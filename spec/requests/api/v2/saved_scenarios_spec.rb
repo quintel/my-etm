@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
+  before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([])) }
+
   let(:class_sym)   { :saved_scenario }
   let(:owner_assoc) { :saved_scenarios }
   let(:owner)      { create(:user) }
@@ -485,12 +487,6 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to validate_against_the_v2_envelope(:resource)
       expect(resource.reload.discarded_at).not_to be_nil
-    end
-
-    it "runs the engine scenario-user cleanup, which v1's own discard skips" do
-      expect(CleanupScenarioUsersJob).to receive(:perform_later)
-
-      put(path, headers: v2_bearer(owner, :delete), as: :json)
     end
 
     it "is refused, not hidden, with only the write scope" do

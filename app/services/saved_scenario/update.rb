@@ -15,6 +15,7 @@ class SavedScenario::Update
   param :http_client
   param :saved_scenario
   param :params
+  option :user
 
   def call
     saved_scenario.tap do |ss|
@@ -23,6 +24,8 @@ class SavedScenario::Update
       if update_scenario?
         return update_scenario_failure unless update_scenario_result.successful?
       end
+
+      return Failure([ :upstream, discard_result.errors ]) if discard_failed?
 
       if params.key?(:discarded)
         if params[:discarded]
@@ -55,11 +58,24 @@ class SavedScenario::Update
   def update_scenario_result
     @update_scenario_result ||= begin
       if saved_scenario.contains?(params[:scenario_id])
-        SavedScenario::Restore.call(http_client, saved_scenario, params[:scenario_id])
+        SavedScenario::Restore.call(http_client, saved_scenario, params[:scenario_id], user:)
       else
-        SavedScenario::UpsertScenario.call(http_client, saved_scenario, params[:scenario_id])
+        SavedScenario::UpsertScenario.call(http_client, saved_scenario, params[:scenario_id], user:)
       end
     end
+  end
+
+  # Discarding unbinds the scenario's Sessions in ETEngine, and undiscarding binds them again
+  def discard_failed?
+    return false unless params.key?(:discarded)
+    return false if saved_scenario.discarded? == !!params[:discarded]
+
+    discard_result.failure?
+  end
+
+  def discard_result
+    @discard_result ||=
+      ApiScenario::SetBound.for_saved_scenario(user, saved_scenario, !params[:discarded])
   end
 
   # Tagged, because nothing the caller sent is at fault and the response says so with a 502.
