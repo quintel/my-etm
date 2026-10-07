@@ -23,6 +23,13 @@ describe SavedScenario::SetDiscarded, type: :service do
       .with(user, saved_scenario.version, [ 1, 2 ], true)
   end
 
+  it 'calls nothing when the scenario is invalid' do
+    saved_scenario.update_column(:title, '')
+    described_class.call(saved_scenario, true, user)
+
+    expect(ApiScenario::SetBound).not_to have_received(:call)
+  end
+
   context 'when ETEngine fails' do
     before do
       allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))

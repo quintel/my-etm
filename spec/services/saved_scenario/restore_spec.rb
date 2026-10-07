@@ -21,6 +21,9 @@ describe SavedScenario::Restore, type: :service do
     allow(client).to receive(:put).with(
       '/api/v3/scenarios/12345', scenario: { keep_compatible: false }
     )
+    allow(client).to receive(:put).with(
+      '/api/v3/scenarios/648695', scenario: { keep_compatible: false }
+    )
   end
 
   context 'when the restore is succesful' do
@@ -41,11 +44,19 @@ describe SavedScenario::Restore, type: :service do
     end
   end
 
-  it 'unbinds the snapshots it drops' do
+  it 'unbinds the current Session and the snapshots it drops' do
     result
 
     expect(ApiScenario::SetBound).to have_received(:call)
-      .with(user, saved_scenario.version, [ 12_345 ], false)
+      .with(user, saved_scenario.version, [ 648_695, 12_345 ], false)
+  end
+
+  context 'when restoring the newest snapshot' do
+    let(:restore_id) { 12_345 }
+
+    it 'saves the restored scenario id' do
+      expect { result }.to change { saved_scenario.reload.scenario_id }.to(12_345)
+    end
   end
 
   context 'when ETEngine fails to unbind the dropped snapshots' do
