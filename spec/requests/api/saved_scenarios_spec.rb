@@ -6,7 +6,10 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
   let(:user) { create(:user) }
   let(:client) { Faraday.new(url: 'http://testing') }
 
-  before { allow(MyEtm::Auth).to receive(:engine_client).and_return(client) }
+  before do
+    allow(MyEtm::Auth).to receive(:engine_client).and_return(client)
+    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+  end
 
   describe 'GET /api/v1/saved_scenarios' do
     context 'with an access token with the correct scope' do

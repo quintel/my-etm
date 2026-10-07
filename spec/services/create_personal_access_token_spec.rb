@@ -93,6 +93,22 @@ RSpec.describe CreatePersonalAccessToken do
     end
   end
 
+  context 'with permissions="bind"' do
+    let(:action) do
+      described_class.call(user:, params: { name: 'API access', permissions: 'bind' })
+    end
+
+    it 'returns a failure' do
+      expect(action).to be_failure
+    end
+  end
+
+  it 'never grants the scope that sets the bound flag' do
+    scopes = described_class::Params::SCOPES.values.flat_map(&:split)
+
+    expect(scopes + Doorkeeper.config.scopes.to_a).not_to include(ApiScenario::SetBound::SCOPE)
+  end
+
   context 'with permissions="write"' do
     let(:action) do
       described_class.call(user:, params: { name: 'API access', permissions: 'write' })

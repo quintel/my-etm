@@ -81,6 +81,8 @@ describe SavedScenarioPacker::Load, type: :service do
   end
 
   before do
+    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+
     # Create a test ETM file with combined structure
     FileUtils.mkdir_p(File.dirname(file_path))
 
@@ -166,6 +168,18 @@ describe SavedScenarioPacker::Load, type: :service do
 
       expect(scenario.owners.first.user).to eq(owner_user)
       expect(scenario.collaborators.first.user).to eq(collab_user)
+    end
+
+    it 'binds each loaded Session' do
+      service.call
+
+      expect(ApiScenario::SetBound).to have_received(:call).with(admin_user, version, [ 223 ], true)
+    end
+
+    it 'saves nothing when ETEngine fails to bind the loaded Sessions' do
+      allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))
+
+      expect { service.call }.not_to change(SavedScenario, :count)
     end
 
     context 'when updating existing scenarios' do
