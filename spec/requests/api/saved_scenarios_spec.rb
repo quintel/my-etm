@@ -736,7 +736,7 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
 
     context 'when the discard fails with validation errors' do
       before do
-        allow_any_instance_of(SavedScenario).to receive(:save).and_return(false)
+        allow_any_instance_of(SavedScenario).to receive(:valid?).and_return(false)
         allow_any_instance_of(SavedScenario).to receive(:errors).and_return(
           double(full_messages: [ "Title can't be blank" ])
         )
@@ -757,7 +757,7 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
 
     context 'when the discard fails without specific errors' do
       before do
-        allow_any_instance_of(SavedScenario).to receive(:save).and_return(false)
+        allow_any_instance_of(SavedScenario).to receive(:valid?).and_return(false)
         allow_any_instance_of(SavedScenario).to receive(:errors).and_return(
           double(full_messages: [])
         )

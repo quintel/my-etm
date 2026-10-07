@@ -15,6 +15,9 @@ describe SavedScenario::Update, type: :service do
       '/api/v3/scenarios/3', { scenario: { keep_compatible: false } }
     )
     allow(client).to receive(:put).with(
+      '/api/v3/scenarios/1', { scenario: { keep_compatible: false } }
+    )
+    allow(client).to receive(:put).with(
       '/api/v3/scenarios/2',
       hash_including(
         scenario: hash_including(
@@ -60,6 +63,16 @@ describe SavedScenario::Update, type: :service do
 
       it 'leaves the scenario kept' do
         expect { result }.not_to(change { saved_scenario.reload.discarded_at })
+      end
+    end
+
+    context 'when discarding with an invalid title' do
+      let(:params) { { discarded: true, title: '' } }
+
+      it 'does not unbind the scenario' do
+        result
+
+        expect(ApiScenario::SetBound).not_to have_received(:call)
       end
     end
 

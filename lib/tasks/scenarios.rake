@@ -4,9 +4,10 @@ namespace :scenarios do
   task :bind, %i[version email] => :environment do |_, args|
     version = Version.find_by!(tag: args[:version])
     user = User.find_by!(email: args[:email])
+    abort "#{version.tag} has no bound flag in ETEngine" unless ApiScenario::SetBound.supported?(version)
 
     sessions = SavedScenario.kept.where(version:).select(:id, :scenario_id, :scenario_id_history)
-      .find_each.flat_map { |ss| ss.all_scenario_ids.map { |id| [ id, ss.id ] } }
+      .find_each.flat_map { |ss| ss.all_scenario_ids.uniq.map { |id| [ id, ss.id ] } }
 
     rows = sessions.each_slice(500).flat_map do |batch|
       missing = ApiScenario::SetBound.call!(user, version, batch.map(&:first), true)

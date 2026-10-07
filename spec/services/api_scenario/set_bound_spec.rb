@@ -33,6 +33,13 @@ describe ApiScenario::SetBound, type: :service do
     expect(result.value).to eq([ 2 ])
   end
 
+  it 'calls nothing on a version whose engine has no bound flag' do
+    allow(Settings).to receive(:versions_without_bound_flag).and_return([ version.tag ])
+    result
+
+    expect(MyEtm::Auth).not_to have_received(:client_for)
+  end
+
   it 'fails when ETEngine fails' do
     allow(client).to receive(:put).and_raise(Faraday::ServerError)
 

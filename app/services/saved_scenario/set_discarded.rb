@@ -20,6 +20,7 @@ class SavedScenario::SetDiscarded
 
   def call
     return Success(saved_scenario) if saved_scenario.discarded? == discarded
+    return Failure(saved_scenario.errors) unless saved_scenario.valid?
     return Failure([ :upstream, bind_result.errors ]) if bind_result.failure?
 
     saved_scenario.discarded_at = discarded ? Time.current : nil
