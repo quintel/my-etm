@@ -65,6 +65,8 @@ describe 'SavedScenarioPacker Integration', type: :service do
   end
 
   before do
+    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+
     # Mock ETEngine streaming dump API call using streaming helper
     streaming_body = "#{engine_dump_one.to_json}\n#{engine_dump_two.to_json}\n"
     mock_streaming_response(http_client, '/api/v3/scenarios/export', streaming_body)

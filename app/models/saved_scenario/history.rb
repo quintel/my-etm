@@ -8,11 +8,13 @@ module SavedScenario::History
   end
 
   # Public: Adds the ID to the history. Max history is 100 scenarios.
+  # Returns the evicted ID
   def add_id_to_history(scenario_id)
     return if !scenario_id || contains?(scenario_id)
 
-    scenario_id_history.shift if scenario_id_history.count >= 100
+    evicted = scenario_id_history.shift if scenario_id_history.count >= 100
     scenario_id_history << scenario_id
+    evicted
   end
 
   # Public: Restores the scenario id to the given historical scenario

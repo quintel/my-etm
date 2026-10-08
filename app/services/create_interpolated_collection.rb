@@ -31,17 +31,11 @@ class CreateInterpolatedCollection
   #
   # Returns a ServiceResult.
   def call
-    if interpolations.values.all?(&:successful?)
-      ServiceResult.success(create_collection)
-    else
-      # Any responses which did succeed, should have their protected status
-      # removed, since there's no need to keep the scenario.
-      clean_up_failure
+    result = interpolations.values.all?(&:successful?) ? bind_interpolated : interpolations.values.last
+    return ServiceResult.success(create_collection) if result.successful?
 
-      # The last response will always be the one with the errors, as we give up
-      # on the first failure.
-      ServiceResult.failure(interpolations.values.last.errors)
-    end
+    clean_up_failure
+    ServiceResult.failure(result.errors)
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
     clean_up_failure
 
@@ -51,6 +45,11 @@ class CreateInterpolatedCollection
   end
 
   private
+
+  def bind_interpolated
+    ids = interpolations.values.map { |result| result.value["id"] }
+    ApiScenario::SetBound.call(@user, @saved_scenario.version, ids, true)
+  end
 
   def create_collection
     collection = Collection.new_from_saved_scenario(@saved_scenario, user: @user)

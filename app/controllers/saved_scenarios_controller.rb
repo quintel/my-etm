@@ -111,8 +111,11 @@ class SavedScenariosController < ApplicationController
 
   # DELETE /saved_scenarios/1 or /saved_scenarios/1.json
   def destroy
-    @saved_scenario.destroy
-    flash.notice = t("scenario.trash.deleted_flash")
+    if set_discarded(true)
+      @saved_scenario.destroy
+      flash.notice = t("trash.deleted_flash")
+    end
+
     redirect_to discarded_index_path
   end
 
@@ -146,10 +149,7 @@ class SavedScenariosController < ApplicationController
   #
   # PUT /saved_scenarios/:id/discard
   def discard
-    unless @saved_scenario.discarded?
-      @saved_scenario.discarded_at = Time.zone.now
-      @saved_scenario.save(touch: false)
-
+    if @saved_scenario.kept? && set_discarded(true)
       flash.notice = t("trash.discarded_flash")
       flash[:undo_params] = undiscard_saved_scenario_path(@saved_scenario)
     end
@@ -161,10 +161,7 @@ class SavedScenariosController < ApplicationController
   #
   # PUT /saved_scenarios/:id/undiscard
   def undiscard
-    unless @saved_scenario.kept?
-      @saved_scenario.discarded_at = nil
-      @saved_scenario.save(touch: false)
-
+    if @saved_scenario.discarded? && set_discarded(false)
       flash.notice = t("trash.undiscarded_flash")
       flash[:undo_params] = discard_saved_scenario_path(@saved_scenario)
     end
@@ -173,6 +170,13 @@ class SavedScenariosController < ApplicationController
   end
 
   private
+
+  def set_discarded(discarded)
+    result = SavedScenario::SetDiscarded.call(@saved_scenario, discarded, current_user)
+    flash.alert = t("trash.error") if result.failure?
+
+    result.success?
+  end
 
   def user_saved_scenarios
     @user_saved_scenarios ||= current_user

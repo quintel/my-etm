@@ -323,6 +323,7 @@ nl:
   trash:
     deleted_flash: Je scenario is permanent verwijderd
     discarded_flash: Je scenario was verplaatst naar de prullenbak
+    error: Er ging iets mis bij het bijwerken van je scenario. Probeer het opnieuw
     empty:
       description: Verwijderde items worden verplaatst naar de prullenbak. Hier kun
         je aangeven deze permanent te verwijderen of te herstellen. Verwijderde scenarios

@@ -6,7 +6,10 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
   let(:user) { create(:user) }
   let(:client) { Faraday.new(url: 'http://testing') }
 
-  before { allow(MyEtm::Auth).to receive(:engine_client).and_return(client) }
+  before do
+    allow(MyEtm::Auth).to receive(:engine_client).and_return(client)
+    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+  end
 
   describe 'GET /api/v1/saved_scenarios' do
     context 'with an access token with the correct scope' do
@@ -733,7 +736,7 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
 
     context 'when the discard fails with validation errors' do
       before do
-        allow_any_instance_of(SavedScenario).to receive(:save).and_return(false)
+        allow_any_instance_of(SavedScenario).to receive(:valid?).and_return(false)
         allow_any_instance_of(SavedScenario).to receive(:errors).and_return(
           double(full_messages: [ "Title can't be blank" ])
         )
@@ -754,7 +757,7 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
 
     context 'when the discard fails without specific errors' do
       before do
-        allow_any_instance_of(SavedScenario).to receive(:save).and_return(false)
+        allow_any_instance_of(SavedScenario).to receive(:valid?).and_return(false)
         allow_any_instance_of(SavedScenario).to receive(:errors).and_return(
           double(full_messages: [])
         )

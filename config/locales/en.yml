@@ -281,6 +281,7 @@ en:
   trash:
     deleted_flash: Your scenario has been permanently deleted
     discarded_flash: Your scenario was put in the trash
+    error: Something went wrong updating your scenario. Please try again
     empty:
       description: Deleted items are sent to the trash where you can choose to permanently
         delete or restore them. Trashed scenarios are automatically removed after
