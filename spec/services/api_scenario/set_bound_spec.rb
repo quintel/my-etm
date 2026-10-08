@@ -26,7 +26,7 @@ describe ApiScenario::SetBound, type: :service do
     result
 
     expect(client).to have_received(:put)
-      .with('/api/v3/scenarios/bound', ids: [ 1, 2 ], bound: true)
+      .with('/api/v3/scenarios/bind', ids: [ 1, 2 ], bound: true)
   end
 
   it 'returns the ids ETEngine has no Session for' do

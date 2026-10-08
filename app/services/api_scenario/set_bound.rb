@@ -20,7 +20,7 @@ module ApiScenario::SetBound
   def call!(user, version, ids, bound)
     return [] unless supported?(version)
 
-    client(user, version).put("/api/v3/scenarios/bound", ids:, bound:).body["missing"]
+    client(user, version).put("/api/v3/scenarios/bind", ids:, bound:).body["missing"]
   end
 
   def for_saved_scenario(user, saved_scenario, bound)
