@@ -63,27 +63,24 @@ module Api
 
       # DELETE /api/v2/saved_scenarios/:id
       def destroy
-        discarded = SavedScenario::SetDiscarded.call(@saved_scenario, true, current_user)
-        return render_write(discarded, with: SavedScenarioSerialiser) if discarded.failure?
-        return render_validation_errors(@saved_scenario.errors) unless @saved_scenario.destroy
+        purged = SavedScenario::Purge.call(@saved_scenario, current_user)
+        return render_write(purged, with: SavedScenarioSerialiser) if purged.failure?
 
         render_no_content
       end
 
       # PUT /api/v2/saved_scenarios/:id/discard
       def discard
-        render_write(
-          SavedScenario::SetDiscarded.call(@saved_scenario, true, current_user),
-          with: SavedScenarioSerialiser
-        )
+        @saved_scenario.discard
+
+        render_resource(@saved_scenario, with: SavedScenarioSerialiser)
       end
 
       # PUT /api/v2/saved_scenarios/:id/restore
       def restore
-        render_write(
-          SavedScenario::SetDiscarded.call(@saved_scenario, false, current_user),
-          with: SavedScenarioSerialiser
-        )
+        @saved_scenario.undiscard
+
+        render_resource(@saved_scenario, with: SavedScenarioSerialiser)
       end
 
       private

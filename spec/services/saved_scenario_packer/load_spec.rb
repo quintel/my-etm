@@ -176,6 +176,13 @@ describe SavedScenarioPacker::Load, type: :service do
       expect(ApiScenario::SetBound).to have_received(:call).with(admin_user, version, [ 223 ], true)
     end
 
+    it 'unbinds the loaded Session when the scenario cannot be saved' do
+      allow(SavedScenario).to receive(:create!).and_raise(ActiveRecord::RecordNotSaved, 'nope')
+      service.call
+
+      expect(ApiScenario::SetBound).to have_received(:call).with(admin_user, version, [ 223 ], false)
+    end
+
     it 'saves nothing when ETEngine fails to bind the loaded Sessions' do
       allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))
 
