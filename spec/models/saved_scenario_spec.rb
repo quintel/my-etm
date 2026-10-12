@@ -10,6 +10,32 @@ RSpec.describe SavedScenario, type: :model do
     end
   end
 
+  describe '.destroy_old_discarded!' do
+    let(:owner) { create(:user) }
+    let!(:old) { create(:saved_scenario, user: owner, discarded_at: 61.days.ago) }
+
+    before do
+      create(:saved_scenario, user: owner, discarded_at: 59.days.ago)
+      allow(SavedScenario::Purge).to receive(:call)
+    end
+
+    it 'purges only scenarios discarded long enough ago, as their owner' do
+      described_class.destroy_old_discarded!
+
+      expect(SavedScenario::Purge).to have_received(:call).once.with(old, owner)
+    end
+  end
+
+  describe '#purging_user' do
+    it 'falls back to an admin when the owner has been deleted' do
+      admin = create(:admin)
+      saved_scenario = create(:saved_scenario, user: create(:user))
+      saved_scenario.saved_scenario_users.delete_all
+
+      expect(saved_scenario.purging_user).to eq(admin)
+    end
+  end
+
   describe "#scenario_id_history" do
     subject { SavedScenario.new.scenario_id_history }
     it { is_expected.to be_a(Array) }

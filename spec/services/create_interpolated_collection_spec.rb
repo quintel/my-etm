@@ -38,6 +38,11 @@ describe CreateInterpolatedCollection, type: :service do
       expect { result }.to raise_error(ActiveRecord::RecordNotSaved)
     end
 
+    it 'unbinds the interpolated Session' do
+      expect { result }.to raise_error(ActiveRecord::RecordNotSaved)
+      expect(ApiScenario::SetBound).to have_received(:call).with(user, scenario.version, [ 2 ], false)
+    end
+
     it 'saves no interpolated scenario' do
       expect { result rescue nil }.not_to change(SavedScenario, :count)
     end

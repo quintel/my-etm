@@ -72,11 +72,16 @@ class SavedScenario < ApplicationRecord
     scenarios
   end
 
-  # Public: Destroys all scenarios which were discarded some time ago.
+  # Public: Destroys all scenarios which were discarded some time ago. A scenario whose Sessions
+  # cannot be unbound in ETEngine is kept, and tried again on the next run.
   def self.destroy_old_discarded!
     discarded
       .where(discarded_at: ..SavedScenario::AUTO_DELETES_AFTER.ago)
-      .destroy_all
+      .find_each { |scenario| SavedScenario::Purge.call(scenario, scenario.purging_user) }
+  end
+
+  def purging_user
+    owners.first&.user || User.find_by(admin: true)
   end
 
   def restore_version(scenario_id)

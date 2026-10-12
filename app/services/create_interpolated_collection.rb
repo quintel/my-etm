@@ -47,8 +47,11 @@ class CreateInterpolatedCollection
   private
 
   def bind_interpolated
-    ids = interpolations.values.map { |result| result.value["id"] }
-    ApiScenario::SetBound.call(@user, @saved_scenario.version, ids, true)
+    ApiScenario::SetBound.call(@user, @saved_scenario.version, interpolated_ids, true)
+  end
+
+  def interpolated_ids
+    interpolations.values.select(&:successful?).map { |result| result.value["id"] }
   end
 
   def create_collection
@@ -142,10 +145,10 @@ class CreateInterpolatedCollection
   end
 
   def clean_up_failure
-    interpolations.each_value do |sresult|
-      next unless sresult.successful?
+    ApiScenario::SetBound.call(@user, @saved_scenario.version, interpolated_ids, false)
 
-      ApiScenario::SetCompatibility.dont_keep_compatible(@http_client, sresult.value['id'])
+    interpolated_ids.each do |id|
+      ApiScenario::SetCompatibility.dont_keep_compatible(@http_client, id)
     end
   end
 end

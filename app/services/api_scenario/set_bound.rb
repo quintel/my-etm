@@ -13,7 +13,7 @@ module ApiScenario::SetBound
     ServiceResult.success(call!(user, version, ids, bound))
   rescue Faraday::Error => e
     Sentry.capture_exception(e)
-    ServiceResult.failure("Failed to update the scenario in ETEngine")
+    ServiceResult.failure("Failed to update the session in ETEngine")
   end
 
   # Raises a Faraday::Error when ETEngine fails

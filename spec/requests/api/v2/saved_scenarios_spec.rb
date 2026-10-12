@@ -475,6 +475,14 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
 
       expect(response).to have_http_status(:not_found)
     end
+
+    it "keeps the scenario when ETEngine fails to unbind its Sessions" do
+      allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure("Engine down"))
+      delete(path, headers: v2_bearer(owner, :delete), as: :json)
+
+      expect(response).to have_http_status(:bad_gateway)
+      expect(SavedScenario.exists?(resource.id)).to be(true)
+    end
   end
 
   describe "PUT /api/v2/saved_scenarios/:id/discard" do

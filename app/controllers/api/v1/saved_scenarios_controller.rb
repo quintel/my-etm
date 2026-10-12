@@ -64,12 +64,12 @@ module Api
 
       # DELETE /saved_scenarios/1 or /saved_scenarios/1.json
       def destroy
-        discarded = SavedScenario::SetDiscarded.call(@saved_scenario, true, current_user)
+        result = SavedScenario::Purge.call(@saved_scenario, current_user)
 
-        if discarded.failure?
-          render json: { errors: failure_messages(discarded.failure) }, status: :unprocessable_entity
-        elsif @saved_scenario.destroy
+        if result.success?
           render json: { message: "Scenario deleted successfully" }, status: :ok
+        elsif (errors = failure_messages(result.failure)).any?
+          render json: { errors: }, status: :unprocessable_entity
         else
           render json: { error: "Failed to delete scenario" }, status: :unprocessable_entity
         end
@@ -77,14 +77,16 @@ module Api
 
       # PUT /saved_scenarios/1/discard
       def discard
-        result = SavedScenario::SetDiscarded.call(@saved_scenario, true, current_user)
+        unless @saved_scenario.discarded?
+          @saved_scenario.discarded_at = Time.zone.now
 
-        if result.failure?
-          errors = failure_messages(result.failure)
-          errors = [ "Failed to discard scenario" ] if errors.empty?
+          unless @saved_scenario.save(touch: false)
+            errors = @saved_scenario.errors.full_messages
+            errors = [ "Failed to discard scenario" ] if errors.empty?
 
-          render json: { errors: errors }, status: :unprocessable_content
-          return
+            render json: { errors: errors }, status: :unprocessable_content
+            return
+          end
         end
 
         render json: { message: "Scenario discarded successfully" }, status: :ok
