@@ -19,8 +19,10 @@ class ScenarioAccess
     @pairs = Array(pairs).map { |id, level| [ Integer(id), level.to_s ] }
   end
 
-  # The access level a user's role gives them on a saved scenario, or nil without a role
+  # The access level a user's role gives them on a saved scenario, or nil without a role or once discarded
   def self.level_for(saved_scenario, user)
+    return if saved_scenario.discarded?
+
     role_id = saved_scenario.saved_scenario_users.find_by(user_id: user.id)&.role_id
     return unless role_id
 
