@@ -77,11 +77,7 @@ class SavedScenario < ApplicationRecord
   def self.destroy_old_discarded!
     discarded
       .where(discarded_at: ..SavedScenario::AUTO_DELETES_AFTER.ago)
-      .find_each { |scenario| SavedScenario::Purge.call(scenario, scenario.purging_user) }
-  end
-
-  def purging_user
-    owners.first&.user || User.find_by(admin: true)
+      .find_each { |scenario| SavedScenario::Purge.call(scenario, User.robot) }
   end
 
   def restore_version(scenario_id)
