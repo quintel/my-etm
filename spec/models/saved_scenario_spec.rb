@@ -19,20 +19,10 @@ RSpec.describe SavedScenario, type: :model do
       allow(SavedScenario::Purge).to receive(:call)
     end
 
-    it 'purges only scenarios discarded long enough ago, as their owner' do
+    it 'purges only scenarios discarded long enough ago, as the robot' do
       described_class.destroy_old_discarded!
 
-      expect(SavedScenario::Purge).to have_received(:call).once.with(old, owner)
-    end
-  end
-
-  describe '#purging_user' do
-    it 'falls back to an admin when the owner has been deleted' do
-      admin = create(:admin)
-      saved_scenario = create(:saved_scenario, user: create(:user))
-      saved_scenario.saved_scenario_users.delete_all
-
-      expect(saved_scenario.purging_user).to eq(admin)
+      expect(SavedScenario::Purge).to have_received(:call).once.with(old, User.robot)
     end
   end
 

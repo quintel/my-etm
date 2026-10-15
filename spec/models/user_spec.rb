@@ -9,6 +9,18 @@ RSpec.describe User do
   it { is_expected.to have_many(:oauth_applications) }
   it { is_expected.to have_many(:saved_scenarios) }
 
+  describe '.robot' do
+    it 'is a confirmed admin' do
+      expect(described_class.robot).to have_attributes(admin: true, confirmed?: true)
+    end
+
+    it 'is created only once' do
+      described_class.robot
+
+      expect { described_class.robot }.not_to change(described_class, :count)
+    end
+  end
+
   describe '#valid_password?' do
     let(:user) { create(:user, password: 'password123') }
 

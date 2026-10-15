@@ -1,10 +1,10 @@
 namespace :scenarios do
   desc "Bind every saved scenario's Sessions on a Version in ETEngine. " \
        "To be used once only before retiring scenario_users completely. " \
-       "Usage: rails 'scenarios:bind[2025.01,you@email.com]'"
-  task :bind, %i[version email] => :environment do |_, args|
+       "Usage: rails 'scenarios:bind[2025.01]'"
+  task :bind, %i[version] => :environment do |_, args|
     version = Version.find_by!(tag: args[:version])
-    user = User.find_by!(email: args[:email])
+    user = User.robot
     abort "#{version.tag} has no bound flag in ETEngine" unless ApiScenario::SetBound.supported?(version)
 
     sessions = SavedScenario.where(version:).select(:id, :scenario_id, :scenario_id_history)
