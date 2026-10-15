@@ -13,9 +13,6 @@ class SavedScenario < ApplicationRecord
   # Discarded scenarios are deleted automatically after this period.
   AUTO_DELETES_AFTER = 60.days
 
-  # Clean up zombie ScenarioUsers in ETEngine when SavedScenario is soft-deleted
-  after_discard :cleanup_scenario_users
-
   after_update_commit { InvalidateCollectionScenarioJob.perform_later(self) }
 
   # Used by Fiterable Concern
@@ -75,11 +72,12 @@ class SavedScenario < ApplicationRecord
     scenarios
   end
 
-  # Public: Destroys all scenarios which were discarded some time ago.
+  # Public: Destroys all scenarios which were discarded some time ago. A scenario whose Sessions
+  # cannot be unbound in ETEngine is kept, and tried again on the next run.
   def self.destroy_old_discarded!
     discarded
       .where(discarded_at: ..SavedScenario::AUTO_DELETES_AFTER.ago)
-      .destroy_all
+      .find_each { |scenario| SavedScenario::Purge.call(scenario, User.robot) }
   end
 
   def restore_version(scenario_id)
@@ -158,17 +156,5 @@ class SavedScenario < ApplicationRecord
     else
       self.version_id = Version.default.id
     end
-  end
-
-  private
-
-  # Enqueues a job to clean up ScenarioUsers in ETEngine when this SavedScenario is discarded.
-  # Cleans up both current and historical scenarios.
-  def cleanup_scenario_users
-    user_id = users.first&.id
-    return unless user_id
-
-    all_scenario_ids = [ scenario_id ] + (scenario_id_history || [])
-    CleanupScenarioUsersJob.perform_later(user_id, version_id, all_scenario_ids)
   end
 end

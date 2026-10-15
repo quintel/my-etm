@@ -68,7 +68,8 @@ class SavedScenarioHistoryController < ApplicationController
     result = SavedScenario::Restore.call(
       engine_client(@saved_scenario.version),
       @saved_scenario,
-      params[:scenario_id].to_i
+      params[:scenario_id].to_i,
+      user: current_user
     )
 
     if result.successful?

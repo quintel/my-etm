@@ -111,8 +111,12 @@ class SavedScenariosController < ApplicationController
 
   # DELETE /saved_scenarios/1 or /saved_scenarios/1.json
   def destroy
-    @saved_scenario.destroy
-    flash.notice = t("scenario.trash.deleted_flash")
+    if SavedScenario::Purge.call(@saved_scenario, current_user).success?
+      flash.notice = t("trash.deleted_flash")
+    else
+      flash.alert = t("trash.error")
+    end
+
     redirect_to discarded_index_path
   end
 

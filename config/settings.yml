@@ -6,6 +6,9 @@ etengine:
 collections:
   uri: http://localhost:3005
 
+# Frozen versions whose ETEngine predates the bound flag, so MyETM never binds their Sessions
+versions_without_bound_flag: ["2025.01"]
+
 myetm:
   iss: my-etm
   uri: <%= ENV.fetch('OPENID_ISSUER', 'http://localhost:3002') %>

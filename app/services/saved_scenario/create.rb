@@ -7,7 +7,8 @@
 # settings        - Optional extra scenario data to be sent to ETEngine when
 #                   creating the new API scenario.
 #
-# Returns a Dry::Monads::Result with the saved scenario, or the record's errors.
+# Returns a Dry::Monads::Result with the saved scenario. A failure carries the record's errors, or
+# an [:upstream, messages] pair when ETEngine failed to bind the scenario's Session
 class SavedScenario::Create
   extend Dry::Initializer
   include Service
@@ -19,6 +20,7 @@ class SavedScenario::Create
 
   def call
     return failure unless saved_scenario.valid?
+    return Failure([ :upstream, bind_result.errors ]) if bind_result.failure?
 
     # Sometimes we have to explicitly set the user again
     saved_scenario.user = user
@@ -29,6 +31,10 @@ class SavedScenario::Create
   end
 
   private
+
+  def bind_result
+    @bind_result ||= ApiScenario::SetBound.for_saved_scenario(user, saved_scenario, true)
+  end
 
   def saved_scenario
     @saved_scenario ||= SavedScenario.new(saved_scenario_attrs)
