@@ -4,6 +4,7 @@
 #
 # saved_scenario  - The scenario to be updated
 # scenario_id     - The ID of the scenario to be restored.
+# user            - The user acting, who owns the engine token that unbinds dropped Sessions
 #
 # Returns a ServiceResult with the saved scenario.
 class SavedScenario::Restore
@@ -14,18 +15,22 @@ class SavedScenario::Restore
   param :saved_scenario
   param :scenario_id
   param :settings, default: proc { {} }
+  option :user
 
   def call
-    saved_scenario.tap do |ss|
-      discarded_scenarios = ss.restore_historical(scenario_id)
+    return ServiceResult.success(saved_scenario) unless saved_scenario.contains?(scenario_id)
 
-      return ServiceResult.success(saved_scenario) if discarded_scenarios.empty?
+    saved_scenario.tap do |ss|
+      # The current Session leaves the scenario too, along with every later snapshot.
+      dropped = [ ss.scenario_id ] + ss.restore_historical(scenario_id)
       return failure unless ss.valid?
 
-      discarded_scenarios.each { |id| unprotect(id) }
+      unbound = ApiScenario::SetBound.call(user, ss.version, dropped, false)
+      return unbound if unbound.failure?
+
+      dropped.each { |id| unprotect(id) }
 
       ss.save
-      saved_scenario.scenario_id = scenario_id
     end
 
     ServiceResult.success(saved_scenario)

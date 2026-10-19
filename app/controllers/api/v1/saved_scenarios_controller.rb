@@ -51,7 +51,8 @@ module Api
         result = SavedScenario::Update.call(
           engine_client,
           @saved_scenario,
-          saved_scenario_params.except(:version)
+          saved_scenario_params.except(:version),
+          user: current_user
         )
 
         if result.success?
@@ -63,8 +64,12 @@ module Api
 
       # DELETE /saved_scenarios/1 or /saved_scenarios/1.json
       def destroy
-        if @saved_scenario.destroy
+        result = SavedScenario::Purge.call(@saved_scenario, current_user)
+
+        if result.success?
           render json: { message: "Scenario deleted successfully" }, status: :ok
+        elsif (errors = failure_messages(result.failure)).any?
+          render json: { errors: }, status: :unprocessable_entity
         else
           render json: { error: "Failed to delete scenario" }, status: :unprocessable_entity
         end
@@ -75,7 +80,6 @@ module Api
         unless @saved_scenario.discarded?
           @saved_scenario.discarded_at = Time.zone.now
 
-          # Use touch: false to preserve updated_at timestamp.
           unless @saved_scenario.save(touch: false)
             errors = @saved_scenario.errors.full_messages
             errors = [ "Failed to discard scenario" ] if errors.empty?

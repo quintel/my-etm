@@ -56,14 +56,15 @@ module Api
         return if attributes.nil?
 
         render_write(
-          SavedScenario::Update.call(nil, @saved_scenario, attributes),
+          SavedScenario::Update.call(nil, @saved_scenario, attributes, user: current_user),
           with: SavedScenarioSerialiser
         )
       end
 
       # DELETE /api/v2/saved_scenarios/:id
       def destroy
-        return render_validation_errors(@saved_scenario.errors) unless @saved_scenario.destroy
+        purged = SavedScenario::Purge.call(@saved_scenario, current_user)
+        return render_write(purged, with: SavedScenarioSerialiser) if purged.failure?
 
         render_no_content
       end
