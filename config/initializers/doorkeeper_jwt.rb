@@ -39,6 +39,9 @@ Doorkeeper::JWT.configure do
     scopes = opts[:scopes]
     extras = opts[:expires_in].present? ? { exp: opts[:expires_in] + Time.now.to_i } : {}
 
+    access = ScenarioAccess.new(opts[:scenario_access])
+    extras[ScenarioAccess::CLAIM] = access.as_claim unless access.empty?
+
     {
       iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
       iat: Time.now.to_i,
