@@ -141,4 +141,47 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
 
     expect(response).to have_http_status(:unauthorized)
   end
+
+  describe "re-deriving scenario access" do
+    def held_after_refresh
+      post("/session/refresh", headers: with_refresh(anchor.refresh_token))
+      MyEtm::Auth.verify_jwt(response.cookies["etm_session"])[ScenarioAccess::CLAIM]
+    end
+
+    let(:saved_scenario) { create(:saved_scenario, scenario_id: 10) }
+
+    let!(:role) do
+      create(
+        :saved_scenario_user,
+        saved_scenario:, user:, role_id: User::Roles.index_of(:scenario_collaborator)
+      )
+    end
+
+    before do
+      create(:saved_scenario_user, saved_scenario:, role_id: User::Roles.index_of(:scenario_owner))
+      anchor.update!(scenario_access: [ [ 10, "write" ] ])
+    end
+
+    it "keeps an unchanged role's entry" do
+      expect(held_after_refresh).to eq("write" => [ 10 ], "read" => [])
+    end
+
+    it "drops the entry of a collaborator removed since" do
+      role.destroy!
+
+      expect(held_after_refresh).to be_nil
+    end
+
+    it "downgrades a collaborator now a viewer" do
+      role.update!(role_id: User::Roles.index_of(:scenario_viewer))
+
+      expect(held_after_refresh).to eq("write" => [], "read" => [ 10 ])
+    end
+
+    it "drops a scenario discarded since" do
+      saved_scenario.discard
+
+      expect(held_after_refresh).to be_nil
+    end
+  end
 end
