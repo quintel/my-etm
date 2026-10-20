@@ -27,7 +27,10 @@
   <% end %>
 
   <% if @collection.saved_scenarios.present? %>
-    <div class="mt-5">
+    <div class="mt-10 text-midnight-400 text-sm">
+      <%= "#{t('collections.contains_scenarios')} (#{@collection.saved_scenarios.count})"%>
+    </div>
+    <div class="mt-5 border border-gray-200 rounded-md p-5">
       <% @collection.saved_scenarios.each do |saved_scenario| %>
         <%= render(Collections::SavedScenario::Component.new(
           path: saved_scenario_path(saved_scenario),

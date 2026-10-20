@@ -34,7 +34,11 @@ en:
       title: Permanently deleting collection
       warning: Deleting will remove all references to this collection.
       warning_header: You are permanently deleting your collection
-    contains: This collection contains the following sorted scenarios
+    contains: |
+      A collection contains multiple scenarios, and displays them next to each
+      other in ETM's Collections interface. This allows comparision of results
+      as well as editing multiple scenarios simultaneously.
+    contains_scenarios: Contains scenarios
     failure: Something went wrong!
     filter:
       plain: Scenario collections
@@ -71,7 +75,7 @@ en:
         group of scenarios, whereas a transition path is a single scenario that
         is interpolated to intermediate years.
     no_title: Untitled collection
-    open: Open collection
+    open: Open scenarios
     search_by_title: Filter by title
     title: Collections
     try_now: Create your first collection

@@ -34,7 +34,11 @@ nl:
       title: Collectie permanent verwijderen
       warning: Alle verwijzingen naar de collectie worden verwijderd.
       warning_header: Je verwijdert je collectie permanent
-    contains: Deze verzameling bevat de volgende gesorteerde scenario's
+    contains: |
+      Een collectie bevat meedere scenarios. Met collecties kun je de uitkomsten
+      van verschillende scenario's die je hebt gemaakt met elkaar vergelijken.
+      Ook kan je de inputs van meedere scenarios tegelijkertijd aanpassen.
+    contains_scenarios: Bevat scenarios
     failure: Er ging iets mis!
     filter:
       plain: Collecties
