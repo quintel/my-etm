@@ -55,6 +55,7 @@ Rails.application.routes.draw do
       get :list
       post :list
       post :index
+      get :open, to: 'open_sessions#show'
     end
 
     member do

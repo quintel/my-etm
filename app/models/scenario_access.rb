@@ -36,9 +36,20 @@ class ScenarioAccess
     SavedScenario.kept.joins(:saved_scenario_users).where(saved_scenario_users: { user_id: })
   end
 
+  # The level the user's role gives on each of these Sessions that is a kept scenario's current Session
+  def self.levels_for(user_id, session_ids)
+    return {} if session_ids.empty?
+
+    roles_of(user_id).where(scenario_id: session_ids)
+      .pluck(:scenario_id, "saved_scenario_users.role_id")
+      .each_with_object({}) do |(id, role_id), levels|
+        levels[id] = level_of(role_id) unless levels[id] == WRITE
+      end
+  end
+
   # Keeps the entries for a kept scenario's current Session the user still has a role on
   def rederived_for(user_id)
-    levels = current_levels(user_id)
+    levels = self.class.levels_for(user_id, pairs.map(&:first))
     self.class.new(pairs.filter_map { |id, _| [ id, levels[id] ] if levels[id] })
   end
 
@@ -75,16 +86,6 @@ class ScenarioAccess
       id = Integer(id)
       levels[id] = stronger(levels[id], level.to_s)
     end
-  end
-
-  def current_levels(user_id)
-    return {} if empty?
-
-    self.class.roles_of(user_id).where(scenario_id: pairs.map(&:first))
-      .pluck(:scenario_id, "saved_scenario_users.role_id")
-      .each_with_object({}) do |(id, role_id), levels|
-        levels[id] = stronger(levels[id], self.class.level_of(role_id))
-      end
   end
 
   def stronger(held, level)
