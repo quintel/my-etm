@@ -24,6 +24,24 @@ RSpec.describe SavedScenario, type: :model do
 
       expect(SavedScenario::Purge).to have_received(:call).once.with(old, User.robot)
     end
+
+    context 'when scenario belonged to a collection' do
+      let(:collection) { create(:collection, user: owner, scenarios_count: 2) }
+      let(:old) { create(:saved_scenario, user: owner) }
+
+      before do
+        allow(SavedScenario::Purge).to receive(:call).and_call_original
+        allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+
+        create(:collection_saved_scenario, saved_scenario: old, collection: collection)
+        old.update(discarded_at: 61.days.ago)
+      end
+
+      it 'removes the scenario from the collection' do
+        expect { described_class.destroy_old_discarded! }
+          .to change { collection.reload.latest_scenario_ids.count }.by(-1)
+      end
+    end
   end
 
   describe "#scenario_id_history" do
