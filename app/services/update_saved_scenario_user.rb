@@ -115,10 +115,10 @@ class UpdateSavedScenarioUser
     )
   end
 
-  # Pending members have no user_id yet, so ETEngine can only find them by email
+  # ETEngine may still know a member only by email, until they first sign in there
   def engine_scenario_users(updated_users)
     updated_users.map do |u|
-      { user_id: u.user_id, user_email: u.user_email, role: User::ROLES[u.role_id] }
+      { user_id: u.user_id, user_email: u.email, role: User::ROLES[u.role_id] }
     end
   end
 end

@@ -104,7 +104,7 @@ class DestroySavedScenarioUser
     destroyed_users.map do |saved_scenario_user|
       {
         user_id: saved_scenario_user.user_id,
-        user_email: saved_scenario_user.user_email,
+        user_email: saved_scenario_user.email,
         role: User::ROLES[saved_scenario_user.role_id]
       }
     end
