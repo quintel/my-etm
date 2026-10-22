@@ -7,6 +7,9 @@ class Version < ApplicationRecord
   validates :url_prefix, presence: true, unless: -> { tag == "latest" }
   validate  :one_default
 
+  # Versions shown in the version pickers of the apps (hidden versions work but are not listed).
+  scope :visible, -> { where(hidden: false) }
+
   URL = "energytransitionmodel.com".freeze
   LOCAL_URLS = {
     "collections" => Settings.collections.uri,
