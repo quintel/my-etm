@@ -92,15 +92,12 @@ class UpdateSavedScenarioUser
     user_id = user&.id || saved_scenario.users.first&.id
     return unless user_id
 
-    scenario_users = updated_users.map do |u|
-      { user_id: u.user_id, role: User::ROLES[u.role_id] }
-    end
-
     SavedScenarioUserCallbacksJob.perform_later(
       saved_scenario.id,
       user_id,
       saved_scenario.version.tag,
-      [ { type: :update, scenario_users: scenario_users, scenario_id: saved_scenario.scenario_id } ]
+      [ { type: :update, scenario_users: engine_scenario_users(updated_users),
+          scenario_id: saved_scenario.scenario_id } ]
     )
   end
 
@@ -110,15 +107,18 @@ class UpdateSavedScenarioUser
     user_id = user&.id || saved_scenario.users.first&.id
     raise "No user found for SavedScenario #{saved_scenario.id}" unless user_id
 
-    scenario_users = updated_users.map do |u|
-      { user_id: u.user_id, role: User::ROLES[u.role_id] }
-    end
-
     SavedScenarioUserCallbacksJob.perform_later(
       saved_scenario.id,
       user_id,
       saved_scenario.version.tag,
-      [ { type: :update, scenario_users: scenario_users } ]
+      [ { type: :update, scenario_users: engine_scenario_users(updated_users) } ]
     )
+  end
+
+  # Pending members have no user_id yet, so ETEngine can only find them by email
+  def engine_scenario_users(updated_users)
+    updated_users.map do |u|
+      { user_id: u.user_id, user_email: u.user_email, role: User::ROLES[u.role_id] }
+    end
   end
 end
