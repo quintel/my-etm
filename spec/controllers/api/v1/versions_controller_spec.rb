@@ -24,4 +24,22 @@ RSpec.describe 'API::V1::Versions', type: :request do
       expect(parsed_response['versions'].first).to have_key('collections_url')
     end
   end
+
+  describe 'GET /api/v1/versions with a hidden version' do
+    let!(:visible) { create(:version) }
+    let!(:hidden) { create(:version, hidden: true) }
+
+    before do
+      get '/api/v1/versions',
+        as: :json,
+        headers: access_token_header(user, :read)
+    end
+
+    it 'leaves the hidden version out' do
+      tags = JSON.parse(response.body)['versions'].map { |v| v['tag'] }
+
+      expect(tags).to include(visible.tag)
+      expect(tags).not_to include(hidden.tag)
+    end
+  end
 end
