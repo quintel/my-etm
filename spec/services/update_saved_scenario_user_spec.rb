@@ -53,6 +53,25 @@ describe UpdateSavedScenarioUser, type: :service do
       result
     end
 
+    context 'when the member is pending' do
+      let(:saved_scenario_user) do
+        FactoryBot.create(:saved_scenario_user, :with_email, role_id: 1, saved_scenario:)
+      end
+
+      it 'identifies them to ETEngine by email' do
+        allow(SavedScenarioUserCallbacksJob).to receive(:perform_later)
+
+        result
+
+        expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later).with(
+          anything, anything, anything,
+          [ hash_including(scenario_users: [
+            { user_id: nil, user_email: 'user@example.com', role: :scenario_collaborator }
+          ]) ]
+        )
+      end
+    end
+
     context 'when explicitly disabled' do
       let(:result) do
         described_class.call(client, saved_scenario, saved_scenario_user, 2, sync_to_engine: false)
