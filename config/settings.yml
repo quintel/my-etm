@@ -26,6 +26,8 @@ recaptcha:
 # etc.
 standalone: false
 
+robot: "robot@energytransitionmodel.com"
+
 mailer:
   # E-mail address from which to send e-mails.
   from: "Energy Transition Model <info@energytransitionmodel.com>"

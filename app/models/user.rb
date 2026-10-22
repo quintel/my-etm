@@ -89,6 +89,17 @@ class User < ApplicationRecord
     CoupleUsersToEngineJob.perform_later(id, email, coupled_users.map(&:saved_scenario_id).uniq)
   end
 
+  # The admin MyETM acts as when no person is behind a request, such as scheduled purges.
+  # Created on first use, so no deployment needs seeding.
+  def self.robot
+    find_or_create_by!(email: Settings.robot) do |user|
+      user.name = "ETM Robot"
+      user.admin = true
+      user.password = SecureRandom.base58(32)
+      user.skip_confirmation!
+    end
+  end
+
   # Finds or creates a user from a JWT token.
   def self.from_jwt!(token)
     id = token["sub"]
