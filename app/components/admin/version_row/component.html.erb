@@ -4,6 +4,9 @@
     <span><%= @version.titleize %></span>
     <div class="text-sm text-midnight-400">
       <span>#<%= @version.tag %></span>
+      <% if @version.hidden %>
+        <span class="ml-2">Hidden</span>
+      <% end %>
     </div>
   </div>
 

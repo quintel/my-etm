@@ -2,7 +2,7 @@ module Api
   module V1
     class VersionsController < BaseController
       def index
-        versions = Version.all
+        versions = Version.visible
         versions = versions.where(tag: params[:tag]) if params[:tag].present?
         versions = versions.order(created_at: :desc) if params[:sort] == 'desc'
 
