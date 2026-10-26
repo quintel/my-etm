@@ -19,7 +19,7 @@ class OpenSessionsController < ApplicationController
   # Re-deriving drops the entry of a lost role
   def grant_sessions
     ids = params[:session_ids].to_s.split(",").map(&:to_i)
-    levels = ScenarioAccess.levels_for(current_user.id, ids)
+    levels = RederiveScenarioAccess.levels_for(current_user.id, ids)
     update_scenario_access { |access| access.grant(levels.to_a) }
   end
 end
