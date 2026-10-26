@@ -7,7 +7,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/personal_access_token.rb",
-      "line": 19,
+      "line": 25,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "joins(:oauth_access_token).includes(:oauth_access_token).where(:oauth_access_tokens => ({ :revoked_at => nil })).where(\"#{Doorkeeper::AccessToken.expiration_time_sql} > ?\", Time.now.utc)",
       "render_path": null,
@@ -24,24 +24,25 @@
       "note": ""
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "450d2984cc45d3b8713bebbd91f18e732bafe93c4098fb15d920a7a86a2d63fc",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/components/select_locale/component.html.erb",
-      "line": 66,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => SelectLocale::ItemComponent.new(:selected => (I18n.locale == :nl), :href => url_for(params.permit!.merge(:locale => \"nl\"))).with_content(\"Nederlands\"), {})",
+      "warning_type": "Redirect",
+      "warning_code": 18,
+      "fingerprint": "42bbacb3f54516e1a7435634e780fc467434362cfb1196e291b96cf140b4b67d",
+      "check_name": "Redirect",
+      "message": "Possible unprotected redirect",
+      "file": "app/controllers/open_sessions_controller.rb",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
+      "code": "redirect_to(EtmAppRedirects.validate(params[:return_to]), :allow_other_host => true)",
       "render_path": null,
       "location": {
-        "type": "template",
-        "template": "app/components/select_locale/component"
+        "type": "method",
+        "class": "OpenSessionsController",
+        "method": "show"
       },
-      "user_input": "params.permit!.merge(:locale => \"nl\")",
+      "user_input": "params[:return_to]",
       "confidence": "Weak",
       "cwe_id": [
-        22
+        601
       ],
       "note": ""
     },
@@ -157,29 +158,7 @@
         915
       ],
       "note": ""
-    },
-    {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "ddcb37a7c6113f67b6e933c41a4856df415d83e693cab01d426e2eadc4765a8d",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "app/components/select_locale/component.html.erb",
-      "line": 61,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => SelectLocale::ItemComponent.new(:selected => (I18n.locale == :en), :href => url_for(params.permit!.merge(:locale => \"en\"))).with_content(\"English\"), {})",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "app/components/select_locale/component"
-      },
-      "user_input": "params.permit!.merge(:locale => \"en\")",
-      "confidence": "Weak",
-      "cwe_id": [
-        22
-      ],
-      "note": ""
     }
   ],
-  "brakeman_version": "7.1.1"
+  "brakeman_version": "8.1.0"
 }
