@@ -20,6 +20,45 @@ en:
       delay: It can take up to five minutes before a change appears in the ETM.
       submit: Update
       success: The announcement was updated!
+    versions:
+      add: New version
+      hide: Hide
+      show: Show
+      hidden: Version %{tag} is hidden from the version pickers.
+      visible: Version %{tag} is shown in the version pickers.
+      delete: Delete
+      destroyed: Version %{tag} was deleted.
+      confirm_destroy:
+        title: Delete version %{tag}
+        warning_header: Version %{tag} and its OAuth applications will be deleted.
+        warning: >
+          Its applications (%{applications}) can no longer sign anyone in, and anyone signed in
+          through them is signed out. It has no saved scenarios or collections.
+        irreversible: This cannot be undone.
+        submit: Delete version
+      status:
+        visible: Visible
+        hidden: Hidden
+      new:
+        title: New version
+        intro: >
+          Creates a stable version with the OAuth applications its ETModel and ETEngine sign in with.
+          Its URLs are based on the tag, e.g. 2027.01 is served at https://2027-01.energytransitionmodel.com.
+        tag: Tag
+        tag_hint: Year and number, e.g. 2027.01.
+        hidden: Hide from the version pickers (until it is released)
+        submit: Create version
+      created:
+        title: Version %{tag} created
+        intro: >
+          Copy these client IDs and secrets in the version's stable instance in Ansible
+          (environments/stable/group_vars/main.yml, under each app's web environment).
+        once: The secrets are only shown once on this page. Copy them before you leave it.
+        urls: URLs
+        visibility: Version pickers
+        hidden: Hidden
+        visible: Shown
+        done: Done
     users:
       confirm: Confirm
       edit:

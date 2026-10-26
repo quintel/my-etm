@@ -174,7 +174,9 @@ Rails.application.routes.draw do
 
     resource :announcement, only: %i[edit update]
 
-    resources :versions, only: [:index]
+    resources :versions, only: %i[index new create update destroy] do
+      get :confirm_destroy, on: :member
+    end
 
     resources :saved_scenarios, only: [:index] do
       collection do

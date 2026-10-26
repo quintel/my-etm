@@ -1,0 +1,28 @@
+- content_for :menu_title, t('admin.versions.created.title', tag: @version.tag)
+- content_for :title, t('admin.versions.created.title', tag: @version.tag)
+= render partial: '/admin/block_right_menu'
+
+%div.max-w-3xl
+  %p.text-sm.text-gray-700.mb-2= t('admin.versions.created.intro')
+  %p.text-sm.font-medium.text-red-600.mb-6= t('admin.versions.created.once')
+
+  %dl.text-sm.mb-6
+    %div.flex.gap-5.mb-2
+      %dt.w-44.text-gray-500= t('admin.versions.created.urls')
+      %dd
+        %div= @version.model_url
+        %div= @version.engine_url
+        %div= @version.collections_url
+    %div.flex.gap-5
+      %dt.w-44.text-gray-500= t('admin.versions.created.visibility')
+      %dd= t("admin.versions.created.#{@version.hidden ? 'hidden' : 'visible'}")
+
+  - @version.oauth_applications.sort_by(&:name).each do |application|
+    %div.mb-5
+      %p.text-sm.font-medium.text-gray-700.mb-1
+        = application.name
+        %span.text-gray-500= "(#{application.name.split('.').first})"
+      %pre.text-sm.bg-gray-100.rounded-md.p-3.overflow-x-auto
+        = "IDENTITY_CLIENT_ID: #{application.uid}\nIDENTITY_CLIENT_SECRET: #{application.plaintext_secret}"
+
+  = link_to t('admin.versions.created.done'), admin_versions_path, class: button_classes('text-base', size: :lg)
