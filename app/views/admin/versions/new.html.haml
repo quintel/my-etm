@@ -1,0 +1,23 @@
+- content_for :menu_title, t('admin.versions.new.title')
+- content_for :title, t('admin.versions.new.title')
+= render partial: '/admin/block_right_menu'
+
+%div.max-w-2xl
+  %p.text-sm.text-gray-700.mb-6= t('admin.versions.new.intro')
+
+  - if @version.errors.any?
+    %ul.text-sm.text-red-600.list-disc.ml-5.mb-5
+      - @version.errors.full_messages.each do |message|
+        %li= message
+
+  = form_for @version, url: admin_versions_path, html: { method: :post } do |f|
+    %div.mb-5
+      = f.label :tag, t('admin.versions.new.tag'), class: 'block text-sm font-medium text-gray-700 mb-1'
+      = f.text_field :tag, placeholder: '2027.01', required: true, autofocus: true, class: 'field'
+      %p.text-sm.text-gray-500.mt-1= t('admin.versions.new.tag_hint')
+
+    %label.flex.items-center.gap-2.text-sm.font-medium.text-gray-700.mb-5
+      = f.check_box :hidden, class: 'rounded border-gray-300'
+      = t('admin.versions.new.hidden')
+
+    = button_tag t('admin.versions.new.submit'), class: button_classes('text-base', size: :lg, color: :success)

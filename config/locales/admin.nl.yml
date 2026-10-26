@@ -20,6 +20,46 @@ nl:
       delay: Het kan tot vijf minuten duren voordat een wijziging in de ETM zichtbaar is.
       submit: Bijwerken
       success: De mededeling is bijgewerkt!
+    versions:
+      add: Nieuwe versie
+      hide: Verbergen
+      show: Tonen
+      hidden: Versie %{tag} is verborgen in de versiekeuzes.
+      visible: Versie %{tag} wordt getoond in de versiekeuzes.
+      delete: Verwijderen
+      destroyed: Versie %{tag} is verwijderd.
+      confirm_destroy:
+        title: Versie %{tag} verwijderen
+        warning_header: Versie %{tag} en de OAuth-applicaties ervan worden verwijderd.
+        warning: >
+          De applicaties (%{applications}) kunnen daarna niemand meer laten inloggen, en wie via
+          deze applicaties is ingelogd, wordt uitgelogd. De versie heeft geen opgeslagen scenario's
+          of collecties.
+        irreversible: Dit kan niet ongedaan worden gemaakt.
+        submit: Versie verwijderen
+      status:
+        visible: Zichtbaar
+        hidden: Verborgen
+      new:
+        title: Nieuwe versie
+        intro: >
+          Maakt een stabiele versie aan, met de OAuth-applicaties waarmee ETModel en ETEngine inloggen.
+          De URL's zijn gebaseerd op de tag, bijvoorbeeld 2027.01 draait op https://2027-01.energytransitionmodel.com.
+        tag: Tag
+        tag_hint: Jaar en nummer, bijvoorbeeld 2027.01.
+        hidden: Verbergen in de versiekeuzes (tot de release)
+        submit: Versie aanmaken
+      created:
+        title: Versie %{tag} aangemaakt
+        intro: >
+          Kopieer deze client-ID's en secrets naar de stabiele instantie van de versie in Ansible
+          (environments/stable/group_vars/main.yml, in de web-environment van elke app).
+        once: De secrets worden maar één keer op deze pagina getoond. Kopieer ze voordat je de pagina verlaat.
+        urls: URL's
+        visibility: Versiekeuzes
+        hidden: Verborgen
+        visible: Getoond
+        done: Klaar
     users:
       confirm: Bevestig
       edit:

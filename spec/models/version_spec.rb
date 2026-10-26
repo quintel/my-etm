@@ -28,4 +28,26 @@ describe Version do
       end
     end
   end
+
+  describe "#deletable?" do
+    it "is true for a version nothing belongs to" do
+      expect(version).to be_deletable
+    end
+
+    it "is false for the default version" do
+      expect(described_class.default).not_to be_deletable
+    end
+
+    it "is false when it has saved scenarios" do
+      create(:saved_scenario, version: version)
+
+      expect(version).not_to be_deletable
+    end
+
+    it "is false when it has collections" do
+      create(:collection, version: version)
+
+      expect(version).not_to be_deletable
+    end
+  end
 end

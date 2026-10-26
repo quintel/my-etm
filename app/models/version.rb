@@ -53,6 +53,11 @@ class Version < ApplicationRecord
     tag.titleize
   end
 
+  # A version can be deleted while nothing belongs to it yet. The default version never can.
+  def deletable?
+    !default && saved_scenarios.none? && collections.none?
+  end
+
   # Serialize versions for API responses
   def as_json(*)
     {
