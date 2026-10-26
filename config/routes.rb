@@ -79,7 +79,8 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v2 do
-      get "legacy_grants/:session_id", to: "legacy_grants#show", constraints: { session_id: /\d+/ }
+      get "legacy_grants/:version/:session_id",
+        to: "legacy_grants#show", constraints: { version: /[\w.]+/, session_id: /\d+/ }
 
       resources :collections, only: %i[index show create update destroy] do
         member do

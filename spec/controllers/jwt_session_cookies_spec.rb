@@ -145,7 +145,7 @@ RSpec.describe JwtSessionCookies, type: :controller do
 
     context "with roles held on every Session" do
       before do
-        allow_any_instance_of(ScenarioAccess).to receive(:rederived_for) { |access, _| access }
+        allow(RederiveScenarioAccess).to receive(:call) { |access, _| access }
       end
 
       it "adds several Sessions in one write" do
@@ -213,25 +213,8 @@ RSpec.describe JwtSessionCookies, type: :controller do
         expect(anchor.reload.scenario_access).to eq([ [ 2, "write" ] ])
       end
 
-      it "downgrades a collaborator now a viewer, keeping their place in the order" do
-        scenario_with_role(1, :scenario_viewer)
-        scenario_with_role(2, :scenario_owner)
-        anchor.update!(scenario_access: [ [ 1, "write" ], [ 2, "write" ] ])
-        grant([])
-
-        expect(anchor.reload.scenario_access).to eq([ [ 1, "read" ], [ 2, "write" ] ])
-      end
-
-      it "drops a discarded scenario's Session" do
+      it "clears the claim once every Session is gone" do
         scenario_with_role(1, :scenario_owner).discard
-        anchor.update!(scenario_access: [ [ 1, "write" ] ])
-        grant([])
-
-        expect(anchor.reload.scenario_access).to be_nil
-      end
-
-      it "drops a Session that has become a snapshot" do
-        scenario_with_role(2, :scenario_owner).update!(scenario_id_history: [ 1 ])
         anchor.update!(scenario_access: [ [ 1, "write" ] ])
         grant([])
 

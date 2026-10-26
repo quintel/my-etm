@@ -132,4 +132,36 @@ RSpec.describe SavedScenario, type: :model do
       end
     end
   end
+
+  describe "#access_level_for" do
+    let(:saved_scenario) { create(:saved_scenario) }
+    let(:user) { create(:user) }
+
+    def give_role(role)
+      create(:saved_scenario_user, saved_scenario:, user:, role_id: User::Roles.index_of(role))
+    end
+
+    it "gives a collaborator write" do
+      give_role(:scenario_collaborator)
+
+      expect(saved_scenario.access_level_for(user)).to eq(ScenarioAccess::WRITE)
+    end
+
+    it "gives a viewer read" do
+      give_role(:scenario_viewer)
+
+      expect(saved_scenario.access_level_for(user)).to eq(ScenarioAccess::READ)
+    end
+
+    it "gives nothing without a role" do
+      expect(saved_scenario.access_level_for(user)).to be_nil
+    end
+
+    it "gives nothing on a discarded scenario, whatever the role" do
+      give_role(:scenario_owner)
+      saved_scenario.discard
+
+      expect(saved_scenario.access_level_for(user)).to be_nil
+    end
+  end
 end

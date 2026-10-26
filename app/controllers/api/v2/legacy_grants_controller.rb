@@ -10,7 +10,7 @@ module Api
 
       before_action :require_personal_access_token
 
-      # GET /api/v2/legacy_grants/:session_id
+      # GET /api/v2/legacy_grants/:version/:session_id
       def show
         render_resource(granted_access, with: ScenarioAccessSerialiser)
       end
@@ -19,10 +19,10 @@ module Api
 
       # A kept scenario's current Session gets the role's level, one in its history gets read
       def granted_access
-        session_id = params[:session_id].to_i
+        session_id = params.expect(:session_id).to_i
         levels = scenarios_with_role.filter_map do |saved_scenario|
           if saved_scenario.scenario_id == session_id
-            ScenarioAccess.level_of(saved_scenario.role_id)
+            User::Roles.access_level(saved_scenario.role_id)
           elsif saved_scenario.scenario_id_history.include?(session_id)
             ScenarioAccess::READ
           end
@@ -31,9 +31,10 @@ module Api
         ScenarioAccess.new.grant(levels.map { |level| [ session_id, level ] })
       end
 
-      # Loads every scenario the caller has a role on; query the history instead if that grows large
+      # Loads every scenario the caller has a role on; only the asking engine's Version may answer
       def scenarios_with_role
-        ScenarioAccess.roles_of(current_user.id)
+        current_user.saved_scenarios.kept
+          .joins(:version).where(versions: { tag: params[:version] })
           .select(:scenario_id, :scenario_id_history, "saved_scenario_users.role_id")
       end
 

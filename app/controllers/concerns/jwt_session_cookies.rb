@@ -106,7 +106,7 @@ module JwtSessionCookies
       next unless anchor
 
       held = ScenarioAccess.new(anchor.scenario_access)
-      updated = yield(held.rederived_for(anchor.resource_owner_id))
+      updated = yield(RederiveScenarioAccess.call(held, anchor.resource_owner_id))
       next if updated.pairs == held.pairs
 
       resign_with_access(anchor, updated)

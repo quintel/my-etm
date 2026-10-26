@@ -19,27 +19,8 @@ class ScenarioAccess
     @pairs = Array(pairs).map { |id, level| [ Integer(id), level.to_s ] }
   end
 
-  # The access level a user's role gives them on a saved scenario, or nil without a role or once discarded
-  def self.level_for(saved_scenario, user)
-    return if saved_scenario.discarded?
-
-    role_id = saved_scenario.saved_scenario_users.find_by(user_id: user.id)&.role_id
-    level_of(role_id) if role_id
-  end
-
-  def self.level_of(role_id)
-    role_id >= User::Roles.index_of(:scenario_collaborator) ? WRITE : READ
-  end
-
-  # The kept scenarios a user holds a role on, joined to that role
-  def self.roles_of(user_id)
-    SavedScenario.kept.joins(:saved_scenario_users).where(saved_scenario_users: { user_id: })
-  end
-
-  # Keeps the entries for a kept scenario's current Session the user still has a role on
-  def rederived_for(user_id)
-    levels = current_levels(user_id)
-    self.class.new(pairs.filter_map { |id, _| [ id, levels[id] ] if levels[id] })
+  def self.stronger(held, level)
+    held == WRITE ? WRITE : level
   end
 
   # Adds [session_id, level] entries as the most recently opened. A Session
@@ -73,22 +54,8 @@ class ScenarioAccess
   def strongest(entries)
     entries.each_with_object({}) do |(id, level), levels|
       id = Integer(id)
-      levels[id] = stronger(levels[id], level.to_s)
+      levels[id] = self.class.stronger(levels[id], level.to_s)
     end
-  end
-
-  def current_levels(user_id)
-    return {} if empty?
-
-    self.class.roles_of(user_id).where(scenario_id: pairs.map(&:first))
-      .pluck(:scenario_id, "saved_scenario_users.role_id")
-      .each_with_object({}) do |(id, role_id), levels|
-        levels[id] = stronger(levels[id], self.class.level_of(role_id))
-      end
-  end
-
-  def stronger(held, level)
-    held == WRITE ? WRITE : level
   end
 
   def ids_at(level)

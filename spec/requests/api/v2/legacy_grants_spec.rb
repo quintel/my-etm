@@ -17,8 +17,8 @@ RSpec.describe "Api::V2::LegacyGrants", type: :request, api: true do
     create(:saved_scenario_user, saved_scenario:, user:, role_id: User::Roles.index_of(role))
   end
 
-  def lookup(headers, session_id = 10)
-    get("/api/v2/legacy_grants/#{session_id}", headers:, as: :json)
+  def lookup(headers, session_id = 10, version: "latest")
+    get("/api/v2/legacy_grants/#{version}/#{session_id}", headers:, as: :json)
     response.parsed_body["data"]
   end
 
@@ -71,6 +71,13 @@ RSpec.describe "Api::V2::LegacyGrants", type: :request, api: true do
     give_role(:scenario_owner)
 
     expect(lookup(pat_header, 99)).to eq("write" => [], "read" => [])
+  end
+
+  it "gives nothing on a Session with the same ID in another Version" do
+    give_role(:scenario_owner)
+
+    expect(lookup(pat_header, version: create(:version, tag: "2025.01").tag))
+      .to eq("write" => [], "read" => [])
   end
 
   it "refuses a revoked PAT" do
