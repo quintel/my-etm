@@ -74,6 +74,7 @@ module JwtSessionCookies
 
     old.revoke unless old.revoked?
     write_session_cookies(response.token)
+    update_scenario_access(&:itself)
     true
   rescue Doorkeeper::Errors::InvalidGrantReuse
     adopt_rotated_session
@@ -96,15 +97,16 @@ module JwtSessionCookies
     winner if winner && !winner.revoked? && winner.created_at > ROTATION_GRACE.ago
   end
 
-  # Yields this browser's ScenarioAccess and stores what the block returns. Re-signs the anchor token
-  # in place rather than rotating.
+  # Yields this browser's ScenarioAccess, re-derived from current roles, and stores what the block
+  # returns. Re-signs the anchor token in place rather than rotating. Opens restart the access TTL,
+  # so every write re-derives.
   def update_scenario_access
     Doorkeeper::AccessToken.transaction do
       anchor = lock_live_anchor
       next unless anchor
 
       held = ScenarioAccess.new(anchor.scenario_access)
-      updated = yield(held)
+      updated = yield(RederiveScenarioAccess.call(held, anchor.resource_owner_id))
       next if updated.pairs == held.pairs
 
       resign_with_access(anchor, updated)

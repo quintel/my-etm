@@ -20,4 +20,11 @@ module User::Roles
   def self.roles
     ROLES
   end
+
+  # The ScenarioAccess level a role gives, or nil without a role
+  def self.access_level(role_id)
+    return unless role_id
+
+    role_id >= index_of(:scenario_collaborator) ? ScenarioAccess::WRITE : ScenarioAccess::READ
+  end
 end

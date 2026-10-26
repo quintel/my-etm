@@ -19,14 +19,8 @@ class ScenarioAccess
     @pairs = Array(pairs).map { |id, level| [ Integer(id), level.to_s ] }
   end
 
-  # The access level a user's role gives them on a saved scenario, or nil without a role or once discarded
-  def self.level_for(saved_scenario, user)
-    return if saved_scenario.discarded?
-
-    role_id = saved_scenario.saved_scenario_users.find_by(user_id: user.id)&.role_id
-    return unless role_id
-
-    role_id >= User::Roles.index_of(:scenario_collaborator) ? WRITE : READ
+  def self.stronger(held, level)
+    held == WRITE ? WRITE : level
   end
 
   # Adds [session_id, level] entries as the most recently opened. A Session
@@ -60,7 +54,7 @@ class ScenarioAccess
   def strongest(entries)
     entries.each_with_object({}) do |(id, level), levels|
       id = Integer(id)
-      levels[id] = levels[id] == WRITE ? WRITE : level.to_s
+      levels[id] = self.class.stronger(levels[id], level.to_s)
     end
   end
 

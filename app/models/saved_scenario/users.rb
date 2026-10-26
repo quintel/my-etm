@@ -49,6 +49,17 @@ module SavedScenario::Users
     !viewer?(user)
   end
 
+  def role_for(user)
+    saved_scenario_users.find_by(user:)&.role_id
+  end
+
+  # The ScenarioAccess level the user's role gives, or nil without a role or once discarded
+  def access_level_for(user)
+    return if discarded?
+
+    User::Roles.access_level(role_for(user))
+  end
+
   # Convenience method to quickly set the owner for a scenario, e.g. when creating it as
   # Scenario.create(user: User). Only works to set the first user, returns false otherwise.
   def user=(user)
