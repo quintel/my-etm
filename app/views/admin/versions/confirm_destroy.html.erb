@@ -1,0 +1,24 @@
+<%= render(ModalComponent.new(title: t('.title', tag: @version.tag))) do |modal| %>
+  <%= turbo_frame_tag :modal do %>
+    <%= form_for(@version, url: admin_version_path(@version), html: { method: :delete, data: { turbo: false } }) do |f| %>
+      <div class="flex-col mb-10">
+        <div class="flex text-red-600 mb-5">
+          <span class="mr-5"><%= heroicon 'exclamation-triangle', options: { class: 'w-6 h-6' } %></span>
+          <span class="text-base">
+            <%= t('.warning_header', tag: @version.tag) %>
+          </span>
+        </div>
+        <p class="mb-2">
+          <%= t('.warning', applications: @version.oauth_applications.map(&:name).sort.to_sentence) %>
+        </p>
+        <p class="text-sm text-gray-400">
+          <%= t('.irreversible') %>
+        </p>
+      </div>
+      <div class="mt-6 pb-2 flex items-center gap-2">
+        <%= button_tag t('.submit'), class: button_classes("text-base", size: :lg, color: :warning) %>
+        <%= modal.close_link(t('identity.cancel'), admin_versions_path, class: button_classes("text-base", size: :lg)) %>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

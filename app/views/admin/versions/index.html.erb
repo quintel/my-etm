@@ -12,3 +12,7 @@
     )%>
   <% end %>
 </div>
+
+<div class="flex mt-5">
+  <%= link_to "+ #{t('admin.versions.add')}", new_admin_version_path, class: button_classes("ml-auto mr-0", color: :primary) %>
+</div>
