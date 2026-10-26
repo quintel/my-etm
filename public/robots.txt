@@ -1,1 +1,15 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+# MyETM is a user account area behind authentication. Only the static
+# informational pages are publicly meaningful.
+User-agent: *
+Disallow: /
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /collaborate
+Allow: /saved_scenarios/
+Disallow: /saved_scenarios/*/
+Disallow: /saved_scenarios/new
+Disallow: /saved_scenarios/list
+
+# Assets must stay crawlable so the allowed pages render correctly for indexers.
+Allow: /assets/
