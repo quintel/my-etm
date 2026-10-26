@@ -4,6 +4,9 @@ module Admin
   class VersionsController < ApplicationController
     include AdminController
 
+    load_resource only: %i[update destroy confirm_destroy]
+    before_action :check_deletable, only: %i[destroy confirm_destroy]
+
     # GET /admin/versions
     def index
       @versions = Version.all
@@ -35,16 +38,14 @@ module Admin
 
     # PATCH /admin/versions/:id
     def update
-      version = Version.find(params[:id])
-      version.update!(hidden: ActiveModel::Type::Boolean.new.cast(version_params[:hidden]))
+      @version.update!(hidden: ActiveModel::Type::Boolean.new.cast(version_params[:hidden]))
 
-      flash[:notice] = t("admin.versions.#{version.hidden ? 'hidden' : 'visible'}", tag: version.tag)
+      flash[:notice] = t("admin.versions.#{@version.hidden ? 'hidden' : 'visible'}", tag: @version.tag)
       redirect_to(admin_versions_path)
     end
 
     # GET /admin/versions/:id/confirm_destroy
     def confirm_destroy
-      @version = deletable_version
       render(:confirm_destroy, layout: "application")
     end
 
@@ -52,25 +53,20 @@ module Admin
     #
     # Deletes the version with its OAuth applications, and with them their tokens and grants.
     def destroy
-      version = deletable_version
-
       Version.transaction do
-        version.oauth_applications.destroy_all
-        version.destroy!
+        @version.oauth_applications.destroy_all
+        @version.destroy!
       end
 
-      flash[:notice] = t("admin.versions.destroyed", tag: version.tag)
+      flash[:notice] = t("admin.versions.destroyed", tag: @version.tag)
       redirect_to(admin_versions_path)
     end
 
     private
 
     # A version that has saved scenarios or collections, or is the default, is not found here.
-    def deletable_version
-      version = Version.find(params[:id])
-      raise ActiveRecord::RecordNotFound unless version.deletable?
-
-      version
+    def check_deletable
+      raise ActiveRecord::RecordNotFound unless @version.deletable?
     end
 
     def version_params
