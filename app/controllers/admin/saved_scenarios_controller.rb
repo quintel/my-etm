@@ -51,12 +51,13 @@ module Admin
     def batch_dump
       result = SavedScenarioPacker::Dump.new(
         saved_scenario_ids,
-        streaming_engine_client(Version.default),
+        streaming_engine_client(dump_version),
         current_user
       ).call
 
       if result.success?
         dump = result.value!
+        flash[:alert] = dump.warnings.join("; ") if dump.warnings.any?
         send_file(
           dump.file_path,
           filename: File.basename(dump.file_path),
@@ -70,6 +71,11 @@ module Admin
     end
 
     private
+
+    # Dump refuses a selection spanning versions, so the first scenario's version speaks for all.
+    def dump_version
+      SavedScenario.find_by(id: saved_scenario_ids)&.version || Version.default
+    end
 
     def admin_saved_scenarios
       @admin_saved_scenarios ||= SavedScenario

@@ -20,7 +20,7 @@ class SavedScenarioPacker::Dump
 
   def call
     result = validate_scenarios(saved_scenario_ids)
-      .bind { |scenarios| validate_version_consistency(scenarios) }
+      .bind { |scenarios| validate_single_version(scenarios) }
       .bind { |scenarios| dump_scenarios_from_engine(scenarios) }
       .bind { |engine_result| create_etm_file(engine_result) }
 
@@ -37,18 +37,13 @@ class SavedScenarioPacker::Dump
       Success(scenarios)
   end
 
-  # You can't currently load scenarios from different versions simultaneously
-  def validate_version_consistency(scenarios)
-    versions = scenarios.map { |ss| ss.version&.tag }.compact.uniq
+  # The http_client talks to one version's ETEngine, so a scenario on any other version would export
+  # an unrelated scenario that happens to share its ID.
+  def validate_single_version(scenarios)
+    tags = scenarios.map { |ss| ss.version&.tag }.uniq
+    return Success(scenarios) if tags.one?
 
-    if versions.length > 1
-      Rails.logger.warn(
-        "Dumping scenarios from multiple versions: #{versions.join(', ')}. " \
-        'This will cause issues when loading.'
-      )
-    end
-
-    Success(scenarios)
+    Failure("A dump holds scenarios from one version only, these span: #{tags.join(', ')}")
   end
 
   def dump_scenarios_from_engine(scenarios)
