@@ -211,29 +211,32 @@ describe SavedScenarioPacker::Dump, type: :service do
     end
   end
 
-  describe 'version consistency validation' do
-    context 'when scenarios have different versions' do
-      let(:version_2023) { Version.find_or_create_by!(tag: '2023.01', url_prefix: '2023-01.') }
-
+  describe 'version validation' do
+    context 'when the scenarios span versions' do
       before do
-        saved_scenario_two.update!(version: version_2023)
+        saved_scenario_two.update!(version: Version.find_by!(tag: 'stable.01'))
       end
 
-      it 'still succeeds' do
+      it 'fails without contacting ETEngine' do
+        allow(http_client).to receive(:post)
         result = service.call
-        expect(result).to be_success
+
+        expect(result).to be_failure
+        expect(http_client).not_to have_received(:post)
       end
 
-      it 'logs a warning about mixed versions' do
-        expect(Rails.logger).to receive(:warn).with(/Dumping scenarios from multiple versions/)
-        service.call
+      it 'names the versions' do
+        expect(service.call.failure).to include('latest, stable.01')
       end
     end
 
-    context 'when all scenarios have the same version' do
-      it 'does not log a warning' do
-        expect(Rails.logger).not_to receive(:warn)
-        service.call
+    context 'when all scenarios are on one non-default version' do
+      before do
+        [saved_scenario_one, saved_scenario_two].each { |ss| ss.update!(version: Version.find_by!(tag: 'stable.01')) }
+      end
+
+      it 'succeeds' do
+        expect(service.call).to be_success
       end
     end
   end
