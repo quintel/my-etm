@@ -15,8 +15,8 @@ EXPECTED_FILE_PATTERN = /\A\d{12}_\w+.*\.etm\z/
 prompt = TTY::Prompt.new
 source_dir = File.expand_path('~/Downloads')
 files = []
-owner_email = nil
-duplicate_strategy = 'update' # Default to 'update'. Can be 'update', 'create', or 'prompt'
+owner_email = ENV['IMPORT_SCENARIOS_OWNER'].presence
+version_tag = nil
 
 def help!(prompt)
   pastel = Pastel.new
@@ -29,9 +29,9 @@ def help!(prompt)
 
     #{pastel.bold('Options:')}
       --user EMAIL          Set a specific user as owner of loaded scenarios
-                            (defaults to first admin user)
-      --on-dup MODE         How to handle duplicate scenario IDs
-                            (update, create, or prompt; defaults to update)
+                            (defaults to IMPORT_SCENARIOS_OWNER, else the first admin user)
+      --version TAG         Load onto this version's ETEngine
+                            (defaults to the default version)
 
     #{pastel.yellow('# Looks in ~/Downloads for .etm files:')}
     #{pastel.bold('bin/import-scenarios')}
@@ -45,13 +45,12 @@ def help!(prompt)
     #{pastel.yellow('# Specify user as owner by email:')}
     #{pastel.bold('bin/import-scenarios --user your.email@quintel.com')}
 
-    #{pastel.yellow('# Prompt for each duplicate scenario:')}
-    #{pastel.bold('bin/import-scenarios --on-dup prompt')}
+    #{pastel.yellow('# Load onto a stable version:')}
+    #{pastel.bold('bin/import-scenarios --version 2027.01')}
 
-    #{pastel.yellow('# Always create new scenarios (never update existing):')}
-    #{pastel.bold('bin/import-scenarios --on-dup create')}
-
-    By default, duplicate scenarios are updated with new data.
+    Every import creates new scenarios, owned by that user, on the chosen version.
+    Importing the same file twice creates them twice.
+    Stable 2025.01 cannot be loaded or dumped: its ETEngine has no scenario dump endpoints.
 
   HELP
 
@@ -73,22 +72,14 @@ while ARGV.any?
     end
   when /^--user=(.+)$/
     owner_email = $1
-  when '--on-dup'
-    duplicate_strategy = ARGV.shift
-    unless duplicate_strategy
-      prompt.error('--on-dup flag requires a mode (update, create, or prompt)')
+  when '--version'
+    version_tag = ARGV.shift
+    unless version_tag
+      prompt.error('--version flag requires a version tag')
       exit(1)
     end
-    unless %w[update create prompt].include?(duplicate_strategy)
-      prompt.error("Invalid --on-dup mode: #{duplicate_strategy}. Must be update, create, or prompt")
-      exit(1)
-    end
-  when /^--on-dup=(.+)$/
-    duplicate_strategy = $1
-    unless %w[update create prompt].include?(duplicate_strategy)
-      prompt.error("Invalid --on-dup mode: #{duplicate_strategy}. Must be update, create, or prompt")
-      exit(1)
-    end
+  when /^--version=(.+)$/
+    version_tag = $1
   else
     # It's a file or directory
     if File.directory?(arg)
@@ -164,7 +155,15 @@ unless owner
   exit(1)
 end
 
+version = version_tag ? Version.find_by(tag: version_tag) : Version.default
+
+unless version
+  prompt.error("Version not found: #{version_tag}")
+  exit(1)
+end
+
 prompt.say("Scenarios will be owned by: #{owner.email}")
+prompt.say("Scenarios will be loaded onto version: #{version.tag}")
 
 spinner = TTY::Spinner.new(
   "[:spinner] Loading scenarios from #{file.name}...",
@@ -176,42 +175,10 @@ result = nil
 spinner.run do
   begin
     # Create HTTP client for ETEngine communication
-    http_client = MyEtm::Auth.engine_client(owner)
-
-    # Define handler for duplicate scenarios
-    duplicate_handler = lambda do |existing_scenario, scenario_data|
-      # If a strategy was specified via command line, use it
-      if duplicate_strategy && duplicate_strategy != 'prompt'
-        return duplicate_strategy == 'update' ? :update : :create
-      end
-
-      spinner.stop
-      spinner.clear_line
-
-      pastel = Pastel.new
-      prompt.warn("\nDuplicate scenario found!")
-      prompt.say("  Existing: #{pastel.bold(existing_scenario.title)} (ID: #{existing_scenario.id})")
-      prompt.say("  Importing: #{pastel.bold(scenario_data[:title])}")
-      prompt.say("\n")
-
-      choice = prompt.select('How would you like to handle this?', default: 1) do |menu|
-        menu.choice 'Update existing scenario with new data', :update
-        menu.choice 'Create as a new scenario (new ID will be assigned)', :create
-      end
-
-      spinner.update(title: "[:spinner] Loading scenarios from #{file.name}...")
-      spinner.auto_spin
-
-      choice
-    end
+    http_client = MyEtm::Auth.engine_client(owner, version)
 
     # Call the SavedScenarioPacker::Load service
-    service = SavedScenarioPacker::Load.new(
-      file.path,
-      http_client,
-      owner,
-      on_duplicate_handler: duplicate_handler
-    )
+    service = SavedScenarioPacker::Load.new(file.path, http_client, owner, version: version)
     result = service.call
 
     if result.success?
@@ -259,6 +226,12 @@ if result.success?
     prompt.say("\n")
   end
 
+  if load_data.failures.any?
+    prompt.error("Failed to load #{load_data.failures.size} scenario(s):")
+    load_data.failures.each { |failure| prompt.error("  - #{failure}") }
+    prompt.say("\n")
+  end
+
   # Show warnings if any
   if load_data.warnings.any?
     prompt.warn('Warnings:')
@@ -272,8 +245,12 @@ else
   exit(1)
 end
 
+failed = result.value!.failures.any?
+
 # Cleanup
 if prompt.yes?("Do you want to remove the scenario dump file? (#{file.name})")
   File.unlink(file.path)
   prompt.ok('File removed.')
 end
+
+exit(1) if failed

@@ -82,6 +82,7 @@ describe SavedScenarioPacker::Load, type: :service do
 
   before do
     allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(ServiceResult.success)
 
     # Create a test ETM file with combined structure
     FileUtils.mkdir_p(File.dirname(file_path))
@@ -125,6 +126,7 @@ describe SavedScenarioPacker::Load, type: :service do
       expect(load_result.saved_scenarios.size).to eq(2)
       expect(load_result.scenario_mappings).to be_an(Array)
       expect(load_result.scenario_mappings.size).to eq(2)
+      expect(load_result.failures).to be_empty
       expect(load_result.warnings).to be_empty
     end
 
@@ -155,19 +157,35 @@ describe SavedScenarioPacker::Load, type: :service do
       expect(second.private).to be true
     end
 
-    it 'preserves scenario history from the dump' do
+    it 'starts each loaded scenario with an empty history' do
       result = service.call
       scenario = result.value!.saved_scenarios.find { |s| s.title == 'Netherlands 2050' }
 
-      expect(scenario.scenario_id_history).to include(120, 121, 122, 223)
+      expect(scenario.scenario_id_history).to be_empty
     end
 
-    it 'assigns users correctly' do
-      result = service.call
-      scenario = result.value!.saved_scenarios.first
+    it 'gives each loaded scenario to the loading user only' do
+      scenario = service.call.value!.saved_scenarios.first
 
-      expect(scenario.owners.first.user).to eq(owner_user)
-      expect(scenario.collaborators.first.user).to eq(collab_user)
+      expect(scenario.saved_scenario_users.map(&:user)).to eq([ admin_user ])
+      expect(scenario.owners.first.user).to eq(admin_user)
+    end
+
+    it 'runs the ETEngine callbacks for each loaded scenario' do
+      service.call
+
+      expect(SavedScenario::PerformEngineCallbacks).to have_received(:call)
+        .with(http_client, 223, saved_scenario: an_instance_of(SavedScenario))
+      expect(SavedScenario::PerformEngineCallbacks).to have_received(:call)
+        .with(http_client, 224, saved_scenario: an_instance_of(SavedScenario))
+    end
+
+    it 'keeps the scenario and warns when the ETEngine callbacks fail' do
+      allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_raise(StandardError, 'Engine down')
+      result = service.call.value!
+
+      expect(result.saved_scenarios.size).to eq(2)
+      expect(result.warnings).to include(match(/ETEngine callbacks failed for Netherlands 2050/))
     end
 
     it 'binds each loaded Session' do
@@ -189,28 +207,61 @@ describe SavedScenarioPacker::Load, type: :service do
       expect { service.call }.not_to change(SavedScenario, :count)
     end
 
-    context 'when updating existing scenarios' do
+    context 'when a local scenario has the same id as a dumped one' do
       let!(:existing_scenario) do
         create(:saved_scenario,
           id: 100,
           scenario_id: 999,
           scenario_id_history: [997, 998],
-          title: 'Old Title',
+          title: 'Unrelated local scenario',
           version: version
         )
       end
 
-      it 'updates the existing scenario' do
-        expect { service.call }.to change(SavedScenario, :count).by(1) # Only creates the second one
+      it 'creates a new scenario for every dumped one' do
+        expect { service.call }.to change(SavedScenario, :count).by(2)
       end
 
-      it 'preserves and merges scenario history' do
-        result = service.call
-        updated = SavedScenario.find(100)
+      it 'leaves the local scenario untouched' do
+        service.call
 
-        # Should contain: old history + dump history + new ID
-        expect(updated.scenario_id_history).to include(997, 998, 120, 121, 122, 223)
-        expect(updated.scenario_id).to eq(223)
+        expect(existing_scenario.reload).to have_attributes(
+          title: 'Unrelated local scenario', scenario_id: 999, scenario_id_history: [997, 998]
+        )
+      end
+    end
+
+    context 'when loading onto a given version' do
+      let(:stable) { Version.find_by!(tag: 'stable.01') }
+      let(:service) { described_class.new(file_path.to_s, http_client, admin_user, version: stable) }
+
+      it 'binds and records the scenarios on that version' do
+        scenario = service.call.value!.saved_scenarios.first
+
+        expect(scenario.version).to eq(stable)
+        expect(ApiScenario::SetBound).to have_received(:call).with(admin_user, stable, [ 223 ], true)
+      end
+    end
+
+    context 'when a dumped scenario was on another version' do
+      before do
+        combined_data = manifest_data.dup
+        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map.with_index do |scenario, index|
+          scenario.merge(version_tag: 'stable.01', engine_dump: index == 0 ? dump_data_one : dump_data_two)
+        end
+        create_etm_file(file_path, combined_data)
+      end
+
+      it 'records it on the default version' do
+        scenario = service.call.value!.saved_scenarios.first
+
+        expect(scenario.version).to eq(Version.default)
+      end
+
+      it 'warns that the version changed' do
+        warnings = service.call.value!.warnings
+
+        expect(warnings).to include('Netherlands 2050 was on version stable.01, loaded onto latest')
       end
     end
   end
@@ -304,12 +355,12 @@ describe SavedScenarioPacker::Load, type: :service do
         expect(result).to be_success
       end
 
-      it 'includes warnings for failed scenarios' do
+      it 'reports the failed scenarios' do
         result = service.call
         load_result = result.value!
 
-        expect(load_result.warnings).not_to be_empty
-        expect(load_result.warnings.first).to include('Failed to load scenario 124')
+        expect(load_result.failures).not_to be_empty
+        expect(load_result.failures.first).to include('Failed to load scenario 124')
         expect(load_result.saved_scenarios.size).to eq(1)
       end
 
@@ -347,221 +398,54 @@ describe SavedScenarioPacker::Load, type: :service do
         expect(result.value!.saved_scenarios.size).to eq(1)
       end
 
-      it 'includes warnings' do
+      it 'reports the failed scenario' do
         result = service.call
-        expect(result.value!.warnings).to include(match(/Engine dump not found for scenario 124/))
+        expect(result.value!.failures).to include(match(/Engine dump not found for scenario 124/))
       end
     end
   end
 
-  describe 'user assignment edge cases' do
-    context 'when owner user does not exist' do
-      let(:manifest_data) do
-        {
-          version: '1.0',
-          source_environment: 'test',
-          created_at: Time.current.iso8601,
-          etm_version: 'latest',
-          saved_scenarios: [
-            {
-              saved_scenario_id: 100,
-              scenario_id: 123,
-              scenario_id_history: [],
-              title: 'Test Scenario',
-              description: 'Test',
-              area_code: 'nl',
-              end_year: 2050,
-              private: false,
-              version_tag: 'latest',
-              owner: { email: 'nonexistent@example.com', name: 'Ghost', role: 'owner' },
-              collaborators: [],
-              viewers: [],
-              created_at: 1.day.ago.iso8601,
-              updated_at: 1.hour.ago.iso8601
-            }
-          ]
-        }
-      end
-
-      before do
-        combined_data = manifest_data.dup
-        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
-          scenario.merge(engine_dump: dump_data_one)
-        end
-        create_etm_file(file_path, combined_data)
-      end
-
-      it 'creates a pending owner' do
-        result = service.call
-        scenario = result.value!.saved_scenarios.first
-        owner_ssu = scenario.owners.first
-
-        expect(owner_ssu.user).to be_nil
-        expect(owner_ssu.user_email).to eq('nonexistent@example.com')
-        expect(owner_ssu.pending?).to be true
-      end
-
-      it 'includes a warning' do
-        expect(Rails.logger).to receive(:warn).with(/Owner not found.*nonexistent@example.com.*creating pending/)
-        service.call
-      end
+  describe 'identities in the dump' do
+    let(:manifest_data) do
+      {
+        source_environment: 'production',
+        created_at: Time.current.iso8601,
+        etm_version: 'latest',
+        saved_scenarios: [
+          {
+            saved_scenario_id: 100,
+            scenario_id: 123,
+            scenario_id_history: [],
+            title: 'Test Scenario',
+            description: 'Test',
+            area_code: 'nl',
+            end_year: 2050,
+            private: true,
+            version_tag: 'latest',
+            owner: { email: 'nonexistent@example.com', name: 'Ghost', role: 'owner' },
+            collaborators: [{ email: collab_user.email, name: collab_user.name, role: 'collaborator' }],
+            viewers: [{ email: 'viewer@example.com', name: 'Ghost viewer', role: 'viewer' }]
+          }
+        ]
+      }
     end
 
-    context 'when owner is nil in dump' do
-      let(:manifest_data) do
-        {
-          version: '1.0',
-          source_environment: 'test',
-          created_at: Time.current.iso8601,
-          etm_version: 'latest',
-          saved_scenarios: [
-            {
-              saved_scenario_id: 100,
-              scenario_id: 123,
-              scenario_id_history: [],
-              title: 'Test Scenario',
-              description: 'Test',
-              area_code: 'nl',
-              end_year: 2050,
-              private: false,
-              version_tag: 'latest',
-              owner: nil,
-              collaborators: [],
-              viewers: [],
-              created_at: 1.day.ago.iso8601,
-              updated_at: 1.hour.ago.iso8601
-            }
-          ]
-        }
+    before do
+      combined_data = manifest_data.dup
+      combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
+        scenario.merge(engine_dump: dump_data_one)
       end
-
-      before do
-        combined_data = manifest_data.dup
-        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
-          scenario.merge(engine_dump: dump_data_one)
-        end
-        create_etm_file(file_path, combined_data)
-      end
-
-      it 'assigns admin user as owner' do
-        result = service.call
-        scenario = result.value!.saved_scenarios.first
-
-        expect(scenario.owners.first.user).to eq(admin_user)
-      end
-
-      it 'does not include a warning for nil owner' do
-        expect(Rails.logger).not_to receive(:warn).with(/Owner not found/)
-        service.call
-      end
+      create_etm_file(file_path, combined_data)
     end
 
-    context 'when collaborator user does not exist' do
-      let(:manifest_data) do
-        {
-          version: '1.0',
-          source_environment: 'test',
-          created_at: Time.current.iso8601,
-          etm_version: 'latest',
-          saved_scenarios: [
-            {
-              saved_scenario_id: 100,
-              scenario_id: 123,
-              scenario_id_history: [],
-              title: 'Test Scenario',
-              description: 'Test',
-              area_code: 'nl',
-              end_year: 2050,
-              private: false,
-              version_tag: 'latest',
-              owner: { email: owner_user.email, name: owner_user.name, role: 'owner' },
-              collaborators: [
-                { email: 'nonexistent@example.com', name: 'Ghost', role: 'collaborator' }
-              ],
-              viewers: [],
-              created_at: 1.day.ago.iso8601,
-              updated_at: 1.hour.ago.iso8601
-            }
-          ]
-        }
-      end
+    it 'are ignored in favour of the loading user' do
+      scenario = service.call.value!.saved_scenarios.first
 
-      before do
-        combined_data = manifest_data.dup
-        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
-          scenario.merge(engine_dump: dump_data_one)
-        end
-        create_etm_file(file_path, combined_data)
-      end
-
-      it 'creates a pending collaborator' do
-        result = service.call
-        scenario = result.value!.saved_scenarios.first
-        collab_ssu = scenario.collaborators.first
-
-        expect(collab_ssu.user).to be_nil
-        expect(collab_ssu.user_email).to eq('nonexistent@example.com')
-        expect(collab_ssu.pending?).to be true
-      end
-
-      it 'includes a warning' do
-        expect(Rails.logger).to receive(:warn).with(/Collaborator not found.*nonexistent@example.com.*creating pending/)
-        service.call
-      end
+      expect(scenario.saved_scenario_users.map(&:user)).to eq([ admin_user ])
     end
 
-    context 'when viewer user does not exist' do
-      let(:manifest_data) do
-        {
-          version: '1.0',
-          source_environment: 'test',
-          created_at: Time.current.iso8601,
-          etm_version: 'latest',
-          saved_scenarios: [
-            {
-              saved_scenario_id: 100,
-              scenario_id: 123,
-              scenario_id_history: [],
-              title: 'Test Scenario',
-              description: 'Test',
-              area_code: 'nl',
-              end_year: 2050,
-              private: false,
-              version_tag: 'latest',
-              owner: { email: owner_user.email, name: owner_user.name, role: 'owner' },
-              collaborators: [],
-              viewers: [
-                { email: 'nonexistent@example.com', name: 'Ghost', role: 'viewer' }
-              ],
-              created_at: 1.day.ago.iso8601,
-              updated_at: 1.hour.ago.iso8601
-            }
-          ]
-        }
-      end
-
-      before do
-        combined_data = manifest_data.dup
-        combined_data[:scenarios] = combined_data.delete(:saved_scenarios).map do |scenario|
-          scenario.merge(engine_dump: dump_data_one)
-        end
-        create_etm_file(file_path, combined_data)
-      end
-
-      it 'creates a pending viewer' do
-        result = service.call
-        scenario = result.value!.saved_scenarios.first
-        viewer_ssu = scenario.viewers.first
-
-        expect(viewer_ssu.user).to be_nil
-        expect(viewer_ssu.user_email).to eq('nonexistent@example.com')
-        expect(viewer_ssu.pending?).to be true
-      end
-
-      it 'includes a warning' do
-        expect(Rails.logger).to receive(:warn).with(/Viewer not found.*nonexistent@example.com.*creating pending/)
-        service.call
-      end
+    it 'never create pending users' do
+      expect { service.call }.not_to change { SavedScenarioUser.where(user_id: nil).count }
     end
   end
 
