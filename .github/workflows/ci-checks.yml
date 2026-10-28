@@ -1,9 +1,9 @@
-name: CI
+name: CI checks
 
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   scan_ruby:
@@ -17,10 +17,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: .ruby-version
-          bundler-cache: true
 
+      # No bundler-cache — Brakeman's static analysis needs no app gems or bundle install.
       - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
+        run: |
+          gem install brakeman
+          brakeman --no-pager
 
   scan_js:
     runs-on: ubuntu-24.04
