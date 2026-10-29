@@ -153,6 +153,7 @@ module Api
         MyEtm::Auth.engine_client(
           current_user,
           @saved_scenario.version,
+          scenario: @saved_scenario,
           scopes: current_scopes
         )
       end

@@ -34,7 +34,7 @@ module Api
       # POST api/v1/saved_scenarios
       def create
         result = SavedScenario::Create.call(
-          engine_client,
+          engine_client(scenario: nil, version: active_version),
           saved_scenario_params,
           current_user
         )
@@ -49,7 +49,7 @@ module Api
       # PATCH/PUT api/v1/saved_scenarios/1
       def update
         result = SavedScenario::Update.call(
-          engine_client,
+          engine_client(scenario: @saved_scenario),
           @saved_scenario,
           saved_scenario_params.except(:version),
           user: current_user
@@ -109,12 +109,8 @@ module Api
         )
       end
 
-      def engine_client
-        MyEtm::Auth.engine_client(
-          current_user,
-          active_version,
-          scopes: current_scopes
-        )
+      def engine_client(scenario:, version: scenario.version)
+        MyEtm::Auth.engine_client(current_user, version, scenario:, scopes: current_scopes)
       end
 
       def active_version

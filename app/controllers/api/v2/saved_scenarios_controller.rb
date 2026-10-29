@@ -56,7 +56,7 @@ module Api
         return if attributes.nil?
 
         render_write(
-          SavedScenario::Update.call(nil, @saved_scenario, attributes, user: current_user),
+          SavedScenario::Update.call(engine_client, @saved_scenario, attributes, user: current_user),
           with: SavedScenarioSerialiser
         )
       end
@@ -91,6 +91,12 @@ module Api
 
       def create_params
         resource_params(:scenario_id, :title, :version, :description, :area_code, :end_year, :private)
+      end
+
+      def engine_client
+        MyEtm::Auth.engine_client(
+          current_user, @saved_scenario.version, scenario: @saved_scenario, scopes: current_token.scopes.to_a
+        )
       end
 
       def update_params
