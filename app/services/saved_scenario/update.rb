@@ -35,6 +35,7 @@ class SavedScenario::Update
 
       return failure unless ss.valid?
       return Failure([ :upstream, discard_result.errors ]) if discard_failed?
+      return Failure([ :upstream, privacy_errors ]) if privacy_errors.any?
 
       ss.save
     end
@@ -71,6 +72,15 @@ class SavedScenario::Update
 
   def discard_result
     @discard_result ||= ApiScenario::SetBound.for_saved_scenario(user, saved_scenario, saved_scenario.kept?)
+  end
+
+  # A privacy change reaches every Session, as ETEngine opens public Sessions to readers without a grant
+  def privacy_errors
+    return [] unless saved_scenario.private_changed?
+
+    @privacy_errors ||= ApiScenario::UpdatePrivacy
+      .call_with_ids(http_client, saved_scenario.all_scenario_ids, private: saved_scenario.private)
+      .flat_map(&:errors)
   end
 
   # Tagged, because nothing the caller sent is at fault and the response says so with a 502.

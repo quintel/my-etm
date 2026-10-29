@@ -116,5 +116,70 @@ RSpec.describe MyEtm::Auth do
       raw_token = described_class.client_token(user, application)
       expect(Doorkeeper::AccessToken.by_token(raw_token).refresh_token).to be_nil
     end
+
+    it 'carries no scenario_access claim by default' do
+      expect(decoded).not_to have_key(ScenarioAccess::CLAIM)
+    end
+
+    it 'carries the given scenario_access as a claim' do
+      payload, = JWT.decode(
+        described_class.client_token(user, application, scenario_access: [ [ 1, 'write' ] ]),
+        described_class.signing_key.public_key, true, algorithm: 'RS256'
+      )
+      expect(payload[ScenarioAccess::CLAIM]).to eq('write' => [ 1 ], 'read' => [])
+    end
+  end
+
+  describe '.scenario_grant' do
+    let(:user) { create(:user) }
+    let(:saved_scenario) do
+      create(:saved_scenario, user: create(:user), scenario_id: 3, scenario_id_history: [ 1, 2 ])
+    end
+
+    def grant_with_role(role)
+      create(:saved_scenario_user, saved_scenario:, user:, role_id: User::Roles.index_of(role))
+      described_class.scenario_grant(user, saved_scenario)
+    end
+
+    it 'is nil without a scenario' do
+      expect(described_class.scenario_grant(user, nil)).to be_nil
+    end
+
+    it 'grants a collaborator write on every Session of the scenario' do
+      expect(grant_with_role(:scenario_collaborator).call)
+        .to contain_exactly([ 3, 'write' ], [ 2, 'write' ], [ 1, 'write' ])
+    end
+
+    it 'grants a viewer read' do
+      expect(grant_with_role(:scenario_viewer).call.map(&:last).uniq).to eq([ 'read' ])
+    end
+
+    it 'grants nothing without a role' do
+      expect(described_class.scenario_grant(user, saved_scenario).call).to be_nil
+    end
+
+    it 'grants nothing once the scenario is discarded' do
+      grant = grant_with_role(:scenario_owner)
+      saved_scenario.discard
+
+      expect(grant.call).to be_nil
+    end
+
+    it 'follows a role change made after the client was built' do
+      grant = grant_with_role(:scenario_collaborator)
+      saved_scenario.saved_scenario_users.find_by(user:).update!(
+        role_id: User::Roles.index_of(:scenario_viewer)
+      )
+
+      expect(grant.call.map(&:last).uniq).to eq([ 'read' ])
+    end
+
+    it 'keeps Sessions dropped and adds Sessions gained after the client was built' do
+      grant = grant_with_role(:scenario_owner)
+      saved_scenario.restore_historical(1)
+      saved_scenario.scenario_id = 4
+
+      expect(grant.call.map(&:first)).to contain_exactly(1, 2, 3, 4)
+    end
   end
 end

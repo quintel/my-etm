@@ -122,12 +122,12 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def engine_client(version)
-    MyEtm::Auth.engine_client(current_user, version)
+  def engine_client(scenario:, version: scenario.version)
+    MyEtm::Auth.engine_client(current_user, version, scenario:)
   end
 
-  def streaming_engine_client(version)
-    MyEtm::Auth.streaming_engine_client(current_user, version)
+  def streaming_engine_client(scenario:, version: scenario.version)
+    MyEtm::Auth.streaming_engine_client(current_user, version, scenario:)
   end
 
   # Internal: Renders a 404 page.
