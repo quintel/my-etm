@@ -158,6 +158,29 @@
         915
       ],
       "note": ""
+    },
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "f3a272ec67a5a3da15f705550f318e5371bb639319538212c333af11fe5e5269",
+      "check_name": "SendFile",
+      "message": "Model attribute used in file name",
+      "file": "app/controllers/admin/saved_scenarios_controller.rb",
+      "line": 61,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "send_file(SavedScenarioPacker::Dump.new(saved_scenario_ids, streaming_engine_client(:scenario => nil, :version => Version.default), current_user).call.value!.file_path, :filename => File.basename(SavedScenarioPacker::Dump.new(saved_scenario_ids, streaming_engine_client(:scenario => nil, :version => Version.default), current_user).call.value!.file_path), :type => \"application/x-etm\", :disposition => \"attachment\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Admin::SavedScenariosController",
+        "method": "batch_dump"
+      },
+      "user_input": "Version.default",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
     }
   ],
   "brakeman_version": "8.1.0"
