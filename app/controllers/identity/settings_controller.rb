@@ -73,7 +73,7 @@ module Identity
 
       current_user.update(privacy_params)
       UpdatePrivateScenarios.call_with_user(
-        MyEtm::Auth.engine_client(current_user),
+        MyEtm::Auth.engine_client(current_user, scenario: nil),
         current_user,
         privacy_params[:private_scenarios]
       )

@@ -76,7 +76,7 @@ module MyEtm
         token,
         signing_key.public_key,
         true,
-        algorithms: ["RS256"],
+        algorithms: [ "RS256" ],
         verify_iss: true,
         iss: Settings.auth.issuer,
         verify_aud: true,
@@ -105,20 +105,23 @@ module MyEtm
     # a real, persisted (if short-lived) token rather than a second, independently-signed JWT.
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted; otherwise the
-    # configured app scopes are used.
-    def client_token(user, client_app, scopes: [])
+    # configured app scopes are used. A scenario_access is a list of [session_id, level] pairs.
+    def client_token(user, client_app, scopes: [], scenario_access: nil)
       scopes = scopes.empty? ? client_app.scopes : Array(scopes).join(" ")
 
       Doorkeeper::AccessToken.create_for(
         application: client_app, resource_owner: user, scopes: scopes,
-        expires_in: 5.minutes, use_refresh_token: false
+        expires_in: 5.minutes, use_refresh_token: false, scenario_access: scenario_access
       ).token
     end
 
     # Returns a Faraday client for a user, which will send requests to the specified client app.
-    def client_for(user, client_app, scopes: [])
+    # A grant is called before each request, for the scenario_access that request's token carries.
+    def client_for(user, client_app, scopes: [], grant: nil)
       Faraday.new(client_app.uri) do |conn|
-        conn.request(:authorization, "Bearer", -> { client_token(user, client_app, scopes: scopes) })
+        conn.request(:authorization, "Bearer", lambda {
+          client_token(user, client_app, scopes: scopes, scenario_access: grant&.call)
+        })
         conn.request(:json)
         conn.response(:json)
         conn.response(:raise_error)
@@ -129,9 +132,24 @@ module MyEtm
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted
     # Otherwise the configured app scopes are used
-    def engine_client(user, version = Version.default, scopes: [])
+    #
+    # Calls acting on a SavedScenario pass it as scenario, so their tokens carry a grant on its
+    # Sessions. Calls acting on no SavedScenario pass nil explicitly.
+    def engine_client(user, version = Version.default, scenario:, scopes: [])
       engine = OAuthApplication.find_by(uri: version.engine_url)
-      client_for(user, engine, scopes: scopes)
+      client_for(user, engine, scopes: scopes, grant: scenario_grant(user, scenario))
+    end
+
+    # Grants every Session the scenario holds when the client is built or when a request is sent
+    def scenario_grant(user, scenario)
+      return unless scenario
+
+      held = scenario.all_scenario_ids
+
+      lambda do
+        level = scenario.access_level_for(user)
+        level && (held | scenario.all_scenario_ids).map { |id| [ id, level ] }
+      end
     end
 
     # Returns a Faraday client for ETEngine streaming endpoints (without JSON response middleware)
@@ -141,12 +159,15 @@ module MyEtm
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted
     # Otherwise the configured app scopes are used
-    def streaming_engine_client(user, version = Version.default, scopes: [])
+    def streaming_engine_client(user, version = Version.default, scenario:, scopes: [])
       engine = OAuthApplication.find_by(uri: version.engine_url)
       scopes = scopes.empty? ? engine.scopes : scopes
+      grant = scenario_grant(user, scenario)
 
       Faraday.new(engine.uri) do |conn|
-        conn.request(:authorization, "Bearer", -> { client_token(user, engine, scopes: scopes) })
+        conn.request(:authorization, "Bearer", lambda {
+          client_token(user, engine, scopes: scopes, scenario_access: grant&.call)
+        })
         conn.request(:json)
         # NOTE: No response(:json) middleware - streaming responses must be parsed manually
         conn.response(:raise_error)

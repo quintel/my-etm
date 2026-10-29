@@ -84,6 +84,34 @@ describe SavedScenarioHistoryController, vcr: true do
         saved_scenario.reload
         expect(saved_scenario.scenario_id).to eq(111)
       end
+
+      it 'grants the engine client on the scenario' do
+        expect(MyEtm::Auth).to have_received(:engine_client)
+          .with(user, saved_scenario.version, scenario: saved_scenario)
+      end
+    end
+  end
+
+  context 'with a user without a role on the scenario' do
+    before do
+      sign_in create(:user)
+
+      put :restore, format: :turbo_stream, params: {
+        saved_scenario_id: saved_scenario.id,
+        scenario_id: 111
+      }
+    end
+
+    it 'refuses to restore' do
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'leaves the scenario unchanged' do
+      expect(saved_scenario.reload.scenario_id).to eq(123)
+    end
+
+    it 'unbinds nothing' do
+      expect(ApiScenario::SetBound).not_to have_received(:call)
     end
   end
 end
