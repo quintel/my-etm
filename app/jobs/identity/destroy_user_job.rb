@@ -9,7 +9,7 @@ class Identity::DestroyUserJob < ApplicationJob
 
     Version.all.each do |version|
       MyEtm::Auth.model_client(user, version).delete("/api/v1/user") if Settings.etmodel.uri
-      MyEtm::Auth.engine_client(user, version).delete("/api/v3/user") if Settings.etengine.uri
+      MyEtm::Auth.engine_client(user, version, scenario: nil).delete("/api/v3/user") if Settings.etengine.uri
     end
 
     user.destroy

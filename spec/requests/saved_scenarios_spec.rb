@@ -136,6 +136,7 @@ RSpec.describe "/saved_scenarios", type: :request do
     before do
       sign_in(user)
       allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids)
+      allow(MyEtm::Auth).to receive(:engine_client).and_call_original
     end
 
     context 'with an owned saved scenario' do
@@ -156,6 +157,11 @@ RSpec.describe "/saved_scenarios", type: :request do
         expect(ApiScenario::UpdatePrivacy).to have_received(:call_with_ids).with(
           anything, [ user_scenario.id ], private: false
         )
+      end
+
+      it 'grants the engine client on the scenario' do
+        expect(MyEtm::Auth).to have_received(:engine_client)
+          .with(user, user_scenario.version, scenario: user_scenario)
       end
     end
 

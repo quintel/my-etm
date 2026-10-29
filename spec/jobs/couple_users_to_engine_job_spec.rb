@@ -12,7 +12,7 @@ RSpec.describe CoupleUsersToEngineJob, type: :job do
     let(:response) { instance_double(Faraday::Response, status: 200) }
 
     before do
-      allow(MyEtm::Auth).to receive(:engine_client).with(user, version).and_return(http_client)
+      allow(MyEtm::Auth).to receive(:engine_client).with(user, version, scenario: nil).and_return(http_client)
       allow(http_client).to receive(:get).and_return(response)
     end
 

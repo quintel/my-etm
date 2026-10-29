@@ -66,6 +66,53 @@ describe SavedScenario::Update, type: :service do
       end
     end
 
+    context 'when making a scenario private' do
+      let(:params) { { private: true } }
+
+      before do
+        saved_scenario.update!(private: false, scenario_id_history: [ 2 ])
+        allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids).and_return([ ServiceResult.success ])
+      end
+
+      it 'makes every Session private in ETEngine' do
+        result
+        expect(ApiScenario::UpdatePrivacy).to have_received(:call_with_ids).with(client, [ 1, 2 ], private: true)
+      end
+
+      it 'saves the scenario as private' do
+        expect { result }.to change { saved_scenario.reload.private }.from(false).to(true)
+      end
+    end
+
+    context 'when ETEngine fails to change the privacy' do
+      let(:params) { { private: true } }
+
+      before do
+        saved_scenario.update!(private: false)
+        allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids)
+          .and_return([ ServiceResult.failure('Engine down') ])
+      end
+
+      it 'returns an upstream failure' do
+        expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
+      end
+
+      it 'leaves the scenario public' do
+        expect { result }.not_to(change { saved_scenario.reload.private })
+      end
+    end
+
+    context 'when the privacy is unchanged' do
+      let(:params) { { title: 'New title' } }
+
+      before { allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids) }
+
+      it 'leaves ETEngine alone' do
+        result
+        expect(ApiScenario::UpdatePrivacy).not_to have_received(:call_with_ids)
+      end
+    end
+
     context 'when discarding with an invalid title' do
       let(:params) { { discarded: true, title: '' } }
 

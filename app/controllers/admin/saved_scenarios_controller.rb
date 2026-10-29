@@ -51,7 +51,7 @@ module Admin
     def batch_dump
       result = SavedScenarioPacker::Dump.new(
         saved_scenario_ids,
-        streaming_engine_client(dump_version),
+        streaming_engine_client(scenario: nil, version: dump_version),
         current_user
       ).call
 

@@ -88,6 +88,12 @@ describe CollectionsController do
         post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(service).to have_received(:call).with(anything, scenario, user)
       end
+
+      it 'grants the engine client on the source scenario' do
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
+        expect(MyEtm::Auth).to have_received(:engine_client)
+          .with(user, scenario.version, scenario: scenario)
+      end
     end
 
     context 'when a saved scenario is in a specific version' do
@@ -248,13 +254,10 @@ describe CollectionsController do
   end
 
   describe '#destroy' do
-    let!(:service) { class_double('DeleteCollection').as_stubbed_const }
-
     context 'when the collection belongs to the logged-in user' do
       let(:collection) { create(:collection) }
 
       before do
-        allow(service).to receive(:call).and_return(ServiceResult.success)
         sign_in collection.user
       end
 
@@ -263,9 +266,9 @@ describe CollectionsController do
         expect(response).to redirect_to(collections_url)
       end
 
-      it 'calls the DeleteCollection service' do
+      it 'destroys the collection' do
         delete :destroy, params: { id: collection.id }
-        expect(service).to have_received(:call).with(anything, collection)
+        expect(Collection.exists?(collection.id)).to be(false)
       end
     end
 

@@ -18,7 +18,7 @@ RSpec.describe '/admin/saved_scenarios', type: :request do
       sign_in(admin)
       post '/admin/saved_scenarios/batch_dump', params: { saved_scenario_ids: [ saved_scenario.id ] }
 
-      expect(MyEtm::Auth).to have_received(:streaming_engine_client).with(admin, stable)
+      expect(MyEtm::Auth).to have_received(:streaming_engine_client).with(admin, stable, scenario: nil)
       expect(SavedScenarioPacker::Dump).to have_received(:new)
         .with([ saved_scenario.id.to_s ], :stable_client, admin)
     end
