@@ -144,7 +144,10 @@ class CollectionsController < ApplicationController
   #
   # DELETE /collections/:id
   def destroy
-    @collection.destroy
+    DeleteCollection.call(
+      engine_client(scenario: nil, version: @collection.version),
+      @collection
+    )
 
     redirect_to collections_path
   end
