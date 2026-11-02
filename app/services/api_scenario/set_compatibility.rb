@@ -23,7 +23,7 @@ module ApiScenario::SetCompatibility
     ServiceResult.success
   rescue Faraday::UnprocessableEntityError => e
     ServiceResult.failure_from_unprocessable_entity(e)
-  rescue Faraday::ClientError => e
+  rescue Faraday::Error => e
     Sentry.capture_exception(e)
     ServiceResult.failure
   end

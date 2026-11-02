@@ -66,7 +66,6 @@ class SavedScenarioHistoryController < ApplicationController
     old_history_ids = discarded_scenarios
 
     result = SavedScenario::Restore.call(
-      engine_client(scenario: @saved_scenario),
       @saved_scenario,
       params[:scenario_id].to_i,
       user: current_user
