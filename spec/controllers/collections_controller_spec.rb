@@ -254,10 +254,13 @@ describe CollectionsController do
   end
 
   describe '#destroy' do
+    let!(:service) { class_double('DeleteCollection').as_stubbed_const }
+
     context 'when the collection belongs to the logged-in user' do
       let(:collection) { create(:collection) }
 
       before do
+        allow(service).to receive(:call).and_return(ServiceResult.success)
         sign_in collection.user
       end
 
@@ -266,9 +269,15 @@ describe CollectionsController do
         expect(response).to redirect_to(collections_url)
       end
 
-      it 'destroys the collection' do
+      it 'calls the DeleteCollection service' do
         delete :destroy, params: { id: collection.id }
-        expect(Collection.exists?(collection.id)).to be(false)
+        expect(service).to have_received(:call).with(client, collection)
+      end
+
+      it 'gives the engine client no grant' do
+        delete :destroy, params: { id: collection.id }
+        expect(MyEtm::Auth).to have_received(:engine_client)
+          .with(collection.user, collection.version, scenario: nil)
       end
     end
 
