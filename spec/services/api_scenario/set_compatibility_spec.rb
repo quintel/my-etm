@@ -72,4 +72,21 @@ describe ApiScenario::SetCompatibility, type: :service do
       expect(described_class.call(client, 1, false).errors).to eq(['Oops!'])
     end
   end
+
+  context 'when ETEngine cannot be reached' do
+    before do
+      allow(client).to receive(:put).and_raise(Faraday::ConnectionFailed)
+      allow(Sentry).to receive(:capture_exception)
+    end
+
+    it 'returns a failure result' do
+      expect(described_class.call(client, 1, false)).not_to be_successful
+    end
+
+    it 'reports the error' do
+      described_class.call(client, 1, false)
+
+      expect(Sentry).to have_received(:capture_exception).with(Faraday::ConnectionFailed)
+    end
+  end
 end
