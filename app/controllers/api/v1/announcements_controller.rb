@@ -4,8 +4,13 @@ module Api
   module V1
     class AnnouncementsController < BaseController
       # GET /api/v1/announcements
+      #
+      # The active announcement of the version given by the `version` param (a tag such as
+      # "2027.01"), or of the default version when there is no param.
       def index
-        render json: { announcements: Announcement.active.as_json }, status: :ok
+        version = params[:version].present? ? Version.find_by(tag: params[:version]) : Version.default
+
+        render json: { announcements: Announcement.active.where(version:).as_json }, status: :ok
       end
     end
   end

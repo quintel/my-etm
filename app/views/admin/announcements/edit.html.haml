@@ -5,12 +5,20 @@
 %div.max-w-2xl
   %p.text-sm.text-gray-700.mb-6= t('admin.announcements.intro')
 
+  %nav.flex.flex-wrap.gap-2.mb-6
+    - Version.order(:id).each do |version|
+      = link_to edit_admin_announcement_path(version: version.tag),
+        class: button_classes('inline-flex items-center gap-2', size: :sm, color: version == @version ? :primary : :default) do
+        - if @shown_version_ids.include?(version.id)
+          = heroicon 'megaphone', variant: :mini, options: { class: 'w-4 h-4' }
+        = "##{version.tag}"
+
   - if @announcement.errors.any?
     %ul.text-sm.text-red-600.list-disc.ml-5.mb-5
       - @announcement.errors.full_messages.each do |message|
         %li= message
 
-  = form_for @announcement, url: admin_announcement_path, html: { method: :put } do |f|
+  = form_for @announcement, url: admin_announcement_path(version: @version.tag), html: { method: :put } do |f|
     %label.flex.items-center.gap-2.text-sm.font-medium.text-gray-700.mb-5
       = f.check_box :active, class: 'rounded border-gray-300'
       = t('admin.announcements.active')

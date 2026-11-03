@@ -2,6 +2,7 @@ class Version < ApplicationRecord
   has_many :oauth_applications, dependent: :nullify
   has_many :saved_scenarios
   has_many :collections
+  has_many :announcements, dependent: :destroy
 
   validates :tag, presence: true, uniqueness: true
   validates :url_prefix, presence: true, unless: -> { tag == "latest" }
