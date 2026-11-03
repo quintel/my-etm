@@ -31,7 +31,7 @@ RSpec.describe SavedScenario, type: :model do
 
       before do
         allow(SavedScenario::Purge).to receive(:call).and_call_original
-        allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+        allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
 
         create(:collection_saved_scenario, saved_scenario: old, collection: collection)
         old.update(discarded_at: 61.days.ago)

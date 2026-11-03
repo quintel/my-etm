@@ -71,7 +71,7 @@ class SavedScenarioHistoryController < ApplicationController
       user: current_user
     )
 
-    if result.successful?
+    if result.success?
       respond_to do |format|
         format.turbo_stream do
           render turbo_stream: turbo_remove_components(old_history_ids)

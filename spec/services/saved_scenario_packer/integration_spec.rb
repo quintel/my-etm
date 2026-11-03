@@ -16,7 +16,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
       area_code: 'nl',
       end_year: 2050,
       scenario_id: 123,
-      scenario_id_history: [120, 121, 122],
+      scenario_id_history: [ 120, 121, 122 ],
       version: version,
       private: false
     ).tap do |ss|
@@ -41,7 +41,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
     end
   end
 
-  let(:saved_scenario_ids) { [saved_scenario_one.id, saved_scenario_two.id] }
+  let(:saved_scenario_ids) { [ saved_scenario_one.id, saved_scenario_two.id ] }
 
   # Mock HTTP client for both dump and load
   let(:http_client) { instance_double(Faraday::Connection) }
@@ -65,7 +65,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
   end
 
   before do
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
     allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(ServiceResult.success)
 
     # Mock ETEngine streaming dump API call using streaming helper
@@ -108,7 +108,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
       dump_data = dump_result.value!
 
       expect(dump_data).to be_a(SavedScenarioPacker::Results::DumpResult)
-      expect(File.exist?(dump_data.file_path)).to be true
+      expect(File.exist?(dump_data.file_path)).to be(true)
 
       # Phase 2: Load into new scenarios
       load_service = SavedScenarioPacker::Load.new(dump_data.file_path, http_client, admin)
@@ -126,14 +126,14 @@ describe 'SavedScenarioPacker Integration', type: :service do
       expect(loaded_nl.end_year).to eq(2050)
       expect(loaded_nl.scenario_id).to eq(223)
       expect(loaded_nl.scenario_id_history).to be_empty
-      expect(loaded_nl.private).to be false
+      expect(loaded_nl.private).to be(false)
 
       loaded_de = load_data.saved_scenarios.find { |s| s.title == 'Germany 2040' }
       expect(loaded_de.area_code).to eq('de')
       expect(loaded_de.end_year).to eq(2040)
       expect(loaded_de.scenario_id).to eq(224)
       expect(loaded_de.scenario_id_history).to be_empty
-      expect(loaded_de.private).to be true
+      expect(loaded_de.private).to be(true)
     end
 
     it 'gives loaded scenarios to the loading user only' do
@@ -151,7 +151,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
       expect { load.call }.to change(SavedScenario, :count).by(2)
       expect { load.call }.to change(SavedScenario, :count).by(2)
-      expect(saved_scenario_one.reload).to have_attributes(scenario_id: 123, scenario_id_history: [120, 121, 122])
+      expect(saved_scenario_one.reload).to have_attributes(scenario_id: 123, scenario_id_history: [ 120, 121, 122 ])
     end
   end
 
@@ -217,7 +217,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
       nl_scenario = data[:scenarios].find { |s| s[:title] == 'Netherlands 2050' }
       expect(nl_scenario[:scenario_id]).to eq(123)
-      expect(nl_scenario[:scenario_id_history]).to eq([120, 121, 122])
+      expect(nl_scenario[:scenario_id_history]).to eq([ 120, 121, 122 ])
       expect(nl_scenario[:area_code]).to eq('nl')
       expect(nl_scenario[:owner][:email]).to eq(owner.email)
       expect(nl_scenario[:collaborators].size).to eq(1)
@@ -243,7 +243,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
     end
 
     it 'handles NDJSON throughout the full cycle' do
-      dump_service = SavedScenarioPacker::Dump.new([saved_scenario_one.id], http_client, owner)
+      dump_service = SavedScenarioPacker::Dump.new([ saved_scenario_one.id ], http_client, owner)
       dump_result = dump_service.call
 
       expect(dump_result).to be_success

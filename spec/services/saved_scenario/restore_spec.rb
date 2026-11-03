@@ -15,15 +15,11 @@ describe SavedScenario::Restore, type: :service do
     )
   end
 
-  before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([])) }
+  before { allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([])) }
 
   context 'when the restore is succesful' do
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
-
     it 'is successful' do
-      expect(result).to be_successful
+      expect(result).to be_success
     end
 
     it 'updates the main scenario id' do
@@ -31,7 +27,7 @@ describe SavedScenario::Restore, type: :service do
     end
 
     it 'has the given scenario id as main scenario id in the resulting saved scenario' do
-      expect(result.value.scenario_id).to eq(restore_id)
+      expect(result.value!.scenario_id).to eq(restore_id)
     end
   end
 
@@ -51,10 +47,10 @@ describe SavedScenario::Restore, type: :service do
   end
 
   context 'when ETEngine fails to unbind the dropped snapshots' do
-    before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down')) }
+    before { allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ])) }
 
-    it 'is not successful' do
-      expect(result).not_to be_successful
+    it 'passes the upstream failure through' do
+      expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
     end
 
     it 'leaves the saved scenario unchanged' do
@@ -65,12 +61,8 @@ describe SavedScenario::Restore, type: :service do
   context 'when restoring to an unknown scenario id' do
     let(:restore_id) { 999_999 }
 
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
-
     it 'is successful' do
-      expect(result).to be_successful
+      expect(result).to be_success
     end
 
     it 'did not change the main scenario id' do
