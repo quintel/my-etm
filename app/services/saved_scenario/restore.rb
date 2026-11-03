@@ -6,10 +6,11 @@
 # scenario_id     - The ID of the scenario to be restored.
 # user            - The user acting, who owns the engine token that unbinds dropped Sessions
 #
-# Returns a ServiceResult with the saved scenario.
+# Returns a Dry::Monads::Result with the saved scenario.
 class SavedScenario::Restore
   extend Dry::Initializer
   include Service
+  include Dry::Monads[:result]
 
   param :saved_scenario
   param :scenario_id
@@ -17,7 +18,7 @@ class SavedScenario::Restore
   option :user
 
   def call
-    return ServiceResult.success(saved_scenario) unless saved_scenario.contains?(scenario_id)
+    return Success(saved_scenario) unless saved_scenario.contains?(scenario_id)
 
     saved_scenario.tap do |ss|
       # The current Session leaves the scenario too, along with every later snapshot.
@@ -30,12 +31,12 @@ class SavedScenario::Restore
       ss.save
     end
 
-    ServiceResult.success(saved_scenario)
+    Success(saved_scenario)
   end
 
   private
 
   def failure
-    ServiceResult.failure(saved_scenario.errors.map(&:full_message))
+    Failure(saved_scenario.errors)
   end
 end

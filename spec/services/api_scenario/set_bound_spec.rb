@@ -30,7 +30,7 @@ describe ApiScenario::SetBound, type: :service do
   end
 
   it 'returns the ids ETEngine has no Session for' do
-    expect(result.value).to eq([ 2 ])
+    expect(result.value!).to eq([ 2 ])
   end
 
   context 'when the engine has no bound flag' do
@@ -60,9 +60,18 @@ describe ApiScenario::SetBound, type: :service do
     end
   end
 
-  it 'fails when ETEngine fails' do
+  it 'fails upstream when ETEngine fails' do
     allow(client).to receive(:put).and_raise(Faraday::ServerError)
 
-    expect(result).to be_failure
+    expect(result.failure).to eq([ :upstream, [ 'Failed to update the session in ETEngine' ] ])
+  end
+
+  it 'answers call! with the missing ids' do
+    expect(described_class.call!(user, version, [ 1, 2 ], true)).to eq([ 2 ])
+  end
+
+  it 'keeps its helpers private' do
+    expect(described_class.new(user, version, [], true).private_methods)
+      .to include(:client, :release_without_bound_flag)
   end
 end

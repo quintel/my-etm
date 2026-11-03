@@ -22,9 +22,7 @@ class SavedScenario::Update
       ss.attributes = params.except(:discarded, :scenario_id)
       private_changed = ss.private_changed?
 
-      if update_scenario?
-        return update_scenario_failure unless update_scenario_result.successful?
-      end
+      return update_scenario_result if update_scenario? && update_scenario_result.failure?
 
       return failure unless ss.valid?
       return Failure([ :upstream, privacy_errors ]) if private_changed && privacy_errors.any?
@@ -71,11 +69,6 @@ class SavedScenario::Update
     @privacy_errors ||= ApiScenario::UpdatePrivacy
       .call_with_ids(http_client, saved_scenario.all_scenario_ids, private: saved_scenario.private)
       .flat_map(&:errors)
-  end
-
-  # Tagged, because nothing the caller sent is at fault and the response says so with a 502.
-  def update_scenario_failure
-    Failure([ :upstream, update_scenario_result.errors ])
   end
 
   def failure

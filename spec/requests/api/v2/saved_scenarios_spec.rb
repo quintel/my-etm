@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
-  before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([])) }
+  before { allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([])) }
 
   let(:class_sym)   { :saved_scenario }
   let(:owner_assoc) { :saved_scenarios }
@@ -492,7 +492,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     end
 
     it "keeps the scenario when ETEngine fails to unbind its Sessions" do
-      allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure("Engine down"))
+      allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :upstream, [ "Engine down" ] ]))
       delete(path, headers: v2_bearer(owner, :delete), as: :json)
 
       expect(response).to have_http_status(:bad_gateway)
