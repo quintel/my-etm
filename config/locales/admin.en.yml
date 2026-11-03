@@ -7,12 +7,12 @@ en:
       collections: All collections
       applications: Local ETM & applications
       featured_users: Featured users
-      announcements: Announcement
+      announcements: Announcements
     announcements:
-      title: Announcement
+      title: Announcements
       intro: >
-        Shows a message at the top of every page in the ETM. Use it for planned maintenance or
-        other short notices.
+        Shows a message at the top of every page in the selected version of the ETM. Use it for
+        planned maintenance or other short notices.
       active: Show this announcement
       body_en: Message (English)
       body_nl: Message (Dutch)

@@ -7,12 +7,12 @@ nl:
       collections: Alle collecties
       applications: ETM lokaal & applicaties
       featured_users: Uitgelichte gebruikers
-      announcements: Mededeling
+      announcements: Mededelingen
     announcements:
-      title: Mededeling
+      title: Mededelingen
       intro: >
-        Toont een bericht bovenaan elke pagina in de ETM. Gebruik dit voor gepland onderhoud of
-        andere korte mededelingen.
+        Toont een bericht bovenaan elke pagina in de geselecteerde versie van de ETM. Gebruik dit
+        voor gepland onderhoud of andere korte mededelingen.
       active: Toon deze mededeling
       body_en: Bericht (Engels)
       body_nl: Bericht (Nederlands)
