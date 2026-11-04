@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # Opens Sessions by ID for an ETM app whose cookie lacks a grant: records the caller's current role
-# on each Scenario holding one of them as its current Session, then returns. To be used by
-# routes that reach ETEngine without passing through MyETM's open: Collections' by session ID
-# and ETModel's direct loads.
+# on each Scenario holding one of them as its current Session, on that Scenario's Version, then
+# returns. To be used by routes that reach ETEngine without passing through MyETM's open:
+# Collections' by session ID and ETModel's direct loads.
 class OpenSessionsController < ApplicationController
   # GET /saved_scenarios/open?session_ids=1,2&return_to=<url>
   def show
@@ -20,6 +20,6 @@ class OpenSessionsController < ApplicationController
   def grant_sessions
     ids = params[:session_ids].to_s.split(",").map(&:to_i)
     levels = RederiveScenarioAccess.levels_for(current_user.id, ids)
-    update_scenario_access { |access| access.grant(levels.to_a) }
+    update_scenario_access { |access| access.grant(levels.map { |(tag, id), level| [ tag, id, level ] }) }
   end
 end

@@ -41,7 +41,21 @@ RSpec.describe 'Opening Sessions by ID', type: :request do
     give_role(:scenario_viewer, viewed)
     open_sessions(saved_scenario.scenario_id, viewed.scenario_id)
 
-    expect(claim).to eq('write' => [ saved_scenario.scenario_id ], 'read' => [ viewed.scenario_id ])
+    expect(claim).to eq(
+      'latest' => { 'write' => [ saved_scenario.scenario_id ], 'read' => [ viewed.scenario_id ] }
+    )
+  end
+
+  it 'grants on the Version of each Scenario holding the Session' do
+    other = create(:saved_scenario, scenario_id: saved_scenario.scenario_id, version: create(:version))
+    give_role(:scenario_owner)
+    give_role(:scenario_viewer, other)
+    open_sessions(saved_scenario.scenario_id)
+
+    expect(claim).to eq(
+      'latest' => { 'write' => [ saved_scenario.scenario_id ] },
+      other.version.tag => { 'read' => [ saved_scenario.scenario_id ] }
+    )
   end
 
   it "adds nothing for a snapshot's Session or a Session without a role" do
