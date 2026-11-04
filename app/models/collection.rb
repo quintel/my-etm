@@ -107,10 +107,10 @@ class Collection < ApplicationRecord
 
   # Public: Every scenario in the collection, each paired with the saved scenario it came from.
   # Scenarios held directly have no SavedScenario, so their saved_scenario_id, title and access are
-  # nil: nothing local names them. Access is the level the given user's role grants on the Session.
+  # nil: nothing local names them. Access is the level access_for's role grants on the Session.
   #
   # Returns an array of hashes, in the order the scenarios should be shown.
-  def scenario_members_as_json(user = nil)
+  def scenario_members_as_json(access_for = nil)
     direct = scenarios.map do |scenario|
       { "saved_scenario_id" => nil, "scenario_id" => scenario.scenario_id, "title" => nil, "access" => nil }
     end
@@ -120,7 +120,7 @@ class Collection < ApplicationRecord
         "saved_scenario_id" => saved_scenario.id,
         "scenario_id" => saved_scenario.scenario_id,
         "title" => saved_scenario.title,
-        "access" => user && saved_scenario.access_level_for(user)
+        "access" => access_for && saved_scenario.access_level_for(access_for)
       }
     end
   end
@@ -159,7 +159,7 @@ class Collection < ApplicationRecord
   end
 
   def as_json(options = {})
-    user = options.delete(:user)
+    access_for = options.delete(:access_for)
     options[:except] ||= %i[area_code end_year user_id version_id]
 
     extra_attrs = {
@@ -168,7 +168,7 @@ class Collection < ApplicationRecord
       "owner" => user.as_json(only: %i[id name]),
       "saved_scenario_ids" => saved_scenarios.pluck(:id),
       "scenario_ids" => scenarios.pluck(:scenario_id),
-      "scenarios" => scenario_members_as_json(user),
+      "scenarios" => scenario_members_as_json(access_for),
       "collections_app_url" => CollectionUrlBuilder.collections_app_url(self)
     }
 
