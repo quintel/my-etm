@@ -48,14 +48,14 @@ RSpec.describe 'Opening a scenario', type: :request do
     give_role(:scenario_collaborator)
     open_scenario
 
-    expect(claim).to eq('write' => [ saved_scenario.scenario_id ], 'read' => [])
+    expect(claim).to eq('latest' => { 'write' => [ saved_scenario.scenario_id ] })
   end
 
   it 'adds a read entry for a viewer' do
     give_role(:scenario_viewer)
     open_scenario
 
-    expect(claim).to eq('write' => [], 'read' => [ saved_scenario.scenario_id ])
+    expect(claim).to eq('latest' => { 'read' => [ saved_scenario.scenario_id ] })
   end
 
   it 'keeps the first scenario when a second is opened' do
@@ -66,7 +66,17 @@ RSpec.describe 'Opening a scenario', type: :request do
     open_scenario
     open_scenario(other)
 
-    expect(claim).to eq('write' => [ saved_scenario.scenario_id ], 'read' => [ other.scenario_id ])
+    expect(claim).to eq(
+      'latest' => { 'write' => [ saved_scenario.scenario_id ], 'read' => [ other.scenario_id ] }
+    )
+  end
+
+  it "tags the entry with the scenario's own Version" do
+    saved_scenario.update!(version: create(:version))
+    give_role(:scenario_owner)
+    open_scenario
+
+    expect(claim).to eq(saved_scenario.version.tag => { 'write' => [ saved_scenario.scenario_id ] })
   end
 
   it 'adds nothing for an admin without a role' do
@@ -90,7 +100,7 @@ RSpec.describe 'Opening a scenario', type: :request do
     role.update!(role_id: User::Roles.index_of(:scenario_viewer))
     open_scenario
 
-    expect(claim).to eq('write' => [], 'read' => [ saved_scenario.scenario_id ])
+    expect(claim).to eq('latest' => { 'read' => [ saved_scenario.scenario_id ] })
   end
 
   it 'removes a held entry when the role is gone' do

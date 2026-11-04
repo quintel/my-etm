@@ -12,9 +12,9 @@
 #   REGENERATE_TOKEN_CONTRACT=1 bundle exec rspec spec/requests/token_contract_spec.rb
 #
 # then copy spec/fixtures/token_contract.json to:
-#   - identity_rails/spec/fixtures/token_contract.json   (covers ETEngine and ETModel)
+#   - identity_rails/spec/fixtures/token_contract.json   (covers ETEngine and ETModel, and the
+#                                                          scenario_access reader they share)
 #   - multi-year-charts/__fixtures__/token_contract.json (covers Collections)
-#   - etengine/spec/fixtures/token_contract.json         (covers the scenario_access reader)
 #
 # If a consumer's suite goes red after regenerating, the change is breaking — that is the point.
 RSpec.describe 'Token contract', type: :request do
@@ -34,7 +34,9 @@ RSpec.describe 'Token contract', type: :request do
     Doorkeeper::AccessToken.create!(
       resource_owner_id: user.id, expires_in: JwtSessionCookies::ACCESS_TTL,
       scopes: JwtSessionCookies::SESSION_SCOPES, use_refresh_token: true,
-      scenario_access: [ [ 648_695, 'write' ], [ 612_000, 'read' ] ]
+      scenario_access: [
+        [ 'latest', 648_695, 'write' ], [ 'latest', 612_000, 'read' ], [ '2025.01', 612_000, 'write' ]
+      ]
     ).token
   end
 
@@ -85,8 +87,11 @@ RSpec.describe 'Token contract', type: :request do
       JWT.decode(granted_token, MyEtm::Auth.signing_key.public_key, true, algorithms: [ 'RS256' ]).first
     end
 
-    it 'groups Session IDs by level, as integers the engine compares to its own ids' do
-      expect(granted_claims['scenario_access']).to eq('write' => [ 648_695 ], 'read' => [ 612_000 ])
+    it 'groups Session IDs by Version tag, then level, as integers the engine compares to its own ids' do
+      expect(granted_claims['scenario_access']).to eq(
+        'latest' => { 'write' => [ 648_695 ], 'read' => [ 612_000 ] },
+        '2025.01' => { 'write' => [ 612_000 ] }
+      )
     end
 
     it 'is absent from a session token with nothing granted' do
