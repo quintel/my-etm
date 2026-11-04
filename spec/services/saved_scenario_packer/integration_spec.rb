@@ -66,6 +66,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
   before do
     allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(ServiceResult.success)
 
     # Mock ETEngine streaming dump API call using streaming helper
     streaming_body = "#{engine_dump_one.to_json}\n#{engine_dump_two.to_json}\n"
@@ -124,73 +125,33 @@ describe 'SavedScenarioPacker Integration', type: :service do
       expect(loaded_nl.area_code).to eq('nl')
       expect(loaded_nl.end_year).to eq(2050)
       expect(loaded_nl.scenario_id).to eq(223)
-      expect(loaded_nl.scenario_id_history).to include(120, 121, 122, 223)
+      expect(loaded_nl.scenario_id_history).to be_empty
       expect(loaded_nl.private).to be false
 
       loaded_de = load_data.saved_scenarios.find { |s| s.title == 'Germany 2040' }
       expect(loaded_de.area_code).to eq('de')
       expect(loaded_de.end_year).to eq(2040)
       expect(loaded_de.scenario_id).to eq(224)
-      expect(loaded_de.scenario_id_history).to include(224)
+      expect(loaded_de.scenario_id_history).to be_empty
       expect(loaded_de.private).to be true
     end
 
-    it 'preserves user roles across dump and load' do
-      # Dump
-      dump_service = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner)
-      dump_result = dump_service.call
-      dump_data = dump_result.value!
+    it 'gives loaded scenarios to the loading user only' do
+      dump_data = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner).call.value!
+      load_data = SavedScenarioPacker::Load.new(dump_data.file_path, http_client, admin).call.value!
 
-      # Load
-      load_service = SavedScenarioPacker::Load.new(dump_data.file_path, http_client, admin)
-      load_result = load_service.call
-      load_data = load_result.value!
-
-      # Verify user assignments
       loaded_scenario = load_data.saved_scenarios.find { |s| s.title == 'Netherlands 2050' }
 
-      expect(loaded_scenario.owners.map(&:user)).to include(owner)
-      expect(loaded_scenario.collaborators.map(&:user)).to include(collaborator)
-      expect(loaded_scenario.viewers.map(&:user)).to include(viewer)
+      expect(loaded_scenario.saved_scenario_users.map(&:user)).to eq([ admin ])
     end
 
-    it 'handles scenario updates correctly' do
-      # First dump and load
-      dump_service = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner)
-      dump_result = dump_service.call
-      dump_data = dump_result.value!
+    it 'creates new scenarios on every load and leaves the originals alone' do
+      dump_data = SavedScenarioPacker::Dump.new(saved_scenario_ids, http_client, owner).call.value!
+      load = -> { SavedScenarioPacker::Load.new(dump_data.file_path, http_client, admin).call }
 
-      load_service = SavedScenarioPacker::Load.new(dump_data.file_path, http_client, admin)
-      load_result = load_service.call
-
-      # Update the scenario and dump again
-      saved_scenario_one.update!(scenario_id: 125, scenario_id_history: [120, 121, 122, 123])
-
-      # Mock the new dump
-      new_engine_dump = engine_dump_one.merge('metadata' => { 'id' => 125, 'title' => 'Netherlands 2050' })
-      mock_streaming_response(http_client, '/api/v3/scenarios/export', "#{new_engine_dump.to_json}\n")
-
-      allow(http_client).to receive(:post)
-        .with('/api/v3/scenarios/load_dump', new_engine_dump)
-        .and_return(instance_double(Faraday::Response, success?: true, body: { 'id' => 225 }, status: 200))
-
-      # Second dump
-      dump_service2 = SavedScenarioPacker::Dump.new([saved_scenario_one.id], http_client, owner)
-      dump_result2 = dump_service2.call
-      dump_data2 = dump_result2.value!
-
-      # Load into the same saved_scenario record
-      load_service2 = SavedScenarioPacker::Load.new(dump_data2.file_path, http_client, admin)
-      load_result2 = load_service2.call
-      second_load = load_result2.value!
-
-      # Verify history was preserved and merged
-      updated_scenario = second_load.saved_scenarios.first
-      expect(updated_scenario.id).to eq(saved_scenario_one.id)
-      expect(updated_scenario.scenario_id).to eq(225)
-      # History should include: original history (120, 121, 122, 123) + new ID (225)
-      # Note: 223 was only in the first_load's created scenarios, not in the original saved_scenario_one
-      expect(updated_scenario.scenario_id_history).to include(120, 121, 122, 123, 225)
+      expect { load.call }.to change(SavedScenario, :count).by(2)
+      expect { load.call }.to change(SavedScenario, :count).by(2)
+      expect(saved_scenario_one.reload).to have_attributes(scenario_id: 123, scenario_id_history: [120, 121, 122])
     end
   end
 
@@ -238,7 +199,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
       expect(load_result).to be_success
       load_data = load_result.value!
       expect(load_data.saved_scenarios.size).to eq(1)
-      expect(load_data.warnings).to include(match(/Failed to load scenario 124/))
+      expect(load_data.failures).to include(match(/Failed to load scenario 124/))
     end
   end
 

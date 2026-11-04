@@ -4,13 +4,14 @@ require 'zstd-ruby'
 
 # Loads a saved scenario dump file and restores both ETEngine scenarios and MyETM metadata.
 #
-# file_path             - Path to the .etm file containing the dump
-# http_client           - Faraday HTTP client configured for ETEngine API
-# user                  - Current user (admin who is performing the load)
-# on_duplicate_handler  - Optional callable for handling duplicate scenarios
-#                         Called with (saved_scenario, saved_scenario_data)
-#                         Should return :update or :create
-#                         If nil, defaults to :update (existing behavior)
+# Every load creates new saved scenarios owned by the loading user, on the target version whose
+# ETEngine the http_client talks to. Identities and history in the dump belong to the source
+# environment and are ignored.
+#
+# file_path   - Path to the .etm file containing the dump
+# http_client - Faraday HTTP client configured for the target version's ETEngine API
+# user        - Current user (admin who is performing the load)
+# version     - Target version, the default version unless given
 #
 # Returns Success(LoadResult) or Failure(error_message)
 class SavedScenarioPacker::Load
@@ -20,13 +21,13 @@ class SavedScenarioPacker::Load
   param :file_path
   param :http_client
   param :user
-  option :on_duplicate_handler, default: -> { nil }
+  option :version, default: -> { Version.default }
 
   def call
     result = validate_etm_file(file_path)
       .bind { |path| extract_and_parse_manifest(path) }
       .bind { |manifest_result| load_scenarios_to_engine(manifest_result) }
-      .bind { |load_result| create_or_update_saved_scenarios(load_result) }
+      .bind { |load_result| create_saved_scenarios(load_result) }
 
     result.or { |error| handle_failure(error) }
   end
@@ -59,23 +60,23 @@ class SavedScenarioPacker::Load
 
   def load_scenarios_to_engine(manifest_result)
     mappings = []
-    warnings = []
+    failures = []
 
     manifest_result.scenarios_data.each do |scenario_data|
       load_single_scenario(scenario_data)
         .fmap { |mapping| mappings << mapping }
         .or do |error|
-          warnings << error
+          failures << error
           Success() # Continue processing other scenarios
         end
     end
 
     if mappings.empty?
-      Failure('No scenarios could be loaded to ETEngine')
+      Failure("No scenarios could be loaded to ETEngine: #{failures.join('; ')}")
     else
       Success(SavedScenarioPacker::Results::LoadedScenariosResult.new(
         mappings: mappings,
-        warnings: warnings
+        failures: failures
       ))
     end
   rescue StandardError => e
@@ -144,198 +145,94 @@ class SavedScenarioPacker::Load
     Success(new_scenario_id)
   end
 
-  def create_or_update_saved_scenarios(load_result)
-    saved_scenarios = []
-    warnings = load_result.warnings.dup
-
-    load_result.mappings.each do |mapping|
-      create_or_update_scenario(mapping)
-        .fmap { |scenario| saved_scenarios << scenario }
-        .or do |error|
-          warnings << error
-          Success() # Continue processing other scenarios
-        end
+  def create_saved_scenarios(load_result)
+    failures = load_result.failures.dup
+    saved_scenarios = load_result.mappings.filter_map do |mapping|
+      create_saved_scenario(mapping).value_or do |error|
+        failures << error
+        nil
+      end
     end
 
-    if saved_scenarios.empty?
-      Failure('No saved scenarios could be created or updated')
-    else
-      # Log all warnings
-      warnings.each { |warning| Rails.logger.warn("Load warning: #{warning}") }
+    return Failure("No saved scenarios could be created: #{failures.join('; ')}") if saved_scenarios.empty?
 
-      Success(SavedScenarioPacker::Results::LoadResult.new(
-        saved_scenarios: saved_scenarios,
-        scenario_mappings: load_result.mappings,
-        warnings: warnings
-      ))
-    end
+    (failures + warnings).each { |message| Rails.logger.warn("Load warning: #{message}") }
+    Success(load_result_for(saved_scenarios, load_result.mappings, failures))
   rescue StandardError => e
-    Failure("Failed to create/update saved scenarios: #{e.message}")
+    Failure("Failed to create saved scenarios: #{e.message}")
   end
 
-  def create_or_update_scenario(mapping)
-    saved_scenario_data = mapping[:saved_scenario_data]
+  def load_result_for(saved_scenarios, mappings, failures)
+    SavedScenarioPacker::Results::LoadResult.new(
+      saved_scenarios: saved_scenarios,
+      scenario_mappings: mappings,
+      failures: failures,
+      warnings: warnings
+    )
+  end
+
+  def warnings
+    @warnings ||= []
+  end
+
+  def create_saved_scenario(mapping)
+    data = mapping[:saved_scenario_data]
     new_scenario_id = mapping[:new_scenario_id]
-    saved_scenario = SavedScenario.find_by(id: saved_scenario_data[:saved_scenario_id])
+    return bind_failure(new_scenario_id) unless bind(new_scenario_id)
 
-    if saved_scenario
-      handle_duplicate_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
-    else
-      create_new_scenario(new_scenario_id, saved_scenario_data)
-    end
+    warn_about_version(data)
+    persist_saved_scenario(new_scenario_id, data)
+      .tap { |saved_scenario| perform_engine_callbacks(saved_scenario) }
+      .then { |saved_scenario| Success(saved_scenario) }
   rescue StandardError => e
-    Failure("Error creating/updating scenario: #{e.message}")
+    bind(new_scenario_id, bound: false)
+    Failure("Failed to create #{data[:title]}: #{e.message}")
   end
 
-  def handle_duplicate_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
-    strategy = determine_duplicate_strategy(saved_scenario, saved_scenario_data)
+  def warn_about_version(data)
+    return if data[:version_tag].blank? || data[:version_tag] == version.tag
 
-    case strategy
-    when :update
-      update_existing_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
-    when :create
-      create_new_scenario(new_scenario_id, saved_scenario_data)
-    else
-      Failure("Unknown duplicate handling strategy: #{strategy}")
+    warnings << "#{data[:title]} was on version #{data[:version_tag]}, loaded onto #{version.tag}"
+  end
+
+  def persist_saved_scenario(new_scenario_id, data)
+    SavedScenario.transaction do
+      SavedScenario.create!(
+        scenario_id: new_scenario_id,
+        title: data[:title],
+        description: data[:description],
+        area_code: data[:area_code],
+        end_year: data[:end_year],
+        private: data[:private],
+        version: version
+      ).tap { |saved_scenario| assign_owner(saved_scenario) }
     end
   end
 
-  def determine_duplicate_strategy(saved_scenario, saved_scenario_data)
-    return :update unless on_duplicate_handler
-
-    on_duplicate_handler.call(saved_scenario, saved_scenario_data)
+  def assign_owner(saved_scenario)
+    SavedScenarioUser.create!(
+      saved_scenario: saved_scenario,
+      user: user,
+      role_id: User::Roles.index_of(:scenario_owner)
+    )
   end
 
-  def update_existing_scenario(saved_scenario, new_scenario_id, saved_scenario_data)
-    return bind_failure(new_scenario_id) unless bind(saved_scenario.version, new_scenario_id)
-
-    history = build_scenario_history(
-      saved_scenario.scenario_id_history,
-      saved_scenario_data[:scenario_id_history],
-      new_scenario_id
+  # The same protect, set_roles and tag_version callbacks a normal save runs. The saved scenario
+  # already exists, so a failure here is a warning rather than a reason to undo it.
+  def perform_engine_callbacks(saved_scenario)
+    SavedScenario::PerformEngineCallbacks.call(
+      http_client, saved_scenario.scenario_id, saved_scenario: saved_scenario
     )
-
-    saved_scenario.update!(
-      scenario_id: new_scenario_id,
-      scenario_id_history: history
-    )
-
-    Success(saved_scenario)
   rescue StandardError => e
-    bind(saved_scenario.version, new_scenario_id, bound: false)
-    Failure("Failed to update existing scenario #{saved_scenario.id}: #{e.message}")
+    warnings << "ETEngine callbacks failed for #{saved_scenario.title}: #{e.message}"
   end
 
-  def bind(version, scenario_id, bound: true)
+  def bind(scenario_id, bound: true)
     ApiScenario::SetBound.call(user, version, [ scenario_id ], bound).successful?
   end
 
   def bind_failure(scenario_id)
     Failure("Failed to bind session #{scenario_id} in ETEngine")
-  end
-
-  def build_scenario_history(existing_history, dump_history, new_scenario_id)
-    history = existing_history || []
-    history += dump_history || []
-    history << new_scenario_id unless history.include?(new_scenario_id)
-    history.uniq
-  end
-
-  def create_new_scenario(new_scenario_id, saved_scenario_data)
-    version = Version.find_by(tag: saved_scenario_data[:version_tag]) || Version.default
-    return bind_failure(new_scenario_id) unless bind(version, new_scenario_id)
-
-    # Preserve scenario history from the dump
-    history = (saved_scenario_data[:scenario_id_history] || []) + [new_scenario_id]
-
-    saved_scenario = SavedScenario.create!(
-      scenario_id: new_scenario_id,
-      title: saved_scenario_data[:title],
-      description: saved_scenario_data[:description],
-      area_code: saved_scenario_data[:area_code],
-      end_year: saved_scenario_data[:end_year],
-      private: saved_scenario_data[:private],
-      version: version,
-      scenario_id_history: history.uniq
-    )
-
-    # Assign users
-    assign_users_to_scenario(saved_scenario, saved_scenario_data)
-      .fmap { saved_scenario }
-  rescue StandardError => e
-    bind(version, new_scenario_id, bound: false) if version
-    Failure("Failed to create new scenario: #{e.message}")
-  end
-
-  def assign_users_to_scenario(saved_scenario, saved_scenario_data)
-    warnings = []
-
-    assign_owner(saved_scenario, saved_scenario_data[:owner], warnings)
-    assign_role_users(saved_scenario, saved_scenario_data[:collaborators], :scenario_collaborator, warnings)
-    assign_role_users(saved_scenario, saved_scenario_data[:viewers], :scenario_viewer, warnings)
-
-    log_user_assignment_warnings(warnings)
-    Success()
-  rescue StandardError => e
-    Failure("Failed to assign users: #{e.message}")
-  end
-
-  def assign_owner(saved_scenario, owner_data, warnings)
-    if owner_data && owner_data[:email]
-      owner_user = User.find_by(email: owner_data[:email])
-
-      if owner_user
-        SavedScenarioUser.create!(
-          saved_scenario: saved_scenario,
-          user: owner_user,
-          role_id: User::Roles.index_of(:scenario_owner)
-        )
-      else
-        warnings << "Owner not found: #{owner_data[:email]}, creating pending user"
-        SavedScenarioUser.create!(
-          saved_scenario: saved_scenario,
-          user_email: owner_data[:email],
-          role_id: User::Roles.index_of(:scenario_owner)
-        )
-      end
-    else
-      SavedScenarioUser.create!(
-        saved_scenario: saved_scenario,
-        user: user,
-        role_id: User::Roles.index_of(:scenario_owner)
-      )
-    end
-  end
-
-  def assign_role_users(saved_scenario, users_data, role, warnings)
-    return unless users_data
-
-    users_data.each do |user_data|
-      assign_role_user(saved_scenario, user_data, role, warnings)
-    end
-  end
-
-  def assign_role_user(saved_scenario, user_data, role, warnings)
-    found_user = User.find_by(email: user_data[:email])
-
-    if found_user
-      SavedScenarioUser.create!(
-        saved_scenario: saved_scenario,
-        user: found_user,
-        role_id: User::Roles.index_of(role)
-      )
-    else
-      warnings << "#{role.to_s.split('_').last.capitalize} not found: #{user_data[:email]}, creating pending user"
-      SavedScenarioUser.create!(
-        saved_scenario: saved_scenario,
-        user_email: user_data[:email],
-        role_id: User::Roles.index_of(role)
-      )
-    end
-  end
-
-  def log_user_assignment_warnings(warnings)
-    warnings.each { |warning| Rails.logger.warn("User assignment warning: #{warning}") }
   end
 
   def handle_failure(error)

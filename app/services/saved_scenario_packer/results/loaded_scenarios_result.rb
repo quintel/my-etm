@@ -5,13 +5,13 @@ module SavedScenarioPacker
     # Intermediate result for loaded scenarios
     #
     # mappings - Array of hashes with scenario mapping info
-    # warnings - Array of warning messages
+    # failures - Array of messages for scenarios that could not be loaded
     LoadedScenariosResult = Struct.new(
       :mappings,
-      :warnings,
+      :failures,
       keyword_init: true
     ) do
-      def initialize(mappings:, warnings: [])
+      def initialize(mappings:, failures: [])
         super
       end
     end
