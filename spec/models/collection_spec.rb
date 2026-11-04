@@ -76,6 +76,10 @@ RSpec.describe Collection, type: :model do
           .to include([ 111, nil ], [ 222, "read" ])
       end
 
+      it "keeps the collection's owner when giving access for another user" do
+        expect(collection.as_json(access_for: viewer)["owner"]["id"]).to eq(user.id)
+      end
+
       it "gives the owner write on every saved scenario" do
         expect(collection.reload.scenario_members_as_json(user).pluck("scenario_id", "access"))
           .to include([ 111, "write" ], [ 222, "write" ])
