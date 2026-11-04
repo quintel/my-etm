@@ -107,7 +107,7 @@ module JwtSessionCookies
 
       held = ScenarioAccess.new(anchor.scenario_access)
       updated = yield(RederiveScenarioAccess.call(held, anchor.resource_owner_id))
-      next if updated.pairs == held.pairs
+      next if updated.entries == held.entries
 
       resign_with_access(anchor, updated)
       write_session_cookies(anchor)
@@ -125,7 +125,7 @@ module JwtSessionCookies
     anchor.created_at = Time.current
 
     loop do
-      anchor.scenario_access = access.pairs.presence
+      anchor.scenario_access = access.entries.presence
       anchor.token = Doorkeeper::JWT.generate(token_generator_attributes(anchor))
       break if access.empty? || anchor.token.bytesize <= ScenarioAccess::TOKEN_BUDGET
 

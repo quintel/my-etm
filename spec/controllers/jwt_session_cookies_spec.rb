@@ -149,16 +149,16 @@ RSpec.describe JwtSessionCookies, type: :controller do
       end
 
       it "adds several Sessions in one write" do
-        grant([ [ 1, "write" ], [ 2, "read" ] ])
+        grant([ [ "latest", 1, "write" ], [ "latest", 2, "read" ] ])
 
-        expect(claim).to eq("write" => [ 1 ], "read" => [ 2 ])
+        expect(claim).to eq("latest" => { "write" => [ 1 ], "read" => [ 2 ] })
       end
 
       it "evicts the least recently opened until the token fits the budget" do
-        anchor.update!(scenario_access: (1..300).map { |id| [ 1_000_000 + id, "read" ] })
-        grant([ [ 9_999_999, "write" ] ])
+        anchor.update!(scenario_access: (1..300).map { |id| [ "latest", 1_000_000 + id, "read" ] })
+        grant([ [ "latest", 9_999_999, "write" ] ])
 
-        held = claim.values.flatten
+        held = claim["latest"].values.flatten
         expect(response.cookies["etm_session"].bytesize).to be <= ScenarioAccess::TOKEN_BUDGET
         expect(held).to include(9_999_999, 1_000_300)
         expect(held).not_to include(1_000_001)
@@ -166,32 +166,32 @@ RSpec.describe JwtSessionCookies, type: :controller do
 
       it "merges into the winner when a refresh rotated the anchor first" do
         winner = rotate(anchor)
-        grant([ [ 1, "write" ] ])
+        grant([ [ "latest", 1, "write" ] ])
 
-        expect(winner.reload.scenario_access).to eq([ [ 1, "write" ] ])
+        expect(winner.reload.scenario_access).to eq([ [ "latest", 1, "write" ] ])
         expect(response.cookies["etm_refresh"]).to eq(winner.refresh_token)
       end
 
       it "loses nothing when a stale cookie from an earlier open is presented" do
         presented = anchor.refresh_token
-        grant([ [ 1, "write" ] ], refresh_token: presented)
-        grant([ [ 2, "read" ] ], refresh_token: presented)
+        grant([ [ "latest", 1, "write" ] ], refresh_token: presented)
+        grant([ [ "latest", 2, "read" ] ], refresh_token: presented)
 
-        expect(anchor.reload.scenario_access).to eq([ [ 1, "write" ], [ 2, "read" ] ])
+        expect(anchor.reload.scenario_access).to eq([ [ "latest", 1, "write" ], [ "latest", 2, "read" ] ])
       end
 
       it "carries the set through the next refresh" do
-        grant([ [ 1, "write" ] ])
+        grant([ [ "latest", 1, "write" ] ])
         winner = rotate(anchor.reload)
 
-        expect(winner.scenario_access).to eq([ [ 1, "write" ] ])
+        expect(winner.scenario_access).to eq([ [ "latest", 1, "write" ] ])
         expect(MyEtm::Auth.verify_jwt(winner.token)[ScenarioAccess::CLAIM])
-          .to eq("write" => [ 1 ], "read" => [])
+          .to eq("latest" => { "write" => [ 1 ] })
       end
 
       it "adds nothing and writes no cookie without a live anchor" do
         anchor.revoke
-        grant([ [ 1, "write" ] ])
+        grant([ [ "latest", 1, "write" ] ])
 
         expect(response.cookies["etm_session"]).to be_blank
         expect(anchor.reload.scenario_access).to be_nil
@@ -207,15 +207,15 @@ RSpec.describe JwtSessionCookies, type: :controller do
 
       it "drops a Session whose role was removed, on the next open of another" do
         scenario_with_role(2, :scenario_owner)
-        anchor.update!(scenario_access: [ [ 1, "write" ] ])
-        grant([ [ 2, "write" ] ])
+        anchor.update!(scenario_access: [ [ "latest", 1, "write" ] ])
+        grant([ [ "latest", 2, "write" ] ])
 
-        expect(anchor.reload.scenario_access).to eq([ [ 2, "write" ] ])
+        expect(anchor.reload.scenario_access).to eq([ [ "latest", 2, "write" ] ])
       end
 
       it "clears the claim once every Session is gone" do
         scenario_with_role(1, :scenario_owner).discard
-        anchor.update!(scenario_access: [ [ 1, "write" ] ])
+        anchor.update!(scenario_access: [ [ "latest", 1, "write" ] ])
         grant([])
 
         expect(anchor.reload.scenario_access).to be_nil
@@ -223,7 +223,7 @@ RSpec.describe JwtSessionCookies, type: :controller do
 
       it "leaves the anchor untouched when nothing changed" do
         scenario_with_role(1, :scenario_owner)
-        anchor.update!(scenario_access: [ [ 1, "write" ] ])
+        anchor.update!(scenario_access: [ [ "latest", 1, "write" ] ])
 
         expect { grant([]) }.not_to(change { anchor.reload.token })
       end

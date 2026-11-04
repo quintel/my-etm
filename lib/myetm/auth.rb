@@ -105,7 +105,8 @@ module MyEtm
     # a real, persisted (if short-lived) token rather than a second, independently-signed JWT.
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted; otherwise the
-    # configured app scopes are used. A scenario_access is a list of [session_id, level] pairs.
+    # configured app scopes are used. A scenario_access is a list of [version_tag, session_id, level]
+    # entries.
     def client_token(user, client_app, scopes: [], scenario_access: nil)
       scopes = scopes.empty? ? client_app.scopes : Array(scopes).join(" ")
 
@@ -140,7 +141,8 @@ module MyEtm
       client_for(user, engine, scopes: scopes, grant: scenario_grant(user, scenario))
     end
 
-    # Grants every Session the scenario holds when the client is built or when a request is sent
+    # Grants every Session the scenario holds when the client is built or when a request is sent,
+    # on the scenario's own Version
     def scenario_grant(user, scenario)
       return unless scenario
 
@@ -148,7 +150,7 @@ module MyEtm
 
       lambda do
         level = scenario.access_level_for(user)
-        level && (held | scenario.all_scenario_ids).map { |id| [ id, level ] }
+        level && (held | scenario.all_scenario_ids).map { |id| [ scenario.version.tag, id, level ] }
       end
     end
 
