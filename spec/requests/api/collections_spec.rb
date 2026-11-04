@@ -191,7 +191,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
       end
 
       it 'returns the collection' do
-        expect(JSON.parse(response.body)).to eq(collection.as_json(user:))
+        expect(JSON.parse(response.body)).to eq(collection.as_json(access_for: user))
       end
     end
 
