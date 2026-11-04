@@ -55,16 +55,38 @@ RSpec.describe Collection, type: :model do
         {
           "saved_scenario_id" => saved_scenario.id,
           "scenario_id" => 111,
-          "title" => 'Dutch net zero'
+          "title" => 'Dutch net zero',
+          "access" => nil
         }
       )
+    end
+
+    context "with a user's access level" do
+      let(:viewer) { create(:user) }
+      let(:unshared) { create(:saved_scenario, scenario_id: 111, user:) }
+      let(:shared) { create(:saved_scenario, scenario_id: 222, user:) }
+
+      before do
+        shared.saved_scenario_users.create!(user: viewer, role_id: User::Roles.index_of(:scenario_viewer))
+        [ unshared, shared ].each { |ss| create(:collection_saved_scenario, collection:, saved_scenario: ss) }
+      end
+
+      it "gives each saved scenario the level the viewer's role grants" do
+        expect(collection.reload.scenario_members_as_json(viewer).pluck("scenario_id", "access"))
+          .to include([ 111, nil ], [ 222, "read" ])
+      end
+
+      it "gives the owner write on every saved scenario" do
+        expect(collection.reload.scenario_members_as_json(user).pluck("scenario_id", "access"))
+          .to include([ 111, "write" ], [ 222, "write" ])
+      end
     end
 
     it 'has no saved scenario for a scenario the collection holds directly' do
       direct = collection.scenarios.first
 
       expect(collection.scenario_members_as_json).to include(
-        { "saved_scenario_id" => nil, "scenario_id" => direct.scenario_id, "title" => nil }
+        { "saved_scenario_id" => nil, "scenario_id" => direct.scenario_id, "title" => nil, "access" => nil }
       )
     end
 
