@@ -74,6 +74,21 @@ RSpec.describe "API::Collections", type: :request, api: true do
 
     # Nothing local says whether these ETEngine scenarios are private, so there is no evidence to
     # derive access from.
+    context 'when the viewer has a role on a private scenario' do
+      before do
+        private_scenario.saved_scenario_users.create!(
+          user: other, role_id: User::Roles.index_of(:scenario_viewer)
+        )
+      end
+
+      it "gives each member the viewer's access level" do
+        get_collection(collection_with(public_scenario, private_scenario), as: other)
+
+        expect(JSON.parse(response.body)["scenarios"].pluck("saved_scenario_id", "access"))
+          .to contain_exactly([ public_scenario.id, nil ], [ private_scenario.id, "read" ])
+      end
+    end
+
     context 'when the collection holds no saved scenarios' do
       let(:bare) { create(:collection, user: owner, scenarios_count: 2) }
 
@@ -176,7 +191,7 @@ RSpec.describe "API::Collections", type: :request, api: true do
       end
 
       it 'returns the collection' do
-        expect(JSON.parse(response.body)).to eq(collection.as_json)
+        expect(JSON.parse(response.body)).to eq(collection.as_json(user:))
       end
     end
 
