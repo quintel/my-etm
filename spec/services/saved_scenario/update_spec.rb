@@ -7,7 +7,7 @@ describe SavedScenario::Update, type: :service do
   let(:saved_scenario) { create(:saved_scenario, scenario_id: 1) }
 
   before do
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
     allow(client).to receive(:put).with(
       '/api/v3/scenarios/2', { scenario: { keep_compatible: true } }
     )
@@ -287,6 +287,29 @@ describe SavedScenario::Update, type: :service do
         expect { result }
           .to change(saved_scenario, :scenario_id_history)
           .from([ 2, 3 ]).to([])
+      end
+    end
+
+    context 'when ETEngine fails to bind the new Session' do
+      let(:params) { { scenario_id: 2 } }
+
+      before do
+        allow(ApiScenario::SetBound).to receive(:call)
+          .and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ]))
+      end
+
+      it 'passes the upstream failure through' do
+        expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
+      end
+    end
+
+    context 'when the new scenario_id is invalid' do
+      let(:params) { { scenario_id: 'oops' } }
+
+      before { allow(client).to receive(:put) }
+
+      it 'fails with the record errors, not as upstream' do
+        expect(result.failure.full_messages).to eq([ 'Scenario is not a number' ])
       end
     end
   end

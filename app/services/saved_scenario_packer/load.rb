@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'zstd-ruby'
+require "zstd-ruby"
 
 # Loads a saved scenario dump file and restores both ETEngine scenarios and MyETM metadata.
 #
@@ -36,7 +36,7 @@ class SavedScenarioPacker::Load
 
   def validate_etm_file(path)
     return Failure("File not found: #{path}") unless File.exist?(path)
-    return Failure("File is not an ETM file: #{path}") unless path.end_with?('.etm')
+    return Failure("File is not an ETM file: #{path}") unless path.end_with?(".etm")
 
     Success(path)
   end
@@ -102,7 +102,7 @@ class SavedScenarioPacker::Load
   end
 
   def post_scenario_to_engine(dump_data, original_scenario_id)
-    response = http_client.post('/api/v3/scenarios/load_dump', dump_data)
+    response = http_client.post("/api/v3/scenarios/load_dump", dump_data)
     return Failure("Failed to load scenario #{original_scenario_id}: #{response.status}") unless response.success?
 
     Success(response)
@@ -139,7 +139,7 @@ class SavedScenarioPacker::Load
   end
 
   def extract_scenario_id(parsed, original_scenario_id)
-    new_scenario_id = parsed['id'] || parsed[:id]
+    new_scenario_id = parsed["id"] || parsed[:id]
     return Failure("No scenario ID in response for #{original_scenario_id}") unless new_scenario_id
 
     Success(new_scenario_id)
@@ -228,7 +228,7 @@ class SavedScenarioPacker::Load
   end
 
   def bind(scenario_id, bound: true)
-    ApiScenario::SetBound.call(user, version, [ scenario_id ], bound).successful?
+    ApiScenario::SetBound.call(user, version, [ scenario_id ], bound).success?
   end
 
   def bind_failure(scenario_id)

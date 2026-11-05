@@ -10,7 +10,7 @@ describe SavedScenarioHistoryController, vcr: true do
   let(:client) { Faraday.new(url: 'http://et.engine') }
 
   before do
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
     allow(ApiScenario::VersionTags::Update).to receive(:call).and_return(
       ServiceResult.success(
         {

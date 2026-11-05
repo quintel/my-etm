@@ -40,7 +40,7 @@ RSpec.describe "/saved_scenarios", type: :request do
 
   before do
     allow(MyEtm::Auth).to receive(:client_for).and_return(client)
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
   end
 
   describe "GET /index" do
