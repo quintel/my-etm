@@ -88,6 +88,12 @@ describe CollectionsController do
         post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
         expect(service).to have_received(:call).with(anything, scenario, user)
       end
+
+      it 'grants the engine client on the source scenario' do
+        post :create_transition, params: { collection: { saved_scenario_ids: scenario.id } }
+        expect(MyEtm::Auth).to have_received(:engine_client)
+          .with(user, scenario.version, scenario: scenario)
+      end
     end
 
     context 'when a saved scenario is in a specific version' do
@@ -265,7 +271,13 @@ describe CollectionsController do
 
       it 'calls the DeleteCollection service' do
         delete :destroy, params: { id: collection.id }
-        expect(service).to have_received(:call).with(anything, collection)
+        expect(service).to have_received(:call).with(client, collection)
+      end
+
+      it 'gives the engine client no grant' do
+        delete :destroy, params: { id: collection.id }
+        expect(MyEtm::Auth).to have_received(:engine_client)
+          .with(collection.user, collection.version, scenario: nil)
       end
     end
 

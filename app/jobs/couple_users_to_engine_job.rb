@@ -23,7 +23,7 @@ class CoupleUsersToEngineJob < ApplicationJob
 
     # Get version for API client
     version = saved_scenario.version || Version.default
-    http_client = MyEtm::Auth.engine_client(user, version)
+    http_client = MyEtm::Auth.engine_client(user, version, scenario: nil)
 
     # Sync to current scenario
     couple_to_engine_scenario(http_client, saved_scenario.scenario_id, user.id, user_email)

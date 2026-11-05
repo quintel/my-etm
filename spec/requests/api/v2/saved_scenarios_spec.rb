@@ -305,6 +305,12 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
     let(:strict_attribute_value) { :winnie_the_pooh }
     let(:unupdateable_attribute) { :version }
     let(:resource_attributes)    { { title: "My new scenario" } }
+    let(:client)                 { instance_double(Faraday::Connection) }
+
+    before do
+      allow(MyEtm::Auth).to receive(:engine_client).and_return(client)
+      allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids).and_return([ ServiceResult.success ])
+    end
 
     it_behaves_like "a write-protected resource" do
       let(:body) { { saved_scenario: resource_attributes } }
@@ -333,6 +339,15 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(response.parsed_body).to validate_against_the_v2_envelope(:resource)
       expect(resource.reload.title).to eq("Renamed")
       expect(resource.private).to be(false)
+    end
+
+    it "makes the engine Sessions public, granted on the scenario" do
+      put(path, headers: v2_bearer(owner, :write), params: { saved_scenario: { private: false } }, as: :json)
+
+      expect(MyEtm::Auth).to have_received(:engine_client)
+        .with(owner, resource.version, scenario: resource, scopes: anything)
+      expect(ApiScenario::UpdatePrivacy).to have_received(:call_with_ids)
+        .with(client, resource.all_scenario_ids, private: false)
     end
 
     it "refuses re-pointing the engine scenario through the general update action" do
@@ -407,7 +422,7 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       expect(response).to have_http_status(:forbidden)
     end
 
-    # v2 makes no synchronous engine call today, so this is asserted through the service.
+    # Asserted through the service, which owns the engine calls.
     it "reports a failure that is not the caller's to fix as upstream, not as validation" do
       allow(SavedScenario::Update).to receive(:call)
         .and_return(Dry::Monads::Failure([ :upstream, [ "Engine unreachable" ] ]))

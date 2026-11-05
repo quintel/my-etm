@@ -20,11 +20,16 @@ class SavedScenario::Update
   def call
     saved_scenario.tap do |ss|
       ss.attributes = params.except(:discarded, :scenario_id)
+      private_changed = ss.private_changed?
 
       if update_scenario?
         return update_scenario_failure unless update_scenario_result.successful?
       end
 
+      return failure unless ss.valid?
+      return Failure([ :upstream, privacy_errors ]) if private_changed && privacy_errors.any?
+
+      # Discard stays out of ETEngine: a bound Session is safe from engine cleanup until purge
       if params.key?(:discarded)
         if params[:discarded]
           ss.discarded_at ||= Time.current
@@ -32,9 +37,6 @@ class SavedScenario::Update
           ss.discarded_at = nil
         end
       end
-
-      return failure unless ss.valid?
-      return Failure([ :upstream, discard_result.errors ]) if discard_failed?
 
       ss.save
     end
@@ -64,13 +66,11 @@ class SavedScenario::Update
     end
   end
 
-  # Discarding unbinds the scenario's Sessions in ETEngine, and undiscarding binds them again
-  def discard_failed?
-    saved_scenario.discarded_at_changed? && discard_result.failure?
-  end
-
-  def discard_result
-    @discard_result ||= ApiScenario::SetBound.for_saved_scenario(user, saved_scenario, saved_scenario.kept?)
+  # A privacy change reaches every Session, as ETEngine opens public Sessions to readers without a grant
+  def privacy_errors
+    @privacy_errors ||= ApiScenario::UpdatePrivacy
+      .call_with_ids(http_client, saved_scenario.all_scenario_ids, private: saved_scenario.private)
+      .flat_map(&:errors)
   end
 
   # Tagged, because nothing the caller sent is at fault and the response says so with a 502.
