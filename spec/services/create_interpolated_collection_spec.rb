@@ -30,7 +30,6 @@ describe CreateInterpolatedCollection, type: :service do
 
     before do
       stub_successful_interpolation(2030, 2)
-      allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible).with(nil, 2)
       allow(SavedScenarioUser).to receive(:create).and_return(SavedScenarioUser.new)
     end
 
@@ -142,17 +141,16 @@ describe CreateInterpolatedCollection, type: :service do
         stub_successful_interpolation(2030, 2)
         stub_successful_interpolation(2040, 3)
         allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))
-        allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible)
       end
 
       it 'creates no Collection' do
         expect { result }.not_to change(Collection, :count)
       end
 
-      it 'stops protecting the interpolated scenarios' do
+      it 'releases the interpolated scenarios' do
         result
 
-        expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).twice
+        expect(ApiScenario::SetBound).to have_received(:call).with(user, scenario.version, [ 2, 3 ], false)
       end
     end
 
@@ -170,13 +168,11 @@ describe CreateInterpolatedCollection, type: :service do
         expect(result).not_to be_successful
       end
 
-      it 'does not unprotect any scenarios' do
+      it 'releases no scenarios' do
         # Service should stop immediately after the 2030 scenario, and not
         # attempt to create any more.
-        allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible)
-
         result
-        expect(ApiScenario::SetCompatibility).not_to have_received(:dont_keep_compatible)
+        expect(ApiScenario::SetBound).to have_received(:call).with(user, scenario.version, [], false)
       end
 
       it 'includes the errors on the Result' do
@@ -196,17 +192,15 @@ describe CreateInterpolatedCollection, type: :service do
       before do
         stub_successful_interpolation(2030, 2)
         stub_failed_interpolation(2040, ["That didn't work."])
-
-        allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible).with(nil, 2)
       end
 
       it 'is not successful' do
         expect(result).not_to be_successful
       end
 
-      it 'unprotects the successful 2030 scenario' do
+      it 'releases the successful 2030 scenario' do
         result
-        expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).with(nil, 2)
+        expect(ApiScenario::SetBound).to have_received(:call).with(user, scenario.version, [ 2 ], false)
       end
 
       it 'does not create any SavedScenario records' do
@@ -227,7 +221,6 @@ describe CreateInterpolatedCollection, type: :service do
 
     before do
       stub_successful_interpolation(2030, 2)
-      allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible).with(nil, 2)
     end
 
     it 'raises the error' do
@@ -241,7 +234,7 @@ describe CreateInterpolatedCollection, type: :service do
         nil
       end
 
-      expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).with(nil, 2)
+      expect(ApiScenario::SetBound).to have_received(:call).with(user, scenario.version, [ 2 ], false)
     end
   end
 end

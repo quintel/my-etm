@@ -59,7 +59,7 @@ class SavedScenario::Update
   def update_scenario_result
     @update_scenario_result ||= begin
       if saved_scenario.contains?(params[:scenario_id])
-        SavedScenario::Restore.call(http_client, saved_scenario, params[:scenario_id], user:)
+        SavedScenario::Restore.call(saved_scenario, params[:scenario_id], user:)
       else
         SavedScenario::UpsertScenario.call(http_client, saved_scenario, params[:scenario_id], user:)
       end

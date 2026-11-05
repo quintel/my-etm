@@ -67,9 +67,6 @@ describe SavedScenarioHistoryController, vcr: true do
 
     describe 'PUT restore' do
       before do
-        allow(ApiScenario::SetCompatibility).to receive(:call).and_return(
-          ServiceResult.success)
-
         put :restore, format: :turbo_stream, params: {
           saved_scenario_id: saved_scenario.id,
           scenario_id: 111
@@ -83,11 +80,6 @@ describe SavedScenarioHistoryController, vcr: true do
       it 'restores the scenario' do
         saved_scenario.reload
         expect(saved_scenario.scenario_id).to eq(111)
-      end
-
-      it 'grants the engine client on the scenario' do
-        expect(MyEtm::Auth).to have_received(:engine_client)
-          .with(user, saved_scenario.version, scenario: saved_scenario)
       end
     end
   end
