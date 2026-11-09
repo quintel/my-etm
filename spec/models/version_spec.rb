@@ -3,6 +3,16 @@ require 'rails_helper'
 describe Version do
   let(:version) { create(:version) }
 
+  describe "#label" do
+    it "is the tag of a version named by its year" do
+      expect(described_class.new(tag: "2027").label).to eq("2027")
+    end
+
+    it "leaves out the .01 of 2025.01" do
+      expect(described_class.new(tag: "2025.01").label).to eq("2025")
+    end
+  end
+
   describe "#default" do
     context 'when there was no default set' do
       before { Version.default.destroy }

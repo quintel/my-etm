@@ -46,7 +46,7 @@ def help!(prompt)
     #{pastel.bold('bin/import-scenarios --user your.email@quintel.com')}
 
     #{pastel.yellow('# Load onto a stable version:')}
-    #{pastel.bold('bin/import-scenarios --version 2027.01')}
+    #{pastel.bold('bin/import-scenarios --version 2027')}
 
     Every import creates new scenarios, owned by that user, on the chosen version.
     Importing the same file twice creates them twice.

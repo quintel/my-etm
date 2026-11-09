@@ -44,9 +44,9 @@ nl:
         title: Nieuwe versie
         intro: >
           Maakt een stabiele versie aan, met de OAuth-applicaties waarmee ETModel en ETEngine inloggen.
-          De URL's zijn gebaseerd op de tag, bijvoorbeeld 2027.01 draait op https://2027-01.energytransitionmodel.com.
+          De URL's zijn gebaseerd op de tag, bijvoorbeeld 2027 draait op https://2027.energytransitionmodel.com.
         tag: Tag
-        tag_hint: Jaar en nummer, bijvoorbeeld 2027.01.
+        tag_hint: Het jaar, eventueel gevolgd door kleine letters, cijfers of streepjes, bijvoorbeeld 2027 of 2027b.
         hidden: Verbergen in de versiekeuzes (tot de release)
         submit: Versie aanmaken
       created:

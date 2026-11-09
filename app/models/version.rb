@@ -50,8 +50,14 @@ class Version < ApplicationRecord
     build_url("engine")
   end
 
+  # The name the version is shown by. Stable versions are named by their year; 2025.01 predates
+  # that and keeps its tag, so its ".01" is left out.
+  def label
+    tag.delete_suffix(".01")
+  end
+
   def titleize
-    tag.titleize
+    label.titleize
   end
 
   # A version can be deleted while nothing belongs to it yet. The default version never can.
@@ -63,6 +69,7 @@ class Version < ApplicationRecord
   def as_json(*)
     {
       tag: tag,
+      label: label,
       model_url: model_url,
       engine_url: engine_url,
       collections_url: collections_url

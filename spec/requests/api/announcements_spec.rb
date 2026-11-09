@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe 'Announcements API', type: :request do
   describe 'GET /api/v1/announcements' do
-    let(:version) { FactoryBot.create(:version, tag: '2027.01') }
+    let(:version) { FactoryBot.create(:version, tag: '2027') }
 
     let(:bodies) { JSON.parse(response.body)['announcements'].pluck('body_en') }
 
@@ -24,7 +24,7 @@ RSpec.describe 'Announcements API', type: :request do
     end
 
     it 'returns only the announcement of the given version' do
-      get '/api/v1/announcements', params: { version: '2027.01' }
+      get '/api/v1/announcements', params: { version: '2027' }
 
       expect(bodies).to eq([ 'Deleted on release day' ])
     end
@@ -32,7 +32,7 @@ RSpec.describe 'Announcements API', type: :request do
     it 'leaves out an inactive announcement' do
       version.announcements.sole.update!(active: false)
 
-      get '/api/v1/announcements', params: { version: '2027.01' }
+      get '/api/v1/announcements', params: { version: '2027' }
 
       expect(bodies).to eq([])
     end

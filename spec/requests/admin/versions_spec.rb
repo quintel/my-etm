@@ -9,14 +9,14 @@ RSpec.describe '/admin/versions', type: :request do
   describe 'GET /admin/versions' do
     before do
       Version.default
-      FactoryBot.create(:version, tag: '2027.01', hidden: true)
+      FactoryBot.create(:version, tag: '2027', hidden: true)
       sign_in(admin)
       get '/admin/versions'
     end
 
     it 'offers to show a hidden version' do
       expect(response.body).to include(
-        %(action="#{admin_version_path(Version.find_by!(tag: '2027.01'))}")
+        %(action="#{admin_version_path(Version.find_by!(tag: '2027'))}")
       )
     end
 
@@ -46,13 +46,13 @@ RSpec.describe '/admin/versions', type: :request do
       before { sign_in(user) }
 
       it 'is not found' do
-        post '/admin/versions', params: { version: { tag: '2027.01', hidden: '1' } }
+        post '/admin/versions', params: { version: { tag: '2027', hidden: '1' } }
 
         expect(response).to have_http_status(:not_found)
       end
 
       it 'creates no version' do
-        expect { post('/admin/versions', params: { version: { tag: '2027.01', hidden: '1' } }) }
+        expect { post('/admin/versions', params: { version: { tag: '2027', hidden: '1' } }) }
           .not_to change(Version, :count)
       end
     end
@@ -60,10 +60,10 @@ RSpec.describe '/admin/versions', type: :request do
     context 'with a new tag' do
       before do
         sign_in(admin)
-        post '/admin/versions', params: { version: { tag: '2027.01', hidden: '1' } }
+        post '/admin/versions', params: { version: { tag: '2027', hidden: '1' } }
       end
 
-      let(:version) { Version.find_by!(tag: '2027.01') }
+      let(:version) { Version.find_by!(tag: '2027') }
 
       it 'creates the hidden version' do
         expect(version.hidden).to be(true)
@@ -129,7 +129,7 @@ RSpec.describe '/admin/versions', type: :request do
   end
 
   describe 'offering to delete a version' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', owner: admin).value! }
 
     before { sign_in(admin) }
 
@@ -149,7 +149,7 @@ RSpec.describe '/admin/versions', type: :request do
   end
 
   describe 'GET /admin/versions/:id/confirm_destroy' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', owner: admin).value! }
 
     it 'is not found for non-admins' do
       sign_in(user)
@@ -175,7 +175,7 @@ RSpec.describe '/admin/versions', type: :request do
   end
 
   describe 'DELETE /admin/versions/:id' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', owner: admin).value! }
     let(:application_ids) { version.oauth_applications.ids }
 
     context 'when an admin deletes a version nothing belongs to' do
@@ -246,7 +246,7 @@ RSpec.describe '/admin/versions', type: :request do
 
   describe 'DELETE /admin/versions/:id for non-admins' do
     it 'is not found' do
-      version = CreateVersion.call(tag: '2099.01', owner: admin).value!
+      version = CreateVersion.call(tag: '2099', owner: admin).value!
       sign_in(user)
       delete admin_version_path(version)
 
@@ -255,10 +255,10 @@ RSpec.describe '/admin/versions', type: :request do
   end
 
   describe 'when not signed in' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', owner: admin).value! }
 
     it 'creates no version' do
-      expect { post('/admin/versions', params: { version: { tag: '2099.02', hidden: '1' } }) }
+      expect { post('/admin/versions', params: { version: { tag: '2098', hidden: '1' } }) }
         .not_to change(Version, :count)
     end
 
