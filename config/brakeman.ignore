@@ -26,20 +26,20 @@
     {
       "warning_type": "Redirect",
       "warning_code": 18,
-      "fingerprint": "42bbacb3f54516e1a7435634e780fc467434362cfb1196e291b96cf140b4b67d",
+      "fingerprint": "36bc3d97426b0c13834d71ff39f80a77bdc5331d55700975a219f396e3a9300a",
       "check_name": "Redirect",
       "message": "Possible unprotected redirect",
       "file": "app/controllers/open_sessions_controller.rb",
-      "line": 14,
+      "line": 15,
       "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(EtmAppRedirects.validate(params[:return_to]), :allow_other_host => true)",
+      "code": "redirect_to(EtmAppRedirects.validate(params.expect(:return_to)), :allow_other_host => true)",
       "render_path": null,
       "location": {
         "type": "method",
         "class": "OpenSessionsController",
         "method": "show"
       },
-      "user_input": "params[:return_to]",
+      "user_input": "params.expect(:return_to)",
       "confidence": "Weak",
       "cwe_id": [
         601
