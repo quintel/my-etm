@@ -6,6 +6,7 @@
 # - :protect     - Keep the scenario compatible
 # - :set_roles   - Set scenario roles to preset
 # - :tag_version - Tag the scenario version
+# - :set_privacy - Match the scenario's privacy
 #
 # Returns a ServiceResult.
 class SavedScenario::PerformEngineCallbacks
@@ -36,6 +37,8 @@ class SavedScenario::PerformEngineCallbacks
       )
     when :tag_version
       ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")
+    when :set_privacy
+      ApiScenario::UpdatePrivacy.call(http_client, scenario_id, private: saved_scenario.private)
     end
   end
 end

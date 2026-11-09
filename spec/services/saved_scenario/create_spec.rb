@@ -43,6 +43,11 @@ describe SavedScenario::Create, type: :service do
 
         expect(ApiScenario::SetBound).to have_received(:call).with(user, Version.default, [ 1 ], true)
       end
+
+      it 'pushes the privacy to the Session after saving' do
+        expect { result }.to have_enqueued_job(SavedScenarioCallbacksJob)
+          .with(1, user.id, Version.default.tag, array_including(:set_privacy), saved_scenario_id: kind_of(Integer))
+      end
     end
 
     context 'when ETEngine fails to bind the Session' do
