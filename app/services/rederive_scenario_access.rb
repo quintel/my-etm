@@ -5,10 +5,10 @@ module RederiveScenarioAccess
   module_function
 
   def call(access, user_id)
-    levels = levels_for(user_id, access.entries.map { |_, id, _| id })
+    levels = levels_for(user_id, access.entries.map(&:session_id))
 
-    ScenarioAccess.new(access.entries.filter_map do |tag, id, _|
-      [ tag, id, levels[[ tag, id ]] ] if levels[[ tag, id ]]
+    ScenarioAccess.new(access.entries.filter_map do |entry|
+      entry.with(level: levels[entry.key]) if levels[entry.key]
     end)
   end
 

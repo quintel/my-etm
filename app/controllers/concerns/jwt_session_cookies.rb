@@ -99,7 +99,8 @@ module JwtSessionCookies
 
   # Yields this browser's ScenarioAccess, re-derived from current roles, and stores what the block
   # returns. Re-signs the anchor token in place rather than rotating. Opens restart the access TTL,
-  # so every write re-derives.
+  # so every write re-derives. Compares with the stored value, so an entry ScenarioAccess drops on
+  # read is rewritten rather than carried onto every refreshed token.
   def update_scenario_access
     Doorkeeper::AccessToken.transaction do
       anchor = lock_live_anchor
@@ -107,7 +108,7 @@ module JwtSessionCookies
 
       held = ScenarioAccess.new(anchor.scenario_access)
       updated = yield(RederiveScenarioAccess.call(held, anchor.resource_owner_id))
-      next if updated.entries == held.entries
+      next if updated.entries.as_json.presence == anchor.scenario_access
 
       resign_with_access(anchor, updated)
       write_session_cookies(anchor)

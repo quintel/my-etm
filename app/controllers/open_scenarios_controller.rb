@@ -15,10 +15,13 @@ class OpenScenariosController < ApplicationController
 
   # Records the caller's current role on the scenario. Re-deriving drops the entry of a lost role
   def resolve_scenario_access
-    entry = [ @saved_scenario.version.tag, @saved_scenario.scenario_id ]
     level = @saved_scenario.access_level_for(current_user)
 
-    update_scenario_access { |access| level ? access.grant([ [ *entry, level ] ]) : access }
+    update_scenario_access { |access| level ? access.grant([ entry_at(level) ]) : access }
+  end
+
+  def entry_at(level)
+    [ @saved_scenario.version.tag, @saved_scenario.scenario_id, level ]
   end
 
   def load_url

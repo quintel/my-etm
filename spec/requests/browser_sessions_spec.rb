@@ -184,6 +184,14 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
       expect(held_after_refresh).to eq("latest" => { "write" => [ 10 ] })
     end
 
+    it "rewrites a stored entry without a Version tag, so the next token does not inherit it" do
+      anchor.update!(scenario_access: [ [ 11, "write" ], [ "latest", 10, "write" ] ])
+      held_after_refresh
+
+      successor = Doorkeeper::AccessToken.find_by(previous_refresh_token: anchor.refresh_token)
+      expect(successor.scenario_access).to eq([ [ "latest", 10, "write" ] ])
+    end
+
     it "drops a scenario discarded since" do
       saved_scenario.discard
 
