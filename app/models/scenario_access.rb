@@ -14,7 +14,7 @@ class ScenarioAccess
   # + myetm).
   TOKEN_BUDGET = 3_000
 
-  # One Session on one Version. Built from and stored as a [version_tag, session_id, level] array
+  # One Session on one Version, stored as a [version_tag, session_id, level] array
   Entry = Data.define(:tag, :session_id, :level) do
     def initialize(tag:, session_id:, level:)
       super(tag: tag.to_s, session_id: Integer(session_id), level: level.to_s)
@@ -26,7 +26,6 @@ class ScenarioAccess
 
     def as_json(*) = to_a
   end
-  private_constant :Entry
 
   attr_reader :entries
 
@@ -40,18 +39,12 @@ class ScenarioAccess
     held == WRITE ? WRITE : level
   end
 
-  # Adds [version_tag, session_id, level] entries as the most recently opened. A Session
-  # named twice in one call keeps the stronger level
-  def grant(entries)
-    strongest(entries).reduce(self) { |access, entry| access.with(entry) }
-  end
-
-  def with(entry)
-    self.class.new(without(entry.key).entries + [ entry ])
-  end
-
-  def without(key)
-    self.class.new(entries.reject { |held| held.key == key })
+  # Adds Entries as the most recently opened. A Session named twice in one call keeps the stronger
+  # level
+  def grant(new_entries)
+    granted = strongest(new_entries)
+    keys = granted.map(&:key)
+    self.class.new(entries.reject { |held| keys.include?(held.key) } + granted)
   end
 
   def without_oldest
@@ -74,8 +67,8 @@ class ScenarioAccess
 
   private
 
-  def strongest(entries)
-    entries.map { |entry| Entry.new(*entry) }.each_with_object({}) do |entry, strongest|
+  def strongest(new_entries)
+    new_entries.each_with_object({}) do |entry, strongest|
       held = strongest[entry.key]&.level
       strongest[entry.key] = entry.with(level: self.class.stronger(held, entry.level))
     end.values

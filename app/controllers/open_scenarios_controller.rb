@@ -21,7 +21,9 @@ class OpenScenariosController < ApplicationController
   end
 
   def entry_at(level)
-    [ @saved_scenario.version.tag, @saved_scenario.scenario_id, level ]
+    ScenarioAccess::Entry.new(
+      tag: @saved_scenario.version.tag, session_id: @saved_scenario.scenario_id, level:
+    )
   end
 
   def load_url

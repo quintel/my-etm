@@ -28,7 +28,9 @@ module Api
           end
         end
 
-        ScenarioAccess.new.grant(levels.map { |level| [ params[:version], session_id, level ] })
+        ScenarioAccess.new.grant(levels.map do |level|
+          ScenarioAccess::Entry.new(tag: params[:version], session_id:, level:)
+        end)
       end
 
       # Loads every scenario the caller has a role on; only the asking engine's Version may answer

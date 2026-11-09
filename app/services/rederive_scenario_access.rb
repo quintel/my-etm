@@ -12,6 +12,13 @@ module RederiveScenarioAccess
     end)
   end
 
+  # An Entry for each of these Sessions the user's role gives a level on
+  def entries_for(user_id, session_ids)
+    levels_for(user_id, session_ids).map do |(tag, session_id), level|
+      ScenarioAccess::Entry.new(tag:, session_id:, level:)
+    end
+  end
+
   # The level the user's role gives on each of these Sessions that is a kept scenario's current
   # Session, keyed by that scenario's [version_tag, session_id]
   def levels_for(user_id, session_ids)

@@ -53,6 +53,16 @@ RSpec.describe RederiveScenarioAccess do
     expect(rederive([ [ 1, "write" ] ], tag: create(:version).tag)).to be_empty
   end
 
+  describe ".entries_for" do
+    it "builds an Entry on each scenario's Version at the role's level" do
+      scenario_with_role(1, :scenario_viewer)
+      scenario_with_role(2, :scenario_owner)
+
+      expect(described_class.entries_for(user.id, %w[1 2 3]).map(&:to_a))
+        .to contain_exactly([ "latest", 1, "read" ], [ "latest", 2, "write" ])
+    end
+  end
+
   it "keeps the stronger level when two scenarios hold the Session" do
     scenario_with_role(1, :scenario_viewer)
     scenario_with_role(1, :scenario_owner)
