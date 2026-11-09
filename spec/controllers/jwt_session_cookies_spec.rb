@@ -22,7 +22,7 @@ RSpec.describe JwtSessionCookies, type: :controller do
     end
 
     def grant_access
-      update_scenario_access { |access| access.grant(JSON.parse(params[:entries])) }
+      update_scenario_access { |access| access.grant(JSON.parse(params[:entries]).map { |entry| ScenarioAccess::Entry.new(*entry) }) }
       head :ok
     end
   end

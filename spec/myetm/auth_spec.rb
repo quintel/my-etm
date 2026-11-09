@@ -123,7 +123,9 @@ RSpec.describe MyEtm::Auth do
 
     it 'carries the given scenario_access as a claim' do
       payload, = JWT.decode(
-        described_class.client_token(user, application, scenario_access: [ [ 'latest', 1, 'write' ] ]),
+        described_class.client_token(
+          user, application, scenario_access: [ ScenarioAccess::Entry.new(tag: 'latest', session_id: 1, level: 'write') ]
+        ),
         described_class.signing_key.public_key, true, algorithm: 'RS256'
       )
       expect(payload[ScenarioAccess::CLAIM]).to eq('latest' => { 'write' => [ 1 ] })
@@ -146,18 +148,18 @@ RSpec.describe MyEtm::Auth do
     end
 
     it 'grants a collaborator write on every Session of the scenario' do
-      expect(grant_with_role(:scenario_collaborator).call)
+      expect(grant_with_role(:scenario_collaborator).call.map(&:to_a))
         .to contain_exactly([ 'latest', 3, 'write' ], [ 'latest', 2, 'write' ], [ 'latest', 1, 'write' ])
     end
 
     it "tags the grant with the scenario's own Version" do
       saved_scenario.update!(version: create(:version))
 
-      expect(grant_with_role(:scenario_owner).call.map(&:first).uniq).to eq([ saved_scenario.version.tag ])
+      expect(grant_with_role(:scenario_owner).call.map(&:tag).uniq).to eq([ saved_scenario.version.tag ])
     end
 
     it 'grants a viewer read' do
-      expect(grant_with_role(:scenario_viewer).call.map(&:last).uniq).to eq([ 'read' ])
+      expect(grant_with_role(:scenario_viewer).call.map(&:level).uniq).to eq([ 'read' ])
     end
 
     it 'grants nothing without a role' do
@@ -177,7 +179,7 @@ RSpec.describe MyEtm::Auth do
         role_id: User::Roles.index_of(:scenario_viewer)
       )
 
-      expect(grant.call.map(&:last).uniq).to eq([ 'read' ])
+      expect(grant.call.map(&:level).uniq).to eq([ 'read' ])
     end
 
     it 'keeps Sessions dropped and adds Sessions gained after the client was built' do
@@ -185,7 +187,7 @@ RSpec.describe MyEtm::Auth do
       saved_scenario.restore_historical(1)
       saved_scenario.scenario_id = 4
 
-      expect(grant.call.map { |_, id, _| id }).to contain_exactly(1, 2, 3, 4)
+      expect(grant.call.map(&:session_id)).to contain_exactly(1, 2, 3, 4)
     end
   end
 end
