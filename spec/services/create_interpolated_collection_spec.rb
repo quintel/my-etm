@@ -126,6 +126,11 @@ describe CreateInterpolatedCollection, type: :service do
           .to have_enqueued_job(SavedScenarioCallbacksJob).twice
       end
 
+      it 'pushes the privacy to each interpolated Session' do
+        expect { result }.to have_enqueued_job(SavedScenarioCallbacksJob)
+          .with(2, user.id, scenario.version.tag, array_including(:set_privacy), saved_scenario_id: kind_of(Integer))
+      end
+
       context 'when the source scenario is private' do
         let(:scenario) { FactoryBot.create(:saved_scenario, scenario_id: 1, private: true, user:) }
 
