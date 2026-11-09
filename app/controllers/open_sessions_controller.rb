@@ -5,21 +5,21 @@
 # returns. To be used by routes that reach ETEngine without passing through MyETM's open:
 # Collections' by session ID and ETModel's direct loads.
 class OpenSessionsController < ApplicationController
-  # GET /saved_scenarios/open?session_ids=1,2&return_to=<url>
+  # GET /saved_scenarios/open?session_ids[]=1&session_ids[]=2&return_to=<url>
   def show
-    return_to = EtmAppRedirects.validate(params[:return_to])
+    session_ids = params.expect(session_ids: [])
+    return_to = EtmAppRedirects.validate(params.expect(:return_to))
     return head(:bad_request) unless return_to
 
-    grant_sessions if current_user
+    grant_sessions(session_ids) if current_user
     redirect_to(return_to, allow_other_host: true)
   end
 
   private
 
   # Re-deriving drops the entry of a lost role
-  def grant_sessions
-    ids = params[:session_ids].to_s.split(",").map(&:to_i)
-    levels = RederiveScenarioAccess.levels_for(current_user.id, ids)
+  def grant_sessions(session_ids)
+    levels = RederiveScenarioAccess.levels_for(current_user.id, session_ids)
     update_scenario_access { |access| access.grant(levels.map { |(tag, id), level| [ tag, id, level ] }) }
   end
 end

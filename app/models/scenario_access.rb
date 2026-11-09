@@ -14,14 +14,26 @@ class ScenarioAccess
   # + myetm).
   TOKEN_BUDGET = 3_000
 
+  # One Session on one Version. Built from and stored as a [version_tag, session_id, level] array
+  Entry = Data.define(:tag, :session_id, :level) do
+    def initialize(tag:, session_id:, level:)
+      super(tag: tag.to_s, session_id: Integer(session_id), level: level.to_s)
+    end
+
+    def key = [ tag, session_id ]
+
+    alias_method :to_a, :deconstruct
+
+    def as_json(*) = to_a
+  end
+  private_constant :Entry
+
   attr_reader :entries
 
-  # Entries stored before they named a Version have no tag, and are dropped
+  # TEMPORARY(versioned-grant): entries stored before they named a Version have no tag, and are
+  # dropped. Removed once every anchor holding one has outlived REFRESH_TTL.
   def initialize(entries = nil)
-    @entries = Array(entries).filter_map do |entry|
-      tag, id, level = entry
-      [ tag.to_s, Integer(id), level.to_s ] if entry.size == 3
-    end
+    @entries = Array(entries).filter_map { |entry| Entry.new(*entry) if entry.to_a.size == 3 }
   end
 
   def self.stronger(held, level)
@@ -31,15 +43,15 @@ class ScenarioAccess
   # Adds [version_tag, session_id, level] entries as the most recently opened. A Session
   # named twice in one call keeps the stronger level
   def grant(entries)
-    strongest(entries).reduce(self) { |access, ((tag, id), level)| access.with(tag, id, level) }
+    strongest(entries).reduce(self) { |access, entry| access.with(entry) }
   end
 
-  def with(tag, id, level)
-    self.class.new(without(tag, id).entries + [ [ tag, id, level ] ])
+  def with(entry)
+    self.class.new(without(entry.key).entries + [ entry ])
   end
 
-  def without(tag, id)
-    self.class.new(entries.reject { |held_tag, held_id, _| held_tag == tag && held_id == id })
+  def without(key)
+    self.class.new(entries.reject { |held| held.key == key })
   end
 
   def without_oldest
@@ -57,19 +69,19 @@ class ScenarioAccess
 
   # Each Version's levels, leaving out empty Versions and levels
   def as_claim
-    entries.map(&:first).uniq.index_with { |tag| levels(tag).reject { |_, ids| ids.empty? } }
+    entries.map(&:tag).uniq.index_with { |tag| levels(tag).reject { |_, ids| ids.empty? } }
   end
 
   private
 
   def strongest(entries)
-    entries.each_with_object({}) do |(tag, id, level), levels|
-      key = [ tag.to_s, Integer(id) ]
-      levels[key] = self.class.stronger(levels[key], level.to_s)
-    end
+    entries.map { |entry| Entry.new(*entry) }.each_with_object({}) do |entry, strongest|
+      held = strongest[entry.key]&.level
+      strongest[entry.key] = entry.with(level: self.class.stronger(held, entry.level))
+    end.values
   end
 
   def ids_at(tag, level)
-    entries.filter_map { |held_tag, id, held| id if held_tag == tag && held == level }
+    entries.filter_map { |entry| entry.session_id if entry.tag == tag && entry.level == level }
   end
 end

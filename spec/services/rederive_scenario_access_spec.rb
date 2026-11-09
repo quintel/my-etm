@@ -13,7 +13,7 @@ RSpec.describe RederiveScenarioAccess do
 
   def rederive(pairs, tag: "latest")
     entries = pairs.map { |id, level| [ tag, id, level ] }
-    described_class.call(ScenarioAccess.new(entries), user.id).entries.map { |_, id, level| [ id, level ] }
+    described_class.call(ScenarioAccess.new(entries), user.id).entries.map { |entry| entry.to_a.drop(1) }
   end
 
   it "drops a Session whose role was removed" do
