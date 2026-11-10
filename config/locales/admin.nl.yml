@@ -28,6 +28,8 @@ nl:
       visible: Versie %{tag} wordt getoond in de versiekeuzes.
       delete: Verwijderen
       destroyed: Versie %{tag} is verwijderd.
+      released_on: Gepubliceerd
+      released_on_saved: De publicatiedatum van versie %{tag} is opgeslagen.
       confirm_destroy:
         title: Versie %{tag} verwijderen
         warning_header: Versie %{tag} en de OAuth-applicaties ervan worden verwijderd.
@@ -46,7 +48,9 @@ nl:
           Maakt een stabiele versie aan, met de OAuth-applicaties waarmee ETModel en ETEngine inloggen.
           De URL's zijn gebaseerd op de tag, bijvoorbeeld 2027 draait op https://2027.energytransitionmodel.com.
         tag: Tag
-        tag_hint: Het jaar, eventueel gevolgd door kleine letters, cijfers of streepjes, bijvoorbeeld 2027 of 2027b.
+        tag_hint: Het jaar, bijvoorbeeld 2027.
+        released_on: Publicatiedatum
+        released_on_hint: De dag waarop de versie gepubliceerd wordt. Deze kan later in de lijst met versies worden aangepast.
         hidden: Verbergen in de versiekeuzes (tot de release)
         submit: Versie aanmaken
       created:

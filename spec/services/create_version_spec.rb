@@ -6,7 +6,7 @@ RSpec.describe CreateVersion do
   let(:owner) { create(:admin) }
 
   context 'with a new tag' do
-    let(:result) { described_class.call(tag: '2027', owner: owner) }
+    let(:result) { described_class.call(tag: '2027', released_on: Date.new(2027, 1, 12), owner: owner) }
     let(:version) { result.value! }
 
     it 'returns success' do
@@ -46,45 +46,48 @@ RSpec.describe CreateVersion do
   end
 
   it 'can create a visible version' do
-    expect(described_class.call(tag: '2027', hidden: false, owner: owner).value!.hidden)
+    expect(described_class.call(tag: '2027', released_on: Date.new(2027, 1, 12), hidden: false, owner: owner).value!.hidden)
       .to be(false)
   end
 
   it 'is owned by the robot user by default' do
-    version = described_class.call(tag: '2027').value!
+    version = described_class.call(tag: '2027', released_on: Date.new(2027, 1, 12)).value!
 
     expect(version.oauth_applications.map(&:owner).uniq).to eq([ User.robot ])
   end
 
-  it 'accepts a year with a suffix, with its hosts after the tag' do
-    version = described_class.call(tag: '2027b', owner: owner).value!
-
-    expect(version).to have_attributes(
-      url_prefix: '2027b.', engine_url: 'https://2027b.engine.energytransitionmodel.com'
-    )
-  end
-
-  it 'accepts a suffix with hyphens' do
-    expect(described_class.call(tag: '2027-2', owner: owner)).to be_success
-  end
-
-  [ '2027.01', 'beta', '2027_b', '2027B', '2027-', '27' ].each do |tag|
+  [ '2027.01', '2027b', '2027-2', 'beta', '27' ].each do |tag|
     it "refuses #{tag}" do
-      expect(described_class.call(tag:, owner: owner)).to be_failure
+      expect(described_class.call(tag:, released_on: Date.new(2027, 1, 12), owner: owner)).to be_failure
     end
   end
 
   context 'with a tag in another format' do
-    let(:result) { described_class.call(tag: '2027.01', owner: owner) }
+    let(:result) { described_class.call(tag: '2027.01', released_on: Date.new(2027, 1, 12), owner: owner) }
 
     it 'returns failure' do
       expect(result).to be_failure
     end
 
     it 'explains the tag format' do
-      expect(result.failure.errors[:tag]).to include(
-        'must start with a year, followed by lowercase letters, digits or hyphens, like 2027 or 2027b'
-      )
+      expect(result.failure.errors[:tag]).to include('must be a year, like 2027')
+    end
+
+    it 'creates nothing' do
+      expect { result }.not_to change { [ Version.count, OAuthApplication.count ] }
+    end
+  end
+
+  it 'saves the release date' do
+    expect(described_class.call(tag: '2027', released_on: Date.new(2027, 1, 12), owner: owner).value!.released_on)
+      .to eq(Date.new(2027, 1, 12))
+  end
+
+  context 'without a release date' do
+    let(:result) { described_class.call(tag: '2027', released_on: nil, owner: owner) }
+
+    it 'returns failure' do
+      expect(result).to be_failure
     end
 
     it 'creates nothing' do
@@ -93,9 +96,9 @@ RSpec.describe CreateVersion do
   end
 
   context 'with a tag that already exists' do
-    before { described_class.call(tag: '2027', owner: owner) }
+    before { described_class.call(tag: '2027', released_on: Date.new(2027, 1, 12), owner: owner) }
 
-    let(:result) { described_class.call(tag: '2027', owner: owner) }
+    let(:result) { described_class.call(tag: '2027', released_on: Date.new(2027, 1, 12), owner: owner) }
 
     it 'returns failure' do
       expect(result).to be_failure

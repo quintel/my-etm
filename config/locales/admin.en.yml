@@ -28,6 +28,8 @@ en:
       visible: Version %{tag} is shown in the version pickers.
       delete: Delete
       destroyed: Version %{tag} was deleted.
+      released_on: Released
+      released_on_saved: The release date of version %{tag} was saved.
       confirm_destroy:
         title: Delete version %{tag}
         warning_header: Version %{tag} and its OAuth applications will be deleted.
@@ -45,7 +47,9 @@ en:
           Creates a stable version with the OAuth applications its ETModel and ETEngine sign in with.
           Its URLs are based on the tag, e.g. 2027 is served at https://2027.energytransitionmodel.com.
         tag: Tag
-        tag_hint: The year, optionally followed by lowercase letters, digits or hyphens, e.g. 2027 or 2027b.
+        tag_hint: The year, e.g. 2027.
+        released_on: Release date
+        released_on_hint: The day the version is released. It can be changed later in the list of versions.
         hidden: Hide from the version pickers (until it is released)
         submit: Create version
       created:

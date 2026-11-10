@@ -1,14 +1,23 @@
 <div class="flex items-center gap-5 w-full mt-5 p-2 pr-4 rounded-md hover:bg-midnight-600">
-  <%# Name and tag %>
+  <%# Tag %>
   <div class="flex flex-col w-24">
-    <%= link_to @version.titleize, path, target: "_blank", rel: "noopener", class: "hover:underline" %>
-    <span class="text-sm text-midnight-400">#<%= @version.tag %></span>
+    <%= link_to @version.tag, path, target: "_blank", rel: "noopener", class: "hover:underline" %>
   </div>
 
-  <%# Created %>
-  <span class="w-44 text-midnight-400 text-sm">
-    Created <%= time_ago_in_words(@version.created_at) %> ago
-  </span>
+  <%# Created and released %>
+  <div class="flex flex-col gap-1 w-72 text-midnight-400 text-sm">
+    <span>Created <%= time_ago_in_words(@version.created_at) %> ago</span>
+    <% if @version.default %>
+      <span><%= t("admin.versions.released_on") %> <%= l(@version.released_on, format: :release) %></span>
+    <% else %>
+      <%= form_with model: @version, url: admin_version_path(@version), method: :patch,
+        class: "flex items-center gap-2", data: { controller: "turbo-submit" } do |f| %>
+        <%= f.label :released_on, t("admin.versions.released_on") %>
+        <%= f.date_field :released_on, required: true, class: "field !w-auto !py-0.5 text-sm",
+          data: { action: "change->turbo-submit#submit" } %>
+      <% end %>
+    <% end %>
+  </div>
 
   <%# URLs %>
   <span class="flex flex-col flex-1 text-midnight-400 text-sm">
@@ -18,26 +27,33 @@
   </span>
 
   <%# Whether the version is offered in the apps' version pickers %>
-  <div class="flex items-center gap-2 w-48 text-sm whitespace-nowrap">
-    <span class="<%= @version.hidden ? 'text-midnight-400' : 'text-midnight-800 font-medium' %>">
+  <div class="flex items-center gap-3 w-36 text-sm whitespace-nowrap">
+    <span class="w-14 <%= @version.hidden ? 'text-midnight-400' : 'text-midnight-800 font-medium' %>">
       <%= t("admin.versions.status.#{@version.hidden ? 'hidden' : 'visible'}") %>
     </span>
     <% unless @version.default %>
+      <% toggle = t("admin.versions.#{@version.hidden ? 'show' : 'hide'}") %>
       <%= button_to(
-        t("admin.versions.#{@version.hidden ? 'show' : 'hide'}"),
         admin_version_path(@version),
         method: :patch,
         params: { version: { hidden: !@version.hidden } },
-        class: button_classes("!py-1 text-sm", color: :gray)
-      ) %>
+        title: toggle,
+        aria: { label: toggle },
+        class: "flex text-midnight-400 hover:text-midnight-800"
+      ) do %>
+        <%= heroicon (@version.hidden ? "eye" : "eye-slash"), options: { class: "w-5 h-5" } %>
+      <% end %>
     <% end %>
     <% if @version.deletable? %>
       <%= link_to(
-        t("admin.versions.delete"),
         confirm_destroy_admin_version_path(@version),
         data: { turbo_frame: :modal },
-        class: "text-red-600 hover:underline"
-      ) %>
+        title: t("admin.versions.delete"),
+        aria: { label: t("admin.versions.delete") },
+        class: "flex text-red-600 hover:text-red-700"
+      ) do %>
+        <%= heroicon "trash", options: { class: "w-5 h-5" } %>
+      <% end %>
     <% end %>
   </div>
 </div>

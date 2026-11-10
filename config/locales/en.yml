@@ -10,6 +10,8 @@ en:
         password_confirmation: Re-enter password
         password_mismatch: Passwords don't match
         unconfirmed_email: New e-mail address
+      version:
+        released_on: Release date
   collections:
     all: View all collections
     block_right:
@@ -84,6 +86,7 @@ en:
     formats:
       date: "%A %-d %B, %Y"
       long: "%A %-d %B, %Y"
+      release: "%-d %B %Y"
       short: "%-d %b"
   errors:
     sorry: Oops! We're sorry

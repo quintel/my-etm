@@ -10,6 +10,8 @@ nl:
         password_confirmation: Voer wachtwoord nogmaals in
         password_mismatch: Wachtwoorden komen niet overeen
         unconfirmed_email: Nieuw e-mailadres
+      version:
+        released_on: Publicatiedatum
   collections:
     all: Bekijk alle collecties
     block_right:
@@ -85,6 +87,7 @@ nl:
     formats:
       date: "%A %-d %B, %Y"
       long: "%A %-d %B, %Y"
+      release: "%-d %B %Y"
       short: "%-d %b"
   datetime:
     distance_in_words:

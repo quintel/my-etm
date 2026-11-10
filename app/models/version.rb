@@ -6,6 +6,7 @@ class Version < ApplicationRecord
 
   validates :tag, presence: true, uniqueness: true
   validates :url_prefix, presence: true, unless: -> { tag == "latest" }
+  validates :released_on, presence: true, unless: :default
   validate  :one_default
 
   # Versions shown in the version pickers of the apps (hidden versions work but are not listed).
@@ -31,7 +32,7 @@ class Version < ApplicationRecord
   # Find or create the local version
   def self.local
     if Rails.env.development?
-      find_by(tag: "local") || create!(tag: "local", url_prefix: 'local')
+      find_by(tag: "local") || create!(tag: "local", url_prefix: "local", released_on: Date.current)
     else
       Version.default
     end
@@ -60,6 +61,13 @@ class Version < ApplicationRecord
     label.titleize
   end
 
+  # The day the version was released. For the default version that is the day of its latest
+  # release (Settings.release_date). A stable version is given its date when it is created, and
+  # it can be changed in the admin.
+  def released_on
+    default ? Date.iso8601(Settings.release_date) : self[:released_on]
+  end
+
   # A version can be deleted while nothing belongs to it yet. The default version never can.
   def deletable?
     !default && saved_scenarios.none? && collections.none?
@@ -70,6 +78,7 @@ class Version < ApplicationRecord
     {
       tag: tag,
       label: label,
+      released_on: released_on&.iso8601,
       model_url: model_url,
       engine_url: engine_url,
       collections_url: collections_url
