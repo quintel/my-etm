@@ -48,10 +48,9 @@ Doorkeeper::OpenidConnect.configure do
     # Digest::SHA256.hexdigest("#{resource_owner.id}#{URI.parse(application.redirect_uri).host}#{'your_secret_salt'}")
   end
 
-  # Protocol to use when generating URIs for the discovery endpoint,
-  # for example if you also use HTTPS in development
+  # Discovery URIs use the issuer's scheme
   protocol do
-    Rails.env.development? ? :http : :https
+    URI(Settings.auth.issuer).scheme.to_sym
   end
 
   # Expiration time on or after which the ID Token MUST NOT be accepted for processing. (default 120 seconds).
