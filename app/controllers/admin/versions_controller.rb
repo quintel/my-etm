@@ -24,6 +24,7 @@ module Admin
     def create
       result = CreateVersion.call(
         tag: version_params[:tag],
+        released_on: version_params[:released_on],
         hidden: ActiveModel::Type::Boolean.new.cast(version_params[:hidden])
       )
 
@@ -37,10 +38,23 @@ module Admin
     end
 
     # PATCH /admin/versions/:id
+    #
+    # Shows or hides the version, or sets its release date.
     def update
-      @version.update!(hidden: ActiveModel::Type::Boolean.new.cast(version_params[:hidden]))
+      if version_params.key?(:released_on)
+        saved = @version.update(released_on: version_params[:released_on])
+        notice = t("admin.versions.released_on_saved", tag: @version.tag)
+      else
+        saved = @version.update(hidden: ActiveModel::Type::Boolean.new.cast(version_params[:hidden]))
+        notice = t("admin.versions.#{@version.hidden ? 'hidden' : 'visible'}", tag: @version.tag)
+      end
 
-      flash[:notice] = t("admin.versions.#{@version.hidden ? 'hidden' : 'visible'}", tag: @version.tag)
+      if saved
+        flash[:notice] = notice
+      else
+        flash[:alert] = @version.errors.full_messages.to_sentence
+      end
+
       redirect_to(admin_versions_path)
     end
 
@@ -70,7 +84,7 @@ module Admin
     end
 
     def version_params
-      params.require(:version).permit(:tag, :hidden)
+      params.require(:version).permit(:tag, :hidden, :released_on)
     end
   end
 end

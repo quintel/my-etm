@@ -25,24 +25,24 @@ RSpec.describe '/admin/announcement', type: :request do
     end
 
     it 'creates the announcement of the given version' do
-      version = FactoryBot.create(:version, tag: '2027.01')
+      version = FactoryBot.create(:version, tag: '2027')
 
       sign_in(admin)
-      get '/admin/announcement/edit', params: { version: '2027.01' }
+      get '/admin/announcement/edit', params: { version: '2027' }
 
       expect(response).to have_http_status(:ok)
       expect(Announcement.sole.version).to eq(version)
     end
 
     it 'marks the versions whose announcement is shown' do
-      FactoryBot.create(:version, tag: '2027.01')
+      FactoryBot.create(:version, tag: '2027')
       Announcement.create!(version: Version.default, active: true, body_en: 'Maintenance')
 
       sign_in(admin)
-      get '/admin/announcement/edit', params: { version: '2027.01' }
+      get '/admin/announcement/edit', params: { version: '2027' }
 
       shown = Nokogiri::HTML(response.body).css('nav a').to_h { |a| [ a.text.strip, a.css('svg').any? ] }
-      expect(shown).to include('#latest' => true, '#2027.01' => false)
+      expect(shown).to include('#latest' => true, '#2027' => false)
     end
 
     it 'is not found for an unknown version' do
@@ -67,17 +67,17 @@ RSpec.describe '/admin/announcement', type: :request do
     end
 
     it 'updates only the announcement of the given version' do
-      version = FactoryBot.create(:version, tag: '2027.01')
+      version = FactoryBot.create(:version, tag: '2027')
       latest = Announcement.create!(version: Version.default, body_en: 'Latest')
 
       sign_in(admin)
 
       put '/admin/announcement', params: {
-        version: '2027.01',
+        version: '2027',
         announcement: { active: '1', body_en: 'Deleted on release day' }
       }
 
-      expect(response).to redirect_to(edit_admin_announcement_path(version: '2027.01'))
+      expect(response).to redirect_to(edit_admin_announcement_path(version: '2027'))
       expect(Announcement.active.sole).to have_attributes(version:, body_en: 'Deleted on release day')
       expect(latest.reload).to have_attributes(active: false, body_en: 'Latest')
     end

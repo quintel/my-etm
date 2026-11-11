@@ -51,3 +51,5 @@ auth:
 # Sentry DSN:
 sentry_dsn: <%= ENV['SENTRY_DSN'] %>
 release: '2026-11'
+# The day `release` went to production: the release date of the default version (YYYY-MM-DD).
+release_date: '2026-10-15'

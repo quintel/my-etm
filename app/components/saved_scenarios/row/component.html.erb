@@ -4,7 +4,7 @@
     <div class="flex flex-col">
       <div>
         <span><%= @saved_scenario.title %></span>
-        <span class="text-midnight-400"> #<%= @saved_scenario.version.tag %></span>
+        <span class="text-midnight-400"> #<%= @saved_scenario.version.label %></span>
       </div>
       <div class="text-sm text-midnight-400">
         <span><%= t("areas.#{@saved_scenario.area_code}", default: @saved_scenario.area_code.upcase) %></span>

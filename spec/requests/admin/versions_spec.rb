@@ -9,19 +9,27 @@ RSpec.describe '/admin/versions', type: :request do
   describe 'GET /admin/versions' do
     before do
       Version.default
-      FactoryBot.create(:version, tag: '2027.01', hidden: true)
+      FactoryBot.create(:version, tag: '2027', hidden: true)
       sign_in(admin)
       get '/admin/versions'
     end
 
     it 'offers to show a hidden version' do
       expect(response.body).to include(
-        %(action="#{admin_version_path(Version.find_by!(tag: '2027.01'))}")
+        %(action="#{admin_version_path(Version.find_by!(tag: '2027'))}")
       )
     end
 
     it 'offers no toggle for the default version' do
       expect(response.body).not_to include(%(action="#{admin_version_path(Version.default)}"))
+    end
+
+    it 'offers to set the release date of a stable version' do
+      expect(response.body).to include('name="version[released_on]"')
+    end
+
+    it 'shows the release date of the default version from the settings' do
+      expect(response.body).to include("Released #{I18n.l(Date.iso8601(Settings.release_date), format: :release)}")
     end
   end
 
@@ -46,13 +54,13 @@ RSpec.describe '/admin/versions', type: :request do
       before { sign_in(user) }
 
       it 'is not found' do
-        post '/admin/versions', params: { version: { tag: '2027.01', hidden: '1' } }
+        post '/admin/versions', params: { version: { tag: '2027', released_on: '2027-01-12', hidden: '1' } }
 
         expect(response).to have_http_status(:not_found)
       end
 
       it 'creates no version' do
-        expect { post('/admin/versions', params: { version: { tag: '2027.01', hidden: '1' } }) }
+        expect { post('/admin/versions', params: { version: { tag: '2027', released_on: '2027-01-12', hidden: '1' } }) }
           .not_to change(Version, :count)
       end
     end
@@ -60,10 +68,10 @@ RSpec.describe '/admin/versions', type: :request do
     context 'with a new tag' do
       before do
         sign_in(admin)
-        post '/admin/versions', params: { version: { tag: '2027.01', hidden: '1' } }
+        post '/admin/versions', params: { version: { tag: '2027', released_on: '2027-01-12', hidden: '1' } }
       end
 
-      let(:version) { Version.find_by!(tag: '2027.01') }
+      let(:version) { Version.find_by!(tag: '2027') }
 
       it 'creates the hidden version' do
         expect(version.hidden).to be(true)
@@ -126,10 +134,76 @@ RSpec.describe '/admin/versions', type: :request do
         expect(version.reload.hidden).to be(false)
       end
     end
+
+    context 'when an admin shows a version without a release date' do
+      before do
+        version.update_column(:released_on, nil)
+        sign_in(admin)
+        patch "/admin/versions/#{version.id}", params: { version: { hidden: 'false' } }
+      end
+
+      it 'keeps it hidden' do
+        expect(version.reload.hidden).to be(true)
+      end
+
+      it 'asks for the release date' do
+        expect(flash[:alert]).to eq("Release date can't be blank")
+      end
+    end
+
+    context 'when an admin sets the release date' do
+      before do
+        sign_in(admin)
+        patch "/admin/versions/#{version.id}", params: { version: { released_on: '2027-01-12' } }
+      end
+
+      it 'saves it' do
+        expect(version.reload.released_on).to eq(Date.new(2027, 1, 12))
+      end
+
+      it 'leaves the version hidden' do
+        expect(version.reload.hidden).to be(true)
+      end
+
+      it 'redirects to the versions' do
+        expect(response).to redirect_to(admin_versions_path)
+      end
+    end
+
+    context 'when an admin clears the release date' do
+      before do
+        version.update!(released_on: Date.new(2027, 1, 12))
+        sign_in(admin)
+        patch "/admin/versions/#{version.id}", params: { version: { released_on: '' } }
+      end
+
+      it 'keeps it' do
+        expect(version.reload.released_on).to eq(Date.new(2027, 1, 12))
+      end
+
+      it 'says why' do
+        expect(flash[:alert]).to eq("Release date can't be blank")
+      end
+    end
+
+    context 'when not an admin sets the release date' do
+      before do
+        sign_in(user)
+        patch "/admin/versions/#{version.id}", params: { version: { released_on: '2027-01-12' } }
+      end
+
+      it 'is not found' do
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'leaves the release date as it was' do
+        expect(version.reload.released_on).to eq(Date.current)
+      end
+    end
   end
 
   describe 'offering to delete a version' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', released_on: Date.new(2027, 1, 12), owner: admin).value! }
 
     before { sign_in(admin) }
 
@@ -149,7 +223,7 @@ RSpec.describe '/admin/versions', type: :request do
   end
 
   describe 'GET /admin/versions/:id/confirm_destroy' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', released_on: Date.new(2027, 1, 12), owner: admin).value! }
 
     it 'is not found for non-admins' do
       sign_in(user)
@@ -175,7 +249,7 @@ RSpec.describe '/admin/versions', type: :request do
   end
 
   describe 'DELETE /admin/versions/:id' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', released_on: Date.new(2027, 1, 12), owner: admin).value! }
     let(:application_ids) { version.oauth_applications.ids }
 
     context 'when an admin deletes a version nothing belongs to' do
@@ -246,7 +320,7 @@ RSpec.describe '/admin/versions', type: :request do
 
   describe 'DELETE /admin/versions/:id for non-admins' do
     it 'is not found' do
-      version = CreateVersion.call(tag: '2099.01', owner: admin).value!
+      version = CreateVersion.call(tag: '2099', released_on: Date.new(2027, 1, 12), owner: admin).value!
       sign_in(user)
       delete admin_version_path(version)
 
@@ -255,10 +329,10 @@ RSpec.describe '/admin/versions', type: :request do
   end
 
   describe 'when not signed in' do
-    let(:version) { CreateVersion.call(tag: '2099.01', owner: admin).value! }
+    let(:version) { CreateVersion.call(tag: '2099', released_on: Date.new(2027, 1, 12), owner: admin).value! }
 
     it 'creates no version' do
-      expect { post('/admin/versions', params: { version: { tag: '2099.02', hidden: '1' } }) }
+      expect { post('/admin/versions', params: { version: { tag: '2098', released_on: '2027-01-12', hidden: '1' } }) }
         .not_to change(Version, :count)
     end
 

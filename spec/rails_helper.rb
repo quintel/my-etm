@@ -44,8 +44,8 @@ RSpec.configure do |config|
 
     Version.create!([
       { tag: "latest", url_prefix: "", default: true },
-      { tag: "stable.01", url_prefix: "stable." },
-      { tag: "stable.02", url_prefix: "stable2." }
+      { tag: "stable.01", url_prefix: "stable.", released_on: Date.current },
+      { tag: "stable.02", url_prefix: "stable2.", released_on: Date.current }
     ])
   end
 

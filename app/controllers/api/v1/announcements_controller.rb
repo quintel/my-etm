@@ -6,7 +6,7 @@ module Api
       # GET /api/v1/announcements
       #
       # The active announcement of the version given by the `version` param (a tag such as
-      # "2027.01"), or of the default version when there is no param.
+      # "2027"), or of the default version when there is no param.
       def index
         version = params[:version].present? ? Version.find_by(tag: params[:version]) : Version.default
 
