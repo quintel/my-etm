@@ -24,19 +24,18 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
   end
 
   describe 'GET index' do
-    it 'returns invalid token without a proper access token' do
+    it 'returns forbidden without an access token' do
       get "/api/v1/saved_scenarios/#{saved_scenario.id}/users", as: :json
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:forbidden)
     end
 
-    # A user should have a token with the scenario:delete scope before its allowed
-    # to do anything through this endpoint, because this is what equals to the 'owner' role.
-    it 'returns not_found for a token without the proper access scope' do
+    # Who holds a role is the owner's business, so an owner reads it with the read scope alone.
+    it 'returns success for an owner with only the read scope' do
       get "/api/v1/saved_scenarios/#{saved_scenario.id}/users", as: :json,
         headers: access_token_header(user, :read)
 
-      expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:ok)
     end
 
     context 'with a proper token and scope' do
@@ -312,6 +311,128 @@ RSpec.describe 'Api::SavedScenarioUsers', type: :request, api: true do
           errors = { '999' => errors }
         end
         expect(errors).to eq({ '999' => [ 'User not found' ] })
+      end
+    end
+  end
+
+  describe 'who may manage members' do
+    let(:path) { "/api/v1/saved_scenarios/#{saved_scenario.id}/users" }
+    let(:viewer) { create(:user) }
+    let(:collaborator) { create(:user) }
+
+    let!(:viewer_membership) do
+      create(:saved_scenario_user,
+        saved_scenario: saved_scenario, user: viewer,
+        role_id: User::ROLES.key(:scenario_viewer)
+      )
+    end
+
+    before do
+      create(:saved_scenario_user,
+        saved_scenario: saved_scenario, user: collaborator,
+        role_id: User::ROLES.key(:scenario_collaborator)
+      )
+    end
+
+    def list_members(headers)
+      get(path, as: :json, headers: headers)
+    end
+
+    def add_member(headers, email)
+      post(path, as: :json, headers: headers,
+        params: { saved_scenario_users: [ { user_email: email, role: 'scenario_owner' } ] })
+    end
+
+    def set_role(headers, membership, role)
+      put(path, as: :json, headers: headers,
+        params: { saved_scenario_users: [ { user_id: membership.user_id, role: role } ] })
+    end
+
+    def remove_member(headers, membership)
+      delete(path, as: :json, headers: headers,
+        params: { saved_scenario_users: [ { user_id: membership.user_id } ] })
+    end
+
+    def owner_membership
+      saved_scenario.saved_scenario_users.find_by(user: user)
+    end
+
+    shared_examples 'a caller who may not manage members' do
+      it 'may not list the members' do
+        list_members(headers)
+
+        expect(response).to have_http_status(:forbidden)
+        expect(response.body).not_to include(user.email)
+      end
+
+      it 'may not add a member' do
+        add_member(headers, 'new@example.com')
+
+        expect(response).to have_http_status(:forbidden)
+        expect(SavedScenarioUser.exists?(user_email: 'new@example.com')).to be(false)
+      end
+
+      it 'may not change a role' do
+        set_role(headers, viewer_membership, 'scenario_owner')
+
+        expect(response).to have_http_status(:forbidden)
+        expect(viewer_membership.reload.role_id).to eq(User::ROLES.key(:scenario_viewer))
+      end
+
+      it 'may not repeat a role to read the member back' do
+        set_role(headers, owner_membership, 'scenario_owner')
+
+        expect(response).to have_http_status(:forbidden)
+        expect(response.body).not_to include(user.email)
+      end
+
+      it 'may not remove a member' do
+        remove_member(headers, viewer_membership)
+
+        expect(response).to have_http_status(:forbidden)
+        expect(SavedScenarioUser.exists?(viewer_membership.id)).to be(true)
+      end
+    end
+
+    context 'without an access token' do
+      let(:headers) { {} }
+
+      it_behaves_like 'a caller who may not manage members'
+    end
+
+    context 'as a stranger' do
+      let(:headers) { access_token_header(create(:user), :delete) }
+
+      it_behaves_like 'a caller who may not manage members'
+    end
+
+    context 'as a viewer' do
+      let(:headers) { access_token_header(viewer, :delete) }
+
+      it_behaves_like 'a caller who may not manage members'
+    end
+
+    # A collaborator may edit the scenario but not who reaches it, as in the UI.
+    context 'as a collaborator' do
+      let(:headers) { access_token_header(collaborator, :delete) }
+
+      it_behaves_like 'a caller who may not manage members'
+    end
+
+    context 'when the scenario is private' do
+      before { saved_scenario.update!(private: true) }
+
+      it 'hides it from a stranger' do
+        add_member(access_token_header(create(:user), :delete), 'new@example.com')
+
+        expect(response).to have_http_status(:not_found)
+      end
+
+      it 'does not let a viewer make themselves an owner' do
+        set_role(access_token_header(viewer, :delete), viewer_membership, 'scenario_owner')
+
+        expect(response).to have_http_status(:not_found)
+        expect(viewer_membership.reload.role_id).to eq(User::ROLES.key(:scenario_viewer))
       end
     end
   end

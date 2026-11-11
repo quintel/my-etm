@@ -9,7 +9,13 @@ module Api
 
       before_action only: %i[index] do
         # For privacy reasons we dont share the emails of all attached users
-        authorize!(:update, SavedScenario)
+        authorize!(:read_members, @saved_scenario)
+      end
+
+      # Managing access is owner-only, as it is in the UI, so it answers to the same rule as
+      # destroying the scenario itself.
+      before_action only: %i[create update destroy] do
+        authorize!(:destroy, @saved_scenario)
       end
 
       def index
