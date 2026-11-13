@@ -9,10 +9,11 @@
 #                   creating the new API scenario.
 # user            - The user acting, who owns the token that binds the Session
 #
-# Returns a ServiceResult with the saved scenario.
+# Returns a Dry::Monads::Result with the saved scenario.
 class SavedScenario::UpsertScenario
   extend Dry::Initializer
   include Service
+  include Dry::Monads[:result]
 
   param :http_client
   param :saved_scenario
@@ -43,7 +44,7 @@ class SavedScenario::UpsertScenario
       saved_scenario.scenario_id = scenario_id
     end
 
-    ServiceResult.success(saved_scenario)
+    Success(saved_scenario)
   end
 
   private
@@ -77,7 +78,7 @@ class SavedScenario::UpsertScenario
   end
 
   def failure
-    ServiceResult.failure(saved_scenario.errors.map(&:full_message))
+    Failure(saved_scenario.errors)
   end
 
   # TODO: keep in ETModel

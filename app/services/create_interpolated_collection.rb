@@ -7,8 +7,9 @@
 # alongside their other scenarios. The source scenario is linked as it is.
 class CreateInterpolatedCollection
   include Service
+  include Dry::Monads[:result]
 
-  DEFAULT_YEARS = [2030, 2040].freeze
+  DEFAULT_YEARS = [ 2030, 2040 ].freeze
 
   # Public: Creates a new collection and interpolated scenarios.
   #
@@ -29,13 +30,13 @@ class CreateInterpolatedCollection
   # Internal: Creats interpolated scenarios for the chosen years, and the
   # Collection records.
   #
-  # Returns a ServiceResult.
+  # Returns a Dry::Monads::Result with the collection.
   def call
-    result = interpolations.values.all?(&:successful?) ? bind_interpolated : interpolations.values.last
-    return ServiceResult.success(create_collection) if result.successful?
+    result = interpolation_failure || bind_interpolated
+    return Success(create_collection) if result.success?
 
     clean_up_failure
-    ServiceResult.failure(result.errors)
+    result
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
     clean_up_failure
 
@@ -45,6 +46,12 @@ class CreateInterpolatedCollection
   end
 
   private
+
+  # Interpolate still returns a ServiceResult
+  def interpolation_failure
+    failed = interpolations.values.find(&:failure?)
+    Failure([ :upstream, failed.errors ]) if failed
+  end
 
   def bind_interpolated
     ApiScenario::SetBound.call(@user, @saved_scenario.version, interpolated_ids, true)

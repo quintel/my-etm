@@ -14,7 +14,7 @@ describe SavedScenario::UpsertScenario, type: :service do
   end
 
   before do
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
     allow(client).to receive(:put).with(
       '/api/v3/scenarios/10', { scenario: { keep_compatible: true } }
     )
@@ -36,16 +36,12 @@ describe SavedScenario::UpsertScenario, type: :service do
   end
 
   context 'when the API response is successful' do
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
-
     it 'is successful' do
-      expect(result).to be_successful
+      expect(result).to be_success
     end
 
     describe '#value' do
-      subject { result.value }
+      subject { result.value! }
 
       it { is_expected.to be_a(SavedScenario) }
       it 'contains a new scenario' do
@@ -89,30 +85,26 @@ describe SavedScenario::UpsertScenario, type: :service do
   end
 
   context 'when ETEngine fails to bind the Session' do
-    before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down')) }
+    before { allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ])) }
 
     it 'leaves the saved scenario unchanged' do
       expect { result }.not_to(change { saved_scenario.reload.scenario_id })
     end
 
-    it 'is not successful' do
-      expect(result).not_to be_successful
+    it 'passes the upstream failure through' do
+      expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
     end
   end
 
   context 'when the scenario ID was faulty' do
     let(:result) { described_class.call(client, saved_scenario, "oops", user:) }
 
-    it 'returns a ServiceResult' do
-      expect(result).to be_a(ServiceResult)
-    end
-
     it 'is not successful' do
-      expect(result).not_to be_successful
+      expect(result).to be_failure
     end
 
-    it 'returns the scenario error messages' do
-      expect(result.errors).to eq([ "Scenario is not a number" ])
+    it 'returns the scenario errors' do
+      expect(result.failure.full_messages).to eq([ "Scenario is not a number" ])
     end
   end
 end
