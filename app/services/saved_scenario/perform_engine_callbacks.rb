@@ -6,7 +6,6 @@
 # - :protect     - Keep the scenario compatible
 # - :set_roles   - Set scenario roles to preset
 # - :tag_version - Tag the scenario version
-# - :unprotect   - Remove protection from scenario
 #
 # Returns a ServiceResult.
 class SavedScenario::PerformEngineCallbacks
@@ -37,8 +36,6 @@ class SavedScenario::PerformEngineCallbacks
       )
     when :tag_version
       ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")
-    when :unprotect
-      ApiScenario::SetCompatibility.unprotect(http_client, scenario_id)
     end
   end
 end

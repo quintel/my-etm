@@ -4,7 +4,7 @@
 class SavedScenarioHistoryController < ApplicationController
   before_action :assign_saved_scenario
 
-  before_action only: %i[index update] do
+  before_action only: %i[index update restore] do
     authorize!(:update, @saved_scenario)
   end
 
@@ -13,7 +13,7 @@ class SavedScenarioHistoryController < ApplicationController
   # GET /saved_scenarios/:id/history
   def index
     version_tags_result = ApiScenario::VersionTags::FetchAll.call(
-      engine_client(@saved_scenario.version),
+      engine_client(scenario: @saved_scenario),
       @saved_scenario
     )
 
@@ -34,7 +34,7 @@ class SavedScenarioHistoryController < ApplicationController
   # PUT /saved_scenarios/:id/history/:scenario_id
   def update
     result = ApiScenario::VersionTags::Update.call(
-      engine_client(@saved_scenario.version),
+      engine_client(scenario: @saved_scenario),
       params[:scenario_id],
       update_params[:description]
     )
@@ -66,7 +66,7 @@ class SavedScenarioHistoryController < ApplicationController
     old_history_ids = discarded_scenarios
 
     result = SavedScenario::Restore.call(
-      engine_client(@saved_scenario.version),
+      engine_client(scenario: @saved_scenario),
       @saved_scenario,
       params[:scenario_id].to_i,
       user: current_user

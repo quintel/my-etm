@@ -50,29 +50,101 @@ describe SavedScenario::Update, type: :service do
           .to change(saved_scenario, :discarded_at)
           .from(nil)
       end
+
+      it 'leaves the Sessions bound in ETEngine' do
+        result
+        expect(ApiScenario::SetBound).not_to have_received(:call)
+      end
     end
 
-    context 'when ETEngine fails to unbind a discarded scenario' do
-      let(:params) { { discarded: true } }
+    context 'when making a scenario private' do
+      let(:params) { { private: true } }
 
-      before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down')) }
+      before do
+        saved_scenario.update!(private: false, scenario_id_history: [ 2 ])
+        allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids).and_return([ ServiceResult.success ])
+      end
+
+      it 'makes every Session private in ETEngine' do
+        result
+        expect(ApiScenario::UpdatePrivacy).to have_received(:call_with_ids).with(client, [ 1, 2 ], private: true)
+      end
+
+      it 'saves the scenario as private' do
+        expect { result }.to change { saved_scenario.reload.private }.from(false).to(true)
+      end
+    end
+
+    context 'when ETEngine fails to change the privacy' do
+      let(:params) { { private: true } }
+
+      before do
+        saved_scenario.update!(private: false)
+        allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids)
+          .and_return([ ServiceResult.failure('Engine down') ])
+      end
 
       it 'returns an upstream failure' do
         expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
       end
 
-      it 'leaves the scenario kept' do
-        expect { result }.not_to(change { saved_scenario.reload.discarded_at })
+      it 'leaves the scenario public' do
+        expect { result }.not_to(change { saved_scenario.reload.private })
+      end
+    end
+
+    context 'when making a scenario public while pointing it at a new Session' do
+      let(:params) { { scenario_id: 2, private: false } }
+
+      before do
+        saved_scenario.update!(private: true)
+        allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids).and_return([ ServiceResult.success ])
+      end
+
+      it 'makes the new Session and the snapshot public in ETEngine' do
+        result
+        expect(ApiScenario::UpdatePrivacy).to have_received(:call_with_ids).with(client, [ 2, 1 ], private: false)
+      end
+    end
+
+    context 'when making a scenario public while discarding it' do
+      let(:params) { { discarded: true, private: false } }
+      let(:kept_when_pushed) { [] }
+
+      before do
+        saved_scenario.update!(private: true)
+        allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids) do
+          kept_when_pushed << saved_scenario.kept?
+          [ ServiceResult.success ]
+        end
+      end
+
+      it 'changes the privacy while the scenario still grants access' do
+        result
+        expect(kept_when_pushed).to eq([ true ])
+      end
+
+      it 'discards the scenario' do
+        expect { result }.to change { saved_scenario.reload.discarded? }.from(false).to(true)
+      end
+    end
+
+    context 'when the privacy is unchanged' do
+      let(:params) { { title: 'New title' } }
+
+      before { allow(ApiScenario::UpdatePrivacy).to receive(:call_with_ids) }
+
+      it 'leaves ETEngine alone' do
+        result
+        expect(ApiScenario::UpdatePrivacy).not_to have_received(:call_with_ids)
       end
     end
 
     context 'when discarding with an invalid title' do
       let(:params) { { discarded: true, title: '' } }
 
-      it 'does not unbind the scenario' do
-        result
-
-        expect(ApiScenario::SetBound).not_to have_received(:call)
+      it 'leaves the scenario kept' do
+        expect { result }.not_to(change { saved_scenario.reload.discarded_at })
       end
     end
 
@@ -112,6 +184,11 @@ describe SavedScenario::Update, type: :service do
         expect { result }
           .to change(saved_scenario, :discarded_at)
           .to(nil)
+      end
+
+      it 'leaves ETEngine alone' do
+        result
+        expect(ApiScenario::SetBound).not_to have_received(:call)
       end
     end
 

@@ -15,7 +15,7 @@ class SavedScenarioUserCallbacksJob < ApplicationJob
     user = User.find(user_id)
     saved_scenario = SavedScenario.find(saved_scenario_id)
     version = Version.find_by(tag: version_tag) || Version.default
-    http_client = MyEtm::Auth.engine_client(user, version)
+    http_client = MyEtm::Auth.engine_client(user, version, scenario: nil)
 
     operations.each do |operation|
       perform_operation(http_client, saved_scenario, operation)

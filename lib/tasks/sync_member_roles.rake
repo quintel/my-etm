@@ -63,7 +63,7 @@ namespace :scenarios do
     apply = ENV["APPLY"] == "1"
 
     SessionMemberRoleSync.shared_saved_scenarios.find_each do |saved_scenario|
-      client = MyEtm::Auth.engine_client(User.robot, saved_scenario.version)
+      client = MyEtm::Auth.engine_client(User.robot, saved_scenario.version, scenario: nil)
       SessionMemberRoleSync.sync(client, saved_scenario, apply:).each { |line| puts line }
     end
   end

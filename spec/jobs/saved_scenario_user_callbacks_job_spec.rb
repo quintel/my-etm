@@ -19,14 +19,14 @@ RSpec.describe SavedScenarioUserCallbacksJob, type: :job do
     end
 
     before do
-      allow(MyEtm::Auth).to receive(:engine_client).with(user, version).and_return(http_client)
+      allow(MyEtm::Auth).to receive(:engine_client).with(user, version, scenario: nil).and_return(http_client)
       allow(ApiScenario::Users::Create).to receive(:call).and_return(ServiceResult.success)
     end
 
     it 'finds the user, saved_scenario, and version' do
       described_class.perform_now(saved_scenario.id, user.id, version.tag, operations)
 
-      expect(MyEtm::Auth).to have_received(:engine_client).with(user, version)
+      expect(MyEtm::Auth).to have_received(:engine_client).with(user, version, scenario: nil)
     end
 
     it 'calls the API service to apply operations to current scenario' do
@@ -59,11 +59,11 @@ RSpec.describe SavedScenarioUserCallbacksJob, type: :job do
       it 'uses the default version' do
         default_version = create(:version, tag: 'default')
         allow(Version).to receive(:default).and_return(default_version)
-        allow(MyEtm::Auth).to receive(:engine_client).with(user, default_version).and_return(http_client)
+        allow(MyEtm::Auth).to receive(:engine_client).with(user, default_version, scenario: nil).and_return(http_client)
 
         described_class.perform_now(saved_scenario.id, user.id, 'non-existent', operations)
 
-        expect(MyEtm::Auth).to have_received(:engine_client).with(user, default_version)
+        expect(MyEtm::Auth).to have_received(:engine_client).with(user, default_version, scenario: nil)
       end
     end
   end
