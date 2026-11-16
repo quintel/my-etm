@@ -39,6 +39,8 @@ gem 'doorkeeper-openid_connect', '~> 1.8.7'
 gem 'doorkeeper-jwt'
 gem 'faraday'
 gem 'jwt'
+# json 3 removes JSON.parse's create_additions option, used by sprockets 4.2.
+gem 'json', '~> 2.21'
 gem 'json-jwt'
 gem 'solid_queue'
 gem 'mission_control-jobs', '~> 1.1.0'
