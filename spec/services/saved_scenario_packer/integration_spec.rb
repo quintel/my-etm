@@ -66,7 +66,7 @@ describe 'SavedScenarioPacker Integration', type: :service do
 
   before do
     allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
-    allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(ServiceResult.success)
+    allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(Dry::Monads::Success(1))
 
     # Mock ETEngine streaming dump API call using streaming helper
     streaming_body = "#{engine_dump_one.to_json}\n#{engine_dump_two.to_json}\n"

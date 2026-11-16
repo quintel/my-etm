@@ -6,7 +6,7 @@ class SavedScenarioCallbacksJob < ApplicationJob
   queue_as :default
 
   def perform(scenario_id, user_id, version_tag,
-    operations = [ :protect, :set_roles, :tag_version ], saved_scenario_id: nil)
+    operations = [ :protect, :tag_version ], saved_scenario_id: nil)
     user = User.find(user_id)
     version = Version.find_by(tag: version_tag) || Version.default
     saved_scenario = saved_scenario_id ? SavedScenario.find(saved_scenario_id) : nil

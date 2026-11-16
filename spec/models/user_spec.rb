@@ -74,5 +74,10 @@ RSpec.describe User do
     it 'shows the user has acces to one scenario' do
       expect(user.saved_scenarios.count).to be_positive
     end
+
+    # TEMPORARY(role-sync): remove once ETEngine no longer serves its scenario users endpoints.
+    it 'queues no ETEngine work' do
+      expect { user }.not_to have_enqueued_job.on_queue('default')
+    end
   end
 end

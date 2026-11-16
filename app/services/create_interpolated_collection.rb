@@ -112,14 +112,14 @@ class CreateInterpolatedCollection
     )
   end
 
-  # Internal: Asks ETEngine to protect the scenario, set its roles, tag its version and match its
-  # privacy, as happens for any other saved scenario.
+  # Internal: Asks ETEngine to protect the scenario, tag its version and match its privacy, as
+  # happens for any other saved scenario.
   def enqueue_engine_callbacks(saved_scenario)
     SavedScenarioCallbacksJob.perform_later(
       saved_scenario.scenario_id,
       @user.id,
       saved_scenario.version.tag,
-      [ :protect, :set_roles, :tag_version, :set_privacy ],
+      [ :protect, :tag_version, :set_privacy ],
       saved_scenario_id: saved_scenario.id
     )
   end
