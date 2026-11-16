@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 describe DestroySavedScenarioUser, type: :service do
-  let(:client) { instance_double(Faraday::Connection) }
   let(:user) { FactoryBot.create(:user) }
   let(:saved_scenario_user) do
     viewer = FactoryBot.create(:saved_scenario_user, role_id: 1, saved_scenario: saved_scenario)
@@ -11,20 +10,16 @@ describe DestroySavedScenarioUser, type: :service do
 
     viewer
   end
-  let(:api_result) { ServiceResult.success }
-  let(:result) { described_class.call(client, saved_scenario, saved_scenario_user) }
+  let(:result) { described_class.call(saved_scenario, saved_scenario_user) }
   let!(:saved_scenario) do
     FactoryBot.create(:saved_scenario, user: user, id: 648_695)
   end
 
   before do
     saved_scenario_user
-
-    allow(ApiScenario::Users::Destroy).to receive(:call)
-      .and_return(api_result)
   end
 
-  context 'when the API responses are successful and the record is valid' do
+  context 'when the record is valid' do
     it 'returns a ServiceResult' do
       expect(result).to be_a(ServiceResult)
     end
@@ -37,26 +32,6 @@ describe DestroySavedScenarioUser, type: :service do
       expect { result }.to change(
         saved_scenario.saved_scenario_users, :count
         ).from(2).to(1)
-    end
-
-    context 'sync_to_engine' do
-      it 'enqueues a sync to ETEngine by default' do
-        expect(SavedScenarioUserCallbacksJob).to receive(:perform_later)
-
-        result
-      end
-
-      context 'when explicitly disabled' do
-        let(:result) do
-          described_class.call(client, saved_scenario, saved_scenario_user, sync_to_engine: false)
-        end
-
-        it 'does not enqueue a sync to ETEngine' do
-          expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
-
-          result
-        end
-      end
     end
   end
 

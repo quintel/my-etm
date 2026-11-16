@@ -1,26 +1,27 @@
 # frozen_string_literal: true
 
-# Performs ETEngine callbacks for a SavedScenario.
+# Performs ETEngine callbacks for a SavedScenario. Every operation is attempted even when an
+# earlier one fails.
 #
 # Supports the following operations:
 # - :protect     - Keep the scenario compatible
-# - :set_roles   - Set scenario roles to preset
 # - :tag_version - Tag the scenario version
-# - :set_privacy - Match the scenario's privacy
+# - :set_privacy - Match the scenario's privacy, which needs the saved_scenario option
 #
-# Returns a ServiceResult.
+# Returns a Dry::Monads::Result. A failure carries an [:upstream, messages] pair.
 class SavedScenario::PerformEngineCallbacks
   extend Dry::Initializer
   include Service
+  include Dry::Monads[:result]
 
   param :http_client
   param :scenario_id
-  option :operations, default: proc { [ :protect, :set_roles, :tag_version ] }
+  option :operations, default: proc { [ :protect, :tag_version ] }
   option :saved_scenario, optional: true
 
   def call
-    operations.each { |op| perform_operation(op) }
-    ServiceResult.success
+    failed = operations.map { |op| perform_operation(op) }.reject(&:successful?)
+    failed.empty? ? Success(scenario_id) : Failure([ :upstream, messages(failed) ])
   end
 
   private
@@ -29,16 +30,17 @@ class SavedScenario::PerformEngineCallbacks
     case operation
     when :protect
       ApiScenario::SetCompatibility.keep_compatible(http_client, scenario_id)
-    when :set_roles
-      ApiScenario::SetRoles.to_preset(
-        http_client,
-        scenario_id,
-        saved_scenario: saved_scenario
-      )
     when :tag_version
       ApiScenario::VersionTags::Create.call(http_client, scenario_id, "")
     when :set_privacy
       ApiScenario::UpdatePrivacy.call(http_client, scenario_id, private: saved_scenario.private)
+    else
+      raise ArgumentError, "Unknown engine callback: #{operation.inspect}"
     end
+  end
+
+  # SetCompatibility can fail without a message
+  def messages(failed)
+    failed.flat_map(&:errors).presence || [ "ETEngine refused the request" ]
   end
 end

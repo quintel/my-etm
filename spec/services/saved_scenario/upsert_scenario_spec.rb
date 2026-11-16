@@ -21,15 +21,6 @@ describe SavedScenario::UpsertScenario, type: :service do
     allow(client).to receive(:put).with(
       '/api/v3/scenarios/oops', { scenario: { keep_compatible: false } }
     )
-    allow(client).to receive(:put).with(
-      '/api/v3/scenarios/10',
-      hash_including(
-        scenario: hash_including(
-          metadata: { saved_scenario_id: old_id },
-          saved_scenario_users: kind_of(Array)
-        )
-      )
-    )
     allow(client).to receive(:post).with(
       '/api/v3/scenarios/10/version', { description: "" }
     )

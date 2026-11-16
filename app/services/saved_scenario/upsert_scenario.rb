@@ -36,8 +36,6 @@ class SavedScenario::UpsertScenario
 
       protect
 
-      set_roles
-
       tag_new_version
 
       ss.save
@@ -63,14 +61,6 @@ class SavedScenario::UpsertScenario
 
   def unprotect
     ApiScenario::SetCompatibility.dont_keep_compatible(http_client, scenario_id)
-  end
-
-  def set_roles
-    ApiScenario::SetRoles.to_preset(
-      http_client,
-      scenario_id,
-      saved_scenario: saved_scenario
-    )
   end
 
   def tag_new_version

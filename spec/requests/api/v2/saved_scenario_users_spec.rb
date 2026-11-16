@@ -318,15 +318,18 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(response).to have_http_status(:not_found)
     end
 
-    it "does not sync the change to ETEngine - v2 access resolves via a session grant instead" do
-      expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+    # TEMPORARY(role-sync): remove once ETEngine no longer serves its scenario users endpoints.
+    it "does not call ETEngine, now or from a queued job" do
+      expect(MyEtm::Auth).not_to receive(:client_for)
 
-      put(
-        path,
-        headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { email: collaborator.email, role: "scenario_collaborator" } ] },
-        as: :json
-      )
+      expect do
+        put(
+          path,
+          headers: v2_bearer(owner, :delete),
+          params: { saved_scenario_users: [ { email: collaborator.email, role: "scenario_collaborator" } ] },
+          as: :json
+        )
+      end.not_to have_enqueued_job.on_queue("default")
     end
 
     it "is refused, not hidden, with only the read scope" do
@@ -562,15 +565,18 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       ).to be(true)
     end
 
-    it "does not sync the change to ETEngine - v2 access resolves via a session grant instead" do
-      expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+    # TEMPORARY(role-sync): remove once ETEngine no longer serves its scenario users endpoints.
+    it "does not call ETEngine, now or from a queued job" do
+      expect(MyEtm::Auth).not_to receive(:client_for)
 
-      post(
-        path,
-        headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { email: "new2@example.com", role: "scenario_viewer" } ] },
-        as: :json
-      )
+      expect do
+        post(
+          path,
+          headers: v2_bearer(owner, :delete),
+          params: { saved_scenario_users: [ { email: "new2@example.com", role: "scenario_viewer" } ] },
+          as: :json
+        )
+      end.not_to have_enqueued_job.on_queue("default")
     end
 
     it "is told to authenticate when signed out" do
@@ -823,15 +829,18 @@ RSpec.describe "Api::V2::SavedScenarioUsers", type: :request, api: true do
       expect(SavedScenarioUser.exists?(saved_scenario: saved_scenario, user_id: owner.id)).to be(true)
     end
 
-    it "does not sync the change to ETEngine - v2 access resolves via a session grant instead" do
-      expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
+    # TEMPORARY(role-sync): remove once ETEngine no longer serves its scenario users endpoints.
+    it "does not call ETEngine, now or from a queued job" do
+      expect(MyEtm::Auth).not_to receive(:client_for)
 
-      delete(
-        path,
-        headers: v2_bearer(owner, :delete),
-        params: { saved_scenario_users: [ { email: collaborator.email } ] },
-        as: :json
-      )
+      expect do
+        delete(
+          path,
+          headers: v2_bearer(owner, :delete),
+          params: { saved_scenario_users: [ { email: collaborator.email } ] },
+          as: :json
+        )
+      end.not_to have_enqueued_job.on_queue("default")
     end
 
     it "is told to authenticate when signed out" do
