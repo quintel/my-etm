@@ -9,9 +9,8 @@ class SavedScenarioCallbacksJob < ApplicationJob
     operations = [ :protect, :set_roles, :tag_version ], saved_scenario_id: nil)
     user = User.find(user_id)
     version = Version.find_by(tag: version_tag) || Version.default
-    http_client = MyEtm::Auth.engine_client(user, version)
-
     saved_scenario = saved_scenario_id ? SavedScenario.find(saved_scenario_id) : nil
+    http_client = MyEtm::Auth.engine_client(user, version, scenario: saved_scenario)
 
     SavedScenario::PerformEngineCallbacks.call(
       http_client,

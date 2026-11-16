@@ -456,6 +456,18 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
       end
     end
 
+    context 'when the scenario is on a version other than the default' do
+      let(:version) { create(:version) }
+
+      before { scenario.update!(version:) }
+
+      it "grants the engine client on the scenario, at the scenario's version" do
+        request
+        expect(MyEtm::Auth).to have_received(:engine_client)
+          .with(user, version, scenario:, scopes: anything)
+      end
+    end
+
     context 'when updating without a scenario ID' do
       let(:scenario_attributes) { super().except(:scenario_id) }
 

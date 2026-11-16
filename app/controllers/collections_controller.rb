@@ -100,7 +100,7 @@ class CollectionsController < ApplicationController
     saved_scenario = elegible_scenarios.find(create_transition_params[:saved_scenario_ids])
 
     result = CreateInterpolatedCollection.call(
-      engine_client(saved_scenario.version),
+      engine_client(scenario: saved_scenario),
       saved_scenario,
       current_user
     )
@@ -145,7 +145,7 @@ class CollectionsController < ApplicationController
   # DELETE /collections/:id
   def destroy
     DeleteCollection.call(
-      engine_client(@collection.version),
+      engine_client(scenario: nil, version: @collection.version),
       @collection
     )
 

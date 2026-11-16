@@ -21,7 +21,7 @@ RSpec.describe Identity::DestroyUserJob, type: :job do
 
         allow(MyEtm::Auth)
           .to receive(:engine_client)
-          .with(user, version)
+          .with(user, version, scenario: nil)
           .and_return(engine_connections[index])
 
         allow(connections[index]).to receive(:delete)
