@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-# Opens a scenario: records the caller's current role in their scenario access, then routes
-# to the scenario's version of ETModel.
+# Opens a scenario: grants its current Session in the caller's scenario access, then routes to the
+# scenario's version of ETModel.
 class OpenScenariosController < ApplicationController
   load_resource :saved_scenario, parent: false, only: :show
-  before_action :resolve_scenario_access, only: :show, if: :current_user
+  before_action :grant_current_session, only: :show, if: :current_user
 
   # GET /saved_scenarios/:id/open
   def show
@@ -13,17 +13,8 @@ class OpenScenariosController < ApplicationController
 
   private
 
-  # Records the caller's current role on the scenario. Re-deriving drops the entry of a lost role
-  def resolve_scenario_access
-    level = @saved_scenario.access_level_for(current_user)
-
-    update_scenario_access { |access| level ? access.grant([ entry_at(level) ]) : access }
-  end
-
-  def entry_at(level)
-    ScenarioAccess::Entry.new(
-      tag: @saved_scenario.version.tag, session_id: @saved_scenario.scenario_id, level:
-    )
+  def grant_current_session
+    grant_sessions([ @saved_scenario.scenario_id ])
   end
 
   def load_url

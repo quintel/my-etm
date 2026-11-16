@@ -106,22 +106,33 @@ class Collection < ApplicationRecord
   end
 
   # Public: Every scenario in the collection, each paired with the saved scenario it came from.
-  # Scenarios held directly have no SavedScenario, so their saved_scenario_id and title are nil:
-  # nothing local names them.
+  # Scenarios held directly have no SavedScenario, so their saved_scenario_id, title and access are
+  # nil: nothing local names them. Access is the level opening the Session by ID would grant
+  # access_for.
   #
   # Returns an array of hashes, in the order the scenarios should be shown.
-  def scenario_members_as_json
+  def scenario_members_as_json(access_for = nil)
+    levels = access_levels_for(access_for)
+
     direct = scenarios.map do |scenario|
-      { "saved_scenario_id" => nil, "scenario_id" => scenario.scenario_id, "title" => nil }
+      { "saved_scenario_id" => nil, "scenario_id" => scenario.scenario_id, "title" => nil, "access" => nil }
     end
 
     direct + saved_scenarios.map do |saved_scenario|
       {
         "saved_scenario_id" => saved_scenario.id,
         "scenario_id" => saved_scenario.scenario_id,
-        "title" => saved_scenario.title
+        "title" => saved_scenario.title,
+        "access" => levels[[ version.tag, saved_scenario.scenario_id ]]
       }
     end
+  end
+
+  # Levels keyed by [version_tag, session_id]
+  def access_levels_for(user)
+    return {} unless user
+
+    RederiveScenarioAccess.levels_for(user.id, saved_scenarios.map(&:scenario_id))
   end
 
   # Public: returns the direct scenario_id's and the active scenario_id's of any
@@ -158,6 +169,7 @@ class Collection < ApplicationRecord
   end
 
   def as_json(options = {})
+    access_for = options.delete(:access_for)
     options[:except] ||= %i[area_code end_year user_id version_id]
 
     extra_attrs = {
@@ -166,7 +178,7 @@ class Collection < ApplicationRecord
       "owner" => user.as_json(only: %i[id name]),
       "saved_scenario_ids" => saved_scenarios.pluck(:id),
       "scenario_ids" => scenarios.pluck(:scenario_id),
-      "scenarios" => scenario_members_as_json,
+      "scenarios" => scenario_members_as_json(access_for),
       "collections_app_url" => CollectionUrlBuilder.collections_app_url(self)
     }
 

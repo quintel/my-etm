@@ -112,6 +112,17 @@ RSpec.describe 'Opening a scenario', type: :request do
     expect(anchor.reload.scenario_access).to be_nil
   end
 
+  it 'keeps write on a Session another scenario of the caller holds' do
+    owned = create(:saved_scenario, scenario_id: saved_scenario.scenario_id)
+    give_role(:scenario_owner, owned)
+    give_role(:scenario_viewer)
+
+    open_scenario(owned)
+    open_scenario
+
+    expect(anchor.reload.scenario_access).to eq([ [ 'latest', saved_scenario.scenario_id, 'write' ] ])
+  end
+
   it 'redirects a signed-out visitor without a session cookie' do
     open_scenario(headers: {})
 

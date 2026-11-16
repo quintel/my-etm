@@ -25,7 +25,7 @@ module Api
 
       # GET /api/v1/collections/:id
       def show
-        render json: @collection.as_json, status: :ok
+        render json: @collection.as_json(access_for: current_user), status: :ok
       end
 
       # POST /api/v1/collections
