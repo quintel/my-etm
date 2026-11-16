@@ -159,11 +159,11 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
 
     before do
       create(:saved_scenario_user, saved_scenario:, role_id: User::Roles.index_of(:scenario_owner))
-      anchor.update!(scenario_access: [ [ 10, "write" ] ])
+      anchor.update!(scenario_access: [ [ "latest", 10, "write" ] ])
     end
 
     it "keeps an unchanged role's entry" do
-      expect(held_after_refresh).to eq("write" => [ 10 ], "read" => [])
+      expect(held_after_refresh).to eq("latest" => { "write" => [ 10 ] })
     end
 
     it "drops the entry of a collaborator removed since" do
@@ -175,7 +175,21 @@ RSpec.describe "Shared JWT browser session refresh", type: :request do
     it "downgrades a collaborator now a viewer" do
       role.update!(role_id: User::Roles.index_of(:scenario_viewer))
 
-      expect(held_after_refresh).to eq("write" => [], "read" => [ 10 ])
+      expect(held_after_refresh).to eq("latest" => { "read" => [ 10 ] })
+    end
+
+    it "drops an entry stored without a Version tag, keeping the rest" do
+      anchor.update!(scenario_access: [ [ 11, "write" ], [ "latest", 10, "write" ] ])
+
+      expect(held_after_refresh).to eq("latest" => { "write" => [ 10 ] })
+    end
+
+    it "rewrites a stored entry without a Version tag, so the next token does not inherit it" do
+      anchor.update!(scenario_access: [ [ 11, "write" ], [ "latest", 10, "write" ] ])
+      held_after_refresh
+
+      successor = Doorkeeper::AccessToken.find_by(previous_refresh_token: anchor.refresh_token)
+      expect(successor.scenario_access).to eq([ [ "latest", 10, "write" ] ])
     end
 
     it "drops a scenario discarded since" do

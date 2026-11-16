@@ -17,7 +17,7 @@ RSpec.describe 'Opening Sessions by ID', type: :request do
 
   def open_sessions(*ids, to: return_to, signed_in: true)
     headers = signed_in ? { 'Cookie' => "etm_session=#{anchor.token}; etm_refresh=#{anchor.refresh_token}" } : {}
-    get(open_saved_scenarios_path(session_ids: ids.join(','), return_to: to), headers:)
+    get(open_saved_scenarios_path(session_ids: ids, return_to: to), headers:)
   end
 
   def claim
@@ -41,7 +41,21 @@ RSpec.describe 'Opening Sessions by ID', type: :request do
     give_role(:scenario_viewer, viewed)
     open_sessions(saved_scenario.scenario_id, viewed.scenario_id)
 
-    expect(claim).to eq('write' => [ saved_scenario.scenario_id ], 'read' => [ viewed.scenario_id ])
+    expect(claim).to eq(
+      'latest' => { 'write' => [ saved_scenario.scenario_id ], 'read' => [ viewed.scenario_id ] }
+    )
+  end
+
+  it 'grants on the Version of each Scenario holding the Session' do
+    other = create(:saved_scenario, scenario_id: saved_scenario.scenario_id, version: create(:version))
+    give_role(:scenario_owner)
+    give_role(:scenario_viewer, other)
+    open_sessions(saved_scenario.scenario_id)
+
+    expect(claim).to eq(
+      'latest' => { 'write' => [ saved_scenario.scenario_id ] },
+      other.version.tag => { 'read' => [ saved_scenario.scenario_id ] }
+    )
   end
 
   it "adds nothing for a snapshot's Session or a Session without a role" do
@@ -61,6 +75,14 @@ RSpec.describe 'Opening Sessions by ID', type: :request do
   [ nil, 'https://evil.example.com/bad' ].each do |hostile|
     it "refuses return_to #{hostile.inspect}" do
       open_sessions(saved_scenario.scenario_id, to: hostile)
+
+      expect(response).to have_http_status(:bad_request)
+    end
+  end
+
+  [ nil, '1,2' ].each do |session_ids|
+    it "refuses session_ids #{session_ids.inspect} that is not a list" do
+      get(open_saved_scenarios_path(session_ids:, return_to:))
 
       expect(response).to have_http_status(:bad_request)
     end

@@ -11,8 +11,9 @@ RSpec.describe RederiveScenarioAccess do
     end
   end
 
-  def rederive(pairs)
-    described_class.call(ScenarioAccess.new(pairs), user.id).pairs
+  def rederive(pairs, tag: "latest")
+    entries = pairs.map { |id, level| [ tag, id, level ] }
+    described_class.call(ScenarioAccess.new(entries), user.id).entries.map { |entry| entry.to_a.drop(1) }
   end
 
   it "drops a Session whose role was removed" do
@@ -44,6 +45,22 @@ RSpec.describe RederiveScenarioAccess do
     scenario_with_role(2, :scenario_owner).update!(scenario_id_history: [ 1 ])
 
     expect(rederive([ [ 1, "write" ] ])).to be_empty
+  end
+
+  it "drops a Session held on another Version than its scenario's" do
+    scenario_with_role(1, :scenario_owner)
+
+    expect(rederive([ [ 1, "write" ] ], tag: create(:version).tag)).to be_empty
+  end
+
+  describe ".entries_for" do
+    it "builds an Entry on each scenario's Version at the role's level" do
+      scenario_with_role(1, :scenario_viewer)
+      scenario_with_role(2, :scenario_owner)
+
+      expect(described_class.entries_for(user.id, %w[1 2 3]).map(&:to_a))
+        .to contain_exactly([ "latest", 1, "read" ], [ "latest", 2, "write" ])
+    end
   end
 
   it "keeps the stronger level when two scenarios hold the Session" do

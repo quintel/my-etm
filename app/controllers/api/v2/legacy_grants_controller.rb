@@ -12,7 +12,7 @@ module Api
 
       # GET /api/v2/legacy_grants/:version/:session_id
       def show
-        render_resource(granted_access, with: ScenarioAccessSerialiser)
+        render_resource(granted_access, with: ScenarioAccessSerialiser, options: { tag: params[:version] })
       end
 
       private
@@ -28,7 +28,9 @@ module Api
           end
         end
 
-        ScenarioAccess.new.grant(levels.map { |level| [ session_id, level ] })
+        ScenarioAccess.new.grant(levels.map do |level|
+          ScenarioAccess::Entry.new(tag: params[:version], session_id:, level:)
+        end)
       end
 
       # Loads every scenario the caller has a role on; only the asking engine's Version may answer
