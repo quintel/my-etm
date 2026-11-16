@@ -14,12 +14,4 @@ class OpenSessionsController < ApplicationController
     grant_sessions(session_ids) if current_user
     redirect_to(return_to, allow_other_host: true)
   end
-
-  private
-
-  # Re-deriving drops the entry of a lost role
-  def grant_sessions(session_ids)
-    entries = RederiveScenarioAccess.entries_for(current_user.id, session_ids)
-    update_scenario_access { |access| access.grant(entries) }
-  end
 end

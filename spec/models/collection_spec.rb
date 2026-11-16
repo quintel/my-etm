@@ -76,6 +76,13 @@ RSpec.describe Collection, type: :model do
           .to include([ 111, nil ], [ 222, "read" ])
       end
 
+      it "gives the levels opening these Sessions by ID would grant" do
+        granted = RederiveScenarioAccess.entries_for(viewer.id, [ 111, 222 ]).map { [ _1.session_id, _1.level ] }
+
+        expect(collection.reload.scenario_members_as_json(viewer).pluck("scenario_id", "access"))
+          .to include(*granted)
+      end
+
       it "keeps the collection's owner when giving access for another user" do
         expect(collection.as_json(access_for: viewer)["owner"]["id"]).to eq(user.id)
       end

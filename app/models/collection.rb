@@ -107,10 +107,13 @@ class Collection < ApplicationRecord
 
   # Public: Every scenario in the collection, each paired with the saved scenario it came from.
   # Scenarios held directly have no SavedScenario, so their saved_scenario_id, title and access are
-  # nil: nothing local names them. Access is the level access_for's role grants on the Session.
+  # nil: nothing local names them. Access is the level opening the Session by ID would grant
+  # access_for.
   #
   # Returns an array of hashes, in the order the scenarios should be shown.
   def scenario_members_as_json(access_for = nil)
+    levels = access_levels_for(access_for)
+
     direct = scenarios.map do |scenario|
       { "saved_scenario_id" => nil, "scenario_id" => scenario.scenario_id, "title" => nil, "access" => nil }
     end
@@ -120,9 +123,16 @@ class Collection < ApplicationRecord
         "saved_scenario_id" => saved_scenario.id,
         "scenario_id" => saved_scenario.scenario_id,
         "title" => saved_scenario.title,
-        "access" => access_for && saved_scenario.access_level_for(access_for)
+        "access" => levels[[ version.tag, saved_scenario.scenario_id ]]
       }
     end
+  end
+
+  # Levels keyed by [version_tag, session_id]
+  def access_levels_for(user)
+    return {} unless user
+
+    RederiveScenarioAccess.levels_for(user.id, saved_scenarios.map(&:scenario_id))
   end
 
   # Public: returns the direct scenario_id's and the active scenario_id's of any

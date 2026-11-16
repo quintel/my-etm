@@ -73,6 +73,8 @@ RSpec.describe "API::Collections", type: :request, api: true do
     end
 
     context 'when the viewer has a role on a private scenario' do
+      let(:private_scenario) { create(:saved_scenario, user: owner, private: true, scenario_id: 111) }
+
       before do
         private_scenario.saved_scenario_users.create!(
           user: other, role_id: User::Roles.index_of(:scenario_viewer)

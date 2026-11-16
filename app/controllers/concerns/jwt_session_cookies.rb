@@ -115,6 +115,13 @@ module JwtSessionCookies
     end
   end
 
+  # Grants each Session at the strongest level the caller's roles give on it, on every Version
+  # holding it. Re-deriving drops the entry of a lost role
+  def grant_sessions(session_ids)
+    entries = RederiveScenarioAccess.entries_for(current_user.id, session_ids)
+    update_scenario_access { |access| access.grant(entries) }
+  end
+
   def lock_live_anchor
     anchor = Doorkeeper::AccessToken.by_refresh_token(cookies[REFRESH_COOKIE])&.lock!
     anchor = rotation_winner(anchor.refresh_token)&.lock! if anchor&.revoked?
