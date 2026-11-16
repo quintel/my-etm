@@ -33,7 +33,7 @@ gem "stackprof"
 gem "sentry-ruby"
 
 # Auth
-gem 'cancancan', '~> 3.0'
+gem 'cancancan', '~> 3.7'
 gem 'devise', '~> 5.0'
 gem 'doorkeeper-openid_connect', '~> 1.8.7'
 gem 'doorkeeper-jwt'
@@ -43,7 +43,7 @@ gem 'jwt'
 gem 'json', '~> 2.21'
 gem 'json-jwt'
 gem 'solid_queue'
-gem 'mission_control-jobs', '~> 1.1.0'
+gem 'mission_control-jobs', '~> 1.3.1'
 gem 'http_accept_language'
 gem 'rails-i18n'
 gem 'listen'
