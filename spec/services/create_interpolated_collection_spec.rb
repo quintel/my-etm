@@ -7,7 +7,7 @@ describe CreateInterpolatedCollection, type: :service do
   let(:user) { FactoryBot.create(:user) }
   let(:result) { described_class.call(nil, scenario, user, years) }
 
-  before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([])) }
+  before { allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([])) }
 
   # --
 
@@ -60,16 +60,12 @@ describe CreateInterpolatedCollection, type: :service do
         stub_successful_interpolation(2040, 3)
       end
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
-      end
-
       it 'is successful' do
-        expect(result).to be_successful
+        expect(result).to be_success
       end
 
       it 'creates a Collection record' do
-        expect(result.value).to be_persisted
+        expect(result.value!).to be_persisted
       end
 
       it 'saves the interpolated scenarios as SavedScenarios' do
@@ -81,15 +77,15 @@ describe CreateInterpolatedCollection, type: :service do
       end
 
       it 'links the interpolated scenarios and the source scenario' do
-        expect(result.value.reload.saved_scenarios.map(&:scenario_id)).to eq([2, 3, 1])
+        expect(result.value!.reload.saved_scenarios.map(&:scenario_id)).to eq([2, 3, 1])
       end
 
       it 'orders the scenarios chronologically' do
-        expect(result.value.reload.saved_scenarios.map(&:end_year)).to eq([2030, 2040, 2050])
+        expect(result.value!.reload.saved_scenarios.map(&:end_year)).to eq([2030, 2040, 2050])
       end
 
       it 'names the interpolated scenarios after the collection' do
-        titles = result.value.reload.saved_scenarios.map(&:title)
+        titles = result.value!.reload.saved_scenarios.map(&:title)
 
         expect(titles).to eq([
           'Some scenario (Interpolated 2030)',
@@ -99,17 +95,17 @@ describe CreateInterpolatedCollection, type: :service do
       end
 
       it 'sets the version on the Collection based on the saved_scenario' do
-        expect(result.value.version).to eq(scenario.version)
+        expect(result.value!.version).to eq(scenario.version)
       end
 
       it 'takes the area code from the source scenario' do
-        areas = result.value.reload.saved_scenarios.map(&:area_code)
+        areas = result.value!.reload.saved_scenarios.map(&:area_code)
 
         expect(areas).to all(eq(scenario.area_code))
       end
 
       it 'makes the user the owner of each interpolated scenario' do
-        owned = result.value.reload.saved_scenarios.all? { |saved| saved.owner?(user) }
+        owned = result.value!.reload.saved_scenarios.all? { |saved| saved.owner?(user) }
 
         expect(owned).to be(true)
       end
@@ -129,7 +125,7 @@ describe CreateInterpolatedCollection, type: :service do
         let(:scenario) { FactoryBot.create(:saved_scenario, scenario_id: 1, private: true, user:) }
 
         it 'makes the interpolated scenarios private' do
-          privacy = result.value.reload.saved_scenarios.map(&:private)
+          privacy = result.value!.reload.saved_scenarios.map(&:private)
 
           expect(privacy).to all(be(true))
         end
@@ -140,11 +136,15 @@ describe CreateInterpolatedCollection, type: :service do
       before do
         stub_successful_interpolation(2030, 2)
         stub_successful_interpolation(2040, 3)
-        allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))
+        allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ]))
       end
 
       it 'creates no Collection' do
         expect { result }.not_to change(Collection, :count)
+      end
+
+      it 'passes the upstream failure through' do
+        expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
       end
 
       it 'releases the interpolated scenarios' do
@@ -160,12 +160,8 @@ describe CreateInterpolatedCollection, type: :service do
         # The 2040 request is never made.
       end
 
-      it 'returns a ServiceResult' do
-        expect(result).to be_a(ServiceResult)
-      end
-
       it 'is not successful' do
-        expect(result).not_to be_successful
+        expect(result).to be_failure
       end
 
       it 'releases no scenarios' do
@@ -176,7 +172,7 @@ describe CreateInterpolatedCollection, type: :service do
       end
 
       it 'includes the errors on the Result' do
-        expect(result.errors).to eq(["That didn't work."])
+        expect(result.failure).to eq([ :upstream, [ "That didn't work." ] ])
       end
 
       it 'does not create a Collection record' do
@@ -195,7 +191,7 @@ describe CreateInterpolatedCollection, type: :service do
       end
 
       it 'is not successful' do
-        expect(result).not_to be_successful
+        expect(result).to be_failure
       end
 
       it 'releases the successful 2030 scenario' do

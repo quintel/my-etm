@@ -6,7 +6,7 @@ describe SavedScenario::Purge, type: :service do
   let(:user) { create(:user) }
   let!(:saved_scenario) { create(:saved_scenario, user:, scenario_id: 1, scenario_id_history: [ 2 ]) }
 
-  before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([])) }
+  before { allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([])) }
 
   it 'unbinds every Session' do
     described_class.call(saved_scenario, user)
@@ -21,7 +21,7 @@ describe SavedScenario::Purge, type: :service do
 
   context 'when ETEngine fails' do
     before do
-      allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))
+      allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ]))
     end
 
     it 'keeps the scenario' do

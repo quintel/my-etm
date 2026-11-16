@@ -73,7 +73,7 @@ describe CollectionsController do
       before do
         sign_in user
 
-        allow(service).to receive(:call).and_return(ServiceResult.success(collection))
+        allow(service).to receive(:call).and_return(Dry::Monads::Success(collection))
       end
 
       it 'redirects to the collection' do
@@ -107,7 +107,7 @@ describe CollectionsController do
       before do
         sign_in user
 
-        allow(service).to receive(:call).and_return(ServiceResult.success(collection))
+        allow(service).to receive(:call).and_return(Dry::Monads::Success(collection))
       end
 
       it 'redirects to the collection' do
@@ -162,9 +162,8 @@ describe CollectionsController do
       before do
         sign_in user
 
-        allow(service).to receive(:call).and_return(ServiceResult.failure(
-          "That didn't work."
-        ))
+        allow(service).to receive(:call)
+          .and_return(Dry::Monads::Failure([ :upstream, [ "That didn't work." ] ]))
       end
 
       it 'fails the request with a 422 code' do

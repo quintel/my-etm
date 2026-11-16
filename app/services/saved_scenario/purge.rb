@@ -32,7 +32,6 @@ class SavedScenario::Purge
   def destroy_and_unbind
     return Failure(saved_scenario.errors) unless saved_scenario.destroy
 
-    unbound = ApiScenario::SetBound.for_saved_scenario(user, saved_scenario, false)
-    unbound.successful? ? Success(saved_scenario) : Failure([ :upstream, unbound.errors ])
+    ApiScenario::SetBound.for_saved_scenario(user, saved_scenario, false).fmap { saved_scenario }
   end
 end

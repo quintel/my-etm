@@ -20,7 +20,7 @@ class SavedScenario::Create
 
   def call
     return failure unless saved_scenario.valid?
-    return Failure([ :upstream, bind_result.errors ]) if bind_result.failure?
+    return bind_result if bind_result.failure?
 
     # Sometimes we have to explicitly set the user again
     saved_scenario.user = user

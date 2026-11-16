@@ -8,7 +8,7 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
 
   before do
     allow(MyEtm::Auth).to receive(:engine_client).and_return(client)
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
   end
 
   describe 'GET /api/v1/saved_scenarios' do

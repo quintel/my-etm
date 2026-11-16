@@ -21,7 +21,7 @@ describe SavedScenarioPacker::Load, type: :service do
         {
           saved_scenario_id: 100,
           scenario_id: 123,
-          scenario_id_history: [120, 121, 122],
+          scenario_id_history: [ 120, 121, 122 ],
           title: 'Netherlands 2050',
           description: 'Test scenario',
           area_code: 'nl',
@@ -29,7 +29,7 @@ describe SavedScenarioPacker::Load, type: :service do
           private: false,
           version_tag: 'latest',
           owner: { email: owner_user.email, name: owner_user.name, role: 'owner' },
-          collaborators: [{ email: collab_user.email, name: collab_user.name, role: 'collaborator' }],
+          collaborators: [ { email: collab_user.email, name: collab_user.name, role: 'collaborator' } ],
           viewers: [],
           created_at: 1.day.ago.iso8601,
           updated_at: 1.hour.ago.iso8601
@@ -81,7 +81,7 @@ describe SavedScenarioPacker::Load, type: :service do
   end
 
   before do
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
     allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(ServiceResult.success)
 
     # Create a test ETM file with combined structure
@@ -148,13 +148,13 @@ describe SavedScenarioPacker::Load, type: :service do
       expect(first.scenario_id).to eq(223)
       expect(first.area_code).to eq('nl')
       expect(first.end_year).to eq(2050)
-      expect(first.private).to be false
+      expect(first.private).to be(false)
 
       second = scenarios.find { |s| s.title == 'Germany 2040' }
       expect(second.scenario_id).to eq(224)
       expect(second.area_code).to eq('de')
       expect(second.end_year).to eq(2040)
-      expect(second.private).to be true
+      expect(second.private).to be(true)
     end
 
     it 'starts each loaded scenario with an empty history' do
@@ -202,7 +202,7 @@ describe SavedScenarioPacker::Load, type: :service do
     end
 
     it 'saves nothing when ETEngine fails to bind the loaded Sessions' do
-      allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down'))
+      allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ]))
 
       expect { service.call }.not_to change(SavedScenario, :count)
     end
@@ -212,7 +212,7 @@ describe SavedScenarioPacker::Load, type: :service do
         create(:saved_scenario,
           id: 100,
           scenario_id: 999,
-          scenario_id_history: [997, 998],
+          scenario_id_history: [ 997, 998 ],
           title: 'Unrelated local scenario',
           version: version
         )
@@ -226,7 +226,7 @@ describe SavedScenarioPacker::Load, type: :service do
         service.call
 
         expect(existing_scenario.reload).to have_attributes(
-          title: 'Unrelated local scenario', scenario_id: 999, scenario_id_history: [997, 998]
+          title: 'Unrelated local scenario', scenario_id: 999, scenario_id_history: [ 997, 998 ]
         )
       end
     end
@@ -423,8 +423,8 @@ describe SavedScenarioPacker::Load, type: :service do
             private: true,
             version_tag: 'latest',
             owner: { email: 'nonexistent@example.com', name: 'Ghost', role: 'owner' },
-            collaborators: [{ email: collab_user.email, name: collab_user.name, role: 'collaborator' }],
-            viewers: [{ email: 'viewer@example.com', name: 'Ghost viewer', role: 'viewer' }]
+            collaborators: [ { email: collab_user.email, name: collab_user.name, role: 'collaborator' } ],
+            viewers: [ { email: 'viewer@example.com', name: 'Ghost viewer', role: 'viewer' } ]
           }
         ]
       }

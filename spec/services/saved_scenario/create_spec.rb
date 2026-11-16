@@ -7,7 +7,7 @@ describe SavedScenario::Create, type: :service do
   let(:user) { create(:user) }
 
   before do
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
+    allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
     allow(client).to receive(:put).with(
       '/api/v3/scenarios/1', scenario: { keep_compatible: true }
     )
@@ -48,7 +48,7 @@ describe SavedScenario::Create, type: :service do
     context 'when ETEngine fails to bind the Session' do
       let(:params) { { scenario_id: 1, area_code: :nl2016, end_year: 2050, title: 'Hey' } }
 
-      before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.failure('Engine down')) }
+      before { allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ])) }
 
       it 'returns an upstream failure' do
         expect(result.failure).to eq([ :upstream, [ 'Engine down' ] ])
