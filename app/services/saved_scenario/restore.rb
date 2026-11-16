@@ -11,7 +11,6 @@ class SavedScenario::Restore
   extend Dry::Initializer
   include Service
 
-  param :http_client
   param :saved_scenario
   param :scenario_id
   param :settings, default: proc { {} }
@@ -28,8 +27,6 @@ class SavedScenario::Restore
       unbound = ApiScenario::SetBound.call(user, ss.version, dropped, false)
       return unbound if unbound.failure?
 
-      dropped.each { |id| unprotect(id) }
-
       ss.save
     end
 
@@ -37,10 +34,6 @@ class SavedScenario::Restore
   end
 
   private
-
-  def unprotect(scenario_id)
-    ApiScenario::SetCompatibility.dont_keep_compatible(http_client, scenario_id)
-  end
 
   def failure
     ServiceResult.failure(saved_scenario.errors.map(&:full_message))

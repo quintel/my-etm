@@ -146,9 +146,5 @@ class CreateInterpolatedCollection
 
   def clean_up_failure
     ApiScenario::SetBound.call(@user, @saved_scenario.version, interpolated_ids, false)
-
-    interpolated_ids.each do |id|
-      ApiScenario::SetCompatibility.dont_keep_compatible(@http_client, id)
-    end
   end
 end

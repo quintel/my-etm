@@ -33,11 +33,31 @@ describe ApiScenario::SetBound, type: :service do
     expect(result.value).to eq([ 2 ])
   end
 
-  it 'calls nothing on a version whose engine has no bound flag' do
-    allow(Settings).to receive(:versions_without_bound_flag).and_return([ version.tag ])
-    result
+  context 'when the engine has no bound flag' do
+    before do
+      allow(Settings).to receive(:versions_without_bound_flag).and_return([ version.tag ])
+      allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible)
+    end
 
-    expect(MyEtm::Auth).not_to have_received(:client_for)
+    it 'calls nothing when binding' do
+      result
+
+      expect(MyEtm::Auth).not_to have_received(:client_for)
+    end
+
+    it 'stops keeping every Session compatible when unbinding' do
+      described_class.call(user, version, [ 1, 2 ], false)
+
+      [ 1, 2 ].each do |id|
+        expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).with(client, id)
+      end
+    end
+
+    it 'never calls the bind endpoint' do
+      described_class.call(user, version, [ 1, 2 ], false)
+
+      expect(client).not_to have_received(:put)
+    end
   end
 
   it 'fails when ETEngine fails' do

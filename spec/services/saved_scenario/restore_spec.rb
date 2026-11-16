@@ -3,10 +3,9 @@
 require 'rails_helper'
 
 describe SavedScenario::Restore, type: :service do
-  let(:client) { instance_double(Faraday::Connection) }
   let(:user) { create(:user) }
   let(:restore_id) { 1234 }
-  let(:result) { described_class.call(client, saved_scenario, restore_id, user:) }
+  let(:result) { described_class.call(saved_scenario, restore_id, user:) }
   let!(:saved_scenario) do
     create(
       :saved_scenario,
@@ -16,15 +15,7 @@ describe SavedScenario::Restore, type: :service do
     )
   end
 
-  before do
-    allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([]))
-    allow(client).to receive(:put).with(
-      '/api/v3/scenarios/12345', scenario: { keep_compatible: false }
-    )
-    allow(client).to receive(:put).with(
-      '/api/v3/scenarios/648695', scenario: { keep_compatible: false }
-    )
-  end
+  before { allow(ApiScenario::SetBound).to receive(:call).and_return(ServiceResult.success([])) }
 
   context 'when the restore is succesful' do
     it 'returns a ServiceResult' do
