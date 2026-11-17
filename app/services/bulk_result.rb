@@ -3,7 +3,7 @@
 # The outcome of a bulk service call: exactly one Item per submitted item, in the order submitted.
 #
 # TODO: drop `identifier` once v1 and v3 retire; only Api::V1's identifier-keyed error hash reads
-# it, and a v2 batch names an item by the position it was submitted at.
+# it, and a v4 batch names an item by the position it was submitted at.
 class BulkResult
   Item = Data.define(:index, :identifier, :value, :code, :messages) do
     def self.ok(index:, identifier:, value:)
@@ -35,7 +35,7 @@ class BulkResult
     @items = items
   end
 
-  # A bulk call's outcome is rendered by v2 from the items themselves. successful?, failure? and
+  # A bulk call's outcome is rendered by v4 from the items themselves. successful?, failure? and
   # value are a v1-compatible face, added so Api::V1's existing controller kept working when the
   # services changed to answer with this.
   #

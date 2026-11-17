@@ -10,7 +10,7 @@ FactoryBot.define do
 
     transient do
       scenarios_count { 2 }
-      # Linked saved scenarios, which v2 requires at least one of on create. Off by default: a
+      # Linked saved scenarios, which v4 requires at least one of on create. Off by default: a
       # member built here is public, and a collection whose members are all public is readable by
       # a signed-out caller, so defaulting it would change what unrelated specs test.
       saved_scenarios_count { 0 }
