@@ -3,6 +3,10 @@ module Api
     class BaseController < ActionController::API
       include ActionController::MimeResponds
 
+      DEPRECATED_ON = Time.utc(2026, 12, 10)
+      SUNSET_ON = Time.utc(2027, 3, 1)
+
+      before_action :announce_deprecation
       after_action :track_token_use
 
       rescue_from ActionController::ParameterMissing do |e|
@@ -32,6 +36,13 @@ module Api
       end
 
       private
+
+      # RFC 9745 and RFC 8594 headers, so a client can see v1 is going and where to move
+      def announce_deprecation
+        response.set_header("Deprecation", "@#{DEPRECATED_ON.to_i}")
+        response.set_header("Sunset", SUNSET_ON.httpdate)
+        response.set_header("Link", '</api/v4>; rel="successor-version"')
+      end
 
       # Fetch the user based on the decoded token or session.
       def current_user
