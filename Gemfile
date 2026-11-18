@@ -35,12 +35,12 @@ gem "sentry-ruby"
 # Auth
 gem 'cancancan', '~> 3.7'
 gem 'devise', '~> 5.0'
-gem 'doorkeeper-openid_connect', '~> 1.8.7'
+gem 'doorkeeper-openid_connect', '~> 2.1.0'
 gem 'doorkeeper-jwt'
 gem 'faraday'
 gem 'jwt'
 # json 3 removes JSON.parse's create_additions option, used by sprockets 4.2.
-gem 'json', '~> 2.21'
+gem 'json', '~> 3.1'
 gem 'json-jwt'
 gem 'solid_queue'
 gem 'mission_control-jobs', '~> 1.3.1'
@@ -53,7 +53,7 @@ gem 'activerecord-session_store'
 
 # Views and CSS
 gem 'haml'
-gem "tailwindcss-rails", "~> 3.0"
+gem "tailwindcss-rails", "~> 4.7"
 gem 'view_component'
 gem "rdiscount", "~> 2.2"
 gem "heroicon"
@@ -79,7 +79,7 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.2"
 
 gem "zstd-ruby"
 
