@@ -79,9 +79,15 @@ Rails.application.routes.draw do
   end
 
   namespace :api do
-    namespace :v2 do
+    legacy_grant_constraints = { version: /[\w.]+/, session_id: /\d+/ }
+
+    # TEMPORARY(legacy-grants-path): deployed engines still call the v2 path. Remove once they call v4
+    get "v2/legacy_grants/:version/:session_id",
+      to: "v4/legacy_grants#show", constraints: legacy_grant_constraints
+
+    namespace :v4 do
       get "legacy_grants/:version/:session_id",
-        to: "legacy_grants#show", constraints: { version: /[\w.]+/, session_id: /\d+/ }
+        to: "legacy_grants#show", constraints: legacy_grant_constraints
 
       resources :collections, only: %i[index show create update destroy] do
         member do
