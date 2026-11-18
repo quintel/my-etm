@@ -89,6 +89,9 @@ Rails.application.routes.draw do
       get "legacy_grants/:version/:session_id",
         to: "legacy_grants#show", constraints: legacy_grant_constraints
 
+      match "relay/verdict", to: "relay#verdict", via: :all
+      match "relay/refusal", to: "relay#refusal", via: :all
+
       resources :collections, only: %i[index show create update destroy] do
         member do
           put :discard

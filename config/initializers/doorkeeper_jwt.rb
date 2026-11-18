@@ -5,54 +5,16 @@ Doorkeeper::JWT.configure do
   # Set the payload for the JWT token. This should contain unique information
   # about the user. Defaults to a randomly generated token in a hash:
   #     { token: "RANDOM-TOKEN" }
+  # opts[:scopes] is always this specific token's own granted scopes, not the application's
+  # configured set, which could be broader than what was granted
   token_payload do |opts|
-    user = User.find(opts[:resource_owner_id])
-
-    audience = if opts[:application].present?
-      # Token is valid for all audiences within this version, plus MyETM itself. MyETM is included
-      # because ETEngine re-presents the caller's token to MyETM (Api::V3::BaseController#my_etm_client
-      # forwards the incoming Authorization header verbatim), so a token minted here for ETEngine
-      # comes back to MyETM on the same request chain and must verify there.
-      #
-      # This widens the audience across first-party apps and is deliberate. The proper exit is that
-      # MyETM becomes the only caller of ETEngine's API and forwards on the user's behalf with its
-      # own credential, rather than passing the user's token through — do not narrow the audience
-      # while forwarding is in place, or these round-trip calls will start 401ing.
-      opts[:application].version.urls + [Settings.auth.issuer]
-    elsif opts[:scopes].to_s.split.include?("roles")
-      # The shared browser-session cookie (JwtSessionCookies#start_jwt_session) carries the "roles"
-      # scope and no other app-less token does: it's valid for every ETM app, across all versions,
-      # since one cookie authenticates ETEngine, ETModel and Collections at once — and MyETM, whose
-      # own UI and API authenticate from this same cookie (MyEtm::Auth.verify_jwt).
-      Version.all.flat_map(&:urls).uniq + [Settings.auth.issuer]
-    else
-      # Personal Access Tokens: engine API access only. Deliberately excludes MyETM, so a leaked PAT
-      # cannot be used against the endpoints that manage the user's own tokens and account. (PATs
-      # still reach MyETM's API through Doorkeeper's stored-token lookup, which is a separate path
-      # and is scope-checked there.)
-      Version.all.map(&:engine_url)
-    end
-
-    # opts[:scopes] is always this specific token's own granted scopes (Doorkeeper passes through
-    # `self.scopes` from the AccessToken being minted), whether or not it belongs to an application —
-    # not the application's own configured scope set, which could be broader than what was granted.
-    scopes = opts[:scopes]
-    extras = opts[:expires_in].present? ? { exp: opts[:expires_in] + Time.now.to_i } : {}
-
-    access = ScenarioAccess.new(opts[:scenario_access])
-    extras[ScenarioAccess::CLAIM] = access.as_claim unless access.empty?
-
-    {
-      iss: Doorkeeper::OpenidConnect.configuration.issuer.call(user, nil),
-      iat: Time.now.to_i,
-      aud: audience,
-      scopes: scopes,
-
-      # @see JWT reserved claims - https://tools.ietf.org/html/draft-jones-json-web-token-07#page-7
-      jti: SecureRandom.uuid,
-      sub: user.id,
-      user: user.as_json(only: %i[id admin email name])
-    }.merge(extras)
+    MyEtm::TokenPayload.new(
+      user: User.find(opts[:resource_owner_id]),
+      scopes: opts[:scopes],
+      application: opts[:application].presence,
+      expires_in: opts[:expires_in],
+      scenario_access: opts[:scenario_access]
+    ).to_h
   end
 
   # Optionally set additional headers for the JWT. See

@@ -40,6 +40,14 @@ RSpec.describe 'Token contract', type: :request do
     ).token
   end
 
+  let(:exchanged_token) do
+    saved_scenario = create(:saved_scenario, user:, scenario_id: 648_695)
+
+    MyEtm::Auth.relay_token(
+      user, saved_scenario, level: 'write', scopes: 'openid public scenarios:read scenarios:write'
+    )
+  end
+
   let(:session_claims) do
     payload, = JWT.decode(
       anchor.token, MyEtm::Auth.signing_key.public_key, true, algorithms: ['RS256']
@@ -99,6 +107,29 @@ RSpec.describe 'Token contract', type: :request do
     end
   end
 
+  describe 'the exchanged token' do
+    let(:exchanged_claims) do
+      JWT.decode(exchanged_token, MyEtm::Auth.signing_key.public_key, true, algorithms: [ 'RS256' ]).first
+    end
+
+    it 'names its key with the kid published at /oauth/discovery/keys' do
+      expect(JWT.decode(exchanged_token, nil, false).last['kid'])
+        .to eq(Doorkeeper::OpenidConnect.signing_key.kid)
+    end
+
+    it 'carries the claims every consumer requires' do
+      expect(exchanged_claims).to include('iss', 'aud', 'sub', 'exp', 'scopes', 'user')
+    end
+
+    it 'is audienced at its Version’s engine alone' do
+      expect(exchanged_claims['aud']).to eq([ Version.default.engine_url ])
+    end
+
+    it 'grants its one Session on its Version' do
+      expect(exchanged_claims['scenario_access']).to eq('latest' => { 'write' => [ 648_695 ] })
+    end
+  end
+
   describe 'the JWKS' do
     subject(:keys) do
       get '/oauth/discovery/keys'
@@ -125,6 +156,8 @@ RSpec.describe 'Token contract', type: :request do
       'session_token' => anchor.token,
       'session_audience' => session_claims['aud'],
       'granted_token' => granted_token,
+      'exchanged_token' => exchanged_token,
+      'exchanged_audience' => Version.default.engine_url,
       # A token in the pre-migration shape: legacy kid, space-delimited audience string. Consumers
       # must still verify this until the next major API break invalidates every pre-migration PAT,
       # at which point OAuth::DiscoveryController#legacy_key and TokenDecoder#verify_audience!'s

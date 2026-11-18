@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+require "myetm/token_payload"
+
 module MyEtm
   # Contains useful methods for authentication.
   module Auth
     module_function
+
+    RELAY_TOKEN_TTL = 2.minutes
 
     DecodeError = Class.new(StandardError)
     TokenExchangeError = Class.new(StandardError)
@@ -93,16 +97,32 @@ module MyEtm
 
     # Signs an inter-app event, verified by subscribers against the JWKS like an identity token
     def sign_event(claims, audience:)
-      JWT.encode(
+      sign(
         { iss: Settings.auth.issuer, aud: audience, iat: Time.now.to_i, exp: 5.minutes.from_now.to_i }
-          .merge(claims),
-        signing_key, "RS256", { kid: Doorkeeper::OpenidConnect.signing_key.kid }
+          .merge(claims)
       )
     end
 
+    # A stateless engine token for one relayed call, with no Doorkeeper::AccessToken row. It names the
+    # Scenario's Version's engine only, grants its current Session at the given level, and carries the
+    # caller's own scopes. Revoking a PAT or removing a role is instant.
+    def relay_token(user, saved_scenario, level:, scopes:)
+      version = saved_scenario.version
+
+      sign(TokenPayload.new(
+        user:, scopes:, version:, expires_in: RELAY_TOKEN_TTL.to_i,
+        scenario_access: [ [ version.tag, saved_scenario.scenario_id, level ] ]
+      ).to_h)
+    end
+
+    # Signs claims with the key and kid Doorkeeper::JWT uses, so consumers verify them against the JWKS
+    def sign(claims)
+      JWT.encode(claims, signing_key, "RS256", { kid: Doorkeeper::OpenidConnect.signing_key.kid })
+    end
+
     # Mints a short-lived Doorkeeper access token scoped to the given client app and returns its JWT.
-    # Doorkeeper::JWT (configured in doorkeeper_jwt.rb) is the only JWT minter system-wide, so this is
-    # a real, persisted (if short-lived) token rather than a second, independently-signed JWT.
+    # A real, persisted token, so it can be listed and revoked. sign_event and
+    # relay_token sign with the same key without storing a row.
     #
     # If scopes are specified (e.g. from an access token) these scopes are granted; otherwise the
     # configured app scopes are used. A scenario_access is a list of ScenarioAccess::Entry values.
