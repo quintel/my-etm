@@ -51,16 +51,6 @@ module Api
 
       private
 
-      def reject_discarded_scenario
-        return unless @saved_scenario.discarded?
-
-        render_error(
-          status: :conflict,
-          code: EtmApi::Errors::Codes::SCENARIO_DISCARDED,
-          detail: "Saved scenario is discarded"
-        )
-      end
-
       # An item the contract refuses never reaches the service, and is reported at the position it
       # was submitted at, beside the results of the items that did.
       def apply(contract)

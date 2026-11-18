@@ -16,6 +16,15 @@ class PersonalAccessToken < ApplicationRecord
     token_value.to_s.start_with?(TOKEN_PREFIX)
   end
 
+  # A relayed script can call many times a second, so a use is recorded at most this often
+  USE_GRANULARITY = 2.minutes
+
+  # One statement, which changes no row while the last recorded use is recent
+  def self.record_use(oauth_access_token_id, time = Time.now.utc)
+    where(oauth_access_token_id:, last_used_at: [ nil, ...(time - USE_GRANULARITY) ])
+      .update_all(last_used_at: time)
+  end
+
   def self.not_expired
     relation = joins(:oauth_access_token)
       .includes(:oauth_access_token)

@@ -226,6 +226,17 @@ module Api
         )
       end
 
+      # A before_action for controllers that load @saved_scenario and should not act on a discarded one
+      def reject_discarded_scenario
+        return unless @saved_scenario.discarded?
+
+        render_error(
+          status: :conflict,
+          code: EtmApi::Errors::Codes::SCENARIO_DISCARDED,
+          detail: "Saved scenario is discarded"
+        )
+      end
+
       def denied_detail(subject)
         model = subject.is_a?(Class) ? subject : subject.class
         "Not permitted to #{action_name} this #{model.name.underscore.humanize.downcase}"
@@ -294,7 +305,7 @@ module Api
         return unless response.successful? && current_token
         return unless PersonalAccessToken.prefixed?(current_token.token)
 
-        TrackPersonalAccessTokenUse.perform_later(current_token.id, Time.now.utc)
+        PersonalAccessToken.record_use(current_token.id)
       end
     end
   end
