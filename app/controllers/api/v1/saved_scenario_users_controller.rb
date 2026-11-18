@@ -23,13 +23,7 @@ module Api
       end
 
       def create
-        result = CreateSavedScenarioUser.call(
-          engine_client,
-          @saved_scenario,
-          current_user.name,
-          bulk_user_params,
-          user: current_user
-        )
+        result = CreateSavedScenarioUser.call(@saved_scenario, current_user.name, bulk_user_params)
 
         if result.successful?
           @saved_scenario.reload
@@ -48,13 +42,7 @@ module Api
       end
 
       def update
-        result = UpdateSavedScenarioUser.call(
-          engine_client,
-          @saved_scenario,
-          bulk_user_params,
-          nil,
-          user: current_user
-        )
+        result = UpdateSavedScenarioUser.call(@saved_scenario, bulk_user_params)
 
         if result.successful?
           @saved_scenario.reload
@@ -74,12 +62,7 @@ module Api
       end
 
       def destroy
-        result = DestroySavedScenarioUser.call(
-          engine_client,
-          @saved_scenario,
-          bulk_user_params,
-          user: current_user
-        )
+        result = DestroySavedScenarioUser.call(@saved_scenario, bulk_user_params)
 
         if result.successful?
           render json: legacy_destroyed_users(result), status: :ok
@@ -153,15 +136,6 @@ module Api
           user_id: user&.id,
           user_email: user&.email || user_params.try(:[], :user_email)
         }
-      end
-
-      def engine_client
-        MyEtm::Auth.engine_client(
-          current_user,
-          @saved_scenario.version,
-          scenario: @saved_scenario,
-          scopes: current_scopes
-        )
       end
     end
   end

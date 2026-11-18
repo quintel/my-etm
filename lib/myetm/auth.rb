@@ -7,7 +7,6 @@ module MyEtm
 
     DecodeError = Class.new(StandardError)
     TokenExchangeError = Class.new(StandardError)
-    SyncError = Class.new(StandardError)
 
     # Fetches or generates a new signing key
     def signing_key_content

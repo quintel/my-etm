@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# Creates one or more users for a SavedScenario and synchronizes permissions to ETEngine.
-# Syncs to current scenario synchronously, historical scenarios asynchronously.
+# Creates one or more users for a SavedScenario
 #
 # Accepts either a single user params hash or an array of user params.
 # Returns a ServiceResult for a single call, or a BulkResult for an array.
@@ -9,13 +8,9 @@ class CreateSavedScenarioUser
   extend Dry::Initializer
   include Service
 
-  param :http_client
   param :saved_scenario
   param :invitee_name
   param :user_params_or_array
-  option :user, optional: true
-  # TODO: drop and always skip once v1 and v3 retire; they rely on ETEngine's scenario_users check.
-  option :sync_to_engine, default: proc { true }
 
   def call
     user_params_list = Array.wrap(user_params_or_array)
@@ -23,11 +18,6 @@ class CreateSavedScenarioUser
 
     items = create_all(user_params_list)
     created_users = items.select(&:ok?).map(&:value)
-
-    if sync_to_engine && created_users.any?
-      enqueue_current_scenario_sync(created_users)
-      enqueue_historical_sync(created_users)
-    end
 
     send_invitation_emails(created_users)
 
@@ -79,40 +69,6 @@ class CreateSavedScenarioUser
     user_id = user_params[:user_id] || user_params["user_id"]
 
     user_id.present? && !User.exists?(id: user_id)
-  end
-
-  def enqueue_current_scenario_sync(created_users)
-    user_id = user&.id || saved_scenario.users.first&.id
-    return unless user_id
-
-    scenario_users = created_users.map do |u|
-      { user_email: u.email, role: User::ROLES[u.role_id] }
-    end
-
-    SavedScenarioUserCallbacksJob.perform_later(
-      saved_scenario.id,
-      user_id,
-      saved_scenario.version.tag,
-      [ { type: :create, scenario_users: scenario_users, scenario_id: saved_scenario.scenario_id } ]
-    )
-  end
-
-  def enqueue_historical_sync(created_users)
-    return if saved_scenario.scenario_id_history.blank?
-
-    user_id = user&.id || saved_scenario.users.first&.id
-    raise "No user found for SavedScenario #{saved_scenario.id}" unless user_id
-
-    scenario_users = created_users.map do |u|
-      { user_email: u.email, role: User::ROLES[u.role_id] }
-    end
-
-    SavedScenarioUserCallbacksJob.perform_later(
-      saved_scenario.id,
-      user_id,
-      saved_scenario.version.tag,
-      [ { type: :create, scenario_users: scenario_users } ]
-    )
   end
 
   def send_invitation_emails(created_users)

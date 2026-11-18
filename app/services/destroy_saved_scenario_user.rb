@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# Removes one or more users from a SavedScenario and synchronizes permissions to ETEngine.
-# Syncs to current scenario synchronously, historical scenarios asynchronously.
+# Removes one or more users from a SavedScenario.
 #
 # Accepts either a single SavedScenarioUser OR an array of user params.
 # Returns a ServiceResult for a single call, or a BulkResult for an array. Either way the value is
@@ -11,25 +10,14 @@ class DestroySavedScenarioUser
   include Service
   include SavedScenarioUserLookup
 
-  param :http_client
   param :saved_scenario
   param :user_params_or_object
-  option :user, optional: true
-  # TODO: drop and always skip once v1 and v3 retire; they rely on ETEngine's scenario_users check.
-  option :sync_to_engine, default: proc { true }
 
   def call
     user_params_list = normalize_params
     return ServiceResult.failure("No users provided") if user_params_list.blank?
 
     items = destroy_all(user_params_list)
-    destroyed_users = items.select(&:ok?).map(&:value)
-
-    if sync_to_engine && destroyed_users.any?
-      enqueue_current_scenario_sync(destroyed_users)
-      enqueue_historical_sync(destroyed_users)
-    end
-
     bulk? ? BulkResult.new(items) : items.first.to_service_result
   end
 
@@ -64,49 +52,12 @@ class DestroySavedScenarioUser
   end
 
   def normalize_params
-    # Legacy single-user call: (http_client, saved_scenario, saved_scenario_user)
+    # Single member from the UI: (saved_scenario, saved_scenario_user)
     if user_params_or_object.is_a?(SavedScenarioUser)
       [ { saved_scenario_user: user_params_or_object } ]
-    # Bulk call: (http_client, saved_scenario, [{id: 1}, ...])
+    # Bulk call from the APIs: (saved_scenario, [{id: 1}, ...])
     else
       Array.wrap(user_params_or_object)
-    end
-  end
-
-  def enqueue_current_scenario_sync(destroyed_users)
-    user_id = user&.id || saved_scenario.users.first&.id
-    return unless user_id
-
-    SavedScenarioUserCallbacksJob.perform_later(
-      saved_scenario.id,
-      user_id,
-      saved_scenario.version.tag,
-      [ { type: :destroy, scenario_users: sync_payload(destroyed_users),
-          scenario_id: saved_scenario.scenario_id } ]
-    )
-  end
-
-  def enqueue_historical_sync(destroyed_users)
-    return if saved_scenario.scenario_id_history.blank?
-
-    user_id = user&.id || saved_scenario.users.first&.id
-    raise "No user found for SavedScenario #{saved_scenario.id}" unless user_id
-
-    SavedScenarioUserCallbacksJob.perform_later(
-      saved_scenario.id,
-      user_id,
-      saved_scenario.version.tag,
-      [ { type: :destroy, scenario_users: sync_payload(destroyed_users) } ]
-    )
-  end
-
-  def sync_payload(destroyed_users)
-    destroyed_users.map do |saved_scenario_user|
-      {
-        user_id: saved_scenario_user.user_id,
-        user_email: saved_scenario_user.email,
-        role: User::ROLES[saved_scenario_user.role_id]
-      }
     end
   end
 end

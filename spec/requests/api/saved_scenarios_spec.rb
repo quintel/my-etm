@@ -313,7 +313,6 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
     before do
       allow(ApiScenario::SetCompatibility).to receive(:call)
       allow(ApiScenario::VersionTags::Create).to receive(:call)
-      allow(ApiScenario::SetRoles).to receive(:to_preset)
     end
 
     context 'when given a valid access token and data, and the user exists' do
@@ -430,7 +429,6 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
     before do
       allow(ApiScenario::SetCompatibility).to receive(:call)
       allow(ApiScenario::VersionTags::Create).to receive(:call)
-      allow(ApiScenario::SetRoles).to receive(:to_preset)
     end
 
     context 'when given a valid access token and data' do

@@ -17,15 +17,6 @@ describe SavedScenario::Update, type: :service do
     allow(client).to receive(:put).with(
       '/api/v3/scenarios/1', { scenario: { keep_compatible: false } }
     )
-    allow(client).to receive(:put).with(
-      '/api/v3/scenarios/2',
-      hash_including(
-        scenario: hash_including(
-          metadata: { saved_scenario_id: saved_scenario.id },
-          saved_scenario_users: kind_of(Array)
-        )
-      )
-    )
     allow(client).to receive(:post).with(
       '/api/v3/scenarios/2/version', { description: "" }
     )

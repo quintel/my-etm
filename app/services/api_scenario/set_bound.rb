@@ -32,10 +32,6 @@ class ApiScenario::SetBound
     call(user, saved_scenario.version, saved_scenario.all_scenario_ids, bound)
   end
 
-  def self.supported?(version)
-    Settings.versions_without_bound_flag.exclude?(version.tag)
-  end
-
   def call
     Success(call!)
   rescue Faraday::Error => e
@@ -44,21 +40,10 @@ class ApiScenario::SetBound
   end
 
   def call!
-    return release_without_bound_flag unless self.class.supported?(version)
-
     client.put("/api/v3/scenarios/bind", ids:, bound:).body["missing"]
   end
 
   private
-
-  # TEMPORARY(2025.01): an engine without the bound flag only needs dont_keep_compatible to be called
-  def release_without_bound_flag
-    return [] if bound
-
-    engine = client
-    ids.each { |id| ApiScenario::SetCompatibility.dont_keep_compatible(engine, id) }
-    []
-  end
 
   def client
     engine = OAuthApplication.find_by(uri: version.engine_url)

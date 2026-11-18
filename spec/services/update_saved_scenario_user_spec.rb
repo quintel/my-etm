@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 describe UpdateSavedScenarioUser, type: :service do
-  let(:client) { instance_double(Faraday::Connection) }
   let(:user) { FactoryBot.create(:user) }
   let(:saved_scenario_user) do
     viewer = FactoryBot.create(:saved_scenario_user, role_id: 1, saved_scenario: saved_scenario)
@@ -11,20 +10,16 @@ describe UpdateSavedScenarioUser, type: :service do
 
     viewer
   end
-  let(:api_result) { ServiceResult.success }
-  let(:result) { described_class.call(client, saved_scenario, saved_scenario_user, 2) }
+  let(:result) { described_class.call(saved_scenario, saved_scenario_user, 2) }
   let!(:saved_scenario) do
     FactoryBot.create(:saved_scenario, user: user, id: 648_695)
   end
 
   before do
     saved_scenario_user
-
-    allow(ApiScenario::Users::Update).to receive(:call)
-      .and_return(api_result)
   end
 
-  context 'when the API responses are successful and the record is valid' do
+  context 'when the record is valid' do
     it 'returns a ServiceResult' do
       expect(result).to be_a(ServiceResult)
     end
@@ -46,45 +41,6 @@ describe UpdateSavedScenarioUser, type: :service do
     end
   end
 
-  context 'sync_to_engine' do
-    it 'enqueues a sync to ETEngine by default' do
-      expect(SavedScenarioUserCallbacksJob).to receive(:perform_later)
-
-      result
-    end
-
-    context 'when the member is pending' do
-      let(:saved_scenario_user) do
-        FactoryBot.create(:saved_scenario_user, :with_email, role_id: 1, saved_scenario:)
-      end
-
-      it 'identifies them to ETEngine by email' do
-        allow(SavedScenarioUserCallbacksJob).to receive(:perform_later)
-
-        result
-
-        expect(SavedScenarioUserCallbacksJob).to have_received(:perform_later).with(
-          anything, anything, anything,
-          [ hash_including(scenario_users: [
-            { user_id: nil, user_email: 'user@example.com', role: :scenario_collaborator }
-          ]) ]
-        )
-      end
-    end
-
-    context 'when explicitly disabled' do
-      let(:result) do
-        described_class.call(client, saved_scenario, saved_scenario_user, 2, sync_to_engine: false)
-      end
-
-      it 'does not enqueue a sync to ETEngine' do
-        expect(SavedScenarioUserCallbacksJob).not_to receive(:perform_later)
-
-        result
-      end
-    end
-  end
-
   context 'when addressing a user by an email their record no longer holds' do
     it 'updates their role' do
       viewer = FactoryBot.create(:user)
@@ -96,7 +52,7 @@ describe UpdateSavedScenarioUser, type: :service do
       )
       users = [ { user_email: viewer.email, role_id: User::Roles.index_of(:scenario_collaborator) } ]
 
-      expect { described_class.call(client, saved_scenario, users) }.to change(
+      expect { described_class.call(saved_scenario, users) }.to change(
         saved_scenario.collaborators, :count
       ).from(0).to(1)
     end
@@ -135,7 +91,7 @@ describe UpdateSavedScenarioUser, type: :service do
       ]
     end
 
-    let(:result) { described_class.call(client, saved_scenario, items, sync_to_engine: false) }
+    let(:result) { described_class.call(saved_scenario, items) }
 
     it 'applies both items even though the step-down was submitted first' do
       expect(result.items.map(&:ok?)).to eq([ true, true ])
