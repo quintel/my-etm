@@ -66,6 +66,17 @@ describe ApiScenario::SetBound, type: :service do
     expect(result.failure).to eq([ :upstream, [ 'Failed to update the session in ETEngine' ] ])
   end
 
+  context 'when ETEngine refuses the Sessions' do
+    before do
+      allow(client).to receive(:put)
+        .and_raise(Faraday::UnprocessableEntityError.new(nil, body: { 'refused' => [ 2 ] }))
+    end
+
+    it 'fails with the refused ids' do
+      expect(result.failure).to eq([ :refused, [ 2 ] ])
+    end
+  end
+
   it 'answers call! with the missing ids' do
     expect(described_class.call!(user, version, [ 1, 2 ], true)).to eq([ 2 ])
   end

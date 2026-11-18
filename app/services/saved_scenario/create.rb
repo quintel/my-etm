@@ -22,7 +22,7 @@ class SavedScenario::Create
     return failure unless saved_scenario.valid?
     return bind_result if bind_result.failure?
 
-    # Sometimes we have to explicitly set the user again
+    # Setting the owner saves the record, so it waits until ETEngine has bound the Session
     saved_scenario.user = user
     saved_scenario.save
     enqueue_callbacks
@@ -33,7 +33,7 @@ class SavedScenario::Create
   private
 
   def bind_result
-    @bind_result ||= ApiScenario::SetBound.for_saved_scenario(user, saved_scenario, true)
+    @bind_result ||= ApiScenario::SetBound.bind_into(user, saved_scenario, saved_scenario.all_scenario_ids)
   end
 
   def saved_scenario
@@ -46,7 +46,6 @@ class SavedScenario::Create
 
   def saved_scenario_attrs
     attributes = saved_scenario_params.merge(
-      user: user,
       private: saved_scenario_params.fetch(:private, user.private_scenarios)
     )
     attributes["version"] = version

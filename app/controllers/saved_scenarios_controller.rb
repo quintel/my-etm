@@ -3,7 +3,7 @@ class SavedScenariosController < ApplicationController
   include Filterable
 
   load_resource only: %i[discard undiscard publish unpublish confirm_destroy]
-  load_and_authorize_resource only: %i[show new create edit update destroy]
+  load_and_authorize_resource only: %i[show edit update destroy]
 
   before_action :require_user, only: %i[index]
   before_action :welcome_back
@@ -56,39 +56,8 @@ class SavedScenariosController < ApplicationController
   def show
   end
 
-  # GET /saved_scenarios/new
-  def new
-    @saved_scenario = SavedScenario.new
-  end
-
   # GET /saved_scenarios/1/edit
   def edit
-  end
-
-  # POST /saved_scenarios
-  def create
-    ActiveRecord::Base.transaction do
-      @saved_scenario = SavedScenario.new(saved_scenario_params)
-
-      if @saved_scenario.save
-        SavedScenarioUser.create!(
-          saved_scenario: @saved_scenario,
-          user: current_user,
-          role_id: User::Roles.index_of(:scenario_owner)
-        )
-
-        respond_to do |format|
-          format.html {
-            redirect_to @saved_scenario, notice: t("scenario.succesful_update") }
-        end
-      else
-        respond_to do |format|
-          format.html { render :new, status: :unprocessable_entity }
-        end
-        # Rollback the transaction if the scenario save fails
-        raise ActiveRecord::Rollback
-      end
-    end
   end
 
   # PATCH/PUT /saved_scenarios/1 or /saved_scenarios/1.json
@@ -192,15 +161,6 @@ class SavedScenariosController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_saved_scenario
     @saved_scenario = SavedScenario.find(params[:id])
-  end
-
-  # Only allow a list of trusted parameters through.
-  def saved_scenario_params
-    params.require(:saved_scenario).permit(
-      :scenario_id, :scenario_id_history, :title,
-      :description, :area_code, :end_year, :private,
-      :created_at, :updated_at, :discarded_at
-    )
   end
 
   # Only allow a list of trusted parameters through.

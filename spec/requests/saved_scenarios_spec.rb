@@ -72,13 +72,6 @@ RSpec.describe "/saved_scenarios", type: :request do
     end
   end
 
-  # describe "GET /new" do
-  #   it "renders a successful response" do
-  #     get new_saved_scenario_url
-  #     expect(response).to be_successful
-  #   end
-  # end
-
   describe "GET /edit" do
     before { sign_in(user) }
 

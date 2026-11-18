@@ -6,8 +6,12 @@ RSpec.describe SavedScenariosController, type: :routing do
       expect(get: "/saved_scenarios").to route_to("saved_scenarios#index")
     end
 
-    it "routes to #new" do
-      expect(get: "/saved_scenarios/new").to route_to("saved_scenarios#new")
+    it "does not route to #new" do
+      expect(get: "/saved_scenarios/new").not_to route_to("saved_scenarios#new")
+    end
+
+    it "does not route to #create" do
+      expect(post: "/saved_scenarios").not_to route_to("saved_scenarios#create")
     end
 
     it "routes to #show" do
