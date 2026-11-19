@@ -16,7 +16,7 @@ RSpec.describe TrackPersonalAccessTokenUse, type: :job do
 
       it 'updates the last_used_at attribute' do
         was = personal_token.last_used_at
-        now = Time.now.utc
+        now = Time.now.utc.floor(6)
 
         expect { described_class.perform_now(access_token.id, now) }
           .to change { personal_token.reload.last_used_at }.from(was).to(now)
@@ -29,7 +29,7 @@ RSpec.describe TrackPersonalAccessTokenUse, type: :job do
       end
 
       it 'updates the last_used_at attribute' do
-        now = Time.now.utc
+        now = Time.now.utc.floor(6)
 
         expect { described_class.perform_now(access_token.id, now) }
           .to change { personal_token.reload.last_used_at }.from(nil).to(now)
@@ -51,7 +51,7 @@ RSpec.describe TrackPersonalAccessTokenUse, type: :job do
         personal_token.update!(last_used_at: was)
       end
 
-      let(:was) { 1.hour.ago }
+      let(:was) { 1.hour.ago.floor(6) }
 
       it 'does not update the last_used_at attribute' do
         expect { described_class.perform_now(access_token.id, 1.day.ago) }
