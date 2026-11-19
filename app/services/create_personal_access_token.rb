@@ -13,7 +13,6 @@ class CreatePersonalAccessToken
     SCOPES_DELETE = "#{SCOPES_WRITE} scenarios:delete".freeze
 
     SCOPES = {
-      public: SCOPES_PUBLIC,
       read:   SCOPES_READ,
       write:  SCOPES_WRITE,
       delete: SCOPES_DELETE
@@ -21,11 +20,9 @@ class CreatePersonalAccessToken
 
     ExpiresType = Dry::Types["coercible.integer"] | Dry::Types["coercible.string"]
 
-    attribute :name,          Dry::Types["coercible.string"].default("")
-    attribute :permissions,   Dry::Types["coercible.symbol"].default(:public)
-    attribute :email_scope,   Dry::Types["params.bool"].default(false)
-    attribute :profile_scope, Dry::Types["params.bool"].default(false)
-    attribute :expires_in,    ExpiresType.default(30)
+    attribute :name,        Dry::Types["coercible.string"].default("")
+    attribute :permissions, Dry::Types["coercible.symbol"].default(:read)
+    attribute :expires_in,  ExpiresType.default(30)
 
     transform_keys(&:to_sym)
 
@@ -36,21 +33,11 @@ class CreatePersonalAccessToken
     def to_oauth_token_params
       {
         expires_in: expires_in.to_i.days,
-        scopes:
+        scopes: SCOPES[permissions]
       }
     end
 
     def to_key = nil
-
-    private
-
-    def scopes
-      [
-        SCOPES[permissions],
-        email_scope ? "email" : nil,
-        profile_scope ? "profile" : nil
-      ].compact.join(" ")
-    end
   end
 
   include Dry::Monads[:result]
