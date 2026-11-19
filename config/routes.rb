@@ -46,7 +46,7 @@ Rails.application.routes.draw do
 
   root :to => "saved_scenarios#index"
 
-  resources :saved_scenarios do
+  resources :saved_scenarios, except: %i[new create] do
     resource :feature, only: %i[show create update destroy], controller: 'featured_scenarios' do
       get :confirm_destroy
     end

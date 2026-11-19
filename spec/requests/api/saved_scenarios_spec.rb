@@ -333,6 +333,28 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
       end
     end
 
+    context 'when ETEngine refuses to bind the scenario' do
+      let(:scenario_attributes) { { saved_scenario: super().merge(version: Version.default.tag) } }
+
+      before do
+        allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :refused, [ 1 ] ]))
+      end
+
+      it 'returns unprocessable entity' do
+        request
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'renders an error on the scenario ID' do
+        request
+        expect(response.parsed_body['errors']).to eq([ 'Scenario is already saved, or you cannot edit it' ])
+      end
+
+      it 'does not create a saved scenario' do
+        expect { request }.not_to change(SavedScenario, :count)
+      end
+    end
+
     context 'when given a valid access token and data, but the user does not exist' do
       before do
         user.destroy!
@@ -453,6 +475,26 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
           .to change { scenario.reload.scenario_id_history }
           .from([])
           .to([ previous_id ])
+      end
+    end
+
+    context 'when ETEngine refuses to bind the new scenario' do
+      before do
+        allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :refused, [ 2 ] ]))
+      end
+
+      it 'returns unprocessable entity' do
+        request
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'renders an error on the scenario ID' do
+        request
+        expect(response.parsed_body['errors']).to eq([ 'Scenario is already saved, or you cannot edit it' ])
+      end
+
+      it 'keeps the current scenario' do
+        expect { request }.not_to(change { scenario.reload.scenario_id })
       end
     end
 

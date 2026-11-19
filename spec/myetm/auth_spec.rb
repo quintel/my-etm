@@ -132,6 +132,30 @@ RSpec.describe MyEtm::Auth do
     end
   end
 
+  describe '.client_for' do
+    let(:stubs) { Faraday::Adapter::Test::Stubs.new }
+    let(:application) { instance_double(OAuthApplication, uri: 'https://engine.example.com') }
+
+    let(:error) do
+      client = described_class.client_for(create(:user), application)
+      client.adapter(:test, stubs)
+      client.put('/refuse')
+    rescue Faraday::UnprocessableEntityError => e
+      e
+    end
+
+    before do
+      allow(described_class).to receive(:client_token).and_return('token')
+      stubs.put('/refuse') do
+        [ 422, { 'Content-Type' => 'application/json' }, '{"refused":[2]}' ]
+      end
+    end
+
+    it 'parses the body of an error response' do
+      expect(error.response_body).to eq('refused' => [ 2 ])
+    end
+  end
+
   describe '.scenario_grant' do
     let(:user) { create(:user) }
     let(:saved_scenario) do

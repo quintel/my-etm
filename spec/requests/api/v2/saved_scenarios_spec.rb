@@ -160,6 +160,27 @@ RSpec.describe "Api::V2::SavedScenarios", type: :request, api: true do
       let(:verb) { :post }
     end
 
+    it "refuses a scenario ETEngine will not bind" do
+      allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :refused, [ 123_456 ] ]))
+      post(path, headers: v2_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "points the refusal at the scenario ID" do
+      allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :refused, [ 123_456 ] ]))
+      post(path, headers: v2_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json)
+
+      expect(response.parsed_body.dig("errors", 0, "source", "pointer")).to eq("/saved_scenario/scenario_id")
+    end
+
+    it "keeps no saved scenario when ETEngine will not bind" do
+      allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Failure([ :refused, [ 123_456 ] ]))
+
+      expect { post(path, headers: v2_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json) }
+        .not_to change(SavedScenario, :count)
+    end
+
     it "creates the scenario and renders the single-resource kind" do
       post(path, headers: v2_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json)
 

@@ -32,12 +32,24 @@ class ApiScenario::SetBound
     call(user, saved_scenario.version, saved_scenario.all_scenario_ids, bound)
   end
 
+  # Binds Sessions into a saved scenario. ETEngine binds only Sessions the user may update that no
+  # saved scenario holds yet
+  def self.bind_into(user, saved_scenario, ids)
+    result = call(user, saved_scenario.version, ids, true)
+    return result unless result.failure? && result.failure.first == :refused
+
+    saved_scenario.errors.add(:scenario_id, :refused, message: "is already saved, or you cannot edit it")
+    Dry::Monads::Failure(saved_scenario.errors)
+  end
+
   def self.supported?(version)
     Settings.versions_without_bound_flag.exclude?(version.tag)
   end
 
   def call
     Success(call!)
+  rescue Faraday::UnprocessableEntityError => e
+    Failure([ :refused, e.response_body["refused"] ])
   rescue Faraday::Error => e
     Sentry.capture_exception(e)
     Failure([ :upstream, [ "Failed to update the session in ETEngine" ] ])

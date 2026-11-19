@@ -51,7 +51,7 @@ class SavedScenario::UpsertScenario
 
   # Binds the new current Session, and unbinds the evicted Session if there was one
   def bind(evicted)
-    result = ApiScenario::SetBound.call(user, saved_scenario.version, [ scenario_id ], true)
+    result = ApiScenario::SetBound.bind_into(user, saved_scenario, [ scenario_id ])
     return result if result.failure? || evicted.nil?
 
     ApiScenario::SetBound.call(user, saved_scenario.version, [ evicted ], false)
