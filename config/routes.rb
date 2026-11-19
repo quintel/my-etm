@@ -36,7 +36,6 @@ Rails.application.routes.draw do
     patch 'subscription/:audience', to: 'newsletter#update', as: :update_subscription
 
     resources :tokens, only: [:index, :new, :create, :destroy], as: :tokens
-    resources :access_tokens, only: [:create], as: :access_tokens
     resources :authorized_applications, only: [:index], as: :authorized_applications
   end
 

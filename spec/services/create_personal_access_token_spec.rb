@@ -93,6 +93,14 @@ RSpec.describe CreatePersonalAccessToken do
     end
   end
 
+  context 'with permissions="public"' do
+    let(:action) do
+      described_class.call(user:, params: { name: 'API access', permissions: 'public' })
+    end
+
+    include_examples 'failing to create a personal access token'
+  end
+
   context 'with permissions="bind"' do
     let(:action) do
       described_class.call(user:, params: { name: 'API access', permissions: 'bind' })
@@ -109,6 +117,32 @@ RSpec.describe CreatePersonalAccessToken do
     expect(scopes + Doorkeeper.config.scopes.to_a).not_to include(ApiScenario::SetBound::SCOPE)
   end
 
+  context 'with no permissions' do
+    let(:action) do
+      described_class.call(user:, params: { name: 'API access' })
+    end
+
+    include_examples 'creating a personal access token'
+
+    it 'sets scopes to "openid public scenarios:read"' do
+      expect(action.value!.oauth_access_token.scopes.to_a)
+        .to eq(%w[openid public scenarios:read])
+    end
+  end
+
+  context 'with permissions="read"' do
+    let(:action) do
+      described_class.call(user:, params: { name: 'API access', permissions: 'read' })
+    end
+
+    include_examples 'creating a personal access token'
+
+    it 'sets scopes to "openid public scenarios:read"' do
+      expect(action.value!.oauth_access_token.scopes.to_a)
+        .to eq(%w[openid public scenarios:read])
+    end
+  end
+
   context 'with permissions="write"' do
     let(:action) do
       described_class.call(user:, params: { name: 'API access', permissions: 'write' })
@@ -122,27 +156,16 @@ RSpec.describe CreatePersonalAccessToken do
     end
   end
 
-  context 'with email_scope="1"' do
+  context 'with permissions="delete"' do
     let(:action) do
-      described_class.call(user:, params: { name: 'API access', email_scope: '1' })
+      described_class.call(user:, params: { name: 'API access', permissions: 'delete' })
     end
 
     include_examples 'creating a personal access token'
 
-    it 'sets scopes to "openid public email' do
-      expect(action.value!.oauth_access_token.scopes.to_a) .to eq(%w[openid public email])
-    end
-  end
-
-  context 'with profile_scope="1"' do
-    let(:action) do
-      described_class.call(user:, params: { name: 'API access', profile_scope: '1' })
-    end
-
-    include_examples 'creating a personal access token'
-
-    it 'sets scopes to "openid public profile' do
-      expect(action.value!.oauth_access_token.scopes.to_a) .to eq(%w[openid public profile])
+    it 'sets scopes to "openid public scenarios:read scenarios:write scenarios:delete"' do
+      expect(action.value!.oauth_access_token.scopes.to_a)
+        .to eq(%w[openid public scenarios:read scenarios:write scenarios:delete])
     end
   end
 

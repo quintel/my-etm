@@ -62,31 +62,28 @@ RSpec.describe Identity::TokenComponent, type: :component do
       build_token(scopes: 'public scenarios:read')
     end
 
-    it 'shows that the token may read public scenarios' do
-      expect(rendered).to have_css(
-        '[data-testid="scope:public"]:not([aria-hidden="true"])',
-        text: 'Read public scenarios'
-      )
+    it 'does not list the public scope' do
+      expect(rendered).to have_no_css('[data-testid="scope:public"]')
     end
 
-    it 'shows that the token may read private scenarios' do
+    it 'shows that the token may read scenarios' do
       expect(rendered).to have_css(
         '[data-testid="scope:scenarios:read"]:not([aria-hidden="true"])',
-        text: 'Read your private scenarios'
+        text: 'Read scenarios'
       )
     end
 
     it 'shows that the token may not write scenarios' do
       expect(rendered).to have_css(
         '[data-testid="scope:scenarios:write"][aria-hidden="true"]',
-        text: 'Create new scenarios and change your public and private scenarios'
+        text: 'Write scenarios'
       )
     end
 
     it 'shows that the token may not delete scenarios' do
       expect(rendered).to have_css(
         '[data-testid="scope:scenarios:delete"][aria-hidden="true"]',
-        text: 'Delete your public and private scenarios'
+        text: 'Delete scenarios'
       )
     end
   end
