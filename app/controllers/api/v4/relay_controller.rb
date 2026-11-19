@@ -6,7 +6,9 @@ module Api
     # where to. nginx passes the original call in the X-Original-URI and X-Original-Method headers
     class RelayController < BaseController
       RELAYED_PATH = %r{\A/api/v4/saved_scenarios/(?<id>\d+)/(?<path>[^?]*)}
-      DENIED_SEGMENTS = %w[users bind dump interpolate].freeze
+
+      # Engine routes that would go around MyETM's authority, or create a Session
+      DENIED_SEGMENTS = %w[users dump interpolate].freeze
 
       # Engine's Rack::MethodOverride can turn a POST into a DELETE, so the Session itself is
       # relayed for these methods only
@@ -23,7 +25,6 @@ module Api
       before_action :refuse_unrelayed_path, :resolve_saved_scenario, :reject_discarded_scenario,
         only: :verdict
 
-      # nginx's auth_request asks here with the original call's method
       def verdict
         relay_headers.compact.each { |name, value| response.set_header(name, value) }
         render_no_content
@@ -56,7 +57,7 @@ module Api
       end
 
       def refuse_unrelayed_path
-        render_not_relayed unless original_call && relayable?
+        render_not_relayed unless original_call && original_method && relayable?
       end
 
       def resolve_saved_scenario
@@ -80,21 +81,21 @@ module Api
       end
 
       def original_method
-        request.headers["X-Original-Method"].presence || request.request_method
+        request.headers["X-Original-Method"].presence
       end
 
       def relay_headers
         {
           "X-Engine-Origin" => @saved_scenario.version.engine_url,
           "X-Engine-Path" => "/api/v3/scenarios/#{@saved_scenario.scenario_id}/#{original_call[:path]}",
-          "X-Engine-Token" => engine_token,
+          "X-Relay-Token" => relay_token,
           "X-Etm-User-Id" => current_user&.id&.to_s,
-          "X-Etm-Pat-Id" => current_token&.id&.to_s,
+          "X-Etm-Token-Id" => current_token&.id&.to_s,
           "X-Etm-Version" => @saved_scenario.version.tag
         }
       end
 
-      def engine_token
+      def relay_token
         return unless current_user
 
         MyEtm::Auth.relay_token(current_user, @saved_scenario, level: grant_level, scopes: relayed_scopes)

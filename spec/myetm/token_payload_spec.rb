@@ -40,6 +40,16 @@ RSpec.describe MyEtm::TokenPayload do
     expect(build[:scopes]).to eq("openid scenarios:read")
   end
 
+  it "keeps a nil scopes claim, as Doorkeeper::JWT did" do
+    expect(build(scopes: nil)).to include(scopes: nil)
+  end
+
+  it "refuses an application and a Version together" do
+    application = create(:oauth_application, version: stable)
+
+    expect { build(application:, version: stable) }.to raise_error(ArgumentError)
+  end
+
   it "expires after expires_in" do
     freeze_time do
       expect(build(expires_in: 120)[:exp]).to eq(Time.now.to_i + 120)
