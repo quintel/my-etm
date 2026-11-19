@@ -3,8 +3,9 @@
 module MyEtm
   # The claims of every token MyETM signs
   class TokenPayload
-    # An application, a Version or neither
     def initialize(user:, scopes:, application: nil, version: nil, expires_in: nil, scenario_access: nil)
+      raise ArgumentError, "give an application or a Version, not both" if application && version
+
       @user = user
       @scopes = scopes
       @application = application
@@ -14,20 +15,27 @@ module MyEtm
     end
 
     def to_h
+      now = Time.now.to_i
+
       {
         iss: Doorkeeper::OpenidConnect.configuration.issuer.call(@user, nil),
-        iat: Time.now.to_i,
+        iat: now,
         aud: audience,
         scopes: @scopes,
         jti: SecureRandom.uuid,
         sub: @user.id,
-        user: @user.as_json(only: %i[id admin email name]),
-        exp: @expires_in && Time.now.to_i + @expires_in,
-        ScenarioAccess::CLAIM => (@access.as_claim unless @access.empty?)
-      }.compact
+        user: @user.as_json(only: %i[id admin email name])
+      }.merge(optional_claims(now))
     end
 
     private
+
+    def optional_claims(now)
+      {
+        exp: @expires_in && now + @expires_in,
+        ScenarioAccess::CLAIM => (@access.as_claim unless @access.empty?)
+      }.compact
+    end
 
     def audience
       if @application then application_audience

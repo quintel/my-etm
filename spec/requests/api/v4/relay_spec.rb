@@ -27,14 +27,14 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
     )
   end
 
-  def engine_claims
+  def relay_claims
     JWT.decode(
-      response.headers["X-Engine-Token"], MyEtm::Auth.signing_key.public_key, true, algorithms: [ "RS256" ]
+      response.headers["X-Relay-Token"], MyEtm::Auth.signing_key.public_key, true, algorithms: [ "RS256" ]
     ).first
   end
 
   def grant
-    engine_claims.dig("scenario_access", saved_scenario.version.tag)
+    relay_claims.dig("scenario_access", saved_scenario.version.tag)
   end
 
   describe "an allowed call" do
@@ -63,10 +63,10 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
       expect(response.headers["X-Engine-Path"]).to eq("/api/v3/scenarios/648695/curves/merit_order.csv")
     end
 
-    it "gives the access log its user, PAT and Version" do
+    it "gives the access log its user, token and Version" do
       ask("inputs", headers: bearer(pat))
 
-      expect(response.headers.values_at("X-Etm-User-Id", "X-Etm-Pat-Id", "X-Etm-Version"))
+      expect(response.headers.values_at("X-Etm-User-Id", "X-Etm-Token-Id", "X-Etm-Version"))
         .to eq([ user.id.to_s, pat.id.to_s, "latest" ])
     end
 
@@ -101,7 +101,7 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
     end
   end
 
-  describe "the engine token" do
+  describe "the relay token" do
     it "gives an owner write" do
       ask("inputs", headers: bearer(pat_for(owner)))
 
@@ -132,7 +132,7 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
     it "carries only a read scoped PAT's own scopes, so the engine refuses its writes" do
       ask("inputs", headers: bearer(pat_for(owner, permissions: :read)))
 
-      expect(engine_claims["scopes"].split).to contain_exactly("openid", "public", "scenarios:read")
+      expect(relay_claims["scopes"].split).to contain_exactly("openid", "public", "scenarios:read")
     end
 
     it "never carries roles or scenarios:bind, even from a token that holds them" do
@@ -141,32 +141,32 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
       )
       ask("inputs", headers: bearer(token))
 
-      expect(engine_claims["scopes"].split).to contain_exactly("openid", "scenarios:read")
+      expect(relay_claims["scopes"].split).to contain_exactly("openid", "scenarios:read")
     end
 
     it "names only the Scenario's Version's engine" do
       ask("inputs", headers: bearer(pat_for(owner)))
 
-      expect(engine_claims["aud"]).to eq([ engine_url ])
+      expect(relay_claims["aud"]).to eq([ engine_url ])
     end
 
     it "expires within two minutes" do
       ask("inputs", headers: bearer(pat_for(owner)))
 
-      expect(engine_claims["exp"]).to be <= 2.minutes.from_now.to_i
+      expect(relay_claims["exp"]).to be <= 2.minutes.from_now.to_i
     end
 
     it "identifies its user as the engine's User.from_jwt! needs" do
       ask("inputs", headers: bearer(pat_for(owner)))
 
-      expect(engine_claims).to include(
+      expect(relay_claims).to include(
         "sub" => owner.id, "user" => include("id" => owner.id, "email" => owner.email, "name" => owner.name)
       )
     end
 
     it "names its key with the published kid and has no PAT prefix" do
       ask("inputs", headers: bearer(pat_for(owner)))
-      token = response.headers["X-Engine-Token"]
+      token = response.headers["X-Relay-Token"]
 
       expect(JWT.decode(token, nil, false).last["kid"]).to eq(Doorkeeper::OpenidConnect.signing_key.kid)
       expect(PersonalAccessToken.prefixed?(token)).to be(false)
@@ -180,7 +180,7 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
 
       expect(response).to have_http_status(:no_content)
       expect(response.headers).to include("X-Engine-Origin")
-      expect(response.headers).not_to include("X-Engine-Token", "X-Etm-User-Id")
+      expect(response.headers).not_to include("X-Relay-Token", "X-Etm-User-Id")
     end
 
     it "is told to authenticate for a private Scenario" do
@@ -203,7 +203,7 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
         refuse
 
         expect(response).to have_http_status(verdict)
-        expect(response.headers).not_to include("X-Engine-Origin", "X-Engine-Token")
+        expect(response.headers).not_to include("X-Engine-Origin", "X-Relay-Token")
       end
 
       it "renders #{code} with #{status}" do
@@ -271,7 +271,6 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
     {
       "users" => "users",
       "users with a format suffix" => "users.json",
-      "bind" => "bind",
       "dump" => "dump",
       "interpolate" => "interpolate",
       "a .. segment" => "inputs/../users",
@@ -307,6 +306,14 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
 
     context "without the original call" do
       def refuse = get("/api/v4/relay/verdict", headers: bearer(pat))
+
+      it_behaves_like "a refusal", verdict: :forbidden, status: :forbidden, code: "forbidden"
+    end
+
+    context "without the original method" do
+      before { give_role(:scenario_owner) }
+
+      def refuse = ask("", method: "", headers: bearer(pat))
 
       it_behaves_like "a refusal", verdict: :forbidden, status: :forbidden, code: "forbidden"
     end

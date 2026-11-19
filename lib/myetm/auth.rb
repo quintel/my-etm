@@ -102,9 +102,8 @@ module MyEtm
       )
     end
 
-    # A stateless engine token for one relayed call, with no Doorkeeper::AccessToken row. It names the
-    # Scenario's Version's engine only, grants its current Session at the given level, and carries the
-    # caller's own scopes. Revoking a PAT or removing a role is instant.
+    # A stateless token for one relayed call, with no Doorkeeper::AccessToken row. Each call mints its
+    # own, so revoking a PAT or removing a role holds from the next call.
     def relay_token(user, saved_scenario, level:, scopes:)
       version = saved_scenario.version
 

@@ -40,7 +40,7 @@ RSpec.describe 'Token contract', type: :request do
     ).token
   end
 
-  let(:exchanged_token) do
+  let(:relay_token) do
     saved_scenario = create(:saved_scenario, user:, scenario_id: 648_695)
 
     MyEtm::Auth.relay_token(
@@ -107,26 +107,26 @@ RSpec.describe 'Token contract', type: :request do
     end
   end
 
-  describe 'the exchanged token' do
-    let(:exchanged_claims) do
-      JWT.decode(exchanged_token, MyEtm::Auth.signing_key.public_key, true, algorithms: [ 'RS256' ]).first
+  describe 'the relay token' do
+    let(:relay_claims) do
+      JWT.decode(relay_token, MyEtm::Auth.signing_key.public_key, true, algorithms: [ 'RS256' ]).first
     end
 
     it 'names its key with the kid published at /oauth/discovery/keys' do
-      expect(JWT.decode(exchanged_token, nil, false).last['kid'])
+      expect(JWT.decode(relay_token, nil, false).last['kid'])
         .to eq(Doorkeeper::OpenidConnect.signing_key.kid)
     end
 
     it 'carries the claims every consumer requires' do
-      expect(exchanged_claims).to include('iss', 'aud', 'sub', 'exp', 'scopes', 'user')
+      expect(relay_claims).to include('iss', 'aud', 'sub', 'exp', 'scopes', 'user')
     end
 
     it 'is audienced at its Version’s engine alone' do
-      expect(exchanged_claims['aud']).to eq([ Version.default.engine_url ])
+      expect(relay_claims['aud']).to eq([ Version.default.engine_url ])
     end
 
     it 'grants its one Session on its Version' do
-      expect(exchanged_claims['scenario_access']).to eq('latest' => { 'write' => [ 648_695 ] })
+      expect(relay_claims['scenario_access']).to eq('latest' => { 'write' => [ 648_695 ] })
     end
   end
 
@@ -156,8 +156,8 @@ RSpec.describe 'Token contract', type: :request do
       'session_token' => anchor.token,
       'session_audience' => session_claims['aud'],
       'granted_token' => granted_token,
-      'exchanged_token' => exchanged_token,
-      'exchanged_audience' => Version.default.engine_url,
+      'relay_token' => relay_token,
+      'relay_audience' => Version.default.engine_url,
       # A token in the pre-migration shape: legacy kid, space-delimited audience string. Consumers
       # must still verify this until the next major API break invalidates every pre-migration PAT,
       # at which point OAuth::DiscoveryController#legacy_key and TokenDecoder#verify_audience!'s
