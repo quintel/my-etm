@@ -16,6 +16,7 @@ module EtmApi
       INTERNAL_ERROR     = "internal_error"      # the item failed unexpectedly (500)
       UPSTREAM_ERROR     = "upstream_error"      # a service this request depends on failed (502)
       ENGINE_UNAVAILABLE = "engine_unavailable"  # the relay could not reach the engine in time (502)
+      TOO_MANY_REQUESTS  = "too_many_requests"   # the caller already holds the API gateway's concurrent cap (429)
     end
   end
 end
