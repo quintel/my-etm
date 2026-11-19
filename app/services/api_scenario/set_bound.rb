@@ -38,7 +38,7 @@ class ApiScenario::SetBound
     result = call(user, saved_scenario.version, ids, true)
     return result unless result.failure? && result.failure.first == :refused
 
-    saved_scenario.errors.add(:scenario_id, :invalid)
+    saved_scenario.errors.add(:scenario_id, :refused, message: "is already saved, or you cannot edit it")
     Dry::Monads::Failure(saved_scenario.errors)
   end
 

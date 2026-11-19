@@ -347,7 +347,7 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
 
       it 'renders an error on the scenario ID' do
         request
-        expect(response.parsed_body['errors']).to eq([ 'Scenario is invalid' ])
+        expect(response.parsed_body['errors']).to eq([ 'Scenario is already saved, or you cannot edit it' ])
       end
 
       it 'does not create a saved scenario' do
@@ -490,7 +490,7 @@ RSpec.describe 'API::SavedScenarios', :api, type: :request do
 
       it 'renders an error on the scenario ID' do
         request
-        expect(response.parsed_body['errors']).to eq([ 'Scenario is invalid' ])
+        expect(response.parsed_body['errors']).to eq([ 'Scenario is already saved, or you cannot edit it' ])
       end
 
       it 'keeps the current scenario' do

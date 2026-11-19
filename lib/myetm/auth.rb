@@ -123,8 +123,8 @@ module MyEtm
           client_token(user, client_app, scopes: scopes, scenario_access: grant&.call)
         })
         conn.request(:json)
-        conn.response(:json)
         conn.response(:raise_error)
+        conn.response(:json)
       end
     end
 
