@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Base Stage: Ruby and dependencies
-ARG RUBY_VERSION=4.0.2-slim
+ARG RUBY_VERSION=4.0.10-slim
 FROM ruby:${RUBY_VERSION}
 
 LABEL maintainer="info@energytransitionmodel.com"
@@ -22,7 +22,7 @@ RUN apt-get update -yqq && \
       pkg-config && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile Gemfile.lock .ruby-version ./
 RUN bundle install
 RUN bundle exec rails tailwindcss:build
 

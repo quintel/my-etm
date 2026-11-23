@@ -42,3 +42,17 @@ jobs:
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
+
+  ruby_version:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check the Dockerfiles use the Ruby in .ruby-version
+        run: |
+          v=$(cat .ruby-version)
+          for f in Dockerfile Dockerfile.production; do
+            grep -qE "ruby:${v}-slim|RUBY_VERSION=${v}-slim" "$f" || { echo "$f is not on Ruby $v"; exit 1; }
+          done
