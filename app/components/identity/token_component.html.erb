@@ -101,25 +101,19 @@
 
   <%= render(Identity::RowComponent.new(title: t('.permissions'))) do |row| %>
     <%= render(Identity::Token::ScopeComponent.new(
-        name: t('doorkeeper.scopes.public'),
-        enabled: @access_token.includes_scope?('public'),
-        testid: 'scope:public'
-      )) %>
-
-    <%= render(Identity::Token::ScopeComponent.new(
-        name: t('doorkeeper.scopes.scenarios:read'),
+        name: t('.scopes.read'),
         enabled: @access_token.includes_scope?('scenarios:read'),
         testid: 'scope:scenarios:read'
       )) %>
 
     <%= render(Identity::Token::ScopeComponent.new(
-        name: t('doorkeeper.scopes.scenarios:write'),
+        name: t('.scopes.write'),
         enabled: @access_token.includes_scope?('scenarios:write'),
         testid: 'scope:scenarios:write'
       )) %>
 
     <%= render(Identity::Token::ScopeComponent.new(
-        name: t('doorkeeper.scopes.scenarios:delete'),
+        name: t('.scopes.delete'),
         enabled: @access_token.includes_scope?('scenarios:delete'),
         testid: 'scope:scenarios:delete'
       )) %>

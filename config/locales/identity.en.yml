@@ -132,6 +132,10 @@ en:
       expires: Expires
       last_used: Last used
       permissions: Permissions
+      scopes:
+        read: Read
+        write: Write
+        delete: Delete
       full_token_not_shown: |
         The full token is not shown here. If you have lost it you should revoke this token and
         create a new one.
@@ -169,42 +173,14 @@ en:
       new:
         name: Token name
         name_hint: This name will help you recognise the token in the future.
-        permissions: Scenario permissions
         title: Create a new access token
         permissions:
-          public:
-            title: Read public scenarios only
-            hint: |
-              This token will be able to read public scenarios created by you and other people.
-          read:
-            title: Read public and private scenarios
-            hint: |
-              This token will be able to read your public and private scenarios, but will not permit
-              changes.
-          write:
-            title: Read and write public and private scenarios
-            hint: |
-              This token will be able to read and make changes to your public and private scenarios,
-              but will not be able to delete scenarios.
-          delete:
-            title: Read, write, and delete public and private scenarios
-            hint: |
-              This token will be able to read and make changes to your public and private scenarios,
-              and also delete your scenarios.
-          email:
-            title: E-mail address
-            hint: |
-              The token will be able to read your e-mail address.
-          profile:
-            title: Profile
-            hint: |
-              The token will be able to read your profile information including
-              your name.
+          read: Read
+          write: Read and write
+          delete: Read, write and delete
       expiration_options:
-        never: Never
         n_days: "%{n} days"
         one_year: One year
-        never_message: This token will never expire!
         expires_at_message: This token will expire on %{date}.
 
   doorkeeper:

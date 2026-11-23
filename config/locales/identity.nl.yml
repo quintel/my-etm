@@ -133,6 +133,10 @@ nl:
       expires: Verloopt
       last_used: Laatst gebruikt
       permissions: Bevoegdheden
+      scopes:
+        read: Lezen
+        write: Bewerken
+        delete: Verwijderen
       full_token_not_shown: |
         Het volledige token wordt hier niet getoond. Als dit verloren is gegaan, moet je dit token
         intrekken en een nieuwe aanmaken.
@@ -165,35 +169,11 @@ nl:
       new:
         name: Token naam
         name_hint: Deze naam helpt je om in de toekomst het token te herkennen.
-        permissions: Bevoegdheden
         title: Maak een nieuw toegangstoken aan
         permissions:
-          public:
-            title: Alleen-lezen van publieke scenario's
-            hint: |
-              Dit token kan enkel publieke scenario's lezen die door jou en anderen zijn gemaakt.
-          read:
-            title: Alleen-lezen van publieke en privéscenario's
-            hint: |
-              Dit token kan jouw publieke en privéscenario's lezen, maar kan geen wijzigingen aanbrengen.
-          write:
-            title: Lees en bewerk publieke en privéscenario's
-            hint: |
-              Dit token kan jouw publieke en privéscenario's lezen en kan wijzigingen aanbrengen, maar kan geen
-              scenario's verwijderen.
-          delete:
-            title: Lees, bewerk en verwijder publieke en privéscenario's
-            hint: |
-              Dit token kan jouw publieke en privéscenario's lezen, kan wijzigingen aanbrengen en kan jouw
-              scenario's verwijderen.
-          email:
-            title: E-mailadres
-            hint: |
-              Dit token kan jouw e-mailadres lezen.
-          profile:
-            title: Profiel
-            hint: |
-              Dit token kan jouw profielinformatie lezen, waaronder jouw naam.
+          read: Lezen
+          write: Lezen en bewerken
+          delete: Lezen, bewerken en verwijderen
       expiration_options:
         n_days: "%{n} dagen"
         one_year: Één jaar
