@@ -112,6 +112,11 @@ class SavedScenario < ApplicationRecord
     (Time.current - updated_at) / 60 / 60 / 24
   end
 
+  # Whether a copy at this end year is interpolated, rather than cloned as it is
+  def interpolates_to?(end_year)
+    !end_year.in?([ nil, self.end_year ])
+  end
+
   def self.owned_by?(user)
     joins(:saved_scenario_users)
       .where(

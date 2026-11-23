@@ -5,9 +5,10 @@ require 'cancan/matchers'
 
 RSpec.describe Api::TokenAbility do
   # The token scopes will be overridden per context.
+  subject(:ability) { described_class.new(token, user) }
+
   let(:scopes) { "" }
   let(:token)  { { "scopes" => scopes } }
-  subject(:ability) { described_class.new(token, user) }
 
   let(:public_saved_scenario)        { create(:saved_scenario, private: false) }
   let(:private_saved_scenario)       { create(:saved_scenario, private: true) }
@@ -55,6 +56,7 @@ RSpec.describe Api::TokenAbility do
   context 'when the token scope is "public" (no scopes)' do
     let(:user) { create(:user, admin: false) }
     let(:scopes) { "" }
+
     before { user_collection }
 
     describe "read abilities" do
@@ -106,6 +108,7 @@ RSpec.describe Api::TokenAbility do
   context 'when the token scope is "scenarios:read" as a viewer' do
     let(:user) { viewer_user }
     let(:scopes) { "scenarios:read" }
+
     before { user_collection }
 
     describe "read abilities" do
@@ -157,6 +160,7 @@ RSpec.describe Api::TokenAbility do
   context 'when the token scope is "scenarios:read scenarios:write" as a collaborator' do
     let(:user) { collaborator_user }
     let(:scopes) { "scenarios:read scenarios:write" }
+
     before { user_collection }
 
     describe "read abilities" do
@@ -224,6 +228,7 @@ RSpec.describe Api::TokenAbility do
   context 'when the token scope is "scenarios:read scenarios:write scenarios:delete" as an owner' do
     let(:user) { owner_user }
     let(:scopes) { "scenarios:read scenarios:write scenarios:delete" }
+
     before { user_collection }
 
     describe "read abilities" do
@@ -311,6 +316,7 @@ RSpec.describe Api::TokenAbility do
   context 'when the user is an admin' do
     let(:user) { create(:user, admin: true) }
     let(:scopes) { "scenarios:read scenarios:write scenarios:delete" }
+
     before { user_collection }
 
     describe "read abilities" do
@@ -401,6 +407,52 @@ RSpec.describe Api::TokenAbility do
 
       it "may read the members of a scenario they hold no role on" do
         expect(ability).to be_able_to(:read_members, other_private_saved_scenario)
+      end
+    end
+  end
+
+  # ETEngine onnly interpolates a private Session for a caller with write, so MyETM asks for the same
+  describe "interpolating" do
+    let(:scopes) { "public scenarios:read scenarios:write" }
+
+    context "as a collaborator" do
+      let(:user) { collaborator_user }
+
+      it "may interpolate a private scenario they collaborate on" do
+        expect(ability).to be_able_to(:interpolate, private_saved_scenario)
+      end
+
+      it "may interpolate a public scenario they hold no role on" do
+        expect(ability).to be_able_to(:interpolate, other_public_saved_scenario)
+      end
+
+      it "may not interpolate a private scenario they hold no role on" do
+        expect(ability).not_to be_able_to(:interpolate, other_private_saved_scenario)
+      end
+    end
+
+    context "as a viewer" do
+      let(:user) { viewer_user }
+
+      it "may not interpolate a private scenario they can only read" do
+        expect(ability).not_to be_able_to(:interpolate, private_saved_scenario)
+      end
+    end
+
+    context "with only the read scope" do
+      let(:user) { collaborator_user }
+      let(:scopes) { "public scenarios:read" }
+
+      it "may not interpolate, even a public scenario" do
+        expect(ability).not_to be_able_to(:interpolate, public_saved_scenario)
+      end
+    end
+
+    context "as an admin" do
+      let(:user) { create(:user, admin: true) }
+
+      it "may interpolate a private scenario they hold no role on" do
+        expect(ability).to be_able_to(:interpolate, other_private_saved_scenario)
       end
     end
   end
