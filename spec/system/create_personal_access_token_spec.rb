@@ -3,14 +3,14 @@
 RSpec.describe 'Revoking a personal access token', type: :system do
   {
     en: [
-      'Read scenarios',
-      'Read and write scenarios',
-      'Read, write, and delete scenarios'
+      'Read',
+      'Read and write',
+      'Read, write and delete'
     ],
     nl: [
-      "Lees scenario's",
-      "Lees en bewerk scenario's",
-      "Lees, bewerk en verwijder scenario's"
+      'Lezen',
+      'Lezen en bewerken',
+      'Lezen, bewerken en verwijderen'
     ]
   }.each do |locale, (read, write, delete)|
     context "with locale=#{locale}" do
@@ -23,9 +23,9 @@ RSpec.describe 'Revoking a personal access token', type: :system do
 
         within('form[name="token"]') do
           expect(page).to have_field(type: 'radio', count: 3)
-          expect(page).to have_checked_field(read)
-          expect(page).to have_unchecked_field(write)
-          expect(page).to have_unchecked_field(delete)
+          expect(page).to have_checked_field(read, exact: true)
+          expect(page).to have_unchecked_field(write, exact: true)
+          expect(page).to have_unchecked_field(delete, exact: true)
           expect(page).to have_no_field(type: 'checkbox')
           expect(page).to have_no_css('.translation_missing')
         end
@@ -42,7 +42,7 @@ RSpec.describe 'Revoking a personal access token', type: :system do
 
       fill_in 'Token name', with: 'API access'
       select '7 days', from: 'Expiration'
-      choose 'Read scenarios'
+      choose 'Read', exact: true
 
       click_button 'Create token'
 
@@ -53,17 +53,17 @@ RSpec.describe 'Revoking a personal access token', type: :system do
 
       expect(page).to have_css(
         '[data-testid="scope:scenarios:read"]:not([aria-hidden="true"])',
-        text: 'Read scenarios'
+        text: 'Read'
       )
 
       expect(page).to have_css(
         '[data-testid="scope:scenarios:write"][aria-hidden="true"]',
-        text: 'Write scenarios'
+        text: 'Write'
       )
 
       expect(page).to have_css(
         '[data-testid="scope:scenarios:delete"][aria-hidden="true"]',
-        text: 'Delete scenarios'
+        text: 'Delete'
       )
     end
   end
@@ -77,7 +77,7 @@ RSpec.describe 'Revoking a personal access token', type: :system do
 
       fill_in 'Token name', with: ''
       select '7 days', from: 'Expiration'
-      choose 'Read scenarios'
+      choose 'Read', exact: true
 
       click_button 'Create token'
 

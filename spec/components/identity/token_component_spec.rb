@@ -69,21 +69,21 @@ RSpec.describe Identity::TokenComponent, type: :component do
     it 'shows that the token may read scenarios' do
       expect(rendered).to have_css(
         '[data-testid="scope:scenarios:read"]:not([aria-hidden="true"])',
-        text: 'Read scenarios'
+        text: 'Read'
       )
     end
 
     it 'shows that the token may not write scenarios' do
       expect(rendered).to have_css(
         '[data-testid="scope:scenarios:write"][aria-hidden="true"]',
-        text: 'Write scenarios'
+        text: 'Write'
       )
     end
 
     it 'shows that the token may not delete scenarios' do
       expect(rendered).to have_css(
         '[data-testid="scope:scenarios:delete"][aria-hidden="true"]',
-        text: 'Delete scenarios'
+        text: 'Delete'
       )
     end
   end

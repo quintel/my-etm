@@ -4,9 +4,9 @@ module Identity
   module TokenMailerHelper
     def token_permissions(token)
       permissions = [
-        [ "Read scenarios", "scenarios:read" ],
-        [ "Write scenarios", "scenarios:write" ],
-        [ "Delete scenarios", "scenarios:delete" ]
+        [ "Read", "scenarios:read" ],
+        [ "Write", "scenarios:write" ],
+        [ "Delete", "scenarios:delete" ]
       ]
 
       permissions

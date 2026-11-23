@@ -134,9 +134,9 @@ nl:
       last_used: Laatst gebruikt
       permissions: Bevoegdheden
       scopes:
-        read: Lees scenario's
-        write: Bewerk scenario's
-        delete: Verwijder scenario's
+        read: Lezen
+        write: Bewerken
+        delete: Verwijderen
       full_token_not_shown: |
         Het volledige token wordt hier niet getoond. Als dit verloren is gegaan, moet je dit token
         intrekken en een nieuwe aanmaken.
@@ -171,12 +171,9 @@ nl:
         name_hint: Deze naam helpt je om in de toekomst het token te herkennen.
         title: Maak een nieuw toegangstoken aan
         permissions:
-          read: Lees scenario's
-          write: Lees en bewerk scenario's
-          delete: Lees, bewerk en verwijder scenario's
-        permissions_hint: |
-          Elk niveau geldt voor jouw publieke en privéscenario's. Elk token kan ook publieke
-          scenario's van anderen lezen.
+          read: Lezen
+          write: Lezen en bewerken
+          delete: Lezen, bewerken en verwijderen
       expiration_options:
         n_days: "%{n} dagen"
         one_year: Één jaar

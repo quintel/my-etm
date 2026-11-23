@@ -133,9 +133,9 @@ en:
       last_used: Last used
       permissions: Permissions
       scopes:
-        read: Read scenarios
-        write: Write scenarios
-        delete: Delete scenarios
+        read: Read
+        write: Write
+        delete: Delete
       full_token_not_shown: |
         The full token is not shown here. If you have lost it you should revoke this token and
         create a new one.
@@ -175,12 +175,9 @@ en:
         name_hint: This name will help you recognise the token in the future.
         title: Create a new access token
         permissions:
-          read: Read scenarios
-          write: Read and write scenarios
-          delete: Read, write, and delete scenarios
-        permissions_hint: |
-          Each level applies to your public and private scenarios. Every token can also read
-          public scenarios made by other people.
+          read: Read
+          write: Read and write
+          delete: Read, write and delete
       expiration_options:
         n_days: "%{n} days"
         one_year: One year

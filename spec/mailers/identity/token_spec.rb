@@ -18,7 +18,7 @@ RSpec.describe Identity::TokenMailer, type: :mailer do
 
     it 'renders the body' do
       expect(mail.body.encoded).to match('You just created a new personal access token')
-      expect(mail.body.encoded).to match('- Read scenarios')
+      expect(mail.body.encoded).to match('- Read')
     end
   end
 
@@ -39,7 +39,7 @@ RSpec.describe Identity::TokenMailer, type: :mailer do
 
     it 'renders the body' do
       expect(mail.body.encoded).to match('You have an access token which will expire soon')
-      expect(mail.body.encoded).to match('- Read scenarios')
+      expect(mail.body.encoded).to match('- Read')
     end
   end
 end
