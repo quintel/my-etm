@@ -5,7 +5,6 @@ namespace :scenarios do
   task :bind, %i[version] => :environment do |_, args|
     version = Version.find_by!(tag: args[:version])
     user = User.robot
-    abort "#{version.tag} has no bound flag in ETEngine" unless ApiScenario::SetBound.supported?(version)
 
     sessions = SavedScenario.where(version:).select(:id, :scenario_id, :scenario_id_history)
       .find_each.flat_map { |ss| ss.all_scenario_ids.uniq.map { |id| [ id, ss.id ] } }
