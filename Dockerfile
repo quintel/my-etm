@@ -22,7 +22,7 @@ RUN apt-get update -yqq && \
       pkg-config && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile Gemfile.lock .ruby-version ./
 RUN bundle install
 RUN bundle exec rails tailwindcss:build
 

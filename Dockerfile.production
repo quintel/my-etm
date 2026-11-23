@@ -24,7 +24,7 @@ RUN gem update --system && gem install bundler
 
 WORKDIR /usr/src/app
 
-COPY Gemfile* ./
+COPY Gemfile* .ruby-version ./
 
 RUN bundle config frozen true \
  && bundle config jobs 4 \
