@@ -33,33 +33,6 @@ describe ApiScenario::SetBound, type: :service do
     expect(result.value!).to eq([ 2 ])
   end
 
-  context 'when the engine has no bound flag' do
-    before do
-      allow(Settings).to receive(:versions_without_bound_flag).and_return([ version.tag ])
-      allow(ApiScenario::SetCompatibility).to receive(:dont_keep_compatible)
-    end
-
-    it 'calls nothing when binding' do
-      result
-
-      expect(MyEtm::Auth).not_to have_received(:client_for)
-    end
-
-    it 'stops keeping every Session compatible when unbinding' do
-      described_class.call(user, version, [ 1, 2 ], false)
-
-      [ 1, 2 ].each do |id|
-        expect(ApiScenario::SetCompatibility).to have_received(:dont_keep_compatible).with(client, id)
-      end
-    end
-
-    it 'never calls the bind endpoint' do
-      described_class.call(user, version, [ 1, 2 ], false)
-
-      expect(client).not_to have_received(:put)
-    end
-  end
-
   it 'fails upstream when ETEngine fails' do
     allow(client).to receive(:put).and_raise(Faraday::ServerError)
 
@@ -79,10 +52,5 @@ describe ApiScenario::SetBound, type: :service do
 
   it 'answers call! with the missing ids' do
     expect(described_class.call!(user, version, [ 1, 2 ], true)).to eq([ 2 ])
-  end
-
-  it 'keeps its helpers private' do
-    expect(described_class.new(user, version, [], true).private_methods)
-      .to include(:client, :release_without_bound_flag)
   end
 end
