@@ -7,8 +7,9 @@ module Api
     class RelayController < BaseController
       RELAYED_PATH = %r{\A/api/v4/saved_scenarios/(?<id>\d+)/(?<path>[^?]*)}
 
-      # Engine routes that would go around MyETM's authority, or create a Session
-      DENIED_SEGMENTS = %w[users dump interpolate].freeze
+      # Engine routes that would go around MyETM's authority or create a Session, and the routes
+      # MyETM serves itself under a Scenario
+      DENIED_SEGMENTS = %w[users snapshots dump interpolate].freeze
 
       # Engine's Rack::MethodOverride can turn a POST into a DELETE, so the Session itself is
       # relayed for these methods only

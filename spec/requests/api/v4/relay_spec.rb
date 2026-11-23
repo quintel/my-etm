@@ -273,6 +273,7 @@ RSpec.describe "Api::V4::Relay", type: :request, api: true do
       "users with a format suffix" => "users.json",
       "dump" => "dump",
       "interpolate" => "interpolate",
+      "snapshots, which MyETM serves itself" => "snapshots",
       "a .. segment" => "inputs/../users",
       "an encoded .. segment" => "%2e%2e/scenarios",
       "an empty segment hiding users" => "/users"
