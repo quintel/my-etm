@@ -14,13 +14,13 @@ describe CreateInterpolatedCollection, type: :service do
   def stub_successful_interpolation(year, id)
     allow(ApiScenario::Interpolate).to receive(:call)
       .with(anything, scenario.scenario_id, year, keep_compatible: true)
-      .and_return(ServiceResult.success('id' => id))
+      .and_return(Dry::Monads::Success('id' => id))
   end
 
   def stub_failed_interpolation(year, errors)
     allow(ApiScenario::Interpolate).to receive(:call)
       .with(anything, scenario.scenario_id, year, keep_compatible: true)
-      .and_return(ServiceResult.failure(errors))
+      .and_return(Dry::Monads::Failure(end_year: errors))
   end
 
   # --
@@ -178,6 +178,13 @@ describe CreateInterpolatedCollection, type: :service do
 
       it 'includes the errors on the Result' do
         expect(result.failure).to eq([ :upstream, [ "That didn't work." ] ])
+      end
+
+      it 'passes an unreachable ETEngine through as upstream' do
+        allow(ApiScenario::Interpolate).to receive(:call)
+          .and_return(Dry::Monads::Failure([ :upstream, [ 'Failed to interpolate scenario' ] ]))
+
+        expect(result.failure).to eq([ :upstream, [ 'Failed to interpolate scenario' ] ])
       end
 
       it 'does not create a Collection record' do

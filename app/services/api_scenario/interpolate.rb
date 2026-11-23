@@ -1,26 +1,31 @@
 # frozen_string_literal: true
 
-# Calls ETEngine to create a new scenario with input values interpolated from
-# another scenario.
+# Creates an ETEngine Session with input values interpolated from another Session, for an earlier
+# end year.
 #
-# http_client     - The client used to communiate with ETEngine.
-# scenario_id     - The ID of the source scenario whose input values will be interpolated for a new
-#                   end year.
-# end_year        - The end year of the new scenario.
-# keep_compatible - Flag the scenario to be migrated with automatic updated when the model changes.
+# http_client     - A client for the Version's ETEngine, granted to clone the source Session.
+# scenario_id     - The ID of the source Session.
+# end_year        - The end year of the new Session.
+# keep_compatible - Flag the new Session to be migrated when the model changes.
 #
-# Returns a ServiceResult with either the parsed JSON response, or the errors
-# returned by ETEngine.
-ApiScenario::Interpolate = lambda do |http_client, scenario_id, end_year, keep_compatible: false|
-  ServiceResult.success(
-    http_client.post(
-      "/api/v3/scenarios/#{scenario_id}/interpolate",
-      end_year:, keep_compatible:
-    ).body
-  )
-rescue Faraday::UnprocessableEntityError => e
-  ServiceResult.failure_from_unprocessable_entity(e)
-rescue Faraday::Error => e
-  Sentry.capture_exception(e)
-  ServiceResult.failure('Failed to interpolate scenario')
+# Returns a Dry::Monads::Result with the new Session's JSON. A refusal carries ETEngine's errors
+# under end_year, as they are all about the year, and any other failure an [:upstream, messages] pair.
+class ApiScenario::Interpolate
+  extend Dry::Initializer
+  include Service
+  include Dry::Monads[:result]
+
+  param :http_client
+  param :scenario_id
+  param :end_year
+  option :keep_compatible, default: proc { false }
+
+  def call
+    Success(http_client.post("/api/v3/scenarios/#{scenario_id}/interpolate", end_year:, keep_compatible:).body)
+  rescue Faraday::UnprocessableEntityError => e
+    Failure(end_year: Array(e.response[:body]["errors"]))
+  rescue Faraday::Error => e
+    Sentry.capture_exception(e)
+    Failure([ :upstream, [ "Failed to interpolate scenario" ] ])
+  end
 end

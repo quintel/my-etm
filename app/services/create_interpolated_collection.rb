@@ -47,10 +47,12 @@ class CreateInterpolatedCollection
 
   private
 
-  # Interpolate still returns a ServiceResult
+  # A Collection reports any failed interpolation as upstream, refusals included
   def interpolation_failure
-    failed = interpolations.values.find(&:failure?)
-    Failure([ :upstream, failed.errors ]) if failed
+    failed = interpolations.values.find(&:failure?)&.failure
+    return unless failed
+
+    Failure([ :upstream, failed.is_a?(Hash) ? failed.values.flatten : failed.last ])
   end
 
   def bind_interpolated
@@ -58,7 +60,7 @@ class CreateInterpolatedCollection
   end
 
   def interpolated_ids
-    interpolations.values.select(&:successful?).map { |result| result.value["id"] }
+    interpolations.values.select(&:success?).map { |result| result.value!["id"] }
   end
 
   def create_collection
@@ -66,7 +68,7 @@ class CreateInterpolatedCollection
     collection.version ||= @saved_scenario.version || Version.default
 
     interpolated = interpolations.map do |end_year, sresult|
-      build_interpolated_scenario(collection, end_year, sresult.value["id"])
+      build_interpolated_scenario(collection, end_year, sresult.value!["id"])
     end
 
     Collection.transaction do
@@ -129,7 +131,7 @@ class CreateInterpolatedCollection
   # As requests are sent synchronously, this stops as soon as any one request
   # fails.
   #
-  # Returns a Hash of end year to ServiceResult.
+  # Returns a Hash of end year to Dry::Monads::Result.
   def interpolations
     @interpolations ||= begin
       any_errors = false
