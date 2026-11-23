@@ -44,18 +44,18 @@ class SavedScenario::Create
     saved_scenario.scenario_id
   end
 
+  # The owner is set only after the bind: assigning it creates the owner's role, which saves the record
   def saved_scenario_attrs
-    attributes = saved_scenario_params.merge(
-      private: saved_scenario_params.fetch(:private, user.private_scenarios)
-    )
-    attributes["version"] = version
+    params.merge(private: params.fetch(:private, user.private_scenarios), version: version)
+  end
 
-    attributes
+  def params
+    @params ||= saved_scenario_params.to_h.with_indifferent_access
   end
 
   # Stable version tag
   def version
-    Version.find_by(tag: saved_scenario_params["version"]) || Version.default
+    Version.find_by(tag: params[:version]) || Version.default
   end
 
   def enqueue_callbacks

@@ -44,6 +44,18 @@ RSpec.describe SavedScenario, type: :model do
     end
   end
 
+  describe "#interpolates_to?" do
+    subject(:saved_scenario) { build(:saved_scenario, end_year: 2050) }
+
+    it "is true for a different end year" do
+      expect(saved_scenario.interpolates_to?(2040)).to be(true)
+    end
+
+    it "is false for its own end year, or none" do
+      expect([ 2050, nil ].map { |year| saved_scenario.interpolates_to?(year) }).to all(be(false))
+    end
+  end
+
   describe "#scenario_id_history" do
     subject { SavedScenario.new.scenario_id_history }
     it { is_expected.to be_a(Array) }

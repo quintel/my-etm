@@ -43,11 +43,11 @@ module Api
         attributes = validated(SavedScenarioCreateContract, create_params)
         return if attributes.nil?
 
-        render_write(
-          SavedScenario::Create.call(nil, attributes.stringify_keys, current_user),
-          with: SavedScenarioSerialiser,
-          status: :created
-        )
+        source = readable_source(attributes)
+        reject_discarded_scenario(source) if source
+        return if performed?
+
+        render_write(create_saved_scenario(attributes, source), with: SavedScenarioSerialiser, status: :created)
       end
 
       # PUT/PATCH /api/v4/saved_scenarios/:id
@@ -55,10 +55,11 @@ module Api
         attributes = validated(SavedScenarioUpdateContract, update_params)
         return if attributes.nil?
 
-        render_write(
-          SavedScenario::Update.call(engine_client, @saved_scenario, attributes, user: current_user),
-          with: SavedScenarioSerialiser
+        updated = SavedScenario::Update.call(
+          engine_client(scenario: @saved_scenario), @saved_scenario, attributes, user: current_user
         )
+
+        render_write(updated, with: SavedScenarioSerialiser)
       end
 
       # DELETE /api/v4/saved_scenarios/:id
@@ -90,13 +91,28 @@ module Api
       end
 
       def create_params
-        resource_params(:scenario_id, :title, :version, :description, :area_code, :end_year, :private)
+        resource_params(:scenario_id, :source, :title, :version, :description, :area_code, :end_year, :private)
       end
 
-      def engine_client
-        MyEtm::Auth.engine_client(
-          current_user, @saved_scenario.version, scenario: @saved_scenario, scopes: current_token.scopes.to_a
+      def create_saved_scenario(attributes, source)
+        return SavedScenario::Create.call(nil, attributes, current_user) if attributes[:scenario_id]
+
+        SavedScenario::CreateWithNewSession.call(
+          session_client(attributes, source), current_user, attributes, source:
         )
+      end
+
+      # A copy lives on its source's Version, a fresh Session lives on the requested one
+      def session_client(attributes, source)
+        engine_client(scenario: source, version: source&.version || Version.find_by!(tag: attributes[:version]))
+      end
+
+      def readable_source(attributes)
+        return unless attributes[:source]
+
+        SavedScenario.find(attributes[:source]).tap do |source|
+          authorize!(source.interpolates_to?(attributes[:end_year]) ? :interpolate : :read, source)
+        end
       end
 
       def update_params

@@ -74,13 +74,14 @@ module Api
     def allow_write
       can :create, SavedScenario
       can :create, Collection
+      can :interpolate, SavedScenario, private: false
 
       if admin?
         # Admins with write scope can update all saved scenarios and collections.
-        can :update, SavedScenario
+        can %i[update interpolate], SavedScenario
         can :update, Collection
       else
-        can :update, SavedScenario, id: collaborator_saved_scenario_ids
+        can %i[update interpolate], SavedScenario, id: collaborator_saved_scenario_ids
         can :update, Collection, id: user_collection_ids
       end
     end

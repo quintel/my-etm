@@ -207,6 +207,200 @@ RSpec.describe "Api::V4::SavedScenarios", type: :request, api: true do
       expect(SavedScenario.find(response.parsed_body.dig("data", "id")).version).to eq(other)
     end
 
+    it "honours a requested privacy over the caller's default" do
+      owner.update!(private_scenarios: false)
+
+      post(
+        path,
+        headers: v4_bearer(owner, :write),
+        params: { saved_scenario: attributes.merge(private: true) },
+        as: :json
+      )
+
+      expect(response.parsed_body.dig("data", "private")).to be(true)
+    end
+
+    it "leaves no Scenario behind when ETEngine fails to bind the Session" do
+      allow(ApiScenario::SetBound).to receive(:call)
+        .and_return(Dry::Monads::Failure([ :upstream, [ "Engine down" ] ]))
+
+      post(path, headers: v4_bearer(owner, :write), params: { saved_scenario: attributes }, as: :json)
+
+      expect(response).to have_http_status(:bad_gateway)
+      expect(SavedScenario.where(scenario_id: 123_456)).to be_empty
+    end
+
+    describe "when MyETM creates the Session" do
+      let(:session) { { "id" => 789, "area_code" => "nl2023", "end_year" => 2050 } }
+      let(:engine) { instance_double(Faraday::Connection) }
+      let(:other_version) { Version.where.not(id: Version.default.id).first }
+      let(:source) { create(:saved_scenario, user: owner, private: true, scenario_id: 456, area_code: "nl2023") }
+
+      before do
+        allow(MyEtm::Auth).to receive(:engine_client).and_return(engine)
+        allow(ApiScenario::Create).to receive(:call).and_return(Dry::Monads::Success(session))
+        allow(ApiScenario::Interpolate).to receive(:call).and_return(Dry::Monads::Success(session))
+      end
+
+      def create_scenario(caller = owner, **attributes)
+        attributes = { version: (attributes[:source] ? source.version : Version.default).tag }.merge(attributes)
+        post(path, headers: v4_bearer(caller, :write), params: { saved_scenario: attributes }, as: :json)
+      end
+
+      def viewer_of(scenario)
+        create(:saved_scenario_user, saved_scenario: scenario, user: create(:user),
+          role_id: User::Roles.index_of(:scenario_viewer)).user
+      end
+
+      def created
+        SavedScenario.find(response.parsed_body.dig("data", "id"))
+      end
+
+      it "creates a fresh Session on latest from an area and end year" do
+        create_scenario(title: "Fresh", area_code: "nl2023", end_year: 2050)
+
+        expect(response).to have_http_status(:created)
+        expect(ApiScenario::Create).to have_received(:call)
+          .with(engine, { area_code: "nl2023", end_year: 2050, private: false })
+        expect(created).to have_attributes(scenario_id: 789, version: Version.default, users: [ owner ])
+      end
+
+      it "creates the fresh Session private in ETEngine when that is the caller's default" do
+        owner.update!(private_scenarios: true)
+
+        create_scenario(title: "Fresh", area_code: "nl2023", end_year: 2050)
+
+        expect(ApiScenario::Create).to have_received(:call)
+          .with(engine, { area_code: "nl2023", end_year: 2050, private: true })
+        expect(created.private).to be(true)
+      end
+
+      it "creates the fresh Session on another Version when asked" do
+        create_scenario(title: "Fresh", area_code: "nl2023", end_year: 2050, version: other_version.tag)
+
+        expect(MyEtm::Auth).to have_received(:engine_client).with(owner, other_version, scenario: nil, scopes: anything)
+        expect(created.version).to eq(other_version)
+      end
+
+      it "clones a private source the caller can read, with a grant on it" do
+        create_scenario(title: "Copy", source: source.id)
+
+        expect(response).to have_http_status(:created)
+        expect(MyEtm::Auth).to have_received(:engine_client).with(owner, source.version, scenario: source, scopes: anything)
+        expect(ApiScenario::Create).to have_received(:call)
+          .with(engine, { scenario_id: 456, private: true })
+        expect(created).to have_attributes(scenario_id: 789, private: true, area_code: "nl2023")
+      end
+
+      it "makes a copy of a private source public when asked" do
+        create_scenario(title: "Copy", source: source.id, private: false)
+
+        expect(ApiScenario::Create).to have_received(:call)
+          .with(engine, { scenario_id: 456, private: false })
+        expect(created.private).to be(false)
+      end
+
+      it "lets a viewer copy a private source, private in ETEngine whatever the viewer's default" do
+        create_scenario(viewer_of(source), title: "Copy", source: source.id)
+
+        expect(response).to have_http_status(:created)
+        expect(ApiScenario::Create).to have_received(:call)
+          .with(engine, { scenario_id: 456, private: true })
+      end
+
+      it "clones a public source the caller holds no role on" do
+        public_source = create(:saved_scenario, user: create(:user), private: false, scenario_id: 456)
+
+        create_scenario(title: "Copy", source: public_source.id)
+
+        expect(response).to have_http_status(:created)
+        expect(created).to have_attributes(private: false, users: [ owner ])
+      end
+
+      it "clones a featured source" do
+        featured = create(:featured_scenario, saved_scenario: create(:saved_scenario, private: false, scenario_id: 456))
+
+        create_scenario(title: "Copy", source: featured.saved_scenario_id)
+
+        expect(response).to have_http_status(:created)
+      end
+
+      it "interpolates the source when the end year differs" do
+        create_scenario(title: "Earlier", source: source.id, end_year: 2040)
+
+        expect(ApiScenario::Interpolate).to have_received(:call).with(engine, 456, 2040)
+        expect(ApiScenario::Create).not_to have_received(:call)
+      end
+
+      it "refuses a viewer interpolating a private source, which ETEngine allows only for writers" do
+        create_scenario(viewer_of(source), title: "Earlier", source: source.id, end_year: 2040)
+
+        expect(response).to have_http_status(:forbidden)
+        expect(ApiScenario::Interpolate).not_to have_received(:call)
+      end
+
+      it "interpolates a public source the caller holds no role on" do
+        public_source = create(:saved_scenario, user: create(:user), private: false, scenario_id: 456)
+
+        create_scenario(title: "Earlier", source: public_source.id, end_year: 2040)
+
+        expect(response).to have_http_status(:created)
+      end
+
+      it "answers 409 for a discarded source, before calling ETEngine" do
+        source.discard
+
+        create_scenario(title: "Copy", source: source.id)
+
+        expect(response).to have_http_status(:conflict)
+        expect(response.parsed_body.dig("errors", 0, "code")).to eq("scenario_discarded")
+        expect(ApiScenario::Create).not_to have_received(:call)
+      end
+
+      it "answers 404 for a private source the caller cannot read" do
+        create_scenario(title: "Copy", source: create(:saved_scenario, user: create(:user), private: true).id)
+
+        expect(response).to have_http_status(:not_found)
+        expect(ApiScenario::Create).not_to have_received(:call)
+      end
+
+      it "refuses a version that differs from the source's, naming the member" do
+        create_scenario(title: "Copy", source: source.id, version: other_version.tag)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"].sole).to include(
+          "code" => "validation_failed", "source" => { "pointer" => "/saved_scenario/version" }
+        )
+      end
+
+      it "refuses a source together with a Session" do
+        create_scenario(title: "Copy", source: source.id, scenario_id: 1)
+
+        expect(response.parsed_body["errors"].sole).to include(
+          "detail" => "cannot be given with a scenario_id", "source" => { "pointer" => "/saved_scenario/source" }
+        )
+      end
+
+      it "names the end year when ETEngine refuses the interpolation" do
+        allow(ApiScenario::Interpolate).to receive(:call)
+          .and_return(Dry::Monads::Failure(end_year: [ "must be prior to the original scenario end year" ]))
+
+        create_scenario(title: "Later", source: source.id, end_year: 2060)
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["errors"].sole["source"]).to eq("pointer" => "/saved_scenario/end_year")
+      end
+
+      it "answers 502 and leaves no Scenario behind when ETEngine fails" do
+        allow(ApiScenario::Create).to receive(:call)
+          .and_return(Dry::Monads::Failure([ :upstream, [ "Failed to create the session in ETEngine" ] ]))
+
+        expect { create_scenario(title: "Fresh", area_code: "nl2023", end_year: 2050) }
+          .not_to change(SavedScenario, :count)
+        expect(response.parsed_body.dig("errors", 0, "code")).to eq("upstream_error")
+      end
+    end
+
     it "reports one error per failing attribute, atomically" do
       post(
         path,

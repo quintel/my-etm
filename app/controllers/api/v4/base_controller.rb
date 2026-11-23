@@ -226,9 +226,15 @@ module Api
         )
       end
 
-      # A before_action for controllers that load @saved_scenario and should not act on a discarded one
-      def reject_discarded_scenario
-        return unless @saved_scenario.discarded?
+      # A client for a Version's ETEngine
+      def engine_client(scenario:, version: scenario.version)
+        MyEtm::Auth.engine_client(current_user, version, scenario:, scopes: current_token.scopes.to_a)
+      end
+
+      # A before_action for controllers that load @saved_scenario and should not act on a discarded
+      # one
+      def reject_discarded_scenario(saved_scenario = @saved_scenario)
+        return unless saved_scenario.discarded?
 
         render_error(
           status: :conflict,
