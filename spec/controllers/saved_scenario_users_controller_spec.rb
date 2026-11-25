@@ -3,22 +3,10 @@ require 'rails_helper'
 describe SavedScenarioUsersController do
   render_views
 
-  before do
-    # Disable relaying ScenarioUserUpdates to ETEngine
-    allow(ApiScenario::Users::Create).to receive(:call).and_return(
-      ServiceResult.success([ {
-        'user_email' => 'test@test.com',
-        'role_id' => User::Roles.index_of(:scenario_owner)
-      } ])
-    )
-    allow(ApiScenario::Users::Update).to receive(:call).and_return(ServiceResult.success)
-    allow(ApiScenario::Users::Destroy).to receive(:call).and_return(ServiceResult.success)
-    allow(MyEtm::Auth).to receive(:engine_client).and_return(client)
-  end
+  # TEMPORARY(role-sync): remove once ETEngine no longer serves its scenario users endpoints.
+  before { expect(MyEtm::Auth).not_to receive(:client_for) }
 
   let(:saved_scenario) { FactoryBot.create(:saved_scenario, id: 648691) }
-
-  let(:client) { Faraday.new(url: 'http://et.engine') }
 
   # Non logged-in users should always receive 404 not-found responses
   # when attempting to perform an action on SavedScenarioUsers. Because

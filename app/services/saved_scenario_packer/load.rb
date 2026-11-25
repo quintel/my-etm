@@ -217,14 +217,17 @@ class SavedScenarioPacker::Load
     )
   end
 
-  # The same protect, set_roles and tag_version callbacks a normal save runs. The saved scenario
+  # The same protect and tag_version callbacks a normal save runs. The saved scenario
   # already exists, so a failure here is a warning rather than a reason to undo it.
   def perform_engine_callbacks(saved_scenario)
-    SavedScenario::PerformEngineCallbacks.call(
-      http_client, saved_scenario.scenario_id, saved_scenario: saved_scenario
-    )
+    result = SavedScenario::PerformEngineCallbacks.call(http_client, saved_scenario.scenario_id)
+    warn_callbacks_failed(saved_scenario, result.failure.last.join(", ")) if result.failure?
   rescue StandardError => e
-    warnings << "ETEngine callbacks failed for #{saved_scenario.title}: #{e.message}"
+    warn_callbacks_failed(saved_scenario, e.message)
+  end
+
+  def warn_callbacks_failed(saved_scenario, reason)
+    warnings << "ETEngine callbacks failed for #{saved_scenario.title}: #{reason}"
   end
 
   def bind(scenario_id, bound: true)

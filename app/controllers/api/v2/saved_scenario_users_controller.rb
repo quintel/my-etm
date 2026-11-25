@@ -31,28 +31,21 @@ module Api
       # POST /api/v2/saved_scenarios/:saved_scenario_id/users
       def create
         apply(SavedScenarioUserContract) do |members|
-          CreateSavedScenarioUser.call(
-            nil, @saved_scenario, current_user.name, members,
-            user: current_user, sync_to_engine: false
-          )
+          CreateSavedScenarioUser.call(@saved_scenario, current_user.name, members)
         end
       end
 
       # PUT/PATCH /api/v2/saved_scenarios/:saved_scenario_id/users
       def update
         apply(SavedScenarioUserContract) do |members|
-          UpdateSavedScenarioUser.call(
-            nil, @saved_scenario, members, user: current_user, sync_to_engine: false
-          )
+          UpdateSavedScenarioUser.call(@saved_scenario, members)
         end
       end
 
       # DELETE /api/v2/saved_scenarios/:saved_scenario_id/users
       def destroy
         apply(SavedScenarioUserRemovalContract) do |members|
-          DestroySavedScenarioUser.call(
-            nil, @saved_scenario, members, user: current_user, sync_to_engine: false
-          )
+          DestroySavedScenarioUser.call(@saved_scenario, members)
         end
       end
 

@@ -82,7 +82,7 @@ describe SavedScenarioPacker::Load, type: :service do
 
   before do
     allow(ApiScenario::SetBound).to receive(:call).and_return(Dry::Monads::Success([]))
-    allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(ServiceResult.success)
+    allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_return(Dry::Monads::Success(1))
 
     # Create a test ETM file with combined structure
     FileUtils.mkdir_p(File.dirname(file_path))
@@ -175,12 +175,21 @@ describe SavedScenarioPacker::Load, type: :service do
       service.call
 
       expect(SavedScenario::PerformEngineCallbacks).to have_received(:call)
-        .with(http_client, 223, saved_scenario: an_instance_of(SavedScenario))
+        .with(http_client, 223)
       expect(SavedScenario::PerformEngineCallbacks).to have_received(:call)
-        .with(http_client, 224, saved_scenario: an_instance_of(SavedScenario))
+        .with(http_client, 224)
     end
 
     it 'keeps the scenario and warns when the ETEngine callbacks fail' do
+      allow(SavedScenario::PerformEngineCallbacks).to receive(:call)
+        .and_return(Dry::Monads::Failure([ :upstream, [ 'Engine down' ] ]))
+      result = service.call.value!
+
+      expect(result.saved_scenarios.size).to eq(2)
+      expect(result.warnings).to include('ETEngine callbacks failed for Netherlands 2050: Engine down')
+    end
+
+    it 'keeps the scenario and warns when the ETEngine callbacks raise' do
       allow(SavedScenario::PerformEngineCallbacks).to receive(:call).and_raise(StandardError, 'Engine down')
       result = service.call.value!
 

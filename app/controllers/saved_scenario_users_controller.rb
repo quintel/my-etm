@@ -37,7 +37,6 @@ class SavedScenarioUsersController < ApplicationController
   # POST /saved_scenarios/:saved_scenario_id/users
   def create
     result = CreateSavedScenarioUser.call(
-      engine_client(scenario: @saved_scenario),
       @saved_scenario,
       current_user.name,
       scenario_user_params
@@ -74,7 +73,6 @@ class SavedScenarioUsersController < ApplicationController
   # PUT /saved_scenarios/:saved_scenario_id/users/:id
   def update
     result = UpdateSavedScenarioUser.call(
-      engine_client(scenario: @saved_scenario),
       @saved_scenario,
       @saved_scenario_user,
       scenario_user_params[:role_id]&.to_i
@@ -113,11 +111,7 @@ class SavedScenarioUsersController < ApplicationController
   #
   # PUT /saved_scenarios/:saved_scenario_id/users/:id
   def destroy
-    result = DestroySavedScenarioUser.call(
-      engine_client(scenario: @saved_scenario),
-      @saved_scenario,
-      @saved_scenario_user
-    )
+    result = DestroySavedScenarioUser.call(@saved_scenario, @saved_scenario_user)
 
     if result.successful?
       @saved_scenario.reload
