@@ -516,7 +516,7 @@ RSpec.describe "Api::V4::SavedScenarios", type: :request, api: true do
     let(:resource) { create(:saved_scenario, user: owner, private: true) }
     let(:path)     { "/api/v4/saved_scenarios/#{resource.id}" }
 
-    let(:strict_attribute)       { :end_year }
+    let(:strict_attribute)       { :private }
     let(:strict_attribute_value) { :winnie_the_pooh }
     let(:unupdateable_attribute) { :version }
     let(:resource_attributes)    { { title: "My new scenario" } }
@@ -607,20 +607,19 @@ RSpec.describe "Api::V4::SavedScenarios", type: :request, api: true do
       expect(resource.reload.discarded_at).to be_nil
     end
 
-    it "refuses an unparseable integer rather than storing what it coerces to" do
-      put(
-        path,
-        headers: v4_bearer(owner, :write),
-        params: { saved_scenario: { end_year: "random_thing" } },
-        as: :json
-      )
+    %i[area_code end_year].each do |member|
+      it "refuses changing the #{member} the bound Session fixes" do
+        value = member == :end_year ? resource.end_year + 10 : "de"
 
-      expect(response).to have_http_status(:unprocessable_content)
-      expect(response.parsed_body["errors"].sole).to include(
-        "detail" => "must be an integer",
-        "source" => { "pointer" => "/saved_scenario/end_year" }
-      )
-      expect(resource.reload.end_year).not_to eq(0)
+        put(path, headers: v4_bearer(owner, :write), params: { saved_scenario: { member => value } }, as: :json)
+
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["errors"].sole).to include(
+          "detail" => "cannot be set by this action",
+          "source" => { "pointer" => "/saved_scenario/#{member}" }
+        )
+        expect(resource.reload.public_send(member)).not_to eq(value)
+      end
     end
 
     it "reports a validation failure through the error grammar" do

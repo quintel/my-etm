@@ -116,7 +116,7 @@ module Api
       end
 
       def update_params
-        resource_params(:title, :description, :area_code, :end_year, :private)
+        resource_params(:title, :description, :private)
       end
     end
   end
